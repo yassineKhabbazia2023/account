@@ -4,7 +4,7 @@
 
 namespace Kpmg.Offer.Core.Interfaces
 {
-    public interface IAccountService
+    public interface IOfferService
     {
         Task<IReadOnlyCollection<Models.Offer>> GetOffersAsync();
 
