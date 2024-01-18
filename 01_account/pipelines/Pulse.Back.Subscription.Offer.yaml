@@ -26,11 +26,11 @@ extends:
     devIndex: ${{ parameters.devIndex }}
     deployType: ${{ parameters.deployType }}
     layer: Domain
-    domain: sub
+    domain: acc
     resource:
-      id: '02'
-      name: offer
+      id: '01'
+      name: account
       path: 01_account\src\Account.Api\Account.Api.csproj
       type: webApp
-    dotnetcore: 6.x
+    dotnetcore: 8.x
     
