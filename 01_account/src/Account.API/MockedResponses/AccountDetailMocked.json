@@ -1,7 +1,7 @@
 {
   "accountId": "93012CC8-77B9-4161-8DBD-61915D935E21",
   "accountNumber": "1000265308",
-  "legalName": "JEAN LÉVAGE",
+  "legalName": "JEAN LEVAGE",
   "legalFormCode": "SAS",
   "siret": "66E3GG3E3LEK3EG",
   "nafCode": "690.9",
@@ -13,10 +13,10 @@
     "accountingMethod": "Engagement",
     "activityType": "Prestation de service",
     "fiscalSystem": "BIC",
-    "taxationSystem": "Impôt sur le revenu"
+    "taxationSystem": "Impot sur le revenu"
   },
   "vat": {
-    "system": "Réel normal - CA3 mensuelle",
+    "system": "Reel normal - CA3 mensuelle",
     "intra": "Non modifiable",
     "type": "Encaissement"
   }

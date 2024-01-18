@@ -13,7 +13,7 @@ using Microsoft.IdentityModel.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Kpmg.Offer.API
+namespace Kpmg.Account.API
 {
     [ExcludeFromCodeCoverage]
     public class Startup

@@ -17,7 +17,7 @@ namespace Kpmg.Account.Core.Models
 
         public string? LegalFormCode { get; set; }
 
-        public string? SiretNumber { get; set; }
+        public string? Siret { get; set; }
 
         public string? NafCode { get; set; }
 
