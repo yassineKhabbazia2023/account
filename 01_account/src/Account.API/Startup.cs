@@ -3,6 +3,8 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Text.Json;
 using Kpmg.AspNetCore.Authentication.ConstellationIdentityService;
 using Kpmg.ExceptionMiddleware;
 using Kpmg.Offer.API.Configuration;
@@ -11,7 +13,7 @@ using Microsoft.IdentityModel.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Kpmg.Offer.API
+namespace Kpmg.Account.API
 {
     [ExcludeFromCodeCoverage]
     public class Startup
@@ -51,7 +53,7 @@ namespace Kpmg.Offer.API
                 options.IncludeSubDomains = true;
                 options.MaxAge = TimeSpan.FromDays(MaxAgeConfHsts);
             });
-            services.AddControllers().AddControllersAsServices()
+            services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase).AddControllersAsServices()
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() };
@@ -90,6 +92,16 @@ namespace Kpmg.Offer.API
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCors("CorsPolicy");
+            app.UseSwagger(option =>
+            {
+                option.RouteTemplate = "/api/{documentName}/api.json";
+            });
+            app.UseSwaggerUI(c =>
+            {
+                c.EnableTryItOutByDefault();
+                c.SwaggerEndpoint("/api/v1/api.json", "Account V1");
+                c.RoutePrefix = "api";
+            });
 
             SwaggerExtension.UseSwagger(app, _swaggerConfiguration);
             HealthCheckExtension.UseHealthcheckUI(app);

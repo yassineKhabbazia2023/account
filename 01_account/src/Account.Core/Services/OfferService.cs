@@ -3,10 +3,11 @@
 // </copyright>
 
 using Kpmg.Offer.Core.Interfaces;
+using Kpmg.Offer.Core.Services;
 
 namespace Kpmg.Offer.Core.Services
 {
-    public class OfferService : IAccountService
+    public class OfferService : IOfferService
     {
         private readonly IOfferRepository _repository;
 
