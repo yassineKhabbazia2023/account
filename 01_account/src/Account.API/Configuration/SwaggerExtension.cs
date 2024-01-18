@@ -4,7 +4,7 @@
 
 using Microsoft.OpenApi.Models;
 
-namespace Kpmg.Offer.API.Configuration
+namespace Kpmg.Account.API.Configuration
 {
     public static class SwaggerExtension
     {

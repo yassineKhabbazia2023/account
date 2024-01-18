@@ -2,7 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-namespace Kpmg.Offer.Core.Configuration
+namespace Kpmg.Account.Core.Configuration
 {
     public class HealthCheckConfiguration
     {

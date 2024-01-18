@@ -1,19 +1,19 @@
-﻿// <copyright file="OfferHealthCheckService.cs" company="KPMG">
+﻿// <copyright file="AccountHealthCheckService.cs" company="KPMG">
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using Kpmg.Offer.Core.Configuration;
+using Kpmg.Account.Core.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
-namespace Kpmg.Offer.Core.Services
+namespace Kpmg.Account.Core.Services
 {
-    public class OfferHealthCheckService : IHealthCheck
+    public class AccountHealthCheckService : IHealthCheck
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly HealthCheckConfiguration _configuration;
 
-        public OfferHealthCheckService(IHttpClientFactory httpClientFactory, IOptions<HealthCheckConfiguration> configuration)
+        public AccountHealthCheckService(IHttpClientFactory httpClientFactory, IOptions<HealthCheckConfiguration> configuration)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration.Value;

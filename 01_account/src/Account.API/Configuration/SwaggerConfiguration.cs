@@ -2,7 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-namespace Kpmg.Offer.API.Configuration
+namespace Kpmg.Account.API.Configuration
 {
     public class SwaggerConfiguration
     {

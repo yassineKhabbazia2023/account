@@ -3,12 +3,9 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
-using Kpmg.Offer.Core.Services;
-using Kpmg.Offer.Infrastructure.Context;
-using Kpmg.Offer.Infrastructure.Mappers;
-using Microsoft.EntityFrameworkCore;
+using Kpmg.Account.Core.Services;
 
-namespace Kpmg.Offer.API.Configuration
+namespace Kpmg.Account.API.Configuration
 {
     [ExcludeFromCodeCoverage]
     public static class RegisterInfrastructureModule
@@ -16,7 +13,7 @@ namespace Kpmg.Offer.API.Configuration
         public static void Register(IServiceCollection services, IConfiguration configuration)
         {
             RegisterDatabase(services, configuration);
-            RegisterAutomapper(services);
+            //RegisterAutomapper(services);
         }
 
         private static void RegisterDatabase(IServiceCollection services, IConfiguration configuration)
@@ -27,21 +24,21 @@ namespace Kpmg.Offer.API.Configuration
                 throw new InvalidOperationException(nameof(connectionString));
             }
 
-            services.AddDbContextPool<OfferContext>(options =>
-            {
-                options.UseSqlServer(connectionString, opt =>
-                {
-                    opt.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                });
-            });
+            //services.AddDbContextPool<OfferContext>(options =>
+            //{
+            //    options.UseSqlServer(connectionString, opt =>
+            //    {
+            //        opt.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            //    });
+            //});
             services.AddHealthChecks()
-                .AddCheck<OfferHealthCheckService>(nameof(OfferHealthCheckService))
+                .AddCheck<AccountHealthCheckService>(nameof(AccountHealthCheckService))
                 .AddSqlServer(connectionString, healthQuery: "SELECT 1;");
         }
 
-        private static void RegisterAutomapper(IServiceCollection services)
-        {
-            services.AddAutoMapper(typeof(MapperDbToModel));
-        }
+        //private static void RegisterAutomapper(IServiceCollection services)
+        //{
+        //    services.AddAutoMapper(typeof(MapperDbToModel));
+        //}
     }
 }

@@ -5,9 +5,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
+using Kpmg.Account.API.Configuration;
 using Kpmg.AspNetCore.Authentication.ConstellationIdentityService;
 using Kpmg.ExceptionMiddleware;
-using Kpmg.Offer.API.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Logging;
 using Newtonsoft.Json;
@@ -61,11 +61,11 @@ namespace Kpmg.Account.API
                     options.SerializerSettings.DateParseHandling = DateParseHandling.None;
                 });
 
-            if (!string.IsNullOrEmpty(_configuration["OfferApplicationInsightConnectionString"]))
+            if (!string.IsNullOrEmpty(_configuration["AccountApplicationInsightConnectionString"]))
             {
                 services.AddApplicationInsightsTelemetry(options =>
                 {
-                    options.ConnectionString = _configuration["OfferApplicationInsightConnectionString"];
+                    options.ConnectionString = _configuration["AccountApplicationInsightConnectionString"];
                 });
             }
 

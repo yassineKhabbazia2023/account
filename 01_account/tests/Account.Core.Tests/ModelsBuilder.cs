@@ -4,7 +4,7 @@
 
 using AutoFixture;
 
-namespace Kpmg.Offer.Core.Tests
+namespace Kpmg.Account.Core.Tests
 {
     public static class ModelsBuilder
     {
@@ -15,15 +15,6 @@ namespace Kpmg.Offer.Core.Tests
             fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
             return fixture;
-        }
-
-        public static IReadOnlyCollection<Models.Offer> GenerateOffers()
-        {
-            var fixture = ConfigurationAutoFixture();
-            var pennylaneOffer = fixture.Create<Models.Offer>();
-            var otherOffer = fixture.Create<Models.Offer>();
-
-            return new List<Models.Offer>() { pennylaneOffer, otherOffer };
         }
     }
 }

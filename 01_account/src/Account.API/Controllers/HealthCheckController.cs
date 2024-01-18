@@ -6,7 +6,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace Kpmg.Offer.API.Controllers
+namespace Kpmg.Account.API.Controllers
 {
     [Route("api")]
     [Controller]

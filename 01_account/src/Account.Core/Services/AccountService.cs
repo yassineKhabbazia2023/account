@@ -7,7 +7,7 @@ using System.Text.Json;
 using Kpmg.Account.Core.Models;
 using Pulse.Account.Core.Interfaces;
 
-namespace Kpmg.Offer.Core.Services
+namespace Kpmg.Account.Core.Services
 {
     public class AccountService : IAccountService
     {

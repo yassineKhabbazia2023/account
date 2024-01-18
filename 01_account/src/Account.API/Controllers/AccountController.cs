@@ -1,14 +1,12 @@
-﻿// <copyright file="OfferController.cs" company="KPMG">
+﻿// <copyright file="AccountController.cs" company="KPMG">
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
 using Kpmg.Account.Core.Models;
-using Kpmg.Offer.Core.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 
-namespace Kpmg.Offer.API.Controllers
+namespace Kpmg.Account.API.Controllers
 {
     [Route("api")]
     //[Authorize]

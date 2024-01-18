@@ -3,10 +3,10 @@
 // </copyright>
 
 using HealthChecks.UI.Client;
-using Kpmg.Offer.Core.Configuration;
+using Kpmg.Account.Core.Configuration;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
-namespace Kpmg.Offer.API.Configuration
+namespace Kpmg.Account.API.Configuration
 {
     public static class HealthCheckExtension
     {
