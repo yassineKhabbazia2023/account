@@ -3,13 +3,14 @@
 // </copyright>
 
 using Kpmg.Account.Core.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 
 namespace Kpmg.Account.API.Controllers
 {
     [Route("api")]
-    //[Authorize]
+    [Authorize]
     [ApiController]
     public class AccountController : ControllerBase
     {

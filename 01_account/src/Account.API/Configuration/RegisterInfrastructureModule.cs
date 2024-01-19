@@ -13,7 +13,6 @@ namespace Kpmg.Account.API.Configuration
         public static void Register(IServiceCollection services, IConfiguration configuration)
         {
             RegisterDatabase(services, configuration);
-            //RegisterAutomapper(services);
         }
 
         private static void RegisterDatabase(IServiceCollection services, IConfiguration configuration)
@@ -24,21 +23,9 @@ namespace Kpmg.Account.API.Configuration
                 throw new InvalidOperationException(nameof(connectionString));
             }
 
-            //services.AddDbContextPool<OfferContext>(options =>
-            //{
-            //    options.UseSqlServer(connectionString, opt =>
-            //    {
-            //        opt.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-            //    });
-            //});
             services.AddHealthChecks()
                 .AddCheck<AccountHealthCheckService>(nameof(AccountHealthCheckService))
                 .AddSqlServer(connectionString, healthQuery: "SELECT 1;");
         }
-
-        //private static void RegisterAutomapper(IServiceCollection services)
-        //{
-        //    services.AddAutoMapper(typeof(MapperDbToModel));
-        //}
     }
 }
