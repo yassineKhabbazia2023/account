@@ -129,8 +129,8 @@ namespace Kpmg.Account.API
                 ServerAddress = new Uri(configuration["AuthServerAdress"] ?? string.Empty),
             };
 
-            //services.AddAuthentication()
-            //.AddConstellationIdentityService(identityServiceOptions, out string[] schemaNames);
+            services.AddAuthentication()
+            .AddConstellationIdentityService(identityServiceOptions, out string[] schemaNames);
 
             services.AddAuthorization(options =>
             {

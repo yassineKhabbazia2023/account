@@ -7,6 +7,6 @@ namespace Kpmg.Account.Core.Exceptions
     public static class Errors
     {
         public static readonly string NotFoundAccountCode = "X001";
-        public static readonly string NotFoundAccountMessage = "L'identifiant de l'offre indiquée est incorrect";
+        public static readonly string NotFoundAccountMessage = "L'identifiant de l'entité indiquée est incorrect";
     }
 }

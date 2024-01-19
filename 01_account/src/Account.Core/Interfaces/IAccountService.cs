@@ -1,22 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kpmg.Account.Core.Models;
+﻿using Kpmg.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 
 namespace Pulse.Account.Core.Interfaces
 {
     public interface IAccountService
     {
-        public Paging<Kpmg.Account.Core.Models.Account> GetAccountList(string search, int page, int limit);
+        public Paging<Kpmg.Account.Core.Models.Account> GetAccountsAsync(string search, int page, int limit);
 
-        public AccountDetail GetAccountDetail(Guid id);
+        public AccountDetail GetAccountDetailAsync(Guid id);
 
-        public AccountDetail UpdateAccount(Guid id, AccountDetail updatedAccount);
+        public AccountDetail UpdateAccountAsync(Guid id, AccountDetail accountDetail);
 
-        public List<AccountFavorite> GetAccountFavoriteList(string token);
+        public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(Guid contactId);
 
-        public void SetFavorite(Guid id, bool isFavorite, string token);
+        public void SetFavoriteAsync(Guid accountId, Guid contactId, bool isFavorite);
     }
 }

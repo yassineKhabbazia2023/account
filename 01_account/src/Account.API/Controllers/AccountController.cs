@@ -6,6 +6,8 @@ using Kpmg.Account.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models.Utils;
+using AccountModel = Kpmg.Account.Core.Models.Account;
 
 namespace Kpmg.Account.API.Controllers
 {
@@ -22,12 +24,12 @@ namespace Kpmg.Account.API.Controllers
         }
 
         [HttpGet("accounts")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Account.Core.Models.Account>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountModel>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Paging<Account.Core.Models.Account>> GetAccountList(string search = "", int page = 1, int limit = int.MaxValue)
+        public ActionResult<Paging<AccountModel>> GetAccountsAsync(string search = "", int page = 1, int limit = int.MaxValue)
         {
-            var result = _accountService.GetAccountList(search, page, limit);
+            var result = _accountService.GetAccountsAsync(search, page, limit);
 
             return Ok(result);
         }
@@ -36,9 +38,9 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<AccountDetail> GetAccountDetail(Guid accountId)
+        public ActionResult<AccountDetail> GetAccountDetailAsync(Guid accountId)
         {
-            var result = _accountService.GetAccountDetail(accountId);
+            var result = _accountService.GetAccountDetailAsync(accountId);
 
             return Ok(result);
         }
@@ -47,33 +49,31 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<AccountDetail> UpdateAccount(Guid accountId, [FromBody] AccountDetail updatedAccount)
+        public ActionResult<AccountDetail> UpdateAccountAsync(Guid accountId, [FromBody] AccountDetail accountDetail)
         {
-            var result = _accountService.UpdateAccount(accountId, updatedAccount);
+            var result = _accountService.UpdateAccountAsync(accountId, accountDetail);
 
             return Ok(result);
         }
 
-        [HttpGet("favorites")]
+        [HttpGet("favorites/{contactId}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountFavorite>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<List<AccountFavorite>> GetAccountFavoriteList()
+        public ActionResult<IReadOnlyCollection<AccountFavorite>> GetAccountFavoritesAsync(Guid contactId)
         {
-            string token = "token";
-            var result = _accountService.GetAccountFavoriteList(token);
+            var result = _accountService.GetAccountFavoritesAsync(contactId);
 
             return Ok(result);
         }
 
-        [HttpPatch("favorite/{accountId}/{isFavorite}")]
+        [HttpPatch("favorites/{accountId}/{contactId}/{isFavorite}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult SetFavorite(Guid accountId, bool isFavorite)
+        public ActionResult SetFavoriteAsync(Guid accountId, Guid contactId, bool isFavorite)
         {
-            string token = "token";
-            _accountService.SetFavorite(accountId, isFavorite, token);
+            _accountService.SetFavoriteAsync(accountId, contactId, isFavorite);
 
             return Ok();
         }

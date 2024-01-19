@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Kpmg.Account.API;
 using Kpmg.Account.Core.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.Routing.Constraints;
+using AccountModel = Kpmg.Account.Core.Models.Account;
 
 namespace Account.Api.Tests.Controllers
 {
@@ -27,7 +23,7 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var url = "api/accounts";
-            var accountJson = new Kpmg.Account.Core.Models.Account()
+            var accountJson = new AccountModel()
             {
                 AccountId = "93012CC8-77B9-4161-8DBD-61915D935E21",
                 AccountNumber = "1000265308",
@@ -145,7 +141,7 @@ namespace Account.Api.Tests.Controllers
         public async Task Should_GetAccountFavoriteList_ReturnsOkResultAsync()
         {
             // Arrange
-            var url = "api/favorites";
+            var url = "api/favorites/8696B9E3-41D9-4B92-A541-714B6E69B998";
             var accountJson = new AccountFavorite()
             {
                 AccountId = "93012CC8-77B9-4161-8DBD-61915D935E21",
@@ -166,7 +162,7 @@ namespace Account.Api.Tests.Controllers
         public async Task Should_SetFavorite_ReturnsOkResultAsync()
         {
             // Arrange
-            var url = "api/favorite/93012CC8-77B9-4161-8DBD-61915D935E21/true";
+            var url = "api/favorites/93012CC8-77B9-4161-8DBD-61915D935E21/8696B9E3-41D9-4B92-A541-714B6E69B998/true";
             var content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
 
             // Act
