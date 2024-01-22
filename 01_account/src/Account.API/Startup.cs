@@ -9,6 +9,7 @@ using Kpmg.Account.API.Configuration;
 using Kpmg.AspNetCore.Authentication.ConstellationIdentityService;
 using Kpmg.ExceptionMiddleware;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.IdentityModel.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -20,11 +21,15 @@ namespace Kpmg.Account.API
     {
         private const int MaxAgeConfHsts = 365;
         private readonly IConfiguration _configuration;
+
+        public IWebHostEnvironment HostingEnvironment { get; }
+
         private readonly SwaggerConfiguration? _swaggerConfiguration;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             _configuration = configuration;
+            HostingEnvironment = environment;
             _swaggerConfiguration = _configuration.GetSection("Swagger").Get<SwaggerConfiguration>();
         }
 
@@ -32,7 +37,10 @@ namespace Kpmg.Account.API
         {
             services.AddApplicationInsightsTelemetry(_configuration);
 
-            RegisterAuthenticationAndAuthorization(services, _configuration);
+            if (HostingEnvironment.EnvironmentName != "test")
+            {
+                RegisterAuthenticationAndAuthorization(services, _configuration);
+            }
 
             services.AddCors(options =>
             {
@@ -71,7 +79,11 @@ namespace Kpmg.Account.API
 
             HealthCheckExtension.ConfigureHealthCheckService(services, _configuration);
             RegisterServicesExtension.RegisterServices(services);
-            RegisterInfrastructureModule.Register(services, _configuration);
+            if (HostingEnvironment.EnvironmentName != "test")
+            {
+                RegisterInfrastructureModule.Register(services, _configuration);
+            }
+
             SwaggerExtension.ConfigureSwaggerService(services, _swaggerConfiguration);
         }
 

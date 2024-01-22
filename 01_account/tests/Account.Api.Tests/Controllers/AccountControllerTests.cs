@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text;
 using System.Text.Json;
+using Account.Api.Tests.Configurations;
 using Kpmg.Account.API;
 using Kpmg.Account.Core.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -15,7 +16,7 @@ namespace Account.Api.Tests.Controllers
 
         public AccountControllerTests(WebApplicationFactory<Startup> factory)
         {
-            this._client = factory.CreateClient();
+            this._client = factory.CreateClientWithTestAuth();
         }
 
         [Fact]
