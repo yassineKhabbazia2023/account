@@ -21,16 +21,15 @@ namespace Kpmg.Account.API
     {
         private const int MaxAgeConfHsts = 365;
         private readonly IConfiguration _configuration;
+        private readonly SwaggerConfiguration? _swaggerConfiguration;
 
         public IWebHostEnvironment HostingEnvironment { get; }
-
-        private readonly SwaggerConfiguration? _swaggerConfiguration;
 
         public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             _configuration = configuration;
-            HostingEnvironment = environment;
             _swaggerConfiguration = _configuration.GetSection("Swagger").Get<SwaggerConfiguration>();
+            HostingEnvironment = environment;
         }
 
         public void ConfigureServices(IServiceCollection services)
