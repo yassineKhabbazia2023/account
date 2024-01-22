@@ -54,10 +54,15 @@ namespace Kpmg.Account.API.Configuration
 
         public static void UseSwagger(IApplicationBuilder app, SwaggerConfiguration? swaggerConfiguration)
         {
-            app.UseSwagger();
+            app.UseSwagger(option =>
+            {
+                option.RouteTemplate = "/account/api/{documentName}/api.json";
+            });
             app.UseSwaggerUI(swaggerUiOptions =>
             {
                 swaggerUiOptions.SwaggerEndpoint(string.Format(swaggerConfiguration?.JsonEndpoint ?? string.Empty, swaggerConfiguration?.Version), swaggerConfiguration?.Title);
+                swaggerUiOptions.RoutePrefix = "api";
+                swaggerUiOptions.EnableTryItOutByDefault();
             });
         }
     }

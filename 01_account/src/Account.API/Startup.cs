@@ -92,16 +92,6 @@ namespace Kpmg.Account.API
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCors("CorsPolicy");
-            app.UseSwagger(option =>
-            {
-                option.RouteTemplate = "/api/{documentName}/api.json";
-            });
-            app.UseSwaggerUI(c =>
-            {
-                c.EnableTryItOutByDefault();
-                c.SwaggerEndpoint("/api/v1/api.json", "Account V1");
-                c.RoutePrefix = "api";
-            });
 
             SwaggerExtension.UseSwagger(app, _swaggerConfiguration);
             HealthCheckExtension.UseHealthcheckUI(app);
