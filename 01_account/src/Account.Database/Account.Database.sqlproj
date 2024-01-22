@@ -3,15 +3,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <Name>Offer.Database</Name>
+    <Name>Account.Database</Name>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{e97c6b02-887f-4f55-a6c2-7a482705ef78}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath />
-    <RootNamespace>Offer.Database</RootNamespace>
-    <AssemblyName>Offer.Database</AssemblyName>
+    <RootNamespace>Account.Database</RootNamespace>
+    <AssemblyName>Account.Database</AssemblyName>
     <ModelCollation>1033, CI</ModelCollation>
     <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
     <DeployToDatabase>True</DeployToDatabase>
@@ -55,5 +55,22 @@
   <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Folder Include="Properties" />
+    <Folder Include="Security" />
+    <Folder Include="Security\Schemas" />
+    <Folder Include="sch_acc" />
+    <Folder Include="sch_acc\Tables" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Security\Account_Schema.sql" />
+    <Build Include="sch_acc\Tables\TAccount.sql" />
+    <Build Include="sch_acc\Tables\TAddress.sql" />
+    <Build Include="sch_acc\Tables\TNaf.sql" />
+    <Build Include="sch_acc\Tables\TDeploymentPlanning.sql" />
+    <Build Include="sch_acc\Tables\TPhone.sql" />
+    <Build Include="sch_acc\Tables\TRoles.sql" />
+    <Build Include="sch_acc\Tables\TContact.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="Account.Database.refactorlog" />
   </ItemGroup>
 </Project>
