@@ -23,14 +23,14 @@ namespace Kpmg.Account.API
         private readonly IConfiguration _configuration;
         private readonly SwaggerConfiguration? _swaggerConfiguration;
 
-        public IWebHostEnvironment HostingEnvironment { get; }
-
         public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             _configuration = configuration;
             _swaggerConfiguration = _configuration.GetSection("Swagger").Get<SwaggerConfiguration>();
             HostingEnvironment = environment;
         }
+
+        public IWebHostEnvironment HostingEnvironment { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {

@@ -15,7 +15,10 @@ namespace Kpmg.Account.API.Configuration
             services.AddHealthChecks();
             services.AddHealthChecksUI()
                     .AddInMemoryStorage();
-            services.Configure<HealthCheckConfiguration>(configuration.GetSection("HealthCheck"));
+            if (configuration != null)
+            {
+                services.Configure<HealthCheckConfiguration>(configuration.GetSection("HealthCheck"));
+            }
         }
 
         public static void UseHealthcheckUI(IApplicationBuilder app)

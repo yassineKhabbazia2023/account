@@ -6,6 +6,5 @@ namespace Kpmg.Account.Core.Interfaces
 {
     public interface IAccountRepository
     {
-
     }
 }

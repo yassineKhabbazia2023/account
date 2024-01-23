@@ -3,6 +3,7 @@
 	[NafId]			INT IDENTITY(1, 1)	NOT NULL,
 	[NafCode]		VARCHAR(10)			NOT NULL,
 	[AccountId]     INT                 NOT NULL,
+	[NafLabel]		VARCHAR(100)			NOT NULL,
 	CONSTRAINT [C_TNaf_PK] PRIMARY KEY CLUSTERED ([NafId] ASC),
 	CONSTRAINT [C_TAccount_TNaf_FK] FOREIGN KEY ([AccountId]) REFERENCES [sch_acc].[TAccount] ([AccountId])
 )

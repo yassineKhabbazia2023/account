@@ -5,7 +5,7 @@ namespace Pulse.Account.Core.Interfaces
 {
     public interface IAccountService
     {
-        public Paging<Kpmg.Account.Core.Models.Account> GetAccountsAsync(string search, int page, int limit);
+        public Paging<Kpmg.Account.Core.Models.Account> GetAccountsAsync(string? search, int page, int limit);
 
         public AccountDetail GetAccountDetailAsync(Guid id);
 

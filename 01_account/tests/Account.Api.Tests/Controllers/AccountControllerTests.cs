@@ -89,7 +89,7 @@ namespace Account.Api.Tests.Controllers
             };
 
             // Act
-            var response = await this._client.GetAsync(url );
+            var response = await this._client.GetAsync(url);
 
             // Assert
             string responseString = await response.Content.ReadAsStringAsync();

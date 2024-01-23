@@ -22,8 +22,8 @@ namespace Account.Api.Tests.Configurations
     public static class WebApplicationFactoryExtensions
     {
         /// <summary>
-        /// When you use [Authorize(AuthenticationSchemes = "Scheme1,Scheme2, ...")] on an action/controller, 
-        /// the default authorization policy is combined before evaluation. In your test setup, 
+        /// When you use [Authorize(AuthenticationSchemes = "Scheme1,Scheme2, ...")] on an action/controller,
+        /// the default authorization policy is combined before evaluation. In your test setup,
         /// you can combine an empty policy with Test scheme with the default policy from the actual code to make sure your Test scheme always runs.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -58,7 +58,8 @@ namespace Account.Api.Tests.Configurations
             });
         }
 
-        public static HttpClient CreateClientWithTestAuth<T>(this WebApplicationFactory<T> factory, bool useSystemToken = false) where T : class
+        public static HttpClient CreateClientWithTestAuth<T>(this WebApplicationFactory<T> factory, bool useSystemToken = false)
+            where T : class
         {
             var client = factory.WithAuthentication(useSystemToken).CreateClient(new WebApplicationFactoryClientOptions
             {
