@@ -44,11 +44,12 @@ namespace Kpmg.Account.Core.Services
         {
             string accountFavoriteMocked = File.ReadAllText(@"./MockedResponses/AccountFavoriteMocked.json");
             var accountFavoriteList = JsonSerializer.Deserialize<IReadOnlyCollection<AccountFavorite>>(accountFavoriteMocked, _jsonOptions);
-            return accountFavoriteList;
+            return accountFavoriteList ?? new List<AccountFavorite>();
         }
 
         public void SetFavoriteAsync(Guid accountId, Guid contactId, bool isFavorite)
         {
+            // implement set favorite function
         }
     }
 }

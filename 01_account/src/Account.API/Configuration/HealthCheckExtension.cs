@@ -3,7 +3,6 @@
 // </copyright>
 
 using HealthChecks.UI.Client;
-using Kpmg.Account.Core.Configuration;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace Kpmg.Account.API.Configuration
@@ -15,10 +14,6 @@ namespace Kpmg.Account.API.Configuration
             services.AddHealthChecks();
             services.AddHealthChecksUI()
                     .AddInMemoryStorage();
-            if (configuration != null)
-            {
-                services.Configure<HealthCheckConfiguration>(configuration.GetSection("HealthCheck"));
-            }
         }
 
         public static void UseHealthcheckUI(IApplicationBuilder app)

@@ -80,7 +80,7 @@ namespace Kpmg.Account.API
             RegisterServicesExtension.RegisterServices(services);
             if (HostingEnvironment.EnvironmentName != "test")
             {
-                RegisterInfrastructureModule.Register(services, _configuration);
+                RegisterServicesExtension.Register(services, _configuration);
             }
 
             SwaggerExtension.ConfigureSwaggerService(services, _swaggerConfiguration);
