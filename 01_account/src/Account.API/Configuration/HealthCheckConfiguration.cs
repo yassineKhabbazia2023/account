@@ -16,7 +16,7 @@ namespace Pulse.Account.API.Configuration
                     .AddInMemoryStorage();
             if (configuration != null)
             {
-                services.Configure<Kpmg.Account.Core.Configuration.HealthCheckConfiguration>(configuration.GetSection("HealthCheck"));
+                services.Configure<HealthChecks.UI.Data.HealthCheckConfiguration>(configuration.GetSection("HealthCheck"));
             }
         }
 

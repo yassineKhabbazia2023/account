@@ -4,6 +4,7 @@
 
 using Microsoft.OpenApi.Models;
 using Pulse.Account.API.Configuration.Model;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace Kpmg.Account.API.Configuration
 {
@@ -55,10 +56,15 @@ namespace Kpmg.Account.API.Configuration
 
         public static void UseSwagger(IApplicationBuilder app, SwaggerModel? swaggerConfiguration)
         {
-            app.UseSwagger();
+            app.UseSwagger(option =>
+            {
+                option.RouteTemplate = "/account/api/{documentName}/api.json";
+            });
             app.UseSwaggerUI(swaggerUiOptions =>
             {
                 swaggerUiOptions.SwaggerEndpoint(string.Format(swaggerConfiguration?.JsonEndpoint ?? string.Empty, swaggerConfiguration?.Version), swaggerConfiguration?.Title);
+                swaggerUiOptions.RoutePrefix = "api";
+                swaggerUiOptions.EnableTryItOutByDefault();
             });
         }
     }
