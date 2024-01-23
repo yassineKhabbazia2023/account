@@ -4,15 +4,22 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Kpmg.Account.Core.Services;
+using Pulse.Account.Core.Interfaces;
 
-namespace Kpmg.Account.API.Configuration
+namespace Pulse.Account.API.Configuration
 {
     [ExcludeFromCodeCoverage]
-    public static class RegisterInfrastructureModule
+    public static class ServicesConfiguration
     {
-        public static void Register(IServiceCollection services, IConfiguration configuration)
+        public static void ServiceRegister(IServiceCollection services, IConfiguration configuration)
         {
+            RegisterServices(services);
             RegisterDatabase(services, configuration);
+        }
+
+        private static void RegisterServices(IServiceCollection services)
+        {
+            services.AddScoped<IAccountService, AccountService>();
         }
 
         private static void RegisterDatabase(IServiceCollection services, IConfiguration configuration)

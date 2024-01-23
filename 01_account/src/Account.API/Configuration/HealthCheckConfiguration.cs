@@ -3,12 +3,11 @@
 // </copyright>
 
 using HealthChecks.UI.Client;
-using Kpmg.Account.Core.Configuration;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
-namespace Kpmg.Account.API.Configuration
+namespace Pulse.Account.API.Configuration
 {
-    public static class HealthCheckExtension
+    public static class HealthCheckConfiguration
     {
         public static void ConfigureHealthCheckService(this IServiceCollection services, IConfiguration configuration)
         {
@@ -17,7 +16,7 @@ namespace Kpmg.Account.API.Configuration
                     .AddInMemoryStorage();
             if (configuration != null)
             {
-                services.Configure<HealthCheckConfiguration>(configuration.GetSection("HealthCheck"));
+                services.Configure<Kpmg.Account.Core.Configuration.HealthCheckConfiguration>(configuration.GetSection("HealthCheck"));
             }
         }
 

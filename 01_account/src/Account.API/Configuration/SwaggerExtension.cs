@@ -3,12 +3,13 @@
 // </copyright>
 
 using Microsoft.OpenApi.Models;
+using Pulse.Account.API.Configuration.Model;
 
 namespace Kpmg.Account.API.Configuration
 {
     public static class SwaggerExtension
     {
-        public static void ConfigureSwaggerService(this IServiceCollection services, SwaggerConfiguration? swaggerConfiguration)
+        public static void ConfigureSwaggerService(this IServiceCollection services, SwaggerModel? swaggerConfiguration)
         {
             services.AddSwaggerGen(swaggerGenOptions =>
             {
@@ -52,17 +53,12 @@ namespace Kpmg.Account.API.Configuration
             });
         }
 
-        public static void UseSwagger(IApplicationBuilder app, SwaggerConfiguration? swaggerConfiguration)
+        public static void UseSwagger(IApplicationBuilder app, SwaggerModel? swaggerConfiguration)
         {
-            app.UseSwagger(option =>
-            {
-                option.RouteTemplate = "/account/api/{documentName}/api.json";
-            });
+            app.UseSwagger();
             app.UseSwaggerUI(swaggerUiOptions =>
             {
                 swaggerUiOptions.SwaggerEndpoint(string.Format(swaggerConfiguration?.JsonEndpoint ?? string.Empty, swaggerConfiguration?.Version), swaggerConfiguration?.Title);
-                swaggerUiOptions.RoutePrefix = "api";
-                swaggerUiOptions.EnableTryItOutByDefault();
             });
         }
     }

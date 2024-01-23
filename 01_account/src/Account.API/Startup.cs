@@ -3,16 +3,14 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Text.Json;
 using Kpmg.Account.API.Configuration;
-using Kpmg.AspNetCore.Authentication.ConstellationIdentityService;
 using Kpmg.ExceptionMiddleware;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.IdentityModel.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Pulse.Account.API.Configuration;
+using Pulse.Account.API.Configuration.Model;
 
 namespace Kpmg.Account.API
 {
@@ -21,25 +19,27 @@ namespace Kpmg.Account.API
     {
         private const int MaxAgeConfHsts = 365;
         private readonly IConfiguration _configuration;
-        private readonly SwaggerConfiguration? _swaggerConfiguration;
+        private readonly SwaggerModel? _swaggerConfiguration;
+        private readonly AuthenticationModel _authenticationConfiguration;
 
-        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
+        public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
-            _swaggerConfiguration = _configuration.GetSection("Swagger").Get<SwaggerConfiguration>();
-            HostingEnvironment = environment;
+            _swaggerConfiguration = _configuration.GetSection("Swagger").Get<SwaggerModel>();
+            _authenticationConfiguration = _configuration.GetSection("Authentication").Get<AuthenticationModel>();
         }
-
-        public IWebHostEnvironment HostingEnvironment { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddApplicationInsightsTelemetry(_configuration);
+            HealthCheckConfiguration.ConfigureHealthCheckService(services, _configuration);
+            ServicesConfiguration.ServiceRegister(services, _configuration);
+            SwaggerConfiguration.ConfigureSwaggerService(services, _swaggerConfiguration);
 
-            if (HostingEnvironment.EnvironmentName != "test")
-            {
-                RegisterAuthenticationAndAuthorization(services, _configuration);
-            }
+           // services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
+           //         .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
+
+            services.AddMemoryCache();
+            services.AddApplicationInsightsTelemetry(_configuration);
 
             services.AddCors(options =>
             {
@@ -75,15 +75,6 @@ namespace Kpmg.Account.API
                     options.ConnectionString = _configuration["AccountApplicationInsightConnectionString"];
                 });
             }
-
-            HealthCheckExtension.ConfigureHealthCheckService(services, _configuration);
-            RegisterServicesExtension.RegisterServices(services);
-            if (HostingEnvironment.EnvironmentName != "test")
-            {
-                RegisterInfrastructureModule.Register(services, _configuration);
-            }
-
-            SwaggerExtension.ConfigureSwaggerService(services, _swaggerConfiguration);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -104,8 +95,8 @@ namespace Kpmg.Account.API
             app.UseStaticFiles();
             app.UseCors("CorsPolicy");
 
-            SwaggerExtension.UseSwagger(app, _swaggerConfiguration);
-            HealthCheckExtension.UseHealthcheckUI(app);
+            SwaggerConfiguration.UseSwagger(app, _swaggerConfiguration);
+            HealthCheckConfiguration.UseHealthcheckUI(app);
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -114,33 +105,6 @@ namespace Kpmg.Account.API
             {
                 endpoints.MapControllers();
             });
-        }
-
-        private static void RegisterAuthenticationAndAuthorization(IServiceCollection services, IConfiguration configuration)
-        {
-            var identityServiceOptions = new ConstellationIdentityServiceAuthenticationOptions
-            {
-                AzureActiveDirectoryClientCredentials =
-                        {
-                            ClientId = configuration["AuthClientId"],
-                            ClientSecret = configuration["AuthClientSecret"],
-                            Scope = configuration["AuthScope"],
-                            Tenant = configuration["AuthTenant"],
-                        },
-                ServerAddress = new Uri(configuration["AuthServerAdress"] ?? string.Empty),
-            };
-
-            services.AddAuthentication()
-            .AddConstellationIdentityService(identityServiceOptions, out string[] schemaNames);
-
-            services.AddAuthorization(options =>
-            {
-                options.DefaultPolicy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .AddAuthenticationSchemes([])
-                    .Build();
-            });
-            services.AddConstellationHttpClient();
         }
     }
 }
