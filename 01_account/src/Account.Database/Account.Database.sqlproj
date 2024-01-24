@@ -59,6 +59,7 @@
     <Folder Include="Security\Schemas" />
     <Folder Include="sch_acc" />
     <Folder Include="sch_acc\Tables" />
+    <Folder Include="postDeployment" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\Account_Schema.sql" />
@@ -69,8 +70,14 @@
     <Build Include="sch_acc\Tables\TPhone.sql" />
     <Build Include="sch_acc\Tables\TRoles.sql" />
     <Build Include="sch_acc\Tables\TContact.sql" />
+    <Build Include="sch_acc\Tables\TDelegation.sql" />
+    <Build Include="sch_acc\Tables\THub.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Account.Database.refactorlog" />
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="Script.Referential.PostDeployment.sql" />
+    <None Include="postDeployment\Hub.Refential.sql" />
   </ItemGroup>
 </Project>

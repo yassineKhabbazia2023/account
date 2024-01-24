@@ -5,6 +5,8 @@
 [CommercialName]            NVARCHAR(255)     NULL,
 [AccountType]               VARCHAR(50)       NULL, 
 [Email]                     NVARCHAR(100)     NOT NULL,
+[HubId]                     INT               NULL,
+[NafId]                     INT               NOT NULL,
 [IsActive]                  BIT               NOT NULL,
 [SourceAccountNumber]       VARCHAR(50)       NOT NULL,
 [SectorCode]                VARCHAR(50)       NULL,
@@ -32,11 +34,22 @@
 [UpdateDate]                DATETIME2         NULL,
 CONSTRAINT [C_TAccount_PK] PRIMARY KEY CLUSTERED ([AccountId] ASC),
 CONSTRAINT [UQ_TAccount_AccountGlobalUniqueId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC),
+CONSTRAINT [UQ_TPhone_PhoneId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC),
+CONSTRAINT [C_TAccount_TNafId_FK] FOREIGN KEY ([HubId]) REFERENCES [sch_acc].[TNaf] ([NafId]),
+CONSTRAINT [C_TAccount_THub_HubId_FK] FOREIGN KEY ([HubId]) REFERENCES [sch_acc].[THub] ([HubId])
 )
 
 GO
 CREATE NONCLUSTERED INDEX [IDX_TAccount_AccountGlobalUniqueId]
-    ON [sch_acc].[TAccount]([AccountGlobalUniqueId] ASC);
+    ON [sch_acc].[TAccount]([AccountGlobalUniqueId] ASC)
+
+GO
+CREATE NONCLUSTERED INDEX [IDX_THub_HubId]
+    ON  [sch_acc].[TAccount]([HubId] ASC)
+
+GO
+CREATE NONCLUSTERED INDEX [IDX_TNaf_NafId]
+    ON  [sch_acc].[TAccount]([NafId] ASC)
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
@@ -308,3 +321,21 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'TAccount',
     @level2type = N'COLUMN',
     @level2name = N'AccountGlobalUniqueId'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'L''identifiant technique du Hub',
+    @level0type = N'SCHEMA',
+    @level0name = N'sch_acc',
+    @level1type = N'TABLE',
+    @level1name = N'TAccount',
+    @level2type = N'COLUMN',
+    @level2name = N'HubId'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'L''identifiant technique du code Naf',
+    @level0type = N'SCHEMA',
+    @level0name = N'sch_acc',
+    @level1type = N'TABLE',
+    @level1name = N'TAccount',
+    @level2type = N'COLUMN',
+    @level2name = N'NafId'

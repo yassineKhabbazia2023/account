@@ -91,4 +91,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="NafLabel" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="67dd55b4-ad6a-467f-a4b4-8f751ddaeddc" ChangeDateTime="01/24/2024 10:17:11">
+    <Property Name="ElementName" Value="[dbo].[THub].[Label]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[THub]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="HubName" />
+  </Operation>
 </Operations>

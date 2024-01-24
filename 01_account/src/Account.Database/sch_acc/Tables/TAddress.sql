@@ -9,12 +9,12 @@
     [Country]       VARCHAR(25)        NOT NULL,
     [AddressType]   VARCHAR(25)        NULL,
     CONSTRAINT [C_TAddress_PK] PRIMARY KEY CLUSTERED ([AddressId] ASC),
-    CONSTRAINT [C_TAccount_TAddress_FK] FOREIGN KEY ([AccountId]) REFERENCES [sch_acc].[TAccount] ([AccountId]),
+    CONSTRAINT [C_TAccount_TAddress_AccountId_FK] FOREIGN KEY ([AccountId]) REFERENCES [sch_acc].[TAccount] ([AccountId])
 )
 
 GO
 CREATE NONCLUSTERED INDEX [IDX_TAddress_AccountId]
-    ON [sch_acc].[TAddress]([AccountId] ASC);
+    ON  [sch_acc].[TAddress]([AccountId] ASC)
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
@@ -72,15 +72,6 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level2name = N'Street'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'L''identifiant technique de l''entité',
-    @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
-    @level1type = N'TABLE',
-    @level1name = N'TAddress',
-    @level2type = N'COLUMN',
-    @level2name = N'AccountId'
-GO
-EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'L''identifiant technique',
     @level0type = N'SCHEMA',
     @level0name = N'sch_acc',
@@ -88,3 +79,12 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'TAddress',
     @level2type = N'COLUMN',
     @level2name = N'AddressId'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'L''identifiant de l''entité',
+    @level0type = N'SCHEMA',
+    @level0name = N'sch_acc',
+    @level1type = N'TABLE',
+    @level1name = N'TAddress',
+    @level2type = N'COLUMN',
+    @level2name = N'AccountId'

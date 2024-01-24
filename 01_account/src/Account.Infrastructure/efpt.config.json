@@ -1,0 +1,73 @@
+﻿{
+   "CodeGenerationMode": 1,
+   "ContextClassName": "AccountContext",
+   "ContextNamespace": null,
+   "DefaultDacpacSchema": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": null,
+   "OutputContextPath": null,
+   "OutputPath": "Entities",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "Pulse.Account.Infrastructure",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 0,
+   "SelectedToBeGenerated": 0,
+   "Tables": [
+      {
+         "Name": "[sch_acc].[TAccount]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[sch_acc].[TAddress]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[sch_acc].[TContact]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[sch_acc].[TDelegation]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[sch_acc].[TDeploymentPlanning]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[sch_acc].[THub]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[sch_acc].[TNaf]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[sch_acc].[TPhone]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[sch_acc].[TRoles]",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": "Account.Database\\Account.Database.sqlproj",
+   "UncountableWords": null,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": true,
+   "UseDateOnlyTimeOnly": false,
+   "UseDbContextSplitting": false,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": false,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UseSchemaFolders": false,
+   "UseSpatial": false,
+   "UseT4": false
+}
