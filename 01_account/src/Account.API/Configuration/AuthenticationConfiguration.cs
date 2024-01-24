@@ -9,18 +9,18 @@ namespace Pulse.Account.API.Configuration
         public static IServiceCollection RegisterAuthenticationAndAuthorization(this IServiceCollection services,
             AuthenticationModel authentication)
         {
-            ArgumentNullException.ThrowIfNull(authentication, nameof(authentication));
+            ArgumentNullException.ThrowIfNull(authentication);
 
             var identityServiceOptions = new ConstellationIdentityServiceAuthenticationOptions
             {
                 AzureActiveDirectoryClientCredentials =
                         {
-                            ClientId = authentication.AuthClientId,
-                            ClientSecret = authentication.AuthClientSecret,
-                            Scope = authentication.AuthScope,
-                            Tenant = authentication.AuthTenant,
+                            ClientId = authentication?.AuthClientId,
+                            ClientSecret = authentication?.AuthClientSecret,
+                            Scope = authentication?.AuthScope,
+                            Tenant = authentication?.AuthTenant,
                         },
-                ServerAddress = new Uri(authentication.AuthServerAdress ?? string.Empty),
+                ServerAddress = new Uri(authentication?.AuthServerAdress ?? string.Empty),
             };
 
             services.AddAuthentication()
@@ -42,14 +42,14 @@ namespace Pulse.Account.API.Configuration
             this IServiceCollection services,
             AuthenticationModel authentication)
         {
-            ArgumentNullException.ThrowIfNull(authentication, nameof(authentication));
+            ArgumentNullException.ThrowIfNull(authentication);
 
             services.AddSystemAccountAuthenticationProvider<IConfiguration>((settings, configuration) =>
             {
-                settings.Tenant = authentication.AuthTenant;
-                settings.ClientId = authentication.AuthClientId;
-                settings.Audience = authentication.AuthScope;
-                settings.ClientSecret = authentication.AuthClientSecret;
+                settings.Tenant = authentication?.AuthTenant;
+                settings.ClientId = authentication?.AuthClientId;
+                settings.Audience = authentication?.AuthScope;
+                settings.ClientSecret = authentication?.AuthClientSecret;
             });
         }
     }

@@ -15,7 +15,7 @@ namespace Pulse.Account.API.Configuration
         public static void ServiceRegister(IServiceCollection services, IConfiguration configuration, string environmentName)
         {
             RegisterServices(services);
-            if (!environmentName.IsNullOrEmpty() && !environmentName.Equals("test"))
+            if (environmentName != null && !environmentName.Equals("test"))
             {
                 RegisterDatabase(services, configuration);
             }
