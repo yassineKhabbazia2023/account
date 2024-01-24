@@ -1,4 +1,8 @@
-﻿using Kpmg.AspNetCore.Authentication.ConstellationIdentityService;
+﻿// <copyright file="AuthenticationConfiguration.cs" company="KPMG">
+// Copyright (c) KPMG. All rights reserved.
+// </copyright>
+
+using Kpmg.AspNetCore.Authentication.ConstellationIdentityService;
 using Microsoft.AspNetCore.Authorization;
 using Pulse.Account.API.Configuration.Model;
 

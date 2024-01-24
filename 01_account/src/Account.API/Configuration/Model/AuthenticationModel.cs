@@ -1,4 +1,8 @@
-﻿namespace Pulse.Account.API.Configuration.Model
+﻿// <copyright file="AuthenticationModel.cs" company="KPMG">
+// Copyright (c) KPMG. All rights reserved.
+// </copyright>
+
+namespace Pulse.Account.API.Configuration.Model
 {
     public class AuthenticationModel
     {

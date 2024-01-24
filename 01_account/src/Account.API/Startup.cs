@@ -2,6 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
+using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Kpmg.Account.API.Configuration;
@@ -38,11 +39,15 @@ namespace Kpmg.Account.API
 
         public void ConfigureServices(IServiceCollection services)
         {
-            HealthCheckConfiguration.ConfigureHealthCheckService(services, _configuration);
-            ServicesConfiguration.ServiceRegister(services, _configuration, this.EnvironmentName);
+            if (_configuration != null)
+            {
+                HealthCheckConfiguration.ConfigureHealthCheckService(services, _configuration);
+                ServicesConfiguration.ServiceRegister(services, _configuration, this.EnvironmentName);
+            }
+
             SwaggerConfiguration.ConfigureSwaggerService(services, _swaggerConfiguration);
 
-            if(!EnvironmentName.Equals("test"))
+            if(_authenticationConfiguration != null && !EnvironmentName.Equals("test"))
             {
                 services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
                    .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
@@ -78,7 +83,7 @@ namespace Kpmg.Account.API
                     options.SerializerSettings.DateParseHandling = DateParseHandling.None;
                 });
 
-            if (!string.IsNullOrEmpty(_configuration["AccountApplicationInsightConnectionString"]))
+            if (_configuration != null && !string.IsNullOrEmpty(_configuration["AccountApplicationInsightConnectionString"]))
             {
                 services.AddApplicationInsightsTelemetry(options =>
                 {
