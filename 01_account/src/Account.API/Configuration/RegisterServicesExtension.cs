@@ -8,7 +8,6 @@ using Pulse.Account.Core.Interfaces;
 
 namespace Kpmg.Account.API.Configuration
 {
-
     [ExcludeFromCodeCoverage]
     public static class RegisterServicesExtension
     {
