@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="453634e1-ff9b-488c-a5b2-9fd9cb5e98eb" ChangeDateTime="01/16/2024 14:57:39">
+    <Property Name="ElementName" Value="[sch_acc].[TAccount].[DurationFiscalDate]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TAccount]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="FiscalExerciceDuration" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="608a2bb2-81f9-4169-9191-1a859312fbea" ChangeDateTime="01/16/2024 14:57:42">
+    <Property Name="ElementName" Value="[sch_acc].[TAccount].[FiscalExerciceStartAt]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TAccount]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="FiscalExercicesStartAt" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="97288d7b-4419-4121-bced-2e27f0109d9f" ChangeDateTime="01/16/2024 14:57:54">
+    <Property Name="ElementName" Value="[sch_acc].[TAccount].[FiscalExercicesStartAt]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TAccount]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="FiscalExercisStartAt" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="1d4f84ac-9d5b-47a5-8aa5-37233bc5460a" ChangeDateTime="01/16/2024 14:58:02">
+    <Property Name="ElementName" Value="[sch_acc].[TAccount].[FiscalExerciceDuration]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TAccount]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="FiscalExerciseDuration" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="52d7f05c-db01-4726-b62e-265e00e21436" ChangeDateTime="01/16/2024 14:58:12">
+    <Property Name="ElementName" Value="[sch_acc].[TAccount].[FiscalExercisStartAt]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TAccount]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="FiscalExerciseStartAt" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="c0cedbb8-52f8-4e0c-bc66-67694a3c0321" ChangeDateTime="01/16/2024 14:58:29">
+    <Property Name="ElementName" Value="[sch_acc].[TAccount].[FiscalExerciseStartAt]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TAccount]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="FiscalExerciseStartDate" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="48703283-d836-4aa1-ac24-ee04cb474243" ChangeDateTime="01/16/2024 15:02:45">
+    <Property Name="ElementName" Value="[sch_acc].[TAccount].[InsertedAt]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TAccount]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CreateDate" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="c616f679-890e-4d68-a05b-31cdf6c671de" ChangeDateTime="01/16/2024 15:02:54">
+    <Property Name="ElementName" Value="[sch_acc].[TAccount].[UpdatedAt]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TAccount]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="UpdateDate" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="8865b9b2-e325-4be1-a6a0-46c984c52729" ChangeDateTime="01/16/2024 15:04:58">
+    <Property Name="ElementName" Value="[sch_acc].[TAccount].[IntraVAT]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TAccount]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="VATIntra" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="a64a1d13-abd2-4b77-9748-7b970a72c39e" ChangeDateTime="01/16/2024 15:11:08">
+    <Property Name="ElementName" Value="[sch_acc].[TTelephone].[TelephoneNumber]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TTelephone]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="PhoneNumber" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="6ebb7069-6e96-4a1b-99f7-3debc6987357" ChangeDateTime="01/16/2024 15:11:13">
+    <Property Name="ElementName" Value="[sch_acc].[TTelephone].[TelephoneType]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TTelephone]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="PhoneType" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="5b03fb2b-b690-4606-ab97-fbaa009b89ea" ChangeDateTime="01/16/2024 15:11:26">
+    <Property Name="ElementName" Value="[sch_acc].[TTelephone].[TelephoneId]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TTelephone]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="PhoneId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="6abfe7c5-f4fa-4519-a4f1-f75a385b8321" ChangeDateTime="01/16/2024 15:32:10">
+    <Property Name="ElementName" Value="[sch_acc].[TNaf].[NafLevelLib]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TNaf]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="NafLabel" />
+  </Operation>
+</Operations>
