@@ -11,10 +11,13 @@ namespace Pulse.Account.API.Configuration
     [ExcludeFromCodeCoverage]
     public static class ServicesConfiguration
     {
-        public static void ServiceRegister(IServiceCollection services, IConfiguration configuration)
+        public static void ServiceRegister(IServiceCollection services, IConfiguration configuration, string environmentName)
         {
             RegisterServices(services);
-            RegisterDatabase(services, configuration);
+            if (!environmentName.Equals("test"))
+            {
+                RegisterDatabase(services, configuration);
+            }
         }
 
         private static void RegisterServices(IServiceCollection services)

@@ -22,21 +22,24 @@ namespace Kpmg.Account.API
         private readonly SwaggerModel? _swaggerConfiguration;
         private readonly AuthenticationModel _authenticationConfiguration;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             _configuration = configuration;
             _swaggerConfiguration = _configuration.GetSection("Swagger").Get<SwaggerModel>();
             _authenticationConfiguration = _configuration.GetSection("Authentication").Get<AuthenticationModel>();
+            EnvironmentName = environment.EnvironmentName;
         }
+
+        public string EnvironmentName { get; set; }
 
         public void ConfigureServices(IServiceCollection services)
         {
             HealthCheckConfiguration.ConfigureHealthCheckService(services, _configuration);
-            ServicesConfiguration.ServiceRegister(services, _configuration);
+            ServicesConfiguration.ServiceRegister(services, _configuration, this.EnvironmentName);
             SwaggerConfiguration.ConfigureSwaggerService(services, _swaggerConfiguration);
 
-           // services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
-           //         .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
+            services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
+                    .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
 
             services.AddMemoryCache();
             services.AddApplicationInsightsTelemetry(_configuration);
