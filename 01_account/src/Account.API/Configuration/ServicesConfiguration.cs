@@ -1,9 +1,10 @@
-﻿// <copyright file="RegisterInfrastructureModule.cs" company="KPMG">
+﻿// <copyright file="ServicesConfiguration.cs" company="KPMG">
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
 using Kpmg.Account.Core.Services;
+using Microsoft.IdentityModel.Tokens;
 using Pulse.Account.Core.Interfaces;
 
 namespace Pulse.Account.API.Configuration
@@ -14,7 +15,7 @@ namespace Pulse.Account.API.Configuration
         public static void ServiceRegister(IServiceCollection services, IConfiguration configuration, string environmentName)
         {
             RegisterServices(services);
-            if (!environmentName.Equals("test"))
+            if (!environmentName.IsNullOrEmpty() && !environmentName.Equals("test"))
             {
                 RegisterDatabase(services, configuration);
             }

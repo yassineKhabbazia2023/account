@@ -9,10 +9,7 @@ namespace Pulse.Account.API.Configuration
         public static IServiceCollection RegisterAuthenticationAndAuthorization(this IServiceCollection services,
             AuthenticationModel authentication)
         {
-            if (authentication == null)
-            {
-                throw new ArgumentNullException(nameof(authentication));
-            }
+            ArgumentNullException.ThrowIfNull(authentication, nameof(authentication));
 
             var identityServiceOptions = new ConstellationIdentityServiceAuthenticationOptions
             {
@@ -45,10 +42,7 @@ namespace Pulse.Account.API.Configuration
             this IServiceCollection services,
             AuthenticationModel authentication)
         {
-            if (authentication == null)
-            {
-                throw new ArgumentNullException(nameof(authentication));
-            }
+            ArgumentNullException.ThrowIfNull(authentication, nameof(authentication));
 
             services.AddSystemAccountAuthenticationProvider<IConfiguration>((settings, configuration) =>
             {

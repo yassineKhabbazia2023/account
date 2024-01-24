@@ -1,4 +1,4 @@
-﻿// <copyright file="SwaggerConfiguration.cs" company="KPMG">
+﻿// <copyright file="SwaggerModel.cs" company="KPMG">
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 

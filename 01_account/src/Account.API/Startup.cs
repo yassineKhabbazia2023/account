@@ -20,14 +20,15 @@ namespace Kpmg.Account.API
         private const int MaxAgeConfHsts = 365;
         private readonly IConfiguration _configuration;
         private readonly SwaggerModel? _swaggerConfiguration;
-        private readonly AuthenticationModel _authenticationConfiguration;
 
+        // private readonly AuthenticationModel _authenticationConfiguration;
         public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             _configuration = configuration;
             _swaggerConfiguration = _configuration.GetSection("Swagger").Get<SwaggerModel>();
-            _authenticationConfiguration = _configuration.GetSection("Authentication").Get<AuthenticationModel>();
-            EnvironmentName = environment.EnvironmentName;
+
+            // _authenticationConfiguration = _configuration.GetSection("Authentication").Get<AuthenticationModel>();
+            EnvironmentName = environment != null ? environment.EnvironmentName : string.Empty;
         }
 
         public string EnvironmentName { get; set; }
@@ -38,9 +39,8 @@ namespace Kpmg.Account.API
             ServicesConfiguration.ServiceRegister(services, _configuration, this.EnvironmentName);
             SwaggerConfiguration.ConfigureSwaggerService(services, _swaggerConfiguration);
 
-            //services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
+            // services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
             //        .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
-
             services.AddMemoryCache();
             services.AddApplicationInsightsTelemetry(_configuration);
 

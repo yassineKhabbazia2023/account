@@ -1,4 +1,4 @@
-﻿// <copyright file="HealthCheckExtension.cs" company="KPMG">
+﻿// <copyright file="HealthCheckConfiguration.cs" company="KPMG">
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
