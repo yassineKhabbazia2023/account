@@ -38,8 +38,8 @@ namespace Kpmg.Account.API
             ServicesConfiguration.ServiceRegister(services, _configuration, this.EnvironmentName);
             SwaggerConfiguration.ConfigureSwaggerService(services, _swaggerConfiguration);
 
-            services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
-                    .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
+            //services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
+            //        .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
 
             services.AddMemoryCache();
             services.AddApplicationInsightsTelemetry(_configuration);
