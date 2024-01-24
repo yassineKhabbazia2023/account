@@ -18,15 +18,15 @@ namespace Kpmg.Account.API
     public class Startup
     {
         private const int MaxAgeConfHsts = 365;
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration? _configuration;
         private readonly SwaggerModel? _swaggerConfiguration;
-        private readonly AuthenticationModel _authenticationConfiguration;
+        private readonly AuthenticationModel? _authenticationConfiguration;
 
         public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
-            _configuration = configuration;
-            if (_configuration != null)
+            if (configuration != null)
             {
+                _configuration = configuration;
                 _swaggerConfiguration = _configuration.GetSection("Swagger").Get<SwaggerModel>();
                 _authenticationConfiguration = _configuration.GetSection("Authentication").Get<AuthenticationModel>();
             }
