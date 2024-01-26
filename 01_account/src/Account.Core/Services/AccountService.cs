@@ -3,6 +3,7 @@
 // </copyright>
 
 using System.Text.Json;
+using Kpmg.Account.Core.Interfaces;
 using Kpmg.Account.Core.Models;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models.Utils;
@@ -13,17 +14,18 @@ namespace Kpmg.Account.Core.Services
     public class AccountService : IAccountService
     {
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        private IAccountRepository _accountRepository;
 
-        public Paging<AccountModel> GetAccountsAsync(string? search, int page, int limit)
+        public AccountService(IAccountRepository accountRepository)
+        {
+            this._accountRepository = accountRepository;
+        }
+
+        public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit)
         {
             page = page == 0 ? 1 : page;
             limit = limit == 0 ? int.MaxValue : limit;
-            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountListMocked.json");
-            var accountList = JsonSerializer.Deserialize<Paging<AccountModel>>(accountMocked, _jsonOptions) ?? new Paging<AccountModel>();
-            accountList.Items = accountList.Items?
-                .Where(item => !string.IsNullOrEmpty(search) && !string.IsNullOrEmpty(item.LegalName) ? item.LegalName.Contains(search, StringComparison.OrdinalIgnoreCase) : string.IsNullOrEmpty(search))
-                .Skip((page - 1) * limit)
-                .Take(limit);
+            var accountList = await this._accountRepository.GetAccountsAsync(search, page, limit);
             return accountList;
         }
 
