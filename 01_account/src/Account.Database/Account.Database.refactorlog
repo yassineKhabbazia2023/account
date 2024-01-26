@@ -98,4 +98,32 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="HubName" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="4bd2abb2-5101-4866-9542-8058d6be5df4" ChangeDateTime="01/25/2024 17:21:32">
+    <Property Name="ElementName" Value="[sch_acc].[TPhone].[PhoneType]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TPhone]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Type" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="81b78326-876f-42b1-a020-617134517918" ChangeDateTime="01/25/2024 17:23:28">
+    <Property Name="ElementName" Value="[sch_acc].[TRoles].[IsTemporary]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TRoles]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsSignatory" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="97977b8a-a96a-40d6-b2a6-a3eacb8998d7" ChangeDateTime="01/25/2024 17:27:31">
+    <Property Name="ElementName" Value="[sch_acc].[TDelegation].[IsEnable]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TDelegation]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Status" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="89f120c7-7800-4458-be6c-9674fb942edc" ChangeDateTime="01/25/2024 17:38:45">
+    <Property Name="ElementName" Value="[sch_acc].[TDeploymentPlanning].[DeploymentStatus]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[sch_acc].[TDeploymentPlanning]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Status" />
+  </Operation>
 </Operations>

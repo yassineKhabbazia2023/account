@@ -3,7 +3,7 @@
 	[DeploymentId]			INT IDENTITY(1, 1)	NOT NULL,
 	[AccountId]				INT					NOT NULL,
 	[DeploymentDate]        DATETIME2           NOT NULL,
-	[DeploymentStatus]      INT				    NOT NULL,
+	[Status]                INT	                NOT NULL,
 	CONSTRAINT [C_TDeploymentPlanning_PK] PRIMARY KEY CLUSTERED ([DeploymentId] ASC),
 	CONSTRAINT [C_TAccount_TDeployment_FK] FOREIGN KEY ([AccountId]) REFERENCES [sch_acc].[TAccount] ([AccountId])
 )
@@ -47,4 +47,4 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1type = N'TABLE',
     @level1name = N'TDeploymentPlanning',
     @level2type = N'COLUMN',
-    @level2name = N'DeploymentStatus'
+    @level2name = 'Status'

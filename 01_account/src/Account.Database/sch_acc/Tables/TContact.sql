@@ -5,7 +5,8 @@
 	[FirstName]				VARCHAR(50)			NOT NULL,
 	[LastName]				VARCHAR(50)			NOT NULL,
 	[ContactEmail]			VARCHAR(50)			NOT NULL,
-	CONSTRAINT [C_TContact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC)	
+	[Type]                  VARCHAR(20)         NOT NULL, 
+    CONSTRAINT [C_TContact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC)	
 )
 
 GO
@@ -57,3 +58,12 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'TContact',
     @level2type = N'COLUMN',
     @level2name = N'ContactEmail'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Le type de contact',
+    @level0type = N'SCHEMA',
+    @level0name = N'sch_acc',
+    @level1type = N'TABLE',
+    @level1name = N'TContact',
+    @level2type = N'COLUMN',
+    @level2name = N'Type'
