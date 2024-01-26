@@ -17,43 +17,43 @@ namespace Pulse.Account.Infrastructure.Entities
         }
 
         /// <summary>
-        /// L&apos;&apos;identifiant technique
+        /// L&apos;identifiant technique
         /// </summary>
         public int AccountId { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant global de l&apos;&apos;entité
+        /// L&apos;identifiant global de l&apos;entité
         /// </summary>
         public Guid AccountGlobalUniqueId { get; set; }
         /// <summary>
-        /// La raison social de l&apos;&apos;entité
+        /// La raison social de l&apos;entité
         /// </summary>
         public string LegalName { get; set; }
         /// <summary>
-        /// Le  nom commercial de l&apos;&apos;entité
+        /// Le  nom commercial de l&apos;entité
         /// </summary>
         public string CommercialName { get; set; }
         /// <summary>
-        /// Le type de l&apos;&apos;entité
+        /// Le type de l&apos;entité
         /// </summary>
         public string AccountType { get; set; }
         /// <summary>
-        /// L&apos;&apos;adresse mail de l&apos;&apos;entité
+        /// L&apos;adresse mail de l&apos;entité
         /// </summary>
         public string Email { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant technique du Hub
+        /// L&apos;identifiant technique du Hub
         /// </summary>
         public int? HubId { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant technique du code Naf
+        /// L&apos;identifiant technique du code Naf
         /// </summary>
         public int NafId { get; set; }
         /// <summary>
-        /// L&apos;&apos;entité est-elle activé
+        /// L&apos;entité est-elle activé
         /// </summary>
         public bool IsActive { get; set; }
         /// <summary>
-        /// La source de création de l&apos;&apos;entité
+        /// La source de création de l&apos;entité
         /// </summary>
         public string SourceAccountNumber { get; set; }
         /// <summary>
@@ -73,7 +73,7 @@ namespace Pulse.Account.Infrastructure.Entities
         /// </summary>
         public string AccountingMethod { get; set; }
         /// <summary>
-        /// Le chiffre d&apos;&apos;affaires
+        /// Le chiffre d&apos;affaires
         /// </summary>
         public decimal? Turnover { get; set; }
         /// <summary>
@@ -81,16 +81,19 @@ namespace Pulse.Account.Infrastructure.Entities
         /// </summary>
         public string LegalFormCode { get; set; }
         /// <summary>
-        /// La forme juridique de l&apos;&apos;entité
+        /// La forme juridique de l&apos;entité
         /// </summary>
         public string LegalForm { get; set; }
+        /// <summary>
+        /// Le régime fiscale
+        /// </summary>
         public string FiscalSystem { get; set; }
         /// <summary>
         /// Début Exercice fiscale
         /// </summary>
         public DateTime? FiscalExerciseStartDate { get; set; }
         /// <summary>
-        /// La durée de l&apos;&apos;exercice fiscale
+        /// La durée de l&apos;exercice fiscale
         /// </summary>
         public int? FiscalExerciseDuration { get; set; }
         /// <summary>
@@ -102,19 +105,19 @@ namespace Pulse.Account.Infrastructure.Entities
         /// </summary>
         public string Siret { get; set; }
         /// <summary>
-        /// Le Régime d&apos;&apos;imposition
+        /// Le Régime d&apos;imposition
         /// </summary>
         public string TaxationSystem { get; set; }
         /// <summary>
-        /// Description de l&apos;&apos;activité
+        /// Description de l&apos;activité
         /// </summary>
         public string ActivityDescription { get; set; }
         /// <summary>
-        /// Type d&apos;&apos;activité
+        /// Type d&apos;activité
         /// </summary>
         public string ActivityType { get; set; }
         /// <summary>
-        /// La TV
+        /// La TVA
         /// </summary>
         public string VAT { get; set; }
         /// <summary>
@@ -126,25 +129,25 @@ namespace Pulse.Account.Infrastructure.Entities
         /// </summary>
         public string VATType { get; set; }
         /// <summary>
-        /// Le nombre d&apos;&apos;employés de l&apos;&apos;entité
+        /// Le nombre d&apos;employés de l&apos;entité
         /// </summary>
         public int? StaffSize { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant de l&apos;&apos;utilisateur ou du système qui a crée l&apos;&apos;entité
+        /// L&apos;identifiant de l&apos;utilisateur ou du système qui a crée l&apos;entité
         /// </summary>
         public string CreatedBy { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant de l&apos;&apos;utilisateur ou du système qui a effectué la dernière modification
+        /// L&apos;identifiant de l&apos;utilisateur ou du système qui a effectué la dernière modification
         /// </summary>
         public string ModifiedBy { get; set; }
         /// <summary>
-        /// La date de la création de l&apos;&apos;entité
+        /// La date de création
         /// </summary>
-        public DateTime CreateDate { get; set; }
+        public DateTime CreationDate { get; set; }
         /// <summary>
         /// La date de la dernière modification
         /// </summary>
-        public DateTime? UpdateDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
 
         public virtual THub Hub { get; set; }
         public virtual TNaf HubNavigation { get; set; }
