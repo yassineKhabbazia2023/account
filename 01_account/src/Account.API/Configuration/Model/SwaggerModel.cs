@@ -23,5 +23,7 @@ namespace Pulse.Account.API.Configuration.Model
         public string Description { get; set; } = null!;
 
         public Uri TermsOfService { get; set; } = null!;
+
+        public string RouteTemplate { get; set; } = null!;
     }
 }
