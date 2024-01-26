@@ -1,8 +1,8 @@
-﻿CREATE TABLE [sch_acc].[TNaf]
+﻿CREATE TABLE [sch_acc].[THub]
 (
-	[NafId]			INT IDENTITY(1, 1)	NOT NULL,
-	[NafCode]		VARCHAR(10)			NOT NULL,
-	CONSTRAINT [C_TNaf_PK] PRIMARY KEY CLUSTERED ([NafId] ASC)
+	[HubId]          INT IDENTITY(1,1)	NOT NULL,
+	[HubName]        VARCHAR(150)       NOT NULL,
+	CONSTRAINT [C_THub_PK] PRIMARY KEY CLUSTERED ([HubId] ASC)
 )
 
 GO
@@ -11,16 +11,15 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'sch_acc',
     @level1type = N'TABLE',
-    @level1name = N'TNaf',
+    @level1name = N'THub',
     @level2type = N'COLUMN',
-    @level2name = N'NafId'
+    @level2name = N'HubId'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'Le code Naf de l''entité',
+    @value = N'Le nom du Hub',
     @level0type = N'SCHEMA',
     @level0name = N'sch_acc',
     @level1type = N'TABLE',
-    @level1name = N'TNaf',
+    @level1name = N'THub',
     @level2type = N'COLUMN',
-    @level2name = N'NafCode'
-GO
+    @level2name = N'HubName'

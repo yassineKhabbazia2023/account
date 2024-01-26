@@ -14,6 +14,14 @@ namespace Kpmg.Account.API.Configuration
         {
             services.AddSwaggerGen(swaggerGenOptions =>
             {
+                swaggerGenOptions.AddServer(new OpenApiServer()
+                {
+                    Url = "/",
+                });
+                swaggerGenOptions.AddServer(new OpenApiServer()
+                {
+                    Url = "/account",
+                });
                 swaggerGenOptions.SwaggerDoc(swaggerConfiguration?.Version, new OpenApiInfo
                 {
                     Title = swaggerConfiguration?.Title,
@@ -58,12 +66,12 @@ namespace Kpmg.Account.API.Configuration
         {
             app.UseSwagger(option =>
             {
-                option.RouteTemplate = "/account/api/{documentName}/api.json";
+                option.RouteTemplate = swaggerConfiguration?.RouteTemplate;
             });
             app.UseSwaggerUI(swaggerUiOptions =>
             {
-                swaggerUiOptions.SwaggerEndpoint(string.Format(swaggerConfiguration?.JsonEndpoint ?? string.Empty, swaggerConfiguration?.Version), swaggerConfiguration?.Title);
-                swaggerUiOptions.RoutePrefix = "api";
+                swaggerUiOptions.SwaggerEndpoint(swaggerConfiguration?.JsonEndpoint, swaggerConfiguration?.Title);
+                swaggerUiOptions.RoutePrefix = swaggerConfiguration?.UiEndpoint;
                 swaggerUiOptions.EnableTryItOutByDefault();
             });
         }

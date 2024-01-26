@@ -3,7 +3,7 @@
 	[RoleId]			INT IDENTITY(1, 1)	NOT NULL,
 	[AccountId]			INT					NOT NULL,
 	[ContactId]			INT					NOT NULL,
-	[HasBeenDlegated]   BIT					NULL,
+	[HasBeenDelegated]   BIT					NULL,
 	[IsFavorite]		BIT					NULL,
 	[IsTemporary]		BIT					NULL,
 	[EndDate]           DATETIME2			NULL,
@@ -55,7 +55,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1type = N'TABLE',
     @level1name = N'TRoles',
     @level2type = N'COLUMN',
-    @level2name = N'HasBeenDlegated'
+    @level2name = N'HasBeenDelegated'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'Le rôle est-il considéré comme un favori ou mis en avant comme tel',
