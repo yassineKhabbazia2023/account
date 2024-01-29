@@ -2,10 +2,10 @@
 using System.Text;
 using System.Text.Json;
 using Account.Api.Tests.Configurations;
-using Kpmg.Account.API;
-using Kpmg.Account.Core.Models;
+using Pulse.Account.API;
+using Pulse.Account.Core.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
-using AccountModel = Kpmg.Account.Core.Models.Account;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Account.Api.Tests.Controllers
 {
@@ -26,7 +26,7 @@ namespace Account.Api.Tests.Controllers
             var url = "api/accounts";
             var accountJson = new AccountModel()
             {
-                AccountId = "93012CC8-77B9-4161-8DBD-61915D935E21",
+                AccountId = 1,
                 AccountNumber = "1000265308",
                 LegalName = "JEAN LEVAGE",
                 IsFavorite = true,
@@ -63,7 +63,7 @@ namespace Account.Api.Tests.Controllers
             var url = "api/accounts/93012CC8-77B9-4161-8DBD-61915D935E21";
             var accountJson = new AccountDetail()
             {
-                AccountId = "93012CC8-77B9-4161-8DBD-61915D935E21",
+                AccountId = 2,
                 AccountNumber = "1000265308",
                 LegalName = "JEAN LEVAGE",
                 LegalFormCode = "SAS",
@@ -104,7 +104,7 @@ namespace Account.Api.Tests.Controllers
             var url = "api/accounts/93012CC8-77B9-4161-8DBD-61915D935E21";
             var accountJson = new AccountDetail()
             {
-                AccountId = "93012CC8-77B9-4161-8DBD-61915D935E21",
+                AccountId = 3,
                 AccountNumber = "1000265308",
                 LegalName = "JEAN LEVAGE",
                 LegalFormCode = "SAS",

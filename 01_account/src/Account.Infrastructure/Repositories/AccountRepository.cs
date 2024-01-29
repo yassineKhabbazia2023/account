@@ -2,7 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using Kpmg.Account.Core.Interfaces;
+using Pulse.Account.Core.Interfaces;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +10,7 @@ using Polly;
 using Polly.Retry;
 using Pulse.Account.Infrastructure.Entities;
 
-namespace Kpmg.Account.Infrastructure.Repositories;
+namespace Pulse.Account.Infrastructure.Repositories;
 
 public class AccountRepository : IAccountRepository
 {

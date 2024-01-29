@@ -3,10 +3,10 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
-using Kpmg.Account.Core.Services;
+using Pulse.Account.Core.Services;
 using Pulse.Account.Core.Interfaces;
 
-namespace Kpmg.Account.API.Configuration
+namespace Pulse.Account.API.Configuration
 {
     [ExcludeFromCodeCoverage]
     public static class RegisterServicesExtension

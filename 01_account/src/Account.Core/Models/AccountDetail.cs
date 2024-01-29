@@ -5,11 +5,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace Kpmg.Account.Core.Models
+namespace Pulse.Account.Core.Models
 {
     public class AccountDetail
     {
-        public string? AccountId { get; set; }
+        public int AccountId { get; set; }
 
         public string? AccountNumber { get; set; }
 

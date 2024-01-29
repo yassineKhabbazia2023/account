@@ -24,6 +24,12 @@ namespace Pulse.Account.Infrastructure.Entities
         /// L&apos;&apos;identifiant global de l&apos;&apos;entité
         /// </summary>
         public Guid AccountGlobalUniqueId { get; set; }
+
+        /// <summary>
+        /// Le numéro de l'entité
+        /// </summary>
+        public string AccountNumber { get; set; }
+
         /// <summary>
         /// La raison social de l&apos;&apos;entité
         /// </summary>
@@ -84,6 +90,9 @@ namespace Pulse.Account.Infrastructure.Entities
         /// La forme juridique de l&apos;&apos;entité
         /// </summary>
         public string LegalForm { get; set; }
+        /// <summary>
+        /// Le régime fiscale
+        /// </summary>
         public string FiscalSystem { get; set; }
         /// <summary>
         /// Début Exercice fiscale
@@ -114,7 +123,7 @@ namespace Pulse.Account.Infrastructure.Entities
         /// </summary>
         public string ActivityType { get; set; }
         /// <summary>
-        /// La TV
+        /// La TVA
         /// </summary>
         public string VAT { get; set; }
         /// <summary>
@@ -138,13 +147,13 @@ namespace Pulse.Account.Infrastructure.Entities
         /// </summary>
         public string ModifiedBy { get; set; }
         /// <summary>
-        /// La date de la création de l&apos;&apos;entité
+        /// La date de création
         /// </summary>
-        public DateTime CreateDate { get; set; }
+        public DateTime CreationDate { get; set; }
         /// <summary>
         /// La date de la dernière modification
         /// </summary>
-        public DateTime? UpdateDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
 
         public virtual THub Hub { get; set; }
         public virtual TNaf HubNavigation { get; set; }

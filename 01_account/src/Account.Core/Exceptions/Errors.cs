@@ -2,7 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-namespace Kpmg.Account.Core.Exceptions
+namespace Pulse.Account.Core.Exceptions
 {
     public static class Errors
     {

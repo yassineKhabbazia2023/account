@@ -22,7 +22,7 @@ namespace Pulse.Account.Infrastructure.Entities
         /// <summary>
         /// Le statut du déploiement
         /// </summary>
-        public int DeploymentStatus { get; set; }
+        public int Status { get; set; }
 
         public virtual TAccount Account { get; set; }
     }

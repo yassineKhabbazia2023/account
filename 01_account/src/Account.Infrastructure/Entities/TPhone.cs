@@ -22,7 +22,7 @@ namespace Pulse.Account.Infrastructure.Entities
         /// <summary>
         /// Le type du numéro de téléphone
         /// </summary>
-        public string PhoneType { get; set; }
+        public string Type { get; set; }
 
         public virtual TAccount Account { get; set; }
     }

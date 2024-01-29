@@ -4,7 +4,7 @@
 
 using AutoFixture;
 
-namespace Kpmg.Account.Infrastructure.Tests.Repositories
+namespace Pulse.Account.Infrastructure.Tests.Repositories
 {
     public class AccountRepositoryTests
     {

@@ -5,7 +5,7 @@
 using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using Kpmg.Account.API.Configuration;
+using Pulse.Account.API.Configuration;
 using Kpmg.ExceptionMiddleware;
 using Microsoft.IdentityModel.Logging;
 using Newtonsoft.Json;
@@ -13,7 +13,7 @@ using Newtonsoft.Json.Serialization;
 using Pulse.Account.API.Configuration;
 using Pulse.Account.API.Configuration.Model;
 
-namespace Kpmg.Account.API
+namespace Pulse.Account.API
 {
     [ExcludeFromCodeCoverage]
     public class Startup
@@ -49,8 +49,8 @@ namespace Kpmg.Account.API
 
             if(_authenticationConfiguration != null && !EnvironmentName.Equals("test"))
             {
-                services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
-                   .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
+                //services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
+                //   .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
             }
 
             services.AddMemoryCache();

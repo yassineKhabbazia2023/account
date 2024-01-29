@@ -9,8 +9,8 @@ namespace Pulse.Account.Infrastructure.Entities
     {
         public TContact()
         {
-            TDelegationContactDestination = new HashSet<TDelegation>();
-            TDelegationContactSource = new HashSet<TDelegation>();
+            TDelegationDelegatee = new HashSet<TDelegation>();
+            TDelegationDelegator = new HashSet<TDelegation>();
             TRoles = new HashSet<TRoles>();
         }
 
@@ -34,9 +34,13 @@ namespace Pulse.Account.Infrastructure.Entities
         /// l&apos;&apos;adresse mail du contact
         /// </summary>
         public string ContactEmail { get; set; }
+        /// <summary>
+        /// Le type de contact
+        /// </summary>
+        public string Type { get; set; }
 
-        public virtual ICollection<TDelegation> TDelegationContactDestination { get; set; }
-        public virtual ICollection<TDelegation> TDelegationContactSource { get; set; }
+        public virtual ICollection<TDelegation> TDelegationDelegatee { get; set; }
+        public virtual ICollection<TDelegation> TDelegationDelegator { get; set; }
         public virtual ICollection<TRoles> TRoles { get; set; }
     }
 }

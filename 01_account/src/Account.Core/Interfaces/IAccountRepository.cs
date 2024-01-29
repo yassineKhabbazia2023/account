@@ -2,7 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-namespace Kpmg.Account.Core.Interfaces
+namespace Pulse.Account.Core.Interfaces
 {
     public interface IAccountRepository
     {

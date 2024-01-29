@@ -3,24 +3,30 @@
 // </copyright>
 
 using System.Diagnostics.Contracts;
+using System.Security.Principal;
+using System.Text.Json.Serialization;
 
 namespace Pulse.Account.Core.Models;
 
 public class Delegation
 {
+    [JsonIgnore]
     public int DelegationId { get; set; }
-
-    public bool IsEnable { get; set; }
 
     public DateTime StartDate { get; set; }
 
-    public DateTime EndDate { get; set; }
+    public DateTime? EndDate { get; set; }
 
+    public int Status { get; set; }
+
+    public string? Note { get; set; }
+
+    [JsonIgnore]
     public DateTime CreationDate { get; set; }
 
-    public Account Account { get; set; }
+    public Account? Account { get; set; }
 
-    public Contact ContactDestination { get; set; }
+    public Contact? Delegatee { get; set; }
 
-    public Contact ContactSource { get; set; }
+    public Contact? Delegator { get; set; }
 }

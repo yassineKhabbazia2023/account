@@ -3,7 +3,7 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
-using Kpmg.Account.Core.Services;
+using Pulse.Account.Core.Services;
 using Microsoft.IdentityModel.Tokens;
 using Pulse.Account.Core.Interfaces;
 

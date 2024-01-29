@@ -5,8 +5,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
-		<AssemblyName>Kpmg.Account.Infrastructure.Tests</AssemblyName>
-		<RootNamespace>Kpmg.Account.Infrastructure.Tests</RootNamespace>
+		<AssemblyName>Pulse.Account.Infrastructure.Tests</AssemblyName>
+		<RootNamespace>Pulse.Account.Infrastructure.Tests</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

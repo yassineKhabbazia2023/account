@@ -4,22 +4,21 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Kpmg.Account.Core.Models
+namespace Pulse.Account.Core.Models;
+
+public class Account
 {
-    public class Account
-    {
-        public string? AccountId { get; set; }
+    public int AccountId { get; set; }
 
-        public string? AccountNumber { get; set; }
+    public string AccountNumber { get; set; } = null!;
 
-        public string? LegalName { get; set; }
+    public string LegalName { get; set; } = null!;
 
-        public bool IsFavorite { get; set; }
+    public bool IsFavorite { get; set; }
 
-        public Address? Address { get; set; }
+    public Address Address { get; set; } = null!;
 
-        public Owner? Owner { get; set; }
+    public Owner? Owner { get; set; }
 
-        public Deployment? Deployment { get; set; }
-    }
+    public Deployment? Deployment { get; set; }
 }

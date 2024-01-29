@@ -3,12 +3,12 @@
 // </copyright>
 
 using System.Text.Json;
-using Kpmg.Account.Core.Models;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models.Utils;
-using AccountModel = Kpmg.Account.Core.Models.Account;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
-namespace Kpmg.Account.Core.Services
+namespace Pulse.Account.Core.Services
 {
     public class AccountService : IAccountService
     {
