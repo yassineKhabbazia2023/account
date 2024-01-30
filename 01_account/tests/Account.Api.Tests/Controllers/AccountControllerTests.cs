@@ -26,13 +26,13 @@ namespace Account.Api.Tests.Controllers
             var url = "api/accounts";
             var accountJson = new AccountModel()
             {
-                AccountId = "93012CC8-77B9-4161-8DBD-61915D935E21",
+                AccountId = new Guid("93012CC8-77B9-4161-8DBD-61915D935E21"),
                 AccountNumber = "1000265308",
                 LegalName = "JEAN LEVAGE",
                 IsFavorite = true,
-                Address = new Address()
+                Address = new List<Address>()
                 {
-                    City = "RAISMES"
+                    new Address() { City = "RAISMES" }
                 },
                 Owner = new Owner()
                 {
@@ -41,9 +41,9 @@ namespace Account.Api.Tests.Controllers
                     ContactEmail = "benjamin.wacquet@outlook.com",
                     PhoneNumber = "0627856430"
                 },
-                Deployment = new Deployment()
+                Deployment = new List<Deployment>()
                 {
-                    Status = 3
+                    new Deployment() { Status = 3 }
                 }
             };
 

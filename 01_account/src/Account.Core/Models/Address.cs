@@ -7,5 +7,7 @@ namespace Kpmg.Account.Core.Models
     public class Address
     {
         public string? City { get; set; }
+
+        public string? AddressType { get; set; }
     }
 }

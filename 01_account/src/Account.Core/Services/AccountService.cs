@@ -21,11 +21,11 @@ namespace Kpmg.Account.Core.Services
             this._accountRepository = accountRepository;
         }
 
-        public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit)
+        public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit, int contactId)
         {
             page = page == 0 ? 1 : page;
             limit = limit == 0 ? int.MaxValue : limit;
-            var accountList = await this._accountRepository.GetAccountsAsync(search, page, limit);
+            var accountList = await this._accountRepository.GetAccountsAsync(search, page, limit, contactId);
             return accountList;
         }
 

@@ -9,6 +9,6 @@ namespace Kpmg.Account.Core.Interfaces
 {
     public interface IAccountRepository
     {
-        Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit);
+        Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit, int contactId);
     }
 }

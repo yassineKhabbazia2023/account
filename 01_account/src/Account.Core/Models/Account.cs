@@ -3,23 +3,24 @@
 // </copyright>
 
 using System.ComponentModel.DataAnnotations;
+using System.Security.Principal;
 
 namespace Kpmg.Account.Core.Models
 {
     public class Account
     {
-        public string? AccountId { get; set; }
+        public Guid? AccountId { get; set; }
 
         public string? AccountNumber { get; set; }
 
         public string? LegalName { get; set; }
 
-        public bool IsFavorite { get; set; }
+        public bool? IsFavorite { get; set; }
 
-        public Address? Address { get; set; }
+        public IEnumerable<Address>? Address { get; set; }
 
         public Owner? Owner { get; set; }
 
-        public Deployment? Deployment { get; set; }
+        public IEnumerable<Deployment>? Deployment { get; set; }
     }
 }

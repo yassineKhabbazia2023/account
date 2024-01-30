@@ -3,8 +3,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Pulse.Account.Infrastructure.Entities;
 
-namespace Pulse.Account.Infrastructure.Entities
+namespace Pulse.Account.Infrastructure.Context
 {
     public partial class AccountContext : DbContext
     {
@@ -37,13 +38,13 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TAccount", "sch_acc");
 
                 entity.HasIndex(e => e.AccountGlobalUniqueId)
-                    .HasName("IDX_TAccount_AccountGlobalUniqueId");
+                    .HasDatabaseName("IDX_TAccount_AccountGlobalUniqueId");
 
                 entity.HasIndex(e => e.HubId)
-                    .HasName("IDX_THub_HubId");
+                    .HasDatabaseName("IDX_THub_HubId");
 
                 entity.HasIndex(e => e.NafId)
-                    .HasName("IDX_TNaf_NafId");
+                    .HasDatabaseName("IDX_TNaf_NafId");
 
                 entity.Property(e => e.AccountId).HasComment("L'identifiant technique");
 
@@ -199,7 +200,7 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TAddress", "sch_acc");
 
                 entity.HasIndex(e => e.AccountId)
-                    .HasName("IDX_TAddress_AccountId");
+                    .HasDatabaseName("IDX_TAddress_AccountId");
 
                 entity.Property(e => e.AddressId).HasComment("L'identifiant technique");
 
@@ -253,7 +254,7 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TContact", "sch_acc");
 
                 entity.HasIndex(e => e.ContactGlobalUniqueId)
-                    .HasName("IDX_TContact_ContactGlobalUniqueId");
+                    .HasDatabaseName("IDX_TContact_ContactGlobalUniqueId");
 
                 entity.Property(e => e.ContactId).HasComment("L'identifiant technique");
 
@@ -292,13 +293,13 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TDelegation", "sch_acc");
 
                 entity.HasIndex(e => e.AccountId)
-                    .HasName("IDX_TDelegation_AccountId");
+                    .HasDatabaseName("IDX_TDelegation_AccountId");
 
                 entity.HasIndex(e => e.DelegateeId)
-                    .HasName("IDX_TDelegation_DelegateeId");
+                    .HasDatabaseName("IDX_TDelegation_DelegateeId");
 
                 entity.HasIndex(e => e.DelegatorId)
-                    .HasName("IDX_TDelegation_DelegatorId");
+                    .HasDatabaseName("IDX_TDelegation_DelegatorId");
 
                 entity.Property(e => e.DelegationId).HasComment("L'identifiant technique");
 
@@ -348,7 +349,7 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TDeploymentPlanning", "sch_acc");
 
                 entity.HasIndex(e => e.AccountId)
-                    .HasName("IDX_TDeploymentPlanning_AccountId");
+                    .HasDatabaseName("IDX_TDeploymentPlanning_AccountId");
 
                 entity.Property(e => e.DeploymentId).HasComment("L'identifiant technique");
 
@@ -405,7 +406,7 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TPhone", "sch_acc");
 
                 entity.HasIndex(e => e.AccountId)
-                    .HasName("IDX_TPhone_AccountId");
+                    .HasDatabaseName("IDX_TPhone_AccountId");
 
                 entity.Property(e => e.PhoneId).HasComment("L'identifiant technique");
 
@@ -437,10 +438,10 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TRoles", "sch_acc");
 
                 entity.HasIndex(e => e.AccountId)
-                    .HasName("IDX_TRoles_AccountId");
+                    .HasDatabaseName("IDX_TRoles_AccountId");
 
                 entity.HasIndex(e => e.ContactId)
-                    .HasName("IDX_TRoles_ContactId");
+                    .HasDatabaseName("IDX_TRoles_ContactId");
 
                 entity.Property(e => e.RoleId).HasComment("L'identifiant technique");
 

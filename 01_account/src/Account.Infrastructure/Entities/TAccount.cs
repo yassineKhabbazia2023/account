@@ -2,6 +2,8 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using Kpmg.Account.Core.Models;
+using AccountModel = Kpmg.Account.Core.Models.Account;
 
 namespace Pulse.Account.Infrastructure.Entities
 {
@@ -156,5 +158,29 @@ namespace Pulse.Account.Infrastructure.Entities
         public virtual ICollection<TDeploymentPlanning> TDeploymentPlanning { get; set; }
         public virtual ICollection<TPhone> TPhone { get; set; }
         public virtual ICollection<TRoles> TRoles { get; set; }
+
+        public AccountModel TAccountToAccountModel(int contactId)
+        {
+            var roleSignatory = this.TRoles.FirstOrDefault(role => role.IsSignatory == true);
+            return new AccountModel()
+            {
+                AccountId = this.AccountGlobalUniqueId,
+                AccountNumber = this.SourceAccountNumber,
+                LegalName = this.LegalName,
+                IsFavorite = this.TRoles?.FirstOrDefault(role => role.ContactId == contactId).IsFavorite,
+                Address = this.TAddress.Select(address => new Address()
+                {
+                    City = address.City,
+                    AddressType = address.AddressType
+                }),
+                Owner = new Owner()
+                {
+                    ContactEmail = roleSignatory.Contact.ContactEmail,
+                    FirstName = roleSignatory.Contact.FirstName,
+                    LastName = roleSignatory.Contact.LastName
+                },
+                Deployment = this.TDeploymentPlanning?.Select(deploymentPlanning => new Deployment() { Status = deploymentPlanning.Status })
+            };
+        }
     }
 }

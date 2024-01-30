@@ -27,9 +27,9 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountModel>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit)
+        public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync(string? search, int contactId, int page, int limit)
         {
-            var result = _accountService.GetAccountsAsync(search, page, limit);
+            var result = await _accountService.GetAccountsAsync(search, page, limit, contactId);
 
             return Ok(result);
         }
