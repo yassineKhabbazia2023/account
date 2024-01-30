@@ -44,7 +44,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
                     var entities = from account in this._accountContext.TAccount
                                       select account;
 
-                    await entities.ForEachAsync(entity =>
+                    entities.ToList().ForEach(entity =>
                     {
                         var roles = from role in this._accountContext.TRoles
                                     join contact in this._accountContext.TContact
@@ -56,15 +56,21 @@ namespace Kpmg.Account.Infrastructure.Repositories
                                           where deployment.AccountId == entity.AccountId
                                           select deployment;
 
-                        foreach (var role in roles)
+                        var addressList = from address in this._accountContext.TAddress
+                                          where address.AccountId == entity.AccountId
+                                          select address;
+
+                        foreach (var roleItem in roles)
                         {
-                            role.role.Contact = role.contact;
+                            roleItem.role.Contact = roleItem.contact;
                         }
 
+                        entity.TAddress = addressList.ToList();
                         entity.TRoles = roles.Select(role => role.role).ToList();
                         entity.TDeploymentPlanning = deployments.ToList();
                     });
 
+                    entities.Where(entity => entity.TRoles.Any(role => role.ContactId == contactId));
                     if (!search.IsNullOrEmpty())
                     {
                         entities = from n in entities
@@ -78,12 +84,14 @@ namespace Kpmg.Account.Infrastructure.Repositories
                     entities = entities.Skip((page - 1) * limit);
                     entities = entities.Take(limit);
 
+                    var totalPageCalcul = count != 0 ? count / (limit > count ? count : (float)limit) : 0;
+
                     var pageinateResult = new Paging<AccountModel>()
                     {
                         Items = entities.Select(entity => entity.TAccountToAccountModel(contactId)),
                         CurrentPage = page,
                         TotalItems = count,
-                        TotalPage = count / limit
+                        TotalPage = (int)Math.Ceiling(totalPageCalcul)
                     };
                     return pageinateResult;
                 }).ConfigureAwait(false);
