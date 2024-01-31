@@ -2,6 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
+using System.Data;
 using Azure;
 using Kpmg.Account.Core.Interfaces;
 using Kpmg.Account.Core.Models;
@@ -76,6 +77,9 @@ namespace Kpmg.Account.Infrastructure.Repositories
                         entities = from n in entities
                                       where n.LegalName.Contains(search)
                                         || n.SourceAccountNumber.Contains(search)
+                                        || n.TRoles.Any(role => role.Contact.FirstName.Contains(search)
+                                                            || role.Contact.LastName.Contains(search)
+                                                            || role.Contact.ContactEmail.Contains(search))
                                       select n;
                     }
 
