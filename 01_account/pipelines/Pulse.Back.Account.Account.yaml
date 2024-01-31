@@ -32,5 +32,5 @@ extends:
       name: account
       path: 01_account\src\Account.Api\Account.Api.csproj
       type: webApp
-    dotnetcore: 8.x
+    dotnetcore: 6.x
     
