@@ -6,13 +6,13 @@ namespace Pulse.Account.API.Configuration.Model
 {
     public class AuthenticationModel
     {
-        required public string AuthClientId { get; set; }
+        public string AuthClientId { get; set; } = null!;
 
-        required public string AuthClientSecret { get; set; }
+        public string AuthClientSecret { get; set; } = null!;
 
-        required public string AuthScope { get; set; }
+        public string AuthScope { get; set; } = null!;
 
-        required public string AuthTenant { get; set; }
+        public string AuthTenant { get; set; } = null!;
 
         public string? AuthServerAdress { get; set; }
     }
