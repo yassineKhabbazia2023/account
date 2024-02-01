@@ -61,32 +61,8 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var url = "api/accounts/93012CC8-77B9-4161-8DBD-61915D935E21";
-            var accountJson = new AccountDetail()
-            {
-                AccountId = "93012CC8-77B9-4161-8DBD-61915D935E21",
-                AccountNumber = "1000265308",
-                LegalName = "JEAN LEVAGE",
-                LegalFormCode = "SAS",
-                Siret = "66E3GG3E3LEK3EG",
-                NafCode = "690.9",
-                StaffSizeRange = 25,
-                HubName = "Paris",
-                Accounting = new Accounting()
-                {
-                    FiscalExerciceStartDate = new DateOnly(2023, 09, 01),
-                    FiscalExerciceDuration = 12,
-                    AccountingMethod = "Engagement",
-                    ActivityType = "Prestation de service",
-                    FiscalSystem = "BIC",
-                    TaxationSystem = "Impot sur le revenu",
-                },
-                Vat = new Vat()
-                {
-                    System = "Reel normal - CA3 mensuelle",
-                    Intra = "Non modifiable",
-                    Type = "Encaissement"
-                }
-            };
+            string accountJson = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
+            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountJson, _jsonOptions) ?? new AccountDetail();
 
             // Act
             var response = await this._client.GetAsync(url);
@@ -94,7 +70,7 @@ namespace Account.Api.Tests.Controllers
             // Assert
             string responseString = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(JsonSerializer.Serialize(accountJson, _jsonOptions), responseString);
+            Assert.Equal(JsonSerializer.Serialize(accountDetail, _jsonOptions), responseString);
         }
 
         [Fact]
@@ -102,33 +78,9 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var url = "api/accounts/93012CC8-77B9-4161-8DBD-61915D935E21";
-            var accountJson = new AccountDetail()
-            {
-                AccountId = "93012CC8-77B9-4161-8DBD-61915D935E21",
-                AccountNumber = "1000265308",
-                LegalName = "JEAN LEVAGE",
-                LegalFormCode = "SAS",
-                Siret = "66E3GG3E3LEK3EG",
-                NafCode = "690.9",
-                StaffSizeRange = 25,
-                HubName = "Paris",
-                Accounting = new Accounting()
-                {
-                    FiscalExerciceStartDate = new DateOnly(2023, 09, 01),
-                    FiscalExerciceDuration = 12,
-                    AccountingMethod = "Engagement",
-                    ActivityType = "Prestation de service",
-                    FiscalSystem = "BIC",
-                    TaxationSystem = "Impot sur le revenu",
-                },
-                Vat = new Vat()
-                {
-                    System = "Reel normal - CA3 mensuelle",
-                    Intra = "Non modifiable",
-                    Type = "Encaissement"
-                }
-            };
-            var accountString = JsonSerializer.Serialize(accountJson, _jsonOptions);
+            string accountJson = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
+            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountJson, _jsonOptions) ?? new AccountDetail();
+            var accountString = JsonSerializer.Serialize(accountDetail, _jsonOptions);
             var content = new StringContent(accountString, Encoding.UTF8, "application/json");
 
             // Act

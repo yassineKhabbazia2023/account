@@ -162,22 +162,23 @@ namespace Pulse.Account.Infrastructure.Entities
         public AccountModel TAccountToAccountModel(int contactId)
         {
             var roleSignatory = this.TRoles.FirstOrDefault(role => role.IsSignatory == true);
+            var roleConnectedContact = this.TRoles?.FirstOrDefault(role => role.ContactId == contactId);
             return new AccountModel()
             {
                 AccountId = this.AccountGlobalUniqueId,
                 AccountNumber = this.SourceAccountNumber,
                 LegalName = this.LegalName,
-                IsFavorite = this.TRoles?.FirstOrDefault(role => role.ContactId == contactId).IsFavorite,
-                Address = this.TAddress.Select(address => new Address()
+                IsFavorite = roleConnectedContact != null ? roleConnectedContact?.IsFavorite : false,
+                Address = this.TAddress?.Select(address => new Address()
                 {
                     City = address.City,
                     AddressType = address.AddressType
                 }),
                 Owner = new Owner()
                 {
-                    ContactEmail = roleSignatory.Contact.ContactEmail,
-                    FirstName = roleSignatory.Contact.FirstName,
-                    LastName = roleSignatory.Contact.LastName
+                    ContactEmail = roleSignatory?.Contact.ContactEmail,
+                    FirstName = roleSignatory?.Contact.FirstName,
+                    LastName = roleSignatory?.Contact.LastName
                 },
                 Deployment = this.TDeploymentPlanning?.Select(deploymentPlanning => new Deployment() { Status = deploymentPlanning.Status })
             };

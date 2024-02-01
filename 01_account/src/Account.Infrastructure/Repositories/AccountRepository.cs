@@ -38,8 +38,8 @@ namespace Kpmg.Account.Infrastructure.Repositories
 
         public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit, int contactId)
         {
-            try
-            {
+            //try
+            //{
                 return await this._retryPolicy.ExecuteAsync(async () =>
                 {
                     var entities = from account in this._accountContext.TAccount
@@ -99,11 +99,11 @@ namespace Kpmg.Account.Infrastructure.Repositories
                     };
                     return pageinateResult;
                 }).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                throw new TechnicalException(ExceptionsConstants.InternalTechnicalError, ex);
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw new TechnicalException(ExceptionsConstants.InternalTechnicalError, ex);
+            //}
         }
     }
 }
