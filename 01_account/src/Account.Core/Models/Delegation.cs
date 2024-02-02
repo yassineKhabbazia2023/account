@@ -17,7 +17,7 @@ public class Delegation
 
     public DateTime? EndDate { get; set; }
 
-    public int Status { get; set; }
+    public DelegationStatus Status { get; set; }
 
     public string? Note { get; set; }
 

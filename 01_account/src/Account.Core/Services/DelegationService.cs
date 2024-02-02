@@ -22,9 +22,9 @@ public class DelegationService : IDelegationService
         return await _delegationRepository.CreateDelegationAsync(delegation);
     }
 
-    public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(Guid delegateeId)
+    public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(Guid delegateeId)
     {
-        return await _delegationRepository.GetDelegationsAsync(delegateeId);
+        return await _delegationRepository.GetContactDelegationsAsync(delegateeId);
     }
 
     public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(Guid delegatorId, Guid delegateeId)

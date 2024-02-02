@@ -9,7 +9,7 @@ namespace Pulse.Account.Core.Interfaces;
 
 public interface IDelegationRepository
 {
-    Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(Guid delegateeId);
+    Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(Guid delegateeId);
 
     Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(Guid delegatorId, Guid delegateeId);
 

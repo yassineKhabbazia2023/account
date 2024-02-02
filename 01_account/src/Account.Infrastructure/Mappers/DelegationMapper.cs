@@ -19,9 +19,11 @@ public static class DelegationMapper
         return
             new Delegation
             {
+                DelegationId = source.DelegationId,
+                CreationDate = source.CreationDate,
                 StartDate = source.StartDate,
                 EndDate = source.EndDate,
-                Status = source.Status,
+                Status = (DelegationStatus)source.Status,
                 Note = source.Note,
                 Account = source.Account?.ToAccount(),
                 Delegatee = source.Delegatee?.ToContact(),

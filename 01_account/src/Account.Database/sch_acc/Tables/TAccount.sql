@@ -1,6 +1,7 @@
 ﻿CREATE TABLE [sch_acc].[TAccount] (
 [AccountId]                 INT IDENTITY(1,1) NOT NULL,
 [AccountGlobalUniqueId]     UNIQUEIDENTIFIER  NOT NULL,
+[AccountNumber]             VARCHAR(100)      NOT NULL,
 [LegalName]                 NVARCHAR(255)     NOT NULL,
 [CommercialName]            NVARCHAR(255)     NULL,
 [AccountType]               VARCHAR(50)       NULL, 

@@ -37,15 +37,29 @@ public class DelegationRepository : IDelegationRepository
             return result;
         }
 
+        var tDelegation = new TDelegation
+        {
+            CreationDate = DateTime.UtcNow,
+            StartDate = delegation.StartDate,
+            EndDate = delegation.EndDate,
+            Status = (int)DelegationStatus.PENDING,
+            Note = delegation.Note,
+        };
+
+        tDelegation.Account = await GetAccountAsync(delegation.GlobalAccountId);
+        tDelegation.Delegator = await GetContactAsync(delegation.GlobalDelegatorId);
+        tDelegation.Delegatee = await GetContactAsync(delegation.GlobalDelegateeId);
+
         await _retryPolicy.ExecuteAsync(async () =>
         {
+            await _accountContext.TDelegation.AddAsync(tDelegation);
             await _accountContext.SaveChangesAsync();
         }).ConfigureAwait(false);
 
         return result;
     }
 
-    public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(Guid delegateeId)
+    public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(Guid delegateeId)
     {
         var delegationList = new List<TDelegation>();
 
@@ -53,6 +67,9 @@ public class DelegationRepository : IDelegationRepository
         {
             delegationList = await _accountContext
                                         .TDelegation
+                                        .Include(d => d.Account)
+                                        .Include(d => d.Delegator)
+                                        .Include(d => d.Delegatee)
                                         .Where(d => d.Delegatee.ContactGlobalUniqueId == delegateeId)
                                         .ToListAsync();
         }).ConfigureAwait(false);
@@ -60,6 +77,49 @@ public class DelegationRepository : IDelegationRepository
         return delegationList.ToDelegationList();
     }
 
-    public Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(Guid delegatorId, Guid delegateeId)
-        => throw new NotImplementedException();
+    public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(Guid delegatorId, Guid delegateeId)
+    {
+        var delegationList = new List<TDelegation>();
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            delegationList = await _accountContext
+                                        .TDelegation
+                                        .Include(d => d.Account)
+                                        .Include(d => d.Delegator)
+                                        .Include(d => d.Delegatee)
+                                        .Where(d => d.Delegator.ContactGlobalUniqueId == delegatorId
+                                         &&
+                                         d.Delegatee.ContactGlobalUniqueId == delegateeId)
+                                        .ToListAsync();
+        }).ConfigureAwait(false);
+
+        return delegationList.ToDelegationList();
+    }
+
+    private async Task<TContact> GetContactAsync(Guid globlaContactId)
+    {
+        var tContact = new TContact();
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            tContact = await _accountContext
+                                        .TContact
+                                        .FirstAsync(d => d.ContactGlobalUniqueId == globlaContactId);
+        }).ConfigureAwait(false);
+
+        return tContact;
+    }
+
+    private async Task<TAccount> GetAccountAsync(Guid globalAccountId)
+    {
+        var tAccount = new TAccount();
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            tAccount = await _accountContext
+                                        .TAccount
+                                        .FirstAsync(d => d.AccountGlobalUniqueId == globalAccountId);
+        }).ConfigureAwait(false);
+
+        return tAccount;
+    }
 }

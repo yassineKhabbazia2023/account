@@ -12,7 +12,6 @@ using AccountModel = Pulse.Account.Core.Models.Account;
 namespace Pulse.Account.API.Controllers
 {
     [Route("api")]
-    [Authorize]
     [ApiController]
     public class AccountController : ControllerBase
     {
