@@ -49,8 +49,8 @@ namespace Pulse.Account.API
 
             if(_authenticationConfiguration != null && !EnvironmentName.Equals("test"))
             {
-                services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
-                   .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
+                //services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
+                //   .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
             }
 
             services.AddMemoryCache();
