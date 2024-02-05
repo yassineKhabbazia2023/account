@@ -8,6 +8,6 @@ namespace Pulse.Account.Infrastructure.Models
 {
     public static class Constants
     {
-        public static readonly int RETRY_TIMESPAN = 5;
+        public static readonly int RETRYTIMESPAN = 5;
     }
 }

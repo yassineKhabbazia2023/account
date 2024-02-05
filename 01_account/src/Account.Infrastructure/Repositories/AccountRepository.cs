@@ -35,7 +35,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
                     .Handle<SqlException>()
                     .WaitAndRetryAsync(
                         retryCount: 1,
-                        sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Constants.RETRY_TIMESPAN));
+                        sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Constants.RETRYTIMESPAN));
         }
 
         public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit, int contactId)

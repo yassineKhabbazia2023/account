@@ -22,5 +22,4 @@ namespace Pulse.Account.Infrastructure
             }
         }
     }
-
 }

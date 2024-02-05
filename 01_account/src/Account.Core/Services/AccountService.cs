@@ -14,7 +14,7 @@ namespace Kpmg.Account.Core.Services
     public class AccountService : IAccountService
     {
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-        private IAccountRepository _accountRepository;
+        private readonly IAccountRepository _accountRepository;
 
         public AccountService(IAccountRepository accountRepository)
         {
