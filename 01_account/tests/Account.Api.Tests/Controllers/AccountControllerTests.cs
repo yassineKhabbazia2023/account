@@ -2,7 +2,6 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Account.Api.Tests.Configurations;
 using Kpmg.Account.API;
 using Kpmg.Account.API.Controllers;
 using Kpmg.Account.Core.Models;
