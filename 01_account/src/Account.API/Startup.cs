@@ -2,7 +2,6 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Kpmg.Account.API.Configuration;
@@ -21,7 +20,6 @@ namespace Kpmg.Account.API
         private const int MaxAgeConfHsts = 365;
         private readonly IConfiguration? _configuration;
         private readonly SwaggerModel? _swaggerConfiguration;
-        private readonly AuthenticationModel? _authenticationConfiguration;
 
         public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
@@ -29,7 +27,6 @@ namespace Kpmg.Account.API
             {
                 _configuration = configuration;
                 _swaggerConfiguration = _configuration.GetSection("Swagger").Get<SwaggerModel>();
-                _authenticationConfiguration = _configuration.GetSection("Authentication").Get<AuthenticationModel>();
             }
 
             EnvironmentName = environment != null ? environment.EnvironmentName : string.Empty;
@@ -46,12 +43,6 @@ namespace Kpmg.Account.API
             }
 
             SwaggerConfiguration.ConfigureSwaggerService(services, _swaggerConfiguration);
-
-            if(_authenticationConfiguration != null && !EnvironmentName.Equals("test"))
-            {
-                services.RegisterAuthenticationAndAuthorization(_authenticationConfiguration)
-                   .RegisterSystemAuthenticationProvider(_authenticationConfiguration);
-            }
 
             services.AddMemoryCache();
             services.AddApplicationInsightsTelemetry(_configuration);
@@ -112,9 +103,6 @@ namespace Kpmg.Account.API
 
             SwaggerConfiguration.UseSwagger(app, _swaggerConfiguration);
             HealthCheckConfiguration.UseHealthcheckUI(app);
-
-            app.UseAuthentication();
-            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

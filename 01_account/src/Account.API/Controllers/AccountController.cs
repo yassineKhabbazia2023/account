@@ -3,7 +3,6 @@
 // </copyright>
 
 using Kpmg.Account.Core.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models.Utils;
@@ -12,7 +11,6 @@ using AccountModel = Kpmg.Account.Core.Models.Account;
 namespace Kpmg.Account.API.Controllers
 {
     [Route("api")]
-    [Authorize]
     [ApiController]
     public class AccountController : ControllerBase
     {
@@ -23,6 +21,13 @@ namespace Kpmg.Account.API.Controllers
             _accountService = entityService;
         }
 
+        /// <summary>
+        /// Recherche des entités morales.
+        /// </summary>
+        /// <param name="search">Critère de recherche (nom/n° IBS de l'entité).</param>
+        /// <param name="page">Numéro de page.</param>
+        /// <param name="limit">Nombre d'éléments par page.</param>
+        /// <returns>Liste d'entités morales.</returns>
         [HttpGet("accounts")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountModel>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -34,6 +39,11 @@ namespace Kpmg.Account.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Récupérer les informations détaillées d'une entité morale.
+        /// </summary>
+        /// <param name="accountId">ID de l'entité morale.</param>
+        /// <returns>Informations détaillées de l'entité morale.</returns>
         [HttpGet("accounts/{accountId}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -45,6 +55,12 @@ namespace Kpmg.Account.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Mettre à jour partiellement les informations d'une entité morale.
+        /// </summary>
+        /// <param name="accountId">ID de l'entité morale.</param>
+        /// <param name="accountDetail">Informations à mettre à jour.</param>
+        /// <returns>Les informations détaillées de l'entité morale mises à jour.</returns>
         [HttpPatch("accounts/{accountId}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -56,6 +72,11 @@ namespace Kpmg.Account.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Lister les entités morales favorites d'un contact.
+        /// </summary>
+        /// <param name="contactId">ID du contact.</param>
+        /// <returns>Liste des entités morales favorites.</returns>
         [HttpGet("favorites/{contactId}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountFavorite>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -67,6 +88,13 @@ namespace Kpmg.Account.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Modifier le statut de favori d'une entité morale pour un contact donné.
+        /// </summary>
+        /// <param name="accountId">ID de l'entité morale.</param>
+        /// <param name="contactId">ID du contact.</param>
+        /// <param name="isFavorite">True si le l'entité morale fait parti des favoris, false sinon.</param>
+        /// <returns>OK si la mise à jour s'est bien déroulée.</returns>
         [HttpPatch("favorites/{accountId}/{contactId}/{isFavorite}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
