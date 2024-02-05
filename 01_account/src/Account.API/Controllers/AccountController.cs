@@ -12,7 +12,6 @@ using AccountModel = Kpmg.Account.Core.Models.Account;
 namespace Kpmg.Account.API.Controllers
 {
     [Route("api")]
-    [Authorize]
     [ApiController]
     public class AccountController : ControllerBase
     {
@@ -38,9 +37,9 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<AccountDetail> GetAccountDetailAsync(Guid accountId)
+        public async Task<ActionResult<AccountDetail>> GetAccountDetailAsync(Guid accountId)
         {
-            var result = _accountService.GetAccountDetailAsync(accountId);
+            var result = await _accountService.GetAccountDetailAsync(accountId);
 
             return Ok(result);
         }
@@ -49,9 +48,9 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<AccountDetail> UpdateAccountAsync(Guid accountId, [FromBody] AccountDetail accountDetail)
+        public async Task<ActionResult<AccountDetail>> UpdateAccountAsync(Guid accountId, [FromBody] AccountDetail accountDetail)
         {
-            var result = _accountService.UpdateAccountAsync(accountId, accountDetail);
+            var result = await _accountService.UpdateAccountAsync(accountId, accountDetail);
 
             return Ok(result);
         }

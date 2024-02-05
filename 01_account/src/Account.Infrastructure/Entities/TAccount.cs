@@ -183,5 +183,76 @@ namespace Pulse.Account.Infrastructure.Entities
                 Deployment = this.TDeploymentPlanning?.Select(deploymentPlanning => new Deployment() { Status = deploymentPlanning.Status })
             };
         }
+
+        public AccountDetail TAccountToAccountDetail()
+        {
+            return new AccountDetail()
+            {
+                AccountId = this.AccountGlobalUniqueId.ToString(),
+                AccountNumber = this.SourceAccountNumber,
+                IconName = "icon",
+                IsActive = this.IsActive,
+                Email = this.Email,
+                EmployeeCount = this.StaffSize,
+                CommercialName = this.CommercialName,
+                Accounting = new Accounting()
+                {
+                    FiscalExerciseStartDate = this.FiscalExerciseStartDate.ToString(),
+                    FiscalExerciseDuration = this.FiscalExerciseDuration,
+                    AccountingType = this.AccountType,
+                    FiscalSystem = this.FiscalSystem
+                },
+                Legal = new Legal()
+                {
+                    LegalName = this.LegalName,
+                    Siren = this.ISIN,
+                    Siret = this.Siret,
+                    LegalForm = this.LegalForm,
+                    LegalFormCode = this.LegalFormCode,
+                    StaffSizeRange = this.StaffSizeRange,
+                    Naf = new List<Naf>() {
+                                new Naf()
+                                {
+                                    NafId = this.NafId,
+                                    NafCode = this.SectorCode,
+                                    NafLabel = this.ActivityDescription
+                                }
+                            }
+                },
+                Vat = new Vat()
+                {
+                    System = this.VAT,
+                    Intra = this.VATIntra,
+                    Type = this.VATType,
+                },
+                Address = this.TAddress.Select(address => new Address()
+                {
+                    AddressId = address.AddressId,
+                    Country = address.Country,
+                    City = address.City,
+                    State = address.State,
+                    Street = address.Street,
+                    ZipCode = address.ZipCode,
+                    AddressType = address.AddressType
+                }).ToList(),
+                Phone = this.TPhone.Select(phone => new Phone()
+                {
+                    PhoneId = phone.PhoneId,
+                    PhoneNumber = phone.PhoneNumber,
+                    Type = phone.Type,
+                }).ToList(),
+                Hub = new Hub()
+                {
+                    HubId = this.Hub?.HubId,
+                    HubName = this.Hub?.HubName,
+                },
+                DeploymentPlanning = this.TDeploymentPlanning.Select(deployment => new Deployment()
+                {
+                    DeploymentId = deployment.DeploymentId,
+                    DeploymentDate = deployment.DeploymentDate.ToString(),
+                    Status = deployment.Status,
+                }).ToList()
+            };
+        }
     }
 }

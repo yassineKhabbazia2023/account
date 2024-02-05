@@ -6,7 +6,7 @@ namespace Kpmg.Account.Core.Models
 {
     public class Hub
     {
-        public int HubId { get; set; }
+        public int? HubId { get; set; }
 
         public string? HubName { get; set; }
     }

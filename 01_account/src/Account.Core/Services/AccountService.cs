@@ -29,17 +29,16 @@ namespace Kpmg.Account.Core.Services
             return accountList;
         }
 
-        public AccountDetail GetAccountDetailAsync(Guid id)
+        public async Task<AccountDetail> GetAccountDetailAsync(Guid id)
         {
-            string accountDetailMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
-            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountDetailMocked, _jsonOptions) ?? new AccountDetail();
+            var accountDetail = await this._accountRepository.GetAccountDetailAsync(id);
             return accountDetail;
         }
 
-        public AccountDetail UpdateAccountAsync(Guid id, AccountDetail accountDetail)
+        public async Task<AccountDetail> UpdateAccountAsync(Guid id, AccountDetail accountDetail)
         {
             // TODO: update account here
-            return this.GetAccountDetailAsync(id);
+            return await this.GetAccountDetailAsync(id);
         }
 
         public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(Guid contactId)

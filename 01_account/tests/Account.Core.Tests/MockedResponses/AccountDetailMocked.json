@@ -1,0 +1,66 @@
+{
+  "accountId": "6b8eb807-b76d-428b-98d9-770128a8424a",
+  "accountNumber": "10003450067003",
+  "iconName": "icon-babes",
+  "isActive": true,
+  "email": "contact@societegenerale.fr",
+  "accountNumberSource": "IBS",
+  "accountingOffice": "Paris 8ème",
+  "employeeCount": 10,
+  "commercialName": "Société générale",
+  "accounting": {
+    "fiscalExerciseStartDate": "01/10/2023",
+    "fiscalExerciseDuration": 6,
+    "accountingType": "Engagement",
+    "fiscalSystem": "Déclaration contrôlée"
+  },
+  "legal": {
+    "legalName": "Société générale",
+    "siren": "775726417",
+    "siret": "77572641707266",
+    "legalForm": "Société à responsabilité limité",
+    "legalFormCode": "SARL",
+    "naf": [
+      {
+        "nafId": 117629,
+        "nafCode": "96.0F4",
+        "nafLabel": "96.0F4"
+      }
+    ],
+    "staffSizeRange": "de 10 à 49 salariés"
+  },
+  "vat": {
+    "system": "Franchise-Exonération",
+    "intra": "FR 32 123456789",
+    "type": "Encaissement"
+  },
+  "address": [
+    {
+      "adressId": 1248000,
+      "street": "1 avenue du président Kennedy",
+      "state": "Ile de France",
+      "city": "Colombes",
+      "zipCode": "92700",
+      "country": "France",
+      "adressType": "Facturation"
+    }
+  ],
+  "phone": [
+    {
+      "phoneId": 117629,
+      "phoneNumber": "33687987788",
+      "type": "Mobile"
+    }
+  ],
+  "hub": {
+    "hubId": 853784577,
+    "hubName": "Paris"
+  },
+  "deploymentPlanning": [
+    {
+      "deploymentId": 117629,
+      "deploymentDate": "31/01/2024",
+      "status": 3
+    }
+  ]
+}

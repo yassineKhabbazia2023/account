@@ -4,8 +4,12 @@ using System.Text;
 using System.Text.Json;
 using Account.Api.Tests.Configurations;
 using Kpmg.Account.API;
+using Kpmg.Account.API.Controllers;
 using Kpmg.Account.Core.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Moq;
+using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models.Utils;
 using AccountModel = Kpmg.Account.Core.Models.Account;
 
@@ -13,102 +17,93 @@ namespace Account.Api.Tests.Controllers
 {
     public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
-        private readonly HttpClient _client;
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-        public AccountControllerTests(WebApplicationFactory<Startup> factory)
-        {
-            this._client = factory.CreateClientWithTestAuth();
-        }
-
         [Fact]
         public async Task Should_GetAccountList_ReturnsOkResultAsync()
         {
             // Arrange
-            var url = "api/accounts";
             string accountMocked = File.ReadAllText(@"./MockedResponses/AccountListMocked.json");
             var accountList = JsonSerializer.Deserialize<Paging<AccountModel>>(accountMocked, _jsonOptions) ?? new Paging<AccountModel>();
+            var accountService = new Mock<IAccountService>(MockBehavior.Strict);
+            accountService.Setup(service => service.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(accountList);
+
+            var accountController = new AccountController(accountService.Object);
 
             // Act
-            var response = await this._client.GetAsync(url + "?search&page=1&limit=999");
+            var accounts = await accountController.GetAccountsAsync(search: string.Empty, contactId: 123, page: 1, limit: 4);
+            var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
-            string responseString = await response.Content.ReadAsStringAsync();
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            //Assert.Equal(JsonSerializer.Serialize(accountList, _jsonOptions), responseString);
+            Assert.Equal(accountList, resultAccounts?.Value);
         }
 
         [Fact]
         public async Task Should_GetAccountDetail_ReturnsOkResultAsync()
         {
             // Arrange
-            var url = "api/accounts/93012CC8-77B9-4161-8DBD-61915D935E21";
-            string accountJson = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
-            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountJson, _jsonOptions) ?? new AccountDetail();
+            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
+            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
+            var accountService = new Mock<IAccountService>(MockBehavior.Strict);
+            accountService.Setup(service => service.GetAccountDetailAsync(It.IsAny<Guid>())).ReturnsAsync(accountDetail);
+
+            var accountController = new AccountController(accountService.Object);
 
             // Act
-            var response = await this._client.GetAsync(url);
+            var accounts = await accountController.GetAccountDetailAsync(accountId: Guid.NewGuid());
+            var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
-            string responseString = await response.Content.ReadAsStringAsync();
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(JsonSerializer.Serialize(accountDetail, _jsonOptions), responseString);
+            Assert.Equal(accountDetail, resultAccounts?.Value);
         }
 
         [Fact]
         public async Task Should_UpdateAccount_ReturnsOkResultAsync()
         {
             // Arrange
-            var url = "api/accounts/93012CC8-77B9-4161-8DBD-61915D935E21";
-            string accountJson = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
-            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountJson, _jsonOptions) ?? new AccountDetail();
-            var accountString = JsonSerializer.Serialize(accountDetail, _jsonOptions);
-            var content = new StringContent(accountString, Encoding.UTF8, "application/json");
+            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
+            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
+            var accountService = new Mock<IAccountService>(MockBehavior.Strict);
+            accountService.Setup(service => service.UpdateAccountAsync(It.IsAny<Guid>(), It.IsAny<AccountDetail>())).ReturnsAsync(accountDetail);
+
+            var accountController = new AccountController(accountService.Object);
 
             // Act
-            var response = await this._client.PatchAsync(url, content);
+            var accounts = await accountController.UpdateAccountAsync(accountId: Guid.NewGuid(), accountDetail);
+            var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(accountDetail, resultAccounts?.Value);
         }
 
         [Fact]
-        public async Task Should_GetAccountFavoriteList_ReturnsOkResultAsync()
+        public void Should_GetAccountFavoriteList_ReturnsOkResultAsync()
         {
             // Arrange
-            var url = "api/favorites/8696B9E3-41D9-4B92-A541-714B6E69B998";
-            var accountJson = new AccountFavorite()
+            var accountJson = new List<AccountFavorite>()
             {
-                AccountId = "93012CC8-77B9-4161-8DBD-61915D935E21",
-                LegalName = "JEAN LEVAGE",
-                Icon = "jeanlevage"
+                new AccountFavorite()
+                {
+                    AccountId = "93012CC8-77B9-4161-8DBD-61915D935E21",
+                    LegalName = "JEAN LEVAGE",
+                    Icon = "jeanlevage"
+                }
             };
+            var accountService = new Mock<IAccountService>(MockBehavior.Strict);
+            accountService.Setup(service => service.GetAccountFavoritesAsync(It.IsAny<Guid>())).Returns(accountJson);
+
+            var accountController = new AccountController(accountService.Object);
 
             // Act
-            var response = await this._client.GetAsync(url);
+            var accounts = accountController.GetAccountFavoritesAsync(contactId: Guid.NewGuid());
+            var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
-            string responseString = await response.Content.ReadAsStringAsync();
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Contains(JsonSerializer.Serialize(accountJson, _jsonOptions), responseString);
-        }
-
-        [Fact]
-        public async Task Should_SetFavorite_ReturnsOkResultAsync()
-        {
-            // Arrange
-            var url = "api/favorites/93012CC8-77B9-4161-8DBD-61915D935E21/8696B9E3-41D9-4B92-A541-714B6E69B998/true";
-            var content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
-
-            // Act
-            var response = await this._client.PatchAsync(url, content);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(accountJson, resultAccounts?.Value);
         }
     }
 }

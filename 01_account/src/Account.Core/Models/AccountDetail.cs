@@ -23,7 +23,7 @@ namespace Kpmg.Account.Core.Models
 
         public string? AccountingOffice { get; set; }
 
-        public int EmployeeCount { get; set; }
+        public int? EmployeeCount { get; set; }
 
         public string? CommercialName { get; set; }
 

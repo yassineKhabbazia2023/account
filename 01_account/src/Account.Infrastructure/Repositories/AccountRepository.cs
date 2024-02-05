@@ -3,10 +3,12 @@
 // </copyright>
 
 using System.Data;
+using System.Net;
 using Azure;
 using Kpmg.Account.Core.Interfaces;
 using Kpmg.Account.Core.Models;
 using Kpmg.ExceptionMiddleware.AdvancedException;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -38,12 +40,12 @@ namespace Kpmg.Account.Infrastructure.Repositories
 
         public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit, int contactId)
         {
-            //try
-            //{
+            try
+            {
                 return await this._retryPolicy.ExecuteAsync(async () =>
                 {
                     var entities = from account in this._accountContext.TAccount
-                                      select account;
+                                   select account;
 
                     entities.ToList().ForEach(entity =>
                     {
@@ -71,16 +73,16 @@ namespace Kpmg.Account.Infrastructure.Repositories
                         entity.TDeploymentPlanning = deployments.ToList();
                     });
 
-                    entities.Where(entity => entity.TRoles.Any(role => role.ContactId == contactId));
+                    entities = entities.Where(entity => entity.TRoles.Any(role => role.ContactId == contactId));
                     if (!search.IsNullOrEmpty())
                     {
                         entities = from n in entities
-                                      where n.LegalName.Contains(search)
-                                        || n.SourceAccountNumber.Contains(search)
-                                        || n.TRoles.Any(role => role.Contact.FirstName.Contains(search)
-                                                            || role.Contact.LastName.Contains(search)
-                                                            || role.Contact.ContactEmail.Contains(search))
-                                      select n;
+                                   where n.LegalName.Contains(search)
+                                         || n.SourceAccountNumber.Contains(search)
+                                         || n.TRoles.Any(role => role.Contact.FirstName.Contains(search)
+                                                             || role.Contact.LastName.Contains(search)
+                                                             || role.Contact.ContactEmail.Contains(search))
+                                   select n;
                     }
 
                     var count = await entities.CountAsync();
@@ -99,11 +101,66 @@ namespace Kpmg.Account.Infrastructure.Repositories
                     };
                     return pageinateResult;
                 }).ConfigureAwait(false);
-            //}
-            //catch (Exception ex)
-            //{
-            //    throw new TechnicalException(ExceptionsConstants.InternalTechnicalError, ex);
-            //}
+            }
+            catch (Exception ex)
+            {
+                throw new TechnicalException(ExceptionsConstants.InternalTechnicalError, ex);
+            }
+        }
+
+        public async Task<AccountDetail> GetAccountDetailAsync(Guid accountId)
+        {
+            try
+            {
+                return await this._retryPolicy.ExecuteAsync(async () =>
+                {
+                    var entities = from account in this._accountContext.TAccount
+                                   where account.AccountGlobalUniqueId.Equals(accountId)
+                                    select account;
+
+                    var entity = entities.FirstOrDefault();
+                    if(entity == null)
+                    {
+                        throw new NotFoundException(HttpStatusCode.NotFound.ToString(), ExceptionsConstants.NotFoundError);
+                    }
+
+                    var roles = from role in this._accountContext.TRoles
+                                join contact in this._accountContext.TContact
+                                on role.ContactId equals contact.ContactId
+                                where role.AccountId == entity.AccountId
+                                select new { role, contact };
+
+                    var deployments = from deployment in this._accountContext.TDeploymentPlanning
+                                        where deployment.AccountId == entity.AccountId
+                                        select deployment;
+
+                    var addressList = from address in this._accountContext.TAddress
+                                        where address.AccountId == entity.AccountId
+                                        select address;
+
+                    var phoneList = from phones in this._accountContext.TPhone
+                                      where phones.AccountId == entity.AccountId
+                                      select phones;
+
+                    foreach (var roleItem in roles)
+                    {
+                        roleItem.role.Contact = roleItem.contact;
+                    }
+
+                    entity.TAddress = addressList.ToList();
+                    entity.TPhone = phoneList.ToList();
+                    entity.TRoles = roles.Select(role => role.role).ToList();
+                    entity.TDeploymentPlanning = deployments.ToList();
+
+                    var accountDetail = entity.TAccountToAccountDetail();
+
+                    return accountDetail;
+                }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new TechnicalException(ExceptionsConstants.InternalTechnicalError, ex);
+            }
         }
     }
 }

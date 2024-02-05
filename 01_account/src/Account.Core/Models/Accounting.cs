@@ -8,7 +8,7 @@ namespace Kpmg.Account.Core.Models
     {
         public string? FiscalExerciseStartDate { get; set; }
 
-        public int FiscalExerciseDuration { get; set; }
+        public int? FiscalExerciseDuration { get; set; }
 
         public string? AccountingType { get; set; }
 

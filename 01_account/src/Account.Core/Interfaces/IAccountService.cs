@@ -7,9 +7,9 @@ namespace Pulse.Account.Core.Interfaces
     {
         public Task<Paging<Kpmg.Account.Core.Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId);
 
-        public AccountDetail GetAccountDetailAsync(Guid id);
+        public Task<AccountDetail> GetAccountDetailAsync(Guid id);
 
-        public AccountDetail UpdateAccountAsync(Guid id, AccountDetail accountDetail);
+        public Task<AccountDetail> UpdateAccountAsync(Guid id, AccountDetail accountDetail);
 
         public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(Guid contactId);
 
