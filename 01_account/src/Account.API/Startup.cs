@@ -76,9 +76,6 @@ namespace Pulse.Account.API
             SwaggerConfiguration.UseSwagger(app, _swaggerConfiguration);
             HealthCheckConfiguration.UseHealthcheckUI(app);
 
-            app.UseAuthentication();
-            app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

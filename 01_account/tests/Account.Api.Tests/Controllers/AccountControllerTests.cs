@@ -17,7 +17,7 @@ namespace Account.Api.Tests.Controllers
 
         public AccountControllerTests(WebApplicationFactory<Startup> factory)
         {
-            this._client = factory.CreateClientWithTestAuth();
+            _client = factory.CreateClient();
         }
 
         [Fact(Skip = "Skipping this test for now.")]
@@ -49,7 +49,7 @@ namespace Account.Api.Tests.Controllers
             };
 
             // Act
-            var response = await this._client.GetAsync(url + "?search&page=1&limit=999");
+            var response = await _client.GetAsync(url + "?search&page=1&limit=999");
 
             // Assert
             string responseString = await response.Content.ReadAsStringAsync();
@@ -90,7 +90,7 @@ namespace Account.Api.Tests.Controllers
             };
 
             // Act
-            var response = await this._client.GetAsync(url);
+            var response = await _client.GetAsync(url);
 
             // Assert
             string responseString = await response.Content.ReadAsStringAsync();
@@ -133,7 +133,7 @@ namespace Account.Api.Tests.Controllers
             var content = new StringContent(accountString, Encoding.UTF8, "application/json");
 
             // Act
-            var response = await this._client.PatchAsync(url, content);
+            var response = await _client.PatchAsync(url, content);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -152,7 +152,7 @@ namespace Account.Api.Tests.Controllers
             };
 
             // Act
-            var response = await this._client.GetAsync(url);
+            var response = await _client.GetAsync(url);
 
             // Assert
             string responseString = await response.Content.ReadAsStringAsync();
@@ -168,7 +168,7 @@ namespace Account.Api.Tests.Controllers
             var content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
 
             // Act
-            var response = await this._client.PatchAsync(url, content);
+            var response = await _client.PatchAsync(url, content);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
