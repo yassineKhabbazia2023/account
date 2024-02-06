@@ -3,6 +3,11 @@
 // </copyright>
 
 using AutoFixture;
+using Microsoft.EntityFrameworkCore;
+using Pulse.Account.Core.Dtos;
+using Pulse.Account.Core.Models;
+using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Repositories;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories
 {

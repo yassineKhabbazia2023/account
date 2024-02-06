@@ -2,10 +2,9 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Core.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using AccountModel = Pulse.Account.Core.Models.Account;
 

@@ -3,11 +3,13 @@
 // </copyright>
 
 using Azure.Core;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Dtos;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Entities;
@@ -29,9 +31,9 @@ public class DelegationRepository : IDelegationRepository
                 sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(3000));
     }
 
-    public async Task<Guid> CreateDelegationAsync(CreateDelegation delegation)
+    public async Task<int> CreateDelegationAsync(CreateDelegation delegation)
     {
-        Guid result = Guid.Empty;
+        int result = -1;
         if (delegation is null)
         {
             return result;
@@ -53,7 +55,7 @@ public class DelegationRepository : IDelegationRepository
         await _retryPolicy.ExecuteAsync(async () =>
         {
             await _accountContext.TDelegation.AddAsync(tDelegation);
-            await _accountContext.SaveChangesAsync();
+            result = await _accountContext.SaveChangesAsync();
         }).ConfigureAwait(false);
 
         return result;
@@ -104,8 +106,13 @@ public class DelegationRepository : IDelegationRepository
         {
             tContact = await _accountContext
                                         .TContact
-                                        .FirstAsync(d => d.ContactGlobalUniqueId == globlaContactId);
+                                        .FirstOrDefaultAsync(d => d.ContactGlobalUniqueId == globlaContactId);
         }).ConfigureAwait(false);
+
+        if (tContact is null)
+        {
+            throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, globlaContactId));
+        }
 
         return tContact;
     }
@@ -117,8 +124,13 @@ public class DelegationRepository : IDelegationRepository
         {
             tAccount = await _accountContext
                                         .TAccount
-                                        .FirstAsync(d => d.AccountGlobalUniqueId == globalAccountId);
+                                        .FirstOrDefaultAsync(d => d.AccountGlobalUniqueId == globalAccountId);
         }).ConfigureAwait(false);
+
+        if(tAccount is null)
+        {
+            throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+        }
 
         return tAccount;
     }

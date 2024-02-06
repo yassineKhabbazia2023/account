@@ -61,7 +61,7 @@ public class DelegationController : ControllerBase
             return BadRequest("The delegation parameter are required.");
         }
 
-        Guid delegationId = await _delegationService.CreateDelegationAsync(delegation);
+        int delegationId = await _delegationService.CreateDelegationAsync(delegation);
 
         return Ok(delegationId);
     }

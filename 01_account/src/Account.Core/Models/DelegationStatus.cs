@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// <copyright file="DelegationStatus.cs" company="KPMG">
+// Copyright (c) KPMG. All rights reserved.
+// </copyright>
 
-namespace Pulse.Account.Core.Models
+namespace Pulse.Account.Core.Models;
+
+public enum DelegationStatus
 {
-    public enum DelegationStatus : int
-    {
-        PENDING = 0,
-        ENABLED = 1,
-        DISABLED = 3
-    }
+    PENDING = 0,
+    ENABLED = 1,
+    DISABLED = 3
 }

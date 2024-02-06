@@ -8,5 +8,8 @@ namespace Pulse.Account.Core.Exceptions
     {
         public static readonly string NotFoundAccountCode = "X001";
         public static readonly string NotFoundAccountMessage = "L'identifiant de l'entité indiquée est incorrect";
+
+        public static readonly string NotFoundContactCode = "X002";
+        public static readonly string NotFoundContactMessage = "Le contact avec l'identifiant {0} est introuvable";
     }
 }

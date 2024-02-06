@@ -17,7 +17,7 @@ public class DelegationService : IDelegationService
         _delegationRepository = delegationRepository;
     }
 
-    public async Task<Guid> CreateDelegationAsync(CreateDelegation delegation)
+    public async Task<int> CreateDelegationAsync(CreateDelegation delegation)
     {
         return await _delegationRepository.CreateDelegationAsync(delegation);
     }
