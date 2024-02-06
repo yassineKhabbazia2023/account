@@ -8,5 +8,5 @@ public enum DelegationStatus
 {
     PENDING = 0,
     ENABLED = 1,
-    DISABLED = 3
+    DISABLED = 2
 }
