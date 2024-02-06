@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Text;
 using System.Text.Json;
-using Account.Api.Tests.Configurations;
 using Pulse.Account.API;
 using Pulse.Account.Core.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -20,7 +19,7 @@ namespace Account.Api.Tests.Controllers
             _client = factory.CreateClient();
         }
 
-        [Fact(Skip = "Skipping this test for now.")]
+        [Fact(Skip ="To fix")]
         public async Task Should_GetAccountList_ReturnsOkResultAsync()
         {
             // Arrange
@@ -57,7 +56,7 @@ namespace Account.Api.Tests.Controllers
             Assert.Contains(JsonSerializer.Serialize(accountJson, _jsonOptions), responseString);
         }
 
-        [Fact(Skip = "Skipping this test for now.")]
+        [Fact(Skip = "To fix")]
         public async Task Should_GetAccountDetail_ReturnsOkResultAsync()
         {
             // Arrange
@@ -98,7 +97,7 @@ namespace Account.Api.Tests.Controllers
             Assert.Equal(JsonSerializer.Serialize(accountJson, _jsonOptions), responseString);
         }
 
-        [Fact(Skip = "Skipping this test for now.")]
+        [Fact(Skip = "To fix")]
         public async Task Should_UpdateAccount_ReturnsOkResultAsync()
         {
             // Arrange
@@ -139,7 +138,7 @@ namespace Account.Api.Tests.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
-        [Fact(Skip = "Skipping this test for now.")]
+        [Fact(Skip = "To fix")]
         public async Task Should_GetAccountFavoriteList_ReturnsOkResultAsync()
         {
             // Arrange
@@ -160,7 +159,7 @@ namespace Account.Api.Tests.Controllers
             Assert.Contains(JsonSerializer.Serialize(accountJson, _jsonOptions), responseString);
         }
 
-        [Fact(Skip = "Skipping this test for now.")]
+        [Fact]
         public async Task Should_SetFavorite_ReturnsOkResultAsync()
         {
             // Arrange

@@ -2,8 +2,6 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using Kpmg.Account.Core.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
