@@ -15,11 +15,20 @@ public class DelegationController : ControllerBase
 {
     private readonly IDelegationService _delegationService;
 
+    /// <summary>
+    /// Les différents endpoints pour la gestion délégations.
+    /// </summary>
+    /// <param name="delegationService">Le service des délégations.</param>
     public DelegationController(IDelegationService delegationService)
     {
         _delegationService = delegationService;
     }
 
+    /// <summary>
+    /// Récupérer les délégations d'un contact donné.
+    /// </summary>
+    /// <param name="delegateeId">L'identifiant global du contact.</param>
+    /// <returns>Liste de délégations</returns>
     [HttpGet("{delegateeId}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Delegation>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -35,6 +44,12 @@ public class DelegationController : ControllerBase
         return Ok(delegationList!);
     }
 
+    /// <summary>
+    /// Récupérer les délégations accordées par un contact à un autre contact.
+    /// </summary>
+    /// <param name="delegatorId">L'identifiant global du contact délégateur.</param>
+    /// <param name="delegateeId">L'identifiant global du contact délégataire.</param>
+    /// <returns></returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Delegation>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -50,6 +65,11 @@ public class DelegationController : ControllerBase
         return Ok(delegationList!);
     }
 
+    /// <summary>
+    /// Ajouter une délégation sur une entité morale.
+    /// </summary>
+    /// <param name="delegation">Le détail relatif à la délégation.</param>
+    /// <returns>Un entitier positif si la délégation a été bien ajouter, sinon une valeur 0. </returns>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

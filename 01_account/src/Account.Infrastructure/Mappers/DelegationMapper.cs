@@ -14,9 +14,9 @@ public static class DelegationMapper
         return source?.Select(d => d.ToDelegation()).ToList() ?? new List<Delegation>();
     }
 
-    public static Delegation ToDelegation(this TDelegation source)
+    public static Delegation? ToDelegation(this TDelegation source)
     {
-        return
+        return source == null ? null :
             new Delegation
             {
                 DelegationId = source.DelegationId,
@@ -31,10 +31,10 @@ public static class DelegationMapper
             };
     }
 
-    public static Pulse.Account.Core.Models.Account ToAccount(this TAccount source)
+    public static Core.Models.Account? ToAccount(this TAccount source)
     {
-        return
-            new Pulse.Account.Core.Models.Account
+        return source == null ? null :
+            new Core.Models.Account
             {
                 AccountId = source.AccountId,
                 AccountNumber = source.AccountNumber,
@@ -46,9 +46,9 @@ public static class DelegationMapper
             };
     }
 
-    public static Contact ToContact(this TContact source)
+    public static Contact? ToContact(this TContact source)
     {
-        return
+        return source == null ? null :
             new Contact
             {
                 ContactId = source.ContactId,

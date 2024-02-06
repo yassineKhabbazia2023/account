@@ -24,6 +24,8 @@ namespace Pulses.Account.API.Configuration
 
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)
         {
+            ArgumentNullException.ThrowIfNull(configuration);
+
             var connectionString = configuration["SqlAccountConnectionString"];
             ArgumentNullException.ThrowIfNullOrEmpty(connectionString);
 

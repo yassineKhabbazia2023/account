@@ -2,12 +2,10 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Core.Interfaces;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Retry;
+using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Entities;
 
 namespace Pulse.Account.Infrastructure.Repositories;

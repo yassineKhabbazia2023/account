@@ -3,8 +3,8 @@
 // </copyright>
 
 using System.Text.Json;
-using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
