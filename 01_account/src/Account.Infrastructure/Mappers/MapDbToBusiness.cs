@@ -48,11 +48,11 @@ namespace Pulse.Account.Infrastructure.Mappers
         {
             return new AccountDetail()
             {
-                AccountId = source.AccountGlobalUniqueId.ToString(),
+                AccountId = source.AccountId,
                 AccountNumber = source.SourceAccountNumber,
                 IconName = "icon",
-                IsActive = source != null ? source.IsActive : false,
-                Email = source.Email,
+                IsActive = source.IsActive,
+                Email = source?.Email,
                 EmployeeCount = source.StaffSize,
                 CommercialName = source.CommercialName,
                 Accounting = new Accounting()
@@ -71,14 +71,15 @@ namespace Pulse.Account.Infrastructure.Mappers
                     LegalForm = source.LegalForm,
                     LegalFormCode = source.LegalFormCode,
                     StaffSizeRange = source.StaffSizeRange,
-                    Naf = new List<Naf>() {
-                                new Naf()
-                                {
-                                    NafId = source.NafId,
-                                    NafCode = source.SectorCode,
-                                    NafLabel = source.ActivityDescription
-                                }
-                            }
+                    Naf = new List<Naf>()
+                    {
+                        new Naf()
+                        {
+                            NafId = source.NafId,
+                            NafCode = source.SectorCode,
+                            NafLabel = source.ActivityDescription
+                        }
+                    }
                 },
                 Vat = new Vat()
                 {
