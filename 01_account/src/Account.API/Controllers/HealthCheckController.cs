@@ -19,6 +19,10 @@ namespace Kpmg.Account.API.Controllers
             _healthCheckService = healthCheckService;
         }
 
+        /// <summary>
+        /// Vérifie l'état de l'API et de la base de données SQL.
+        /// </summary>
+        /// <returns>OK si l'API est saine, KO sinon.</returns>
         [HttpGet("health")]
         public async Task<IActionResult> CheckHealthAsync()
         {
