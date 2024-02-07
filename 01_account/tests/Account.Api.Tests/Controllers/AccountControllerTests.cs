@@ -53,7 +53,7 @@ namespace Account.Api.Tests.Controllers
             var accountController = new AccountController(accountService.Object);
 
             // Act
-            var accounts = await accountController.GetAccountDetailAsync(accountId: 1);
+            var accounts = await accountController.GetAccountDetailAsync(1);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
