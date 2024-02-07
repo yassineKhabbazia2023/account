@@ -9,7 +9,7 @@ namespace Pulse.Account.Core.Interfaces
 
         public Task<AccountDetail> GetAccountDetailAsync(int id);
 
-        public Task<AccountDetail> UpdateAccountAsync(int id, AccountDetail accountDetail);
+        public Task<AccountDetail> UpdateAccountAsync(Guid id, AccountDetail accountDetail);
 
         public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(int contactId);
 
