@@ -60,8 +60,6 @@ namespace Kpmg.Account.Infrastructure.Repositories
                                    select n;
                     }
 
-                    var listTemp = entities.ToList();
-
                     var count = await entities.CountAsync();
 
                     entities = entities.Skip((page - 1) * limit);

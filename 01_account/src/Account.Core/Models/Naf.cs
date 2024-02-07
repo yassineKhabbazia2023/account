@@ -6,7 +6,7 @@ namespace Kpmg.Account.Core.Models
 {
     public class Naf
     {
-        public int NafId { get; set; }
+        public int? NafId { get; set; }
 
         public string? NafCode { get; set; }
 
