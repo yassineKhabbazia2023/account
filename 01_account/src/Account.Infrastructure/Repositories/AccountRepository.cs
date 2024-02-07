@@ -99,7 +99,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
                            .Include(x => x.TDeploymentPlanning)
                            .Include(x => x.Hub)
                            .Include(x => x.TPhone)
-                           .Where(a => a.SourceAccountNumber == accountId.ToString());
+                           .Where(a => a.AccountId == accountId);
 
                     var entity = entities.FirstOrDefault();
                     if(entity == null)

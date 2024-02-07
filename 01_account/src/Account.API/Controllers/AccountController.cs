@@ -25,6 +25,7 @@ namespace Kpmg.Account.API.Controllers
         /// Recherche des entités morales.
         /// </summary>
         /// <param name="search">Critère de recherche (nom/n° IBS de l'entité).</param>
+        /// <param name="contactId">Identification de l'utilisateur connecté.</param>
         /// <param name="page">Numéro de page.</param>
         /// <param name="limit">Nombre d'éléments par page.</param>
         /// <returns>Liste d'entités morales.</returns>
@@ -48,9 +49,9 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<AccountDetail>> GetAccountDetailAsync(int accountNumber)
+        public async Task<ActionResult<AccountDetail>> GetAccountDetailAsync(int accountId)
         {
-            var result = await _accountService.GetAccountDetailAsync(accountNumber);
+            var result = await _accountService.GetAccountDetailAsync(accountId);
 
             return Ok(result);
         }
