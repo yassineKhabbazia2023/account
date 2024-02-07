@@ -12,6 +12,6 @@ namespace Kpmg.Account.Core.Interfaces
     {
         Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit, int contactId);
 
-        Task<AccountDetail> GetAccountDetailAsync(Guid accountId);
+        Task<AccountDetail> GetAccountDetailAsync(int accountId);
     }
 }

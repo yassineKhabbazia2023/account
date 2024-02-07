@@ -37,9 +37,9 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<AccountDetail>> GetAccountDetailAsync(Guid accountId)
+        public async Task<ActionResult<AccountDetail>> GetAccountDetailAsync(int accountNumber)
         {
-            var result = await _accountService.GetAccountDetailAsync(accountId);
+            var result = await _accountService.GetAccountDetailAsync(accountNumber);
 
             return Ok(result);
         }
@@ -48,7 +48,7 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<AccountDetail>> UpdateAccountAsync(Guid accountId, [FromBody] AccountDetail accountDetail)
+        public async Task<ActionResult<AccountDetail>> UpdateAccountAsync(int accountId, [FromBody] AccountDetail accountDetail)
         {
             var result = await _accountService.UpdateAccountAsync(accountId, accountDetail);
 
@@ -59,7 +59,7 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountFavorite>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IReadOnlyCollection<AccountFavorite>> GetAccountFavoritesAsync(Guid contactId)
+        public ActionResult<IReadOnlyCollection<AccountFavorite>> GetAccountFavoritesAsync(int contactId)
         {
             var result = _accountService.GetAccountFavoritesAsync(contactId);
 
@@ -70,7 +70,7 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult SetFavoriteAsync(Guid accountId, Guid contactId, bool isFavorite)
+        public ActionResult SetFavoriteAsync(int accountId, int contactId, bool isFavorite)
         {
             _accountService.SetFavoriteAsync(accountId, contactId, isFavorite);
 

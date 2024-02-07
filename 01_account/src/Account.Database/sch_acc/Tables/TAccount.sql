@@ -35,7 +35,7 @@
 CONSTRAINT [C_TAccount_PK] PRIMARY KEY CLUSTERED ([AccountId] ASC),
 CONSTRAINT [UQ_TAccount_AccountGlobalUniqueId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC),
 CONSTRAINT [UQ_TPhone_PhoneId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC),
-CONSTRAINT [C_TAccount_TNafId_FK] FOREIGN KEY ([HubId]) REFERENCES [sch_acc].[TNaf] ([NafId]),
+CONSTRAINT [C_TAccount_TNafId_FK] FOREIGN KEY ([NafId]) REFERENCES [sch_acc].[TNaf] ([NafId]),
 CONSTRAINT [C_TAccount_THub_HubId_FK] FOREIGN KEY ([HubId]) REFERENCES [sch_acc].[THub] ([HubId])
 )
 

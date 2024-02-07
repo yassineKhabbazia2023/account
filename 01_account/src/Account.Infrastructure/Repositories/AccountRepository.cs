@@ -11,13 +11,16 @@ using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Retry;
+using Pulse.Account.Core.Models.Constants;
+using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Infrastructure.Models;
+using Pulse.Account.Infrastructure.Mappers;
 using AccountModel = Kpmg.Account.Core.Models.Account;
 
 namespace Kpmg.Account.Infrastructure.Repositories
@@ -29,9 +32,9 @@ namespace Kpmg.Account.Infrastructure.Repositories
 
         public AccountRepository(AccountContext accountContext)
         {
-            this._accountContext = accountContext;
+            _accountContext = accountContext;
 
-            this._retryPolicy = Policy
+            _retryPolicy = Policy
                     .Handle<SqlException>()
                     .WaitAndRetryAsync(
                         retryCount: 1,
@@ -42,38 +45,10 @@ namespace Kpmg.Account.Infrastructure.Repositories
         {
             try
             {
-                return await this._retryPolicy.ExecuteAsync(async () =>
+                return await _retryPolicy.ExecuteAsync(async () =>
                 {
-                    var entities = from account in this._accountContext.TAccount
-                                   select account;
+                    IQueryable<TAccount> entities = GetAccountQueryByContactId(contactId);
 
-                    entities.ToList().ForEach(entity =>
-                    {
-                        var roles = from role in this._accountContext.TRoles
-                                    join contact in this._accountContext.TContact
-                                    on role.ContactId equals contact.ContactId
-                                    where role.AccountId == entity.AccountId
-                                    select new { role, contact };
-
-                        var deployments = from deployment in this._accountContext.TDeploymentPlanning
-                                          where deployment.AccountId == entity.AccountId
-                                          select deployment;
-
-                        var addressList = from address in this._accountContext.TAddress
-                                          where address.AccountId == entity.AccountId
-                                          select address;
-
-                        foreach (var roleItem in roles)
-                        {
-                            roleItem.role.Contact = roleItem.contact;
-                        }
-
-                        entity.TAddress = addressList.ToList();
-                        entity.TRoles = roles.Select(role => role.role).ToList();
-                        entity.TDeploymentPlanning = deployments.ToList();
-                    });
-
-                    entities = entities.Where(entity => entity.TRoles.Any(role => role.ContactId == contactId));
                     if (!search.IsNullOrEmpty())
                     {
                         entities = from n in entities
@@ -84,6 +59,8 @@ namespace Kpmg.Account.Infrastructure.Repositories
                                                              || role.Contact.ContactEmail.Contains(search))
                                    select n;
                     }
+
+                    var listTemp = entities.ToList();
 
                     var count = await entities.CountAsync();
 
@@ -104,53 +81,31 @@ namespace Kpmg.Account.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                throw new TechnicalException(ExceptionsConstants.InternalTechnicalError, ex);
+                throw new TechnicalException(Errors.InternalTechnicalError, ex);
             }
         }
 
-        public async Task<AccountDetail> GetAccountDetailAsync(Guid accountId)
+        public async Task<AccountDetail> GetAccountDetailAsync(int accountId)
         {
             try
             {
-                return await this._retryPolicy.ExecuteAsync(async () =>
+                return await _retryPolicy.ExecuteAsync(async () =>
                 {
-                    var entities = from account in this._accountContext.TAccount
-                                   where account.AccountGlobalUniqueId.Equals(accountId)
-                                    select account;
+                    IQueryable<TAccount> entities = _accountContext.TAccount
+                           .AsNoTracking()
+                           .Include(x => x.TRoles)
+                           .ThenInclude(r => r.Contact)
+                           .Include(a => a.TAddress)
+                           .Include(x => x.TDeploymentPlanning)
+                           .Include(x => x.Hub)
+                           .Include(x => x.TPhone)
+                           .Where(a => a.SourceAccountNumber == accountId.ToString());
 
                     var entity = entities.FirstOrDefault();
                     if(entity == null)
                     {
-                        throw new NotFoundException(HttpStatusCode.NotFound.ToString(), ExceptionsConstants.NotFoundError);
+                        throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
                     }
-
-                    var roles = from role in this._accountContext.TRoles
-                                join contact in this._accountContext.TContact
-                                on role.ContactId equals contact.ContactId
-                                where role.AccountId == entity.AccountId
-                                select new { role, contact };
-
-                    var deployments = from deployment in this._accountContext.TDeploymentPlanning
-                                        where deployment.AccountId == entity.AccountId
-                                        select deployment;
-
-                    var addressList = from address in this._accountContext.TAddress
-                                        where address.AccountId == entity.AccountId
-                                        select address;
-
-                    var phoneList = from phones in this._accountContext.TPhone
-                                      where phones.AccountId == entity.AccountId
-                                      select phones;
-
-                    foreach (var roleItem in roles)
-                    {
-                        roleItem.role.Contact = roleItem.contact;
-                    }
-
-                    entity.TAddress = addressList.ToList();
-                    entity.TPhone = phoneList.ToList();
-                    entity.TRoles = roles.Select(role => role.role).ToList();
-                    entity.TDeploymentPlanning = deployments.ToList();
 
                     var accountDetail = entity.TAccountToAccountDetail();
 
@@ -159,8 +114,19 @@ namespace Kpmg.Account.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                throw new TechnicalException(ExceptionsConstants.InternalTechnicalError, ex);
+                throw new TechnicalException(Errors.InternalTechnicalError, ex);
             }
+        }
+
+        private IQueryable<TAccount> GetAccountQueryByContactId(int contactId)
+        {
+            return _accountContext.TAccount
+                            .AsNoTracking()
+                            .Include(x => x.TRoles)
+                            .ThenInclude(r => r.Contact)
+                            .Include(a => a.TAddress)
+                            .Include(x => x.TDeploymentPlanning)
+                            .Where(a => a.TRoles.Any(r => r.ContactId == contactId));
         }
     }
 }

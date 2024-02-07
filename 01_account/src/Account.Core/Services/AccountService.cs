@@ -18,20 +18,20 @@ namespace Kpmg.Account.Core.Services
 
         public AccountService(IAccountRepository accountRepository)
         {
-            this._accountRepository = accountRepository;
+            _accountRepository = accountRepository;
         }
 
         public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit, int contactId)
         {
             page = page == 0 ? 1 : page;
             limit = limit == 0 ? int.MaxValue : limit;
-            var accountList = await this._accountRepository.GetAccountsAsync(search, page, limit, contactId);
+            var accountList = await _accountRepository.GetAccountsAsync(search, page, limit, contactId);
             return accountList;
         }
 
-        public async Task<AccountDetail> GetAccountDetailAsync(Guid id)
+        public async Task<AccountDetail> GetAccountDetailAsync(int id)
         {
-            var accountDetail = await this._accountRepository.GetAccountDetailAsync(id);
+            var accountDetail = await _accountRepository.GetAccountDetailAsync(id);
             return accountDetail;
         }
 
@@ -41,14 +41,14 @@ namespace Kpmg.Account.Core.Services
             return await this.GetAccountDetailAsync(id);
         }
 
-        public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(Guid contactId)
+        public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(int contactId)
         {
             string accountFavoriteMocked = File.ReadAllText(@"./MockedResponses/AccountFavoriteMocked.json");
             var accountFavoriteList = JsonSerializer.Deserialize<IReadOnlyCollection<AccountFavorite>>(accountFavoriteMocked, _jsonOptions);
             return accountFavoriteList ?? new List<AccountFavorite>();
         }
 
-        public void SetFavoriteAsync(Guid accountId, Guid contactId, bool isFavorite)
+        public void SetFavoriteAsync(int accountId, int contactId, bool isFavorite)
         {
             // implement set favorite function
         }

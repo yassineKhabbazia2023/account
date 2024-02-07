@@ -48,12 +48,12 @@ namespace Account.Api.Tests.Controllers
             string accountMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
             var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
             var accountService = new Mock<IAccountService>(MockBehavior.Strict);
-            accountService.Setup(service => service.GetAccountDetailAsync(It.IsAny<Guid>())).ReturnsAsync(accountDetail);
+            accountService.Setup(service => service.GetAccountDetailAsync(It.IsAny<int>())).ReturnsAsync(accountDetail);
 
             var accountController = new AccountController(accountService.Object);
 
             // Act
-            var accounts = await accountController.GetAccountDetailAsync(accountId: Guid.NewGuid());
+            var accounts = await accountController.GetAccountDetailAsync(accountId: 1);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
@@ -67,12 +67,12 @@ namespace Account.Api.Tests.Controllers
             string accountMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
             var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
             var accountService = new Mock<IAccountService>(MockBehavior.Strict);
-            accountService.Setup(service => service.UpdateAccountAsync(It.IsAny<Guid>(), It.IsAny<AccountDetail>())).ReturnsAsync(accountDetail);
+            accountService.Setup(service => service.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>())).ReturnsAsync(accountDetail);
 
             var accountController = new AccountController(accountService.Object);
 
             // Act
-            var accounts = await accountController.UpdateAccountAsync(accountId: Guid.NewGuid(), accountDetail);
+            var accounts = await accountController.UpdateAccountAsync(accountId: 1, accountDetail);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
@@ -93,12 +93,12 @@ namespace Account.Api.Tests.Controllers
                 }
             };
             var accountService = new Mock<IAccountService>(MockBehavior.Strict);
-            accountService.Setup(service => service.GetAccountFavoritesAsync(It.IsAny<Guid>())).Returns(accountJson);
+            accountService.Setup(service => service.GetAccountFavoritesAsync(It.IsAny<int>())).Returns(accountJson);
 
             var accountController = new AccountController(accountService.Object);
 
             // Act
-            var accounts = accountController.GetAccountFavoritesAsync(contactId: Guid.NewGuid());
+            var accounts = accountController.GetAccountFavoritesAsync(contactId: 1);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert

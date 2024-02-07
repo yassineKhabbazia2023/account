@@ -8,6 +8,7 @@ using Kpmg.Account.Infrastructure.Tests.Configuration;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Mappers;
 using AccountModel = Kpmg.Account.Core.Models.Account;
 
 namespace Kpmg.Account.Infrastructure.Tests.Repositories
@@ -15,11 +16,6 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
     public class AccountRepositoryTests
     {
         private readonly Fixture _fixture;
-        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
 
         public AccountRepositoryTests()
         {
@@ -62,12 +58,12 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
             var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
 
             // Act
-            var accounts = await accountRepository.GetAccountDetailAsync(accountFirst.AccountGlobalUniqueId);
+            var accounts = await accountRepository.GetAccountDetailAsync(accountFirst.AccountId);
 
             // Assert
-            Assert.Equal(accountDetail.AccountNumber, accounts.AccountNumber);
-            Assert.Equal(accountDetail.AccountId, accounts.AccountId);
-            Assert.Equal(accountDetail.Legal?.LegalName, accounts.Legal?.LegalName);
+            Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
+            Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
+            Assert.Equal(accountDetail?.Legal?.LegalName, accounts.Legal?.LegalName);
         }
     }
 }

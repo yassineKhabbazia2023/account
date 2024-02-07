@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Pulse.Account.Infrastructure.Models
+namespace Pulse.Account.Core.Models.Constants
 {
     public static class Constants
     {

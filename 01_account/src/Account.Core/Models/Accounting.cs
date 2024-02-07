@@ -13,5 +13,7 @@ namespace Kpmg.Account.Core.Models
         public string? AccountingType { get; set; }
 
         public string? FiscalSystem { get; set; }
+
+        public string? TaxationSystem { get; set; }
     }
 }

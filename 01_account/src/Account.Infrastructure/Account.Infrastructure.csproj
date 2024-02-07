@@ -20,11 +20,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Mappers\" />
+    <ProjectReference Include="..\Account.Core\Account.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Account.Core\Account.Core.csproj" />
+    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>

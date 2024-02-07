@@ -29,10 +29,10 @@ namespace Pulse.Account.API.Configuration
         private static void RegisterServices(IServiceCollection services)
         {
             // add services
-            services.AddScoped<IAccountService, AccountService>();
+            services.AddTransient<IAccountService, AccountService>();
 
             // add repositories
-            services.AddTransient<IAccountRepository, AccountRepository>();
+            services.AddScoped<IAccountRepository, AccountRepository>();
         }
 
         private static void RegisterDatabase(IServiceCollection services, IConfiguration configuration)
@@ -43,13 +43,9 @@ namespace Pulse.Account.API.Configuration
                 throw new InvalidOperationException(nameof(connectionString));
             }
 
-            services.AddOptions<AccountRepositoryOptions>()
-            .Configure<IConfiguration>((settings, configuration) =>
-            {
-                configuration.GetSection("SqlAccountConnectionString").Bind(settings);
-            });
-            services.AddDbContext<AccountContext>(
-                options => options.UseSqlServer(connectionString));
+            services.AddDbContextPool<AccountContext>(
+                options => options.UseSqlServer(connectionString, options =>
+                options.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery)));
 
             services.AddHealthChecks()
                 .AddSqlServer(connectionString, healthQuery: "SELECT 1;");
