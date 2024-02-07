@@ -35,7 +35,7 @@ namespace Kpmg.Account.Core.Services
             return accountDetail;
         }
 
-        public async Task<AccountDetail> UpdateAccountAsync(Guid id, AccountDetail accountDetail)
+        public async Task<AccountDetail> UpdateAccountAsync(int id, AccountDetail accountDetail)
         {
             // TODO: update account here
             return await this.GetAccountDetailAsync(id);
