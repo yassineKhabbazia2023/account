@@ -14,15 +14,15 @@ namespace Pulse.Account.Infrastructure.Mappers
     {
         public static AccountModel TAccountToAccountModel(this TAccount source, int contactId)
         {
-            var roleSignatory = source?.TRoles.FirstOrDefault(role => role.IsSignatory == true);
-            var roleConnectedContact = source?.TRoles?.FirstOrDefault(role => role.ContactId == contactId);
+            var roleSignatory = source.TRoles.FirstOrDefault(role => role.IsSignatory == true);
+            var roleConnectedContact = source.TRoles?.FirstOrDefault(role => role.ContactId == contactId);
             return new AccountModel()
             {
-                AccountId = source?.AccountGlobalUniqueId,
-                AccountNumber = source?.SourceAccountNumber,
-                LegalName = source?.LegalName,
+                AccountId = source.AccountGlobalUniqueId,
+                AccountNumber = source.SourceAccountNumber,
+                LegalName = source.LegalName,
                 IsFavorite = roleConnectedContact != null ? roleConnectedContact?.IsFavorite : false,
-                Address = source?.TAddress?.Select(address => new Address()
+                Address = source.TAddress?.Select(address => new Address()
                 {
                     AddressId = address.AddressId,
                     City = address.City,
@@ -34,11 +34,11 @@ namespace Pulse.Account.Infrastructure.Mappers
                     FirstName = roleSignatory?.Contact.FirstName,
                     LastName = roleSignatory?.Contact.LastName
                 },
-                Deployment = source?.TDeploymentPlanning?.Select(deploymentPlanning =>
+                Deployment = source.TDeploymentPlanning?.Select(deploymentPlanning =>
                     new Deployment()
                     {
                         DeploymentId = deploymentPlanning.DeploymentId,
-                        DeploymentDate = deploymentPlanning.DeploymentDate.ToString(),
+                        DeploymentDate = deploymentPlanning.DeploymentDate,
                         Status = deploymentPlanning.Status
                     })
             };
@@ -48,45 +48,45 @@ namespace Pulse.Account.Infrastructure.Mappers
         {
             return new AccountDetail()
             {
-                AccountId = source?.AccountGlobalUniqueId.ToString(),
-                AccountNumber = source?.SourceAccountNumber,
+                AccountId = source.AccountGlobalUniqueId.ToString(),
+                AccountNumber = source.SourceAccountNumber,
                 IconName = "icon",
                 IsActive = source != null ? source.IsActive : false,
-                Email = source?.Email,
-                EmployeeCount = source?.StaffSize,
-                CommercialName = source?.CommercialName,
+                Email = source.Email,
+                EmployeeCount = source.StaffSize,
+                CommercialName = source.CommercialName,
                 Accounting = new Accounting()
                 {
-                    FiscalExerciseStartDate = source?.FiscalExerciseStartDate.ToString(),
-                    FiscalExerciseDuration = source?.FiscalExerciseDuration,
-                    AccountingType = source?.AccountType,
-                    FiscalSystem = source?.FiscalSystem,
-                    TaxationSystem = source?.TaxationSystem,
+                    FiscalExerciseStartDate = source.FiscalExerciseStartDate,
+                    FiscalExerciseDuration = source.FiscalExerciseDuration,
+                    AccountingType = source.AccountType,
+                    FiscalSystem = source.FiscalSystem,
+                    TaxationSystem = source.TaxationSystem,
                 },
                 Legal = new Legal()
                 {
-                    LegalName = source?.LegalName,
-                    Siren = source?.ISIN,
-                    Siret = source?.Siret,
-                    LegalForm = source?.LegalForm,
-                    LegalFormCode = source?.LegalFormCode,
-                    StaffSizeRange = source?.StaffSizeRange,
+                    LegalName = source.LegalName,
+                    Siren = source.ISIN,
+                    Siret = source.Siret,
+                    LegalForm = source.LegalForm,
+                    LegalFormCode = source.LegalFormCode,
+                    StaffSizeRange = source.StaffSizeRange,
                     Naf = new List<Naf>() {
                                 new Naf()
                                 {
-                                    NafId = source?.NafId,
-                                    NafCode = source?.SectorCode,
-                                    NafLabel = source?.ActivityDescription
+                                    NafId = source.NafId,
+                                    NafCode = source.SectorCode,
+                                    NafLabel = source.ActivityDescription
                                 }
                             }
                 },
                 Vat = new Vat()
                 {
-                    System = source?.VAT,
-                    Intra = source?.VATIntra,
-                    Type = source?.VATType,
+                    System = source.VAT,
+                    Intra = source.VATIntra,
+                    Type = source.VATType,
                 },
-                Address = source?.TAddress.Select(address => new Address()
+                Address = source.TAddress.Select(address => new Address()
                 {
                     AddressId = address.AddressId,
                     Country = address.Country,
@@ -96,7 +96,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                     ZipCode = address.ZipCode,
                     AddressType = address.AddressType
                 }).ToList(),
-                Phone = source?.TPhone.Select(phone => new Phone()
+                Phone = source.TPhone.Select(phone => new Phone()
                 {
                     PhoneId = phone.PhoneId,
                     PhoneNumber = phone.PhoneNumber,
@@ -104,13 +104,13 @@ namespace Pulse.Account.Infrastructure.Mappers
                 }).ToList(),
                 Hub = new Hub()
                 {
-                    HubId = source?.Hub?.HubId,
-                    HubName = source?.Hub?.HubName,
+                    HubId = source.Hub?.HubId,
+                    HubName = source.Hub?.HubName,
                 },
-                DeploymentPlanning = source?.TDeploymentPlanning.Select(deployment => new Deployment()
+                DeploymentPlanning = source.TDeploymentPlanning.Select(deployment => new Deployment()
                 {
                     DeploymentId = deployment.DeploymentId,
-                    DeploymentDate = deployment.DeploymentDate.ToString(),
+                    DeploymentDate = deployment.DeploymentDate,
                     Status = deployment.Status,
                 }).ToList()
             };

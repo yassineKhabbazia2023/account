@@ -21,6 +21,7 @@ using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
+using Pulse.Account.Infrastructure.Utils;
 using AccountModel = Kpmg.Account.Core.Models.Account;
 
 namespace Kpmg.Account.Infrastructure.Repositories
@@ -65,7 +66,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
                     entities = entities.Skip((page - 1) * limit);
                     entities = entities.Take(limit);
 
-                    var totalPageCalcul = count != 0 ? count / (limit > count ? count : (float)limit) : 0;
+                    var totalPageCalcul = AccountUtils.CalculTotalPage(count, limit);
 
                     var pageinateResult = new Paging<AccountModel>()
                     {

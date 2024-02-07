@@ -8,7 +8,7 @@ namespace Kpmg.Account.Core.Models
     {
         public int DeploymentId { get; set; }
 
-        public string? DeploymentDate { get; set; }
+        public DateTime? DeploymentDate { get; set; }
 
         public int Status { get; set; }
     }
