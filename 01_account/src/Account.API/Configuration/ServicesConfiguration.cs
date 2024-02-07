@@ -25,10 +25,9 @@ namespace Pulses.Account.API.Configuration
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)
         {
             ArgumentNullException.ThrowIfNull(configuration);
-
             var connectionString = configuration["SqlAccountConnectionString"];
+            
             ArgumentNullException.ThrowIfNullOrEmpty(connectionString);
-
             services.AddDbContextPool<AccountContext>(options =>
             {
                 options.UseSqlServer(connectionString, opt =>
@@ -43,7 +42,9 @@ namespace Pulses.Account.API.Configuration
 
         public static void RegisterApplicationInsights(this IServiceCollection services, IConfiguration configuration)
         {
+            ArgumentNullException.ThrowIfNull(configuration);
             var applicationInsightsConexionString = configuration["AccountApplicationInsightConnectionString"];
+
             ArgumentNullException.ThrowIfNullOrEmpty(applicationInsightsConexionString);
             services.AddApplicationInsightsTelemetry(options =>
             {

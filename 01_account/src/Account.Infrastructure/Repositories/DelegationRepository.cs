@@ -56,7 +56,7 @@ public class DelegationRepository : IDelegationRepository
         {
             await _accountContext.TDelegation.AddAsync(tDelegation);
             result = await _accountContext.SaveChangesAsync();
-        }).ConfigureAwait(false);
+        });
 
         return result;
     }
@@ -74,7 +74,7 @@ public class DelegationRepository : IDelegationRepository
                                         .Include(d => d.Delegatee)
                                         .Where(d => d.Delegatee.ContactGlobalUniqueId == delegateeId)
                                         .ToListAsync();
-        }).ConfigureAwait(false);
+        });
 
         return delegationList.ToDelegationList();
     }
@@ -94,7 +94,7 @@ public class DelegationRepository : IDelegationRepository
                                          &&
                                          d.Delegatee.ContactGlobalUniqueId == delegateeId)
                                         .ToListAsync();
-        }).ConfigureAwait(false);
+        });
 
         return delegationList.ToDelegationList();
     }
@@ -107,7 +107,7 @@ public class DelegationRepository : IDelegationRepository
             tContact = await _accountContext
                                         .TContact
                                         .FirstOrDefaultAsync(d => d.ContactGlobalUniqueId == globlaContactId);
-        }).ConfigureAwait(false);
+        });
 
         if (tContact is null)
         {
@@ -125,7 +125,7 @@ public class DelegationRepository : IDelegationRepository
             tAccount = await _accountContext
                                         .TAccount
                                         .FirstOrDefaultAsync(d => d.AccountGlobalUniqueId == globalAccountId);
-        }).ConfigureAwait(false);
+        });
 
         if(tAccount is null)
         {

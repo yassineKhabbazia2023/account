@@ -276,3 +276,6 @@ dotnet_style_prefer_inferred_tuple_names = true:silent
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:silent
 dotnet_style_prefer_compound_assignment = true:silent
 dotnet_style_prefer_simplified_interpolation = true:suggestion
+
+# Default severity for analyzer diagnostics with category 'StyleCop.CSharp.OrderingRules'
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.OrderingRules.severity = silent

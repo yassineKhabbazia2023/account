@@ -13,11 +13,11 @@ public class Contact
 
     public Guid GlobalContactId { get; set; }
 
-    public string FirstName { get; set; } = null!;
+    public required string FirstName { get; set; }
 
-    public string LastName { get; set; } = null!;
+    public required string LastName { get; set; }
 
-    public string ContactEmail { get; set; } = null!;
+    public required string ContactEmail { get; set; }
 
     public string? Type { get; set; }
 }

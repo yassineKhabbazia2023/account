@@ -11,7 +11,7 @@ public static class DelegationMapper
 {
     public static IReadOnlyCollection<Delegation> ToDelegationList(this ICollection<TDelegation> source)
     {
-        return source?.Select(d => d.ToDelegation()).ToList() ?? new List<Delegation>();
+        return source?.Select(d => d.ToDelegation() !).ToList() ?? new List<Delegation>();
     }
 
     public static Delegation? ToDelegation(this TDelegation source)

@@ -10,13 +10,13 @@ public class Account
 {
     public int AccountId { get; set; }
 
-    public string AccountNumber { get; set; } = null!;
+    public required string AccountNumber { get; set; }
 
-    public string LegalName { get; set; } = null!;
+    public required string LegalName { get; set; }
 
     public bool IsFavorite { get; set; }
 
-    public Address Address { get; set; } = null!;
+    public required Address Address { get; set; }
 
     public Owner? Owner { get; set; }
 

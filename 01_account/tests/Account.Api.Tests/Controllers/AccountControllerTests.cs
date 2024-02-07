@@ -1,11 +1,14 @@
-﻿using System.Net;
+﻿// <copyright file="AccountControllerTests.cs" company="KPMG">
+// Copyright (c) KPMG. All rights reserved.
+// </copyright>
+
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using Pulse.Account.API;
 using Pulse.Account.Core.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
 using AccountModel = Pulse.Account.Core.Models.Account;
-using AutoMapper.Configuration.Annotations;
 
 namespace Account.Api.Tests.Controllers
 {

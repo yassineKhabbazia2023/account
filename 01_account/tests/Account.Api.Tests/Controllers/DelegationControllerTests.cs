@@ -1,4 +1,4 @@
-﻿// <copyright file="DelegationController.cs" company="KPMG">
+﻿// <copyright file="DelegationControllerTests.cs" company="KPMG">
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 

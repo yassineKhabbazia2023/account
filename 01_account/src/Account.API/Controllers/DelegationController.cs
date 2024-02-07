@@ -9,6 +9,9 @@ using Pulse.Account.Core.Models;
 
 namespace Pulse.Account.API.Controllers;
 
+/// <summary>
+/// Les différents endpoints pour la gestion délégations.
+/// </summary>
 [ApiController]
 [Route("api/delegations")]
 public class DelegationController : ControllerBase
@@ -16,9 +19,9 @@ public class DelegationController : ControllerBase
     private readonly IDelegationService _delegationService;
 
     /// <summary>
-    /// Les différents endpoints pour la gestion délégations.
+    /// Initializes a new instance of the <see cref="DelegationController"/> class.
     /// </summary>
-    /// <param name="delegationService">Le service des délégations.</param>
+    /// <param name="delegationService">Une instance of delegation service.</param>
     public DelegationController(IDelegationService delegationService)
     {
         _delegationService = delegationService;
@@ -28,7 +31,7 @@ public class DelegationController : ControllerBase
     /// Récupérer les délégations d'un contact donné.
     /// </summary>
     /// <param name="delegateeId">L'identifiant global du contact.</param>
-    /// <returns>Liste de délégations</returns>
+    /// <returns>Liste de délégations.</returns>
     [HttpGet("{delegateeId}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Delegation>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -49,7 +52,7 @@ public class DelegationController : ControllerBase
     /// </summary>
     /// <param name="delegatorId">L'identifiant global du contact délégateur.</param>
     /// <param name="delegateeId">L'identifiant global du contact délégataire.</param>
-    /// <returns></returns>
+    /// <returns>Liste de délégations.</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Delegation>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
