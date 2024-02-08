@@ -2,7 +2,6 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using Azure.Core;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;

@@ -34,16 +34,13 @@ public static class DelegationMapper
     public static Core.Models.Account? ToAccount(this TAccount source)
     {
         return source == null ? null :
-            new Core.Models.Account
-            {
-                AccountId = source.AccountId,
-                AccountNumber = source.AccountNumber,
-                LegalName = source.LegalName,
-                Address = new Address
-                {
-                    City = source.TAddress.FirstOrDefault()?.City,
-                },
-            };
+             new Core.Models.Account
+             {
+                 AccountId = source.AccountGlobalUniqueId,
+                 AccountNumber = source.AccountNumber,
+                 LegalName = source.LegalName,
+                 Address = source.TAddress.ToAddressList(),
+             };
     }
 
     public static Contact? ToContact(this TContact source)
@@ -57,6 +54,26 @@ public static class DelegationMapper
                 FirstName = source.FirstName,
                 LastName = source.LastName,
                 Type = source.Type,
+            };
+    }
+
+    public static IReadOnlyCollection<Address> ToAddressList(this ICollection<TAddress> source)
+    {
+        return source?.Select(d => d.ToAddress() !).ToList() ?? new List<Address>();
+    }
+
+    private static Address? ToAddress(this TAddress source)
+    {
+        return source == null ? null :
+            new Address
+            {
+                AddressId = source.AddressId,
+                Street = source.Street,
+                ZipCode = source.ZipCode,
+                City = source.City,
+                State = source.State,
+                Country = source.Country,
+                AddressType = source.AddressType,
             };
     }
 }

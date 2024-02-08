@@ -219,7 +219,7 @@ public class DelegationRepositoryTests
             Assert.Equal(contactDelegation.Status, (DelegationStatus)tDelegation.Status);
             Assert.Equal(contactDelegation.Note, tDelegation.Note);
             Assert.Equal(contactDelegation.CreationDate, tDelegation.CreationDate);
-            Assert.Equal(contactDelegation.Account!.AccountId, tDelegation.AccountId);
+            Assert.Equal(contactDelegation.Account!.AccountId, tDelegation.Account.AccountGlobalUniqueId);
             Assert.Equal(contactDelegation.Delegator!.ContactId, tDelegation.DelegatorId);
         }
     }
@@ -282,7 +282,7 @@ public class DelegationRepositoryTests
             Assert.Equal(delegation.Status, (DelegationStatus)tDelegation.Status);
             Assert.Equal(delegation.Note, tDelegation.Note);
             Assert.Equal(delegation.CreationDate, tDelegation.CreationDate);
-            Assert.Equal(delegation.Account!.AccountId, tDelegation.AccountId);
+            Assert.Equal(delegation.Account!.AccountId, tDelegation.Account.AccountGlobalUniqueId);
             Assert.Equal(delegation.Delegator!.ContactId, tDelegation.DelegatorId);
         }
     }

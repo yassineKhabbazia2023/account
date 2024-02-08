@@ -23,4 +23,8 @@
     <ProjectReference Include="..\Account.Core\Account.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
 </Project>

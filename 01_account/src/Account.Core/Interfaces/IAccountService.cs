@@ -1,18 +1,22 @@
-﻿using Pulse.Account.Core.Models;
+﻿// <copyright file="IAccountService.cs" company="KPMG">
+// Copyright (c) KPMG. All rights reserved.
+// </copyright>
+
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 
 namespace Pulse.Account.Core.Interfaces
 {
     public interface IAccountService
     {
-        public Paging<Pulse.Account.Core.Models.Account> GetAccountsAsync(string? search, int page, int limit);
+        public Task<Paging<Pulse.Account.Core.Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId);
 
-        public AccountDetail GetAccountDetailAsync(Guid id);
+        public Task<AccountDetail> GetAccountDetailAsync(int id);
 
-        public AccountDetail UpdateAccountAsync(Guid id, AccountDetail accountDetail);
+        public Task<AccountDetail> UpdateAccountAsync(int id, AccountDetail accountDetail);
 
-        public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(Guid contactId);
+        public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(int contactId);
 
-        public void SetFavoriteAsync(Guid accountId, Guid contactId, bool isFavorite);
+        public void SetFavoriteAsync(int accountId, int contactId, bool isFavorite);
     }
 }

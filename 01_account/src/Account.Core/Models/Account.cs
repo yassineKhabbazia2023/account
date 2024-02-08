@@ -3,22 +3,24 @@
 // </copyright>
 
 using System.ComponentModel.DataAnnotations;
+using System.Security.Principal;
 
-namespace Pulse.Account.Core.Models;
-
-public class Account
+namespace Pulse.Account.Core.Models
 {
-    public int AccountId { get; set; }
+    public class Account
+    {
+        public Guid? AccountId { get; set; }
 
-    public required string AccountNumber { get; set; }
+        public string? AccountNumber { get; set; }
 
-    public required string LegalName { get; set; }
+        public string? LegalName { get; set; }
 
-    public bool IsFavorite { get; set; }
+        public bool? IsFavorite { get; set; }
 
-    public required Address Address { get; set; }
+        public IReadOnlyCollection<Address>? Address { get; set; }
 
-    public Owner? Owner { get; set; }
+        public Owner? Owner { get; set; }
 
-    public Deployment? Deployment { get; set; }
+        public IReadOnlyCollection<Deployment>? Deployment { get; set; }
+    }
 }

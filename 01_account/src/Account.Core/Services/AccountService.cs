@@ -6,48 +6,47 @@ using System.Text.Json;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
-using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Core.Services
 {
     public class AccountService : IAccountService
     {
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        private readonly IAccountRepository _accountRepository;
 
-        public Paging<AccountModel> GetAccountsAsync(string? search, int page, int limit)
+        public AccountService(IAccountRepository accountRepository)
+        {
+            _accountRepository = accountRepository;
+        }
+
+        public async Task<Paging<Pulse.Account.Core.Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId)
         {
             page = page == 0 ? 1 : page;
             limit = limit == 0 ? int.MaxValue : limit;
-            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountListMocked.json");
-            var accountList = JsonSerializer.Deserialize<Paging<AccountModel>>(accountMocked, _jsonOptions) ?? new Paging<AccountModel>();
-            accountList.Items = accountList.Items?
-                .Where(item => !string.IsNullOrEmpty(search) && !string.IsNullOrEmpty(item.LegalName) ? item.LegalName.Contains(search, StringComparison.OrdinalIgnoreCase) : string.IsNullOrEmpty(search))
-                .Skip((page - 1) * limit)
-                .Take(limit);
+            var accountList = await _accountRepository.GetAccountsAsync(search, page, limit, contactId);
             return accountList;
         }
 
-        public AccountDetail GetAccountDetailAsync(Guid id)
+        public async Task<AccountDetail> GetAccountDetailAsync(int id)
         {
-            string accountDetailMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
-            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountDetailMocked, _jsonOptions) ?? new AccountDetail();
+            var accountDetail = await _accountRepository.GetAccountDetailAsync(id);
             return accountDetail;
         }
 
-        public AccountDetail UpdateAccountAsync(Guid id, AccountDetail accountDetail)
+        public async Task<AccountDetail> UpdateAccountAsync(int id, AccountDetail accountDetail)
         {
             // TODO: update account here
-            return this.GetAccountDetailAsync(id);
+            return await this.GetAccountDetailAsync(id);
         }
 
-        public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(Guid contactId)
+        public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(int contactId)
         {
             string accountFavoriteMocked = File.ReadAllText(@"./MockedResponses/AccountFavoriteMocked.json");
             var accountFavoriteList = JsonSerializer.Deserialize<IReadOnlyCollection<AccountFavorite>>(accountFavoriteMocked, _jsonOptions);
             return accountFavoriteList ?? new List<AccountFavorite>();
         }
 
-        public void SetFavoriteAsync(Guid accountId, Guid contactId, bool isFavorite)
+        public void SetFavoriteAsync(int accountId, int contactId, bool isFavorite)
         {
             // implement set favorite function
         }

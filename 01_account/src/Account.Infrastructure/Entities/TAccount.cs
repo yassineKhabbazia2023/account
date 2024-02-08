@@ -24,12 +24,7 @@ namespace Pulse.Account.Infrastructure.Entities
         /// L&apos;&apos;identifiant global de l&apos;&apos;entité
         /// </summary>
         public Guid AccountGlobalUniqueId { get; set; }
-
-        /// <summary>
-        /// Le numéro de l'entité
-        /// </summary>
         public string AccountNumber { get; set; }
-
         /// <summary>
         /// La raison social de l&apos;&apos;entité
         /// </summary>
@@ -156,7 +151,7 @@ namespace Pulse.Account.Infrastructure.Entities
         public DateTime? UpdatedDate { get; set; }
 
         public virtual THub Hub { get; set; }
-        public virtual TNaf HubNavigation { get; set; }
+        public virtual TNaf Naf { get; set; }
         public virtual ICollection<TAddress> TAddress { get; set; }
         public virtual ICollection<TDelegation> TDelegation { get; set; }
         public virtual ICollection<TDeploymentPlanning> TDeploymentPlanning { get; set; }
