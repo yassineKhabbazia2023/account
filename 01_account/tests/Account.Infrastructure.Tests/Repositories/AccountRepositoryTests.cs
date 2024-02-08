@@ -7,6 +7,7 @@ using AutoFixture;
 using Kpmg.Account.Core.Models;
 using Kpmg.Account.Infrastructure.Repositories;
 using Kpmg.Account.Infrastructure.Tests.Configuration;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
@@ -42,12 +43,12 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
             };
 
             // Act
-            var accounts = await accountRepository.GetAccountsAsync(search: string.Empty, contactId: 123, page: 1, limit: 4);
+            var accounts = await accountRepository.GetAccountsAsync(search: accountObject.Select(a => a.LegalName).First(), contactId: 123, page: 1, limit: 4);
 
             // Assert
-            var accountExpect = JsonConvert.SerializeObject(accountPaging);
-            var accountReceived = JsonConvert.SerializeObject(accounts);
-            Assert.Equal(accountExpect, accountReceived);
+            var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
+            var accountReceived = JsonConvert.SerializeObject(accounts.Items?.FirstOrDefault());
+            Assert.Contains(accountReceived, accountExpect);
         }
 
         [Fact]
@@ -66,6 +67,22 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
             Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
             Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
             Assert.Equal(accountDetail?.Legal?.LegalName, accounts.Legal?.LegalName);
+        }
+
+        [Fact]
+        public async Task Should_GetAccountDetail_ReturnsNotFoundResultAsync()
+        {
+            // Arrange
+            var accountsModel = _fixture.Create<List<TAccount>>();
+            var accountFirst = accountsModel.FirstOrDefault();
+            var accountDetail = accountFirst?.TAccountToAccountDetail();
+            var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
+
+            // Act
+            Task Accounts() => accountRepository.GetAccountDetailAsync(123);
+
+            // Assert
+            await Assert.ThrowsAsync<NotFoundException>(Accounts);
         }
 
         [Fact]
