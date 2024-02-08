@@ -55,9 +55,9 @@ namespace Kpmg.Account.Infrastructure.Repositories
                         entities = from n in entities
                                    where n.LegalName.Contains(search)
                                          || n.SourceAccountNumber.Contains(search)
-                                         || n.TRoles.Any(role => role.Contact.FirstName.Contains(search)
+                                         || n.TRoles.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search)
                                                              || role.Contact.LastName.Contains(search)
-                                                             || role.Contact.ContactEmail.Contains(search))
+                                                             || role.Contact.ContactEmail.Contains(search)))
                                    select n;
                     }
 

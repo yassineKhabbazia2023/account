@@ -27,7 +27,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                     AddressId = address.AddressId,
                     City = address.City,
                     AddressType = address.AddressType
-                }),
+                }).ToList(),
                 Owner = new Owner()
                 {
                     ContactEmail = roleSignatory?.Contact.ContactEmail,
@@ -40,7 +40,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                         DeploymentId = deploymentPlanning.DeploymentId,
                         DeploymentDate = deploymentPlanning.DeploymentDate,
                         Status = deploymentPlanning.Status
-                    })
+                    }).ToList()
             };
         }
 

@@ -28,10 +28,8 @@ namespace Pulse.Account.API.Configuration
 
         private static void RegisterServices(IServiceCollection services)
         {
-            // add services
             services.AddTransient<IAccountService, AccountService>();
 
-            // add repositories
             services.AddScoped<IAccountRepository, AccountRepository>();
         }
 

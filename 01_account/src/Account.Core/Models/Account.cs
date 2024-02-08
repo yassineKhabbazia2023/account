@@ -17,10 +17,10 @@ namespace Kpmg.Account.Core.Models
 
         public bool? IsFavorite { get; set; }
 
-        public IEnumerable<Address>? Address { get; set; }
+        public ICollection<Address>? Address { get; set; }
 
         public Owner? Owner { get; set; }
 
-        public IEnumerable<Deployment>? Deployment { get; set; }
+        public ICollection<Deployment>? Deployment { get; set; }
     }
 }
