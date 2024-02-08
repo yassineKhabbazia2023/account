@@ -9,7 +9,7 @@ namespace Pulse.Account.Infrastructure.Mappers;
 
 public static class DelegationMapper
 {
-    public static IReadOnlyCollection<Delegation> ToDelegationList(this ICollection<TDelegation> source)
+    public static IReadOnlyCollection<Delegation> ToDelegations(this ICollection<TDelegation> source)
     {
         return source?.Select(d => d.ToDelegation() !).ToList() ?? new List<Delegation>();
     }
@@ -39,7 +39,7 @@ public static class DelegationMapper
                  AccountId = source.AccountGlobalUniqueId,
                  AccountNumber = source.AccountNumber,
                  LegalName = source.LegalName,
-                 Address = source.TAddress.ToAddressList(),
+                 Address = source.TAddress.ToAddress(),
              };
     }
 
@@ -57,7 +57,7 @@ public static class DelegationMapper
             };
     }
 
-    public static IReadOnlyCollection<Address> ToAddressList(this ICollection<TAddress> source)
+    public static IReadOnlyCollection<Address> ToAddress(this ICollection<TAddress> source)
     {
         return source?.Select(d => d.ToAddress() !).ToList() ?? new List<Address>();
     }

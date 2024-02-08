@@ -2,6 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +36,7 @@ public class DelegationRepository : IDelegationRepository
         int result = -1;
         if (delegation is null)
         {
-            return result;
+            throw new BadRequestException(Errors.CreateDelegationCode, Errors.CreateDelegationMessage);
         }
 
         var tDelegation = new TDelegation
@@ -75,16 +76,16 @@ public class DelegationRepository : IDelegationRepository
                                         .ToListAsync();
         });
 
-        return delegationList.ToDelegationList();
+        return delegationList.ToDelegations();
     }
 
     public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId)
     {
-        var delegationList = new List<TDelegation>();
+        var delegations = new List<TDelegation>();
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            delegationList = await _accountContext
+            delegations = await _accountContext
                                         .TDelegation
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
@@ -95,7 +96,7 @@ public class DelegationRepository : IDelegationRepository
                                         .ToListAsync();
         });
 
-        return delegationList.ToDelegationList();
+        return delegations.ToDelegations();
     }
 
     private async Task<TContact> GetContactAsync(int contactId)
