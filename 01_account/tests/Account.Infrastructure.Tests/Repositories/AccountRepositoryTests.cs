@@ -4,6 +4,8 @@
 
 using System.Text.Json;
 using AutoFixture;
+using Kpmg.Account.Core.Models;
+using Kpmg.Account.Infrastructure.Repositories;
 using Kpmg.Account.Infrastructure.Tests.Configuration;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models.Utils;
@@ -64,6 +66,29 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
             Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
             Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
             Assert.Equal(accountDetail?.Legal?.LegalName, accounts.Legal?.LegalName);
+        }
+
+        [Fact]
+        public async Task Should_UpdateAccount_ReturnsOkResultAsync()
+        {
+            // Arrange
+            var accountsModel = _fixture.Create<List<TAccount>>();
+            var accountFirst = accountsModel.FirstOrDefault();
+            var accountDetail = accountFirst?.TAccountToAccountDetail();
+            if(accountDetail?.Accounting != null)
+            {
+                accountDetail.Accounting.TaxationSystem = "Impot sur le revenu";
+            }
+
+            var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
+
+            // Act
+            var accounts = await accountRepository.UpdateAccountAsync(accountDetail, accountDetail.AccountId);
+
+            // Assert
+            Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
+            Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
+            Assert.Equal(accountDetail?.Accounting?.TaxationSystem, accounts.Accounting?.TaxationSystem);
         }
     }
 }

@@ -73,7 +73,7 @@ namespace Kpmg.Account.Core.Tests.Services
             string accountMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
             var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
             var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
-            accountRepository.Setup(repository => repository.GetAccountDetailAsync(It.IsAny<int>())).ReturnsAsync(accountDetail);
+            accountRepository.Setup(repository => repository.UpdateAccountAsync(It.IsAny<AccountDetail>(), It.IsAny<int>())).ReturnsAsync(accountDetail);
 
             var accountService = new AccountService(accountRepository.Object);
 

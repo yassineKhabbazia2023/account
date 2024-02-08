@@ -21,7 +21,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 AccountId = source.AccountGlobalUniqueId,
                 AccountNumber = source.SourceAccountNumber,
                 LegalName = source.LegalName,
-                IsFavorite = roleConnectedContact != null ? roleConnectedContact?.IsFavorite : false,
+                IsFavorite = roleConnectedContact?.IsFavorite,
                 Address = source.TAddress?.Select(address => new Address()
                 {
                     AddressId = address.AddressId,
@@ -53,41 +53,12 @@ namespace Pulse.Account.Infrastructure.Mappers
                 IconName = "icon",
                 IsActive = source.IsActive,
                 Email = source?.Email,
-                EmployeeCount = source.StaffSize,
-                CommercialName = source.CommercialName,
-                Accounting = new Accounting()
-                {
-                    FiscalExerciseStartDate = source.FiscalExerciseStartDate,
-                    FiscalExerciseDuration = source.FiscalExerciseDuration,
-                    AccountingType = source.AccountType,
-                    FiscalSystem = source.FiscalSystem,
-                    TaxationSystem = source.TaxationSystem,
-                },
-                Legal = new Legal()
-                {
-                    LegalName = source.LegalName,
-                    Siren = source.ISIN,
-                    Siret = source.Siret,
-                    LegalForm = source.LegalForm,
-                    LegalFormCode = source.LegalFormCode,
-                    StaffSizeRange = source.StaffSizeRange,
-                    Naf = new List<Naf>()
-                    {
-                        new Naf()
-                        {
-                            NafId = source.NafId,
-                            NafCode = source.SectorCode,
-                            NafLabel = source.ActivityDescription
-                        }
-                    }
-                },
-                Vat = new Vat()
-                {
-                    System = source.VAT,
-                    Intra = source.VATIntra,
-                    Type = source.VATType,
-                },
-                Address = source.TAddress.Select(address => new Address()
+                EmployeeCount = source?.StaffSize,
+                CommercialName = source?.CommercialName,
+                Accounting = source?.InitAccounting(),
+                Legal = source?.InitLegal(),
+                Vat = source?.InitVat(),
+                Address = source?.TAddress.Select(address => new Address()
                 {
                     AddressId = address.AddressId,
                     Country = address.Country,
@@ -97,23 +68,72 @@ namespace Pulse.Account.Infrastructure.Mappers
                     ZipCode = address.ZipCode,
                     AddressType = address.AddressType
                 }).ToList(),
-                Phone = source.TPhone.Select(phone => new Phone()
+                Phone = source?.TPhone.Select(phone => new Phone()
                 {
                     PhoneId = phone.PhoneId,
                     PhoneNumber = phone.PhoneNumber,
                     Type = phone.Type,
                 }).ToList(),
-                Hub = new Hub()
-                {
-                    HubId = source.Hub?.HubId,
-                    HubName = source.Hub?.HubName,
-                },
-                DeploymentPlanning = source.TDeploymentPlanning.Select(deployment => new Deployment()
+                Hub = source?.InitHub(),
+                DeploymentPlanning = source?.TDeploymentPlanning.Select(deployment => new Deployment()
                 {
                     DeploymentId = deployment.DeploymentId,
                     DeploymentDate = deployment.DeploymentDate,
                     Status = deployment.Status,
                 }).ToList()
+            };
+        }
+
+        private static Hub InitHub(this TAccount tAccount)
+        {
+            return new Hub()
+            {
+                HubId = tAccount.Hub?.HubId,
+                HubName = tAccount.Hub?.HubName,
+            };
+        }
+
+        private static Vat InitVat(this TAccount tAccount)
+        {
+            return new Vat()
+            {
+                System = tAccount.VAT,
+                Intra = tAccount.VATIntra,
+                Type = tAccount.VATType,
+            };
+        }
+
+        private static Accounting InitAccounting(this TAccount tAccount)
+        {
+            return new Accounting()
+            {
+                FiscalExerciseStartDate = tAccount.FiscalExerciseStartDate,
+                FiscalExerciseDuration = tAccount.FiscalExerciseDuration,
+                AccountingType = tAccount.AccountType,
+                FiscalSystem = tAccount.FiscalSystem,
+                TaxationSystem = tAccount.TaxationSystem,
+            };
+        }
+
+        private static Legal InitLegal(this TAccount tAccount)
+        {
+            return new Legal()
+            {
+                LegalName = tAccount.LegalName,
+                Siren = tAccount.ISIN,
+                Siret = tAccount.Siret,
+                LegalForm = tAccount.LegalForm,
+                LegalFormCode = tAccount.LegalFormCode,
+                StaffSizeRange = tAccount.StaffSizeRange,
+                Naf = new List<Naf>()
+                {
+                    new Naf()
+                    {
+                        NafId = tAccount.NafId,
+                        NafCode = tAccount.SectorCode,
+                        NafLabel = tAccount.ActivityDescription
+                    }
+                }
             };
         }
     }

@@ -100,7 +100,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
                            .Include(x => x.TPhone)
                            .Where(a => a.AccountId == accountId);
 
-                    var entity = entities.FirstOrDefault();
+                    var entity = await entities.FirstOrDefaultAsync();
                     if(entity == null)
                     {
                         throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
@@ -109,6 +109,52 @@ namespace Kpmg.Account.Infrastructure.Repositories
                     var accountDetail = entity.TAccountToAccountDetail();
 
                     return accountDetail;
+                }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new TechnicalException(Errors.InternalTechnicalError, ex);
+            }
+        }
+
+        public async Task<AccountDetail> UpdateAccountAsync(AccountDetail accountDetail, int accountId)
+        {
+            try
+            {
+                return await _retryPolicy.ExecuteAsync(async () =>
+                {
+                    var existingAccounts = from account in _accountContext.TAccount
+                                          where account.AccountId.Equals(accountId)
+                                          select account;
+
+                    var existingAccountItem = await existingAccounts.FirstOrDefaultAsync();
+                    if (existingAccountItem != null)
+                    {
+                        if(accountDetail.Legal != null)
+                        {
+                            existingAccountItem.LegalForm = accountDetail.Legal.LegalForm;
+                            existingAccountItem.StaffSizeRange = accountDetail.Legal.StaffSizeRange;
+                            existingAccountItem.ActivityType = accountDetail.Legal.Naf?.FirstOrDefault()?.NafLabel;
+                        }
+
+                        if(accountDetail.Accounting != null)
+                        {
+                            existingAccountItem.FiscalExerciseStartDate = accountDetail.Accounting.FiscalExerciseStartDate;
+                            existingAccountItem.FiscalExerciseDuration = accountDetail.Accounting.FiscalExerciseDuration;
+                            existingAccountItem.AccountingMethod = accountDetail.Accounting.AccountingType;
+                            existingAccountItem.FiscalSystem = accountDetail.Accounting.FiscalSystem;
+                            existingAccountItem.TaxationSystem = accountDetail.Accounting.TaxationSystem;
+                        }
+
+                        existingAccountItem.HubId = accountDetail.Hub?.HubId;
+                        existingAccountItem.VAT = accountDetail.Vat?.System;
+                        existingAccountItem.VATType = accountDetail.Vat?.Type;
+
+                        _accountContext.TAccount.Update(existingAccountItem);
+                        await _accountContext.SaveChangesAsync();
+                    }
+
+                    return await GetAccountDetailAsync(accountId);
                 }).ConfigureAwait(false);
             }
             catch (Exception ex)

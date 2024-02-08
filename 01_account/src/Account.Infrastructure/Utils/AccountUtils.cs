@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Pulse.Account.Infrastructure.Utils
 {
-    public class AccountUtils
+    public static class AccountUtils
     {
         public static float CalculTotalPage(int count, int limit)
         {
