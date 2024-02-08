@@ -21,7 +21,6 @@ public class Delegation
 
     public string? Note { get; set; }
 
-    [JsonIgnore]
     public DateTime CreationDate { get; set; }
 
     public Account? Account { get; set; }
