@@ -8,11 +8,11 @@ namespace Pulse.Account.Infrastructure.Entities
     public partial class TAddress
     {
         /// <summary>
-        /// L&apos;&apos;identifiant technique
+        /// L&apos;identifiant technique
         /// </summary>
         public int AddressId { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant de l&apos;&apos;entité
+        /// L&apos;identifiant de l&apos;entité
         /// </summary>
         public int AccountId { get; set; }
         /// <summary>
@@ -36,7 +36,7 @@ namespace Pulse.Account.Infrastructure.Entities
         /// </summary>
         public string Country { get; set; }
         /// <summary>
-        /// Le type d&apos;&apos;adresse
+        /// Le type d&apos;adresse
         /// </summary>
         public string AddressType { get; set; }
 

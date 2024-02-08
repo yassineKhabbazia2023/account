@@ -8,25 +8,21 @@ namespace Pulse.Account.Infrastructure.Entities
     public partial class TDelegation
     {
         /// <summary>
-        /// L&apos;&apos;identifiant technique
+        /// L&apos;identifiant technique
         /// </summary>
         public int DelegationId { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant technique de l&apos;&apos;entité
+        /// L&apos;identifiant technique de l&apos;entité
         /// </summary>
         public int AccountId { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant technique du contact gestionnaire de l&apos;&apos;entité
+        /// Le délégateur 
         /// </summary>
-        public int ContactSourceId { get; set; }
+        public int DelegatorId { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant technique du contact à qui est déléguée la gestion de l&apos;&apos;entité
+        /// Le délégataire
         /// </summary>
-        public int ContactDestinationId { get; set; }
-        /// <summary>
-        /// La délégation est-elle active ou non
-        /// </summary>
-        public bool IsEnable { get; set; }
+        public int DelegateeId { get; set; }
         /// <summary>
         /// La date effective du début de la délégation
         /// </summary>
@@ -34,14 +30,22 @@ namespace Pulse.Account.Infrastructure.Entities
         /// <summary>
         /// La date effective de la fin de la délégation
         /// </summary>
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        /// <summary>
+        /// La délégation est-elle active ou non
+        /// </summary>
+        public int Status { get; set; }
+        /// <summary>
+        /// La note associé à la délégation
+        /// </summary>
+        public string Note { get; set; }
         /// <summary>
         /// La date de création de la délégation
         /// </summary>
         public DateTime CreationDate { get; set; }
 
         public virtual TAccount Account { get; set; }
-        public virtual TContact ContactDestination { get; set; }
-        public virtual TContact ContactSource { get; set; }
+        public virtual TContact Delegatee { get; set; }
+        public virtual TContact Delegator { get; set; }
     }
 }

@@ -8,33 +8,25 @@ namespace Pulse.Account.Infrastructure.Entities
     public partial class TRoles
     {
         /// <summary>
-        /// L&apos;&apos;identifiant technique
+        /// L&apos;identifiant technique
         /// </summary>
         public int RoleId { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant technique de l&apos;&apos;entité
+        /// L&apos;identifiant technique de l&apos;entité
         /// </summary>
         public int AccountId { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant technique du contact
+        /// L&apos;identifiant technique du contact
         /// </summary>
         public int ContactId { get; set; }
-        /// <summary>
-        /// Le rôle est-il confié ou attribué à quelqu&apos;&apos;un d&apos;&apos;autre
-        /// </summary>
-        public bool? HasBeenDelegated { get; set; }
         /// <summary>
         /// Le rôle est-il considéré comme un favori ou mis en avant comme tel
         /// </summary>
         public bool? IsFavorite { get; set; }
         /// <summary>
-        /// Le rôle est-il exercé pour une durée limitée
+        /// Le signataire
         /// </summary>
-        public bool? IsTemporary { get; set; }
-        /// <summary>
-        /// La date de fin ou de validité du rôle
-        /// </summary>
-        public DateTime? EndDate { get; set; }
+        public bool? IsSignatory { get; set; }
 
         public virtual TAccount Account { get; set; }
         public virtual TContact Contact { get; set; }

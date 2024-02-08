@@ -8,11 +8,11 @@ namespace Pulse.Account.Infrastructure.Entities
     public partial class TPhone
     {
         /// <summary>
-        /// L&apos;&apos;identifiant technique
+        /// L&apos;identifiant technique
         /// </summary>
         public int PhoneId { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant techique de l&apos;&apos;entité
+        /// L&apos;identifiant techique de l&apos;entité
         /// </summary>
         public int AccountId { get; set; }
         /// <summary>
@@ -22,7 +22,7 @@ namespace Pulse.Account.Infrastructure.Entities
         /// <summary>
         /// Le type du numéro de téléphone
         /// </summary>
-        public string PhoneType { get; set; }
+        public string Type { get; set; }
 
         public virtual TAccount Account { get; set; }
     }

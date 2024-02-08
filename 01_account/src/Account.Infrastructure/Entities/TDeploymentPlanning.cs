@@ -8,11 +8,11 @@ namespace Pulse.Account.Infrastructure.Entities
     public partial class TDeploymentPlanning
     {
         /// <summary>
-        /// L&apos;&apos;identifiant technique
+        /// L&apos;identifiant technique
         /// </summary>
         public int DeploymentId { get; set; }
         /// <summary>
-        /// L&apos;&apos;identifiant technique de l&apos;&apos;entité
+        /// L&apos;identifiant technique de l&apos;entité
         /// </summary>
         public int AccountId { get; set; }
         /// <summary>
@@ -22,7 +22,7 @@ namespace Pulse.Account.Infrastructure.Entities
         /// <summary>
         /// Le statut du déploiement
         /// </summary>
-        public int DeploymentStatus { get; set; }
+        public int Status { get; set; }
 
         public virtual TAccount Account { get; set; }
     }

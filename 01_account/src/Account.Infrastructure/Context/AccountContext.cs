@@ -3,8 +3,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Pulse.Account.Infrastructure.Entities;
 
-namespace Pulse.Account.Infrastructure.Entities
+namespace Pulse.Account.Infrastructure.Context
 {
     public partial class AccountContext : DbContext
     {
@@ -29,8 +30,6 @@ namespace Pulse.Account.Infrastructure.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasAnnotation("Scaffolding:ConnectionString", "Data Source=(local);Initial Catalog=Account.Database;Integrated Security=true");
-
             modelBuilder.Entity<TAccount>(entity =>
             {
                 entity.HasKey(e => e.AccountId)
@@ -39,22 +38,22 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TAccount", "sch_acc");
 
                 entity.HasIndex(e => e.AccountGlobalUniqueId)
-                    .HasName("IDX_TAccount_AccountGlobalUniqueId");
+                    .HasDatabaseName("IDX_TAccount_AccountGlobalUniqueId");
 
                 entity.HasIndex(e => e.HubId)
-                    .HasName("IDX_THub_HubId");
+                    .HasDatabaseName("IDX_THub_HubId");
 
                 entity.HasIndex(e => e.NafId)
-                    .HasName("IDX_TNaf_NafId");
+                    .HasDatabaseName("IDX_TNaf_NafId");
 
-                entity.Property(e => e.AccountId).HasComment("L''identifiant technique");
+                entity.Property(e => e.AccountId).HasComment("L'identifiant technique");
 
-                entity.Property(e => e.AccountGlobalUniqueId).HasComment("L''identifiant global de l''entité");
+                entity.Property(e => e.AccountGlobalUniqueId).HasComment("L'identifiant global de l'entité");
 
                 entity.Property(e => e.AccountType)
                     .HasMaxLength(50)
                     .IsUnicode(false)
-                    .HasComment("Le type de l''entité");
+                    .HasComment("Le type de l'entité");
 
                 entity.Property(e => e.AccountingMethod)
                     .HasMaxLength(150)
@@ -64,51 +63,52 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.Property(e => e.ActivityDescription)
                     .HasMaxLength(150)
                     .IsUnicode(false)
-                    .HasComment("Description de l''activité");
+                    .HasComment("Description de l'activité");
 
                 entity.Property(e => e.ActivityType)
                     .HasMaxLength(150)
                     .IsUnicode(false)
-                    .HasComment("Type d''activité");
+                    .HasComment("Type d'activité");
 
                 entity.Property(e => e.CommercialName)
                     .HasMaxLength(255)
-                    .HasComment("Le  nom commercial de l''entité");
-
-                entity.Property(e => e.CreateDate).HasComment("La date de la création de l''entité");
+                    .HasComment("Le  nom commercial de l'entité");
 
                 entity.Property(e => e.CreatedBy)
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false)
-                    .HasComment("L''identifiant de l''utilisateur ou du système qui a crée l''entité");
+                    .HasComment("L'identifiant de l'utilisateur ou du système qui a crée l'entité");
+
+                entity.Property(e => e.CreationDate).HasComment("La date de création");
 
                 entity.Property(e => e.Email)
                     .IsRequired()
                     .HasMaxLength(100)
-                    .HasComment("L''adresse mail de l''entité");
+                    .HasComment("L'adresse mail de l'entité");
 
-                entity.Property(e => e.FiscalExerciseDuration).HasComment("La durée de l''exercice fiscale");
+                entity.Property(e => e.FiscalExerciseDuration).HasComment("La durée de l'exercice fiscale");
 
                 entity.Property(e => e.FiscalExerciseStartDate).HasComment("Début Exercice fiscale");
 
                 entity.Property(e => e.FiscalSystem)
                     .HasMaxLength(50)
-                    .IsUnicode(false);
+                    .IsUnicode(false)
+                    .HasComment("Le régime fiscale");
 
-                entity.Property(e => e.HubId).HasComment("L''identifiant technique du Hub");
+                entity.Property(e => e.HubId).HasComment("L'identifiant technique du Hub");
 
                 entity.Property(e => e.ISIN)
                     .HasMaxLength(150)
                     .IsUnicode(false)
                     .HasComment("Le ISIN");
 
-                entity.Property(e => e.IsActive).HasComment("L''entité est-elle activé");
+                entity.Property(e => e.IsActive).HasComment("L'entité est-elle activé");
 
                 entity.Property(e => e.LegalForm)
                     .HasMaxLength(150)
                     .IsUnicode(false)
-                    .HasComment("La forme juridique de l''entité");
+                    .HasComment("La forme juridique de l'entité");
 
                 entity.Property(e => e.LegalFormCode)
                     .HasMaxLength(150)
@@ -118,14 +118,14 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.Property(e => e.LegalName)
                     .IsRequired()
                     .HasMaxLength(255)
-                    .HasComment("La raison social de l''entité");
+                    .HasComment("La raison social de l'entité");
 
                 entity.Property(e => e.ModifiedBy)
                     .HasMaxLength(50)
                     .IsUnicode(false)
-                    .HasComment("L''identifiant de l''utilisateur ou du système qui a effectué la dernière modification");
+                    .HasComment("L'identifiant de l'utilisateur ou du système qui a effectué la dernière modification");
 
-                entity.Property(e => e.NafId).HasComment("L''identifiant technique du code Naf");
+                entity.Property(e => e.NafId).HasComment("L'identifiant technique du code Naf");
 
                 entity.Property(e => e.Sector)
                     .HasMaxLength(150)
@@ -146,9 +146,9 @@ namespace Pulse.Account.Infrastructure.Entities
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false)
-                    .HasComment("La source de création de l''entité");
+                    .HasComment("La source de création de l'entité");
 
-                entity.Property(e => e.StaffSize).HasComment("Le nombre d''employés de l''entité");
+                entity.Property(e => e.StaffSize).HasComment("Le nombre d'employés de l'entité");
 
                 entity.Property(e => e.StaffSizeRange)
                     .HasMaxLength(50)
@@ -158,18 +158,18 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.Property(e => e.TaxationSystem)
                     .HasMaxLength(150)
                     .IsUnicode(false)
-                    .HasComment("Le Régime d''imposition");
+                    .HasComment("Le Régime d'imposition");
 
                 entity.Property(e => e.Turnover)
-                    .HasColumnType("decimal(18, 0)")
-                    .HasComment("Le chiffre d''affaires");
+                    .HasColumnType("decimal(18, 2)")
+                    .HasComment("Le chiffre d'affaires");
 
-                entity.Property(e => e.UpdateDate).HasComment("La date de la dernière modification");
+                entity.Property(e => e.UpdatedDate).HasComment("La date de la dernière modification");
 
                 entity.Property(e => e.VAT)
-                    .HasMaxLength(150)
+                    .HasMaxLength(50)
                     .IsUnicode(false)
-                    .HasComment("La TV");
+                    .HasComment("La TVA");
 
                 entity.Property(e => e.VATIntra)
                     .HasMaxLength(20)
@@ -200,16 +200,16 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TAddress", "sch_acc");
 
                 entity.HasIndex(e => e.AccountId)
-                    .HasName("IDX_TAddress_AccountId");
+                    .HasDatabaseName("IDX_TAddress_AccountId");
 
-                entity.Property(e => e.AddressId).HasComment("L''identifiant technique");
+                entity.Property(e => e.AddressId).HasComment("L'identifiant technique");
 
-                entity.Property(e => e.AccountId).HasComment("L''identifiant de l''entité");
+                entity.Property(e => e.AccountId).HasComment("L'identifiant de l'entité");
 
                 entity.Property(e => e.AddressType)
                     .HasMaxLength(25)
                     .IsUnicode(false)
-                    .HasComment("Le type d''adresse");
+                    .HasComment("Le type d'adresse");
 
                 entity.Property(e => e.City)
                     .IsRequired()
@@ -219,7 +219,7 @@ namespace Pulse.Account.Infrastructure.Entities
 
                 entity.Property(e => e.Country)
                     .IsRequired()
-                    .HasMaxLength(25)
+                    .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasComment("Le pays");
 
@@ -230,6 +230,7 @@ namespace Pulse.Account.Infrastructure.Entities
 
                 entity.Property(e => e.Street)
                     .IsRequired()
+                    .HasMaxLength(255)
                     .HasComment("La rue");
 
                 entity.Property(e => e.ZipCode)
@@ -253,17 +254,17 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TContact", "sch_acc");
 
                 entity.HasIndex(e => e.ContactGlobalUniqueId)
-                    .HasName("IDX_TContact_ContactGlobalUniqueId");
+                    .HasDatabaseName("IDX_TContact_ContactGlobalUniqueId");
 
-                entity.Property(e => e.ContactId).HasComment("L''identifiant technique");
+                entity.Property(e => e.ContactId).HasComment("L'identifiant technique");
 
                 entity.Property(e => e.ContactEmail)
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false)
-                    .HasComment("l''adresse mail du contact");
+                    .HasComment("l'adresse mail du contact");
 
-                entity.Property(e => e.ContactGlobalUniqueId).HasComment("L''identifiant global du contact");
+                entity.Property(e => e.ContactGlobalUniqueId).HasComment("L'identifiant global du contact");
 
                 entity.Property(e => e.FirstName)
                     .IsRequired()
@@ -276,6 +277,12 @@ namespace Pulse.Account.Infrastructure.Entities
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasComment("Le nom du contact");
+
+                entity.Property(e => e.Type)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .IsUnicode(false)
+                    .HasComment("Le type de contact");
             });
 
             modelBuilder.Entity<TDelegation>(entity =>
@@ -286,29 +293,34 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TDelegation", "sch_acc");
 
                 entity.HasIndex(e => e.AccountId)
-                    .HasName("IDX_TDelegation_AccountId");
+                    .HasDatabaseName("IDX_TDelegation_AccountId");
 
-                entity.HasIndex(e => e.ContactDestinationId)
-                    .HasName("IDX_TDelegation_ContactDestinationId");
+                entity.HasIndex(e => e.DelegateeId)
+                    .HasDatabaseName("IDX_TDelegation_DelegateeId");
 
-                entity.HasIndex(e => e.ContactSourceId)
-                    .HasName("IDX_TDelegation_ContactSourceId");
+                entity.HasIndex(e => e.DelegatorId)
+                    .HasDatabaseName("IDX_TDelegation_DelegatorId");
 
-                entity.Property(e => e.DelegationId).HasComment("L''identifiant technique");
+                entity.Property(e => e.DelegationId).HasComment("L'identifiant technique");
 
-                entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
-
-                entity.Property(e => e.ContactDestinationId).HasComment("L''identifiant technique du contact à qui est déléguée la gestion de l''entité");
-
-                entity.Property(e => e.ContactSourceId).HasComment("L''identifiant technique du contact gestionnaire de l''entité");
+                entity.Property(e => e.AccountId).HasComment("L'identifiant technique de l'entité");
 
                 entity.Property(e => e.CreationDate).HasComment("La date de création de la délégation");
 
+                entity.Property(e => e.DelegateeId).HasComment("Le délégataire");
+
+                entity.Property(e => e.DelegatorId).HasComment("Le délégateur ");
+
                 entity.Property(e => e.EndDate).HasComment("La date effective de la fin de la délégation");
 
-                entity.Property(e => e.IsEnable).HasComment("La délégation est-elle active ou non");
+                entity.Property(e => e.Note)
+                    .HasMaxLength(255)
+                    .IsUnicode(false)
+                    .HasComment("La note associé à la délégation");
 
                 entity.Property(e => e.StartDate).HasComment("La date effective du début de la délégation");
+
+                entity.Property(e => e.Status).HasComment("La délégation est-elle active ou non");
 
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TDelegation)
@@ -316,17 +328,17 @@ namespace Pulse.Account.Infrastructure.Entities
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("C_TDelegation_TAccount_FK");
 
-                entity.HasOne(d => d.ContactDestination)
-                    .WithMany(p => p.TDelegationContactDestination)
-                    .HasForeignKey(d => d.ContactDestinationId)
+                entity.HasOne(d => d.Delegatee)
+                    .WithMany(p => p.TDelegationDelegatee)
+                    .HasForeignKey(d => d.DelegateeId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("C_TDelegation_TContact_ContactDestinationId_FK");
+                    .HasConstraintName("C_TDelegation_TContact_DelegateeId_FK");
 
-                entity.HasOne(d => d.ContactSource)
-                    .WithMany(p => p.TDelegationContactSource)
-                    .HasForeignKey(d => d.ContactSourceId)
+                entity.HasOne(d => d.Delegator)
+                    .WithMany(p => p.TDelegationDelegator)
+                    .HasForeignKey(d => d.DelegatorId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("C_TDelegation_TContact_ContactSourceId_FK");
+                    .HasConstraintName("C_TDelegation_TContact_DelegatorId_FK");
             });
 
             modelBuilder.Entity<TDeploymentPlanning>(entity =>
@@ -337,15 +349,15 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TDeploymentPlanning", "sch_acc");
 
                 entity.HasIndex(e => e.AccountId)
-                    .HasName("IDX_TDeploymentPlanning_AccountId");
+                    .HasDatabaseName("IDX_TDeploymentPlanning_AccountId");
 
-                entity.Property(e => e.DeploymentId).HasComment("L''identifiant technique");
+                entity.Property(e => e.DeploymentId).HasComment("L'identifiant technique");
 
-                entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
+                entity.Property(e => e.AccountId).HasComment("L'identifiant technique de l'entité");
 
                 entity.Property(e => e.DeploymentDate).HasComment("La date à laquelle le déploiement a eu lieu ");
 
-                entity.Property(e => e.DeploymentStatus).HasComment("Le statut du déploiement");
+                entity.Property(e => e.Status).HasComment("Le statut du déploiement");
 
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TDeploymentPlanning)
@@ -361,7 +373,7 @@ namespace Pulse.Account.Infrastructure.Entities
 
                 entity.ToTable("THub", "sch_acc");
 
-                entity.Property(e => e.HubId).HasComment("L''identifiant technique");
+                entity.Property(e => e.HubId).HasComment("L'identifiant technique");
 
                 entity.Property(e => e.HubName)
                     .IsRequired()
@@ -377,13 +389,13 @@ namespace Pulse.Account.Infrastructure.Entities
 
                 entity.ToTable("TNaf", "sch_acc");
 
-                entity.Property(e => e.NafId).HasComment("L''identifiant technique");
+                entity.Property(e => e.NafId).HasComment("L'identifiant technique");
 
                 entity.Property(e => e.NafCode)
                     .IsRequired()
                     .HasMaxLength(10)
                     .IsUnicode(false)
-                    .HasComment("Le code Naf de l''entité");
+                    .HasComment("Le code Naf de l'entité");
             });
 
             modelBuilder.Entity<TPhone>(entity =>
@@ -394,11 +406,11 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TPhone", "sch_acc");
 
                 entity.HasIndex(e => e.AccountId)
-                    .HasName("IDX_TPhone_AccountId");
+                    .HasDatabaseName("IDX_TPhone_AccountId");
 
-                entity.Property(e => e.PhoneId).HasComment("L''identifiant technique");
+                entity.Property(e => e.PhoneId).HasComment("L'identifiant technique");
 
-                entity.Property(e => e.AccountId).HasComment("L''identifiant techique de l''entité");
+                entity.Property(e => e.AccountId).HasComment("L'identifiant techique de l'entité");
 
                 entity.Property(e => e.PhoneNumber)
                     .IsRequired()
@@ -406,7 +418,7 @@ namespace Pulse.Account.Infrastructure.Entities
                     .IsUnicode(false)
                     .HasComment("Le numéro de téléphone");
 
-                entity.Property(e => e.PhoneType)
+                entity.Property(e => e.Type)
                     .HasMaxLength(25)
                     .IsUnicode(false)
                     .HasComment("Le type du numéro de téléphone");
@@ -426,24 +438,20 @@ namespace Pulse.Account.Infrastructure.Entities
                 entity.ToTable("TRoles", "sch_acc");
 
                 entity.HasIndex(e => e.AccountId)
-                    .HasName("IDX_TRoles_AccountId");
+                    .HasDatabaseName("IDX_TRoles_AccountId");
 
                 entity.HasIndex(e => e.ContactId)
-                    .HasName("IDX_TRoles_ContactId");
+                    .HasDatabaseName("IDX_TRoles_ContactId");
 
-                entity.Property(e => e.RoleId).HasComment("L''identifiant technique");
+                entity.Property(e => e.RoleId).HasComment("L'identifiant technique");
 
-                entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
+                entity.Property(e => e.AccountId).HasComment("L'identifiant technique de l'entité");
 
-                entity.Property(e => e.ContactId).HasComment("L''identifiant technique du contact");
-
-                entity.Property(e => e.EndDate).HasComment("La date de fin ou de validité du rôle");
-
-                entity.Property(e => e.HasBeenDelegated).HasComment("Le rôle est-il confié ou attribué à quelqu''un d''autre");
+                entity.Property(e => e.ContactId).HasComment("L'identifiant technique du contact");
 
                 entity.Property(e => e.IsFavorite).HasComment("Le rôle est-il considéré comme un favori ou mis en avant comme tel");
 
-                entity.Property(e => e.IsTemporary).HasComment("Le rôle est-il exercé pour une durée limitée");
+                entity.Property(e => e.IsSignatory).HasComment("Le signataire");
 
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TRoles)

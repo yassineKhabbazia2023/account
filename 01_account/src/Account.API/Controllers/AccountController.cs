@@ -25,6 +25,7 @@ namespace Kpmg.Account.API.Controllers
         /// Recherche des entités morales.
         /// </summary>
         /// <param name="search">Critère de recherche (nom/n° IBS de l'entité).</param>
+        /// <param name="contactId">Identification de l'utilisateur connecté.</param>
         /// <param name="page">Numéro de page.</param>
         /// <param name="limit">Nombre d'éléments par page.</param>
         /// <returns>Liste d'entités morales.</returns>
@@ -32,9 +33,9 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountModel>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit)
+        public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync(string? search, int contactId, int page, int limit)
         {
-            var result = _accountService.GetAccountsAsync(search, page, limit);
+            var result = await _accountService.GetAccountsAsync(search, page, limit, contactId);
 
             return Ok(result);
         }
@@ -48,9 +49,9 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<AccountDetail> GetAccountDetailAsync(Guid accountId)
+        public async Task<ActionResult<AccountDetail>> GetAccountDetailAsync(int accountId)
         {
-            var result = _accountService.GetAccountDetailAsync(accountId);
+            var result = await _accountService.GetAccountDetailAsync(accountId);
 
             return Ok(result);
         }
@@ -65,9 +66,9 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<AccountDetail> UpdateAccountAsync(Guid accountId, [FromBody] AccountDetail accountDetail)
+        public async Task<ActionResult<AccountDetail>> UpdateAccountAsync(int accountId, [FromBody] AccountDetail accountDetail)
         {
-            var result = _accountService.UpdateAccountAsync(accountId, accountDetail);
+            var result = await _accountService.UpdateAccountAsync(accountId, accountDetail);
 
             return Ok(result);
         }
@@ -81,7 +82,7 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountFavorite>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IReadOnlyCollection<AccountFavorite>> GetAccountFavoritesAsync(Guid contactId)
+        public ActionResult<IReadOnlyCollection<AccountFavorite>> GetAccountFavoritesAsync(int contactId)
         {
             var result = _accountService.GetAccountFavoritesAsync(contactId);
 
@@ -99,7 +100,7 @@ namespace Kpmg.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult SetFavoriteAsync(Guid accountId, Guid contactId, bool isFavorite)
+        public ActionResult SetFavoriteAsync(int accountId, int contactId, bool isFavorite)
         {
             _accountService.SetFavoriteAsync(accountId, contactId, isFavorite);
 

@@ -3,9 +3,14 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
+using Kpmg.Account.Core.Interfaces;
 using Kpmg.Account.Core.Services;
+using Kpmg.Account.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Infrastructure;
+using Pulse.Account.Infrastructure.Context;
 
 namespace Pulse.Account.API.Configuration
 {
@@ -23,7 +28,9 @@ namespace Pulse.Account.API.Configuration
 
         private static void RegisterServices(IServiceCollection services)
         {
-            services.AddScoped<IAccountService, AccountService>();
+            services.AddTransient<IAccountService, AccountService>();
+
+            services.AddScoped<IAccountRepository, AccountRepository>();
         }
 
         private static void RegisterDatabase(IServiceCollection services, IConfiguration configuration)
@@ -33,6 +40,10 @@ namespace Pulse.Account.API.Configuration
             {
                 throw new InvalidOperationException(nameof(connectionString));
             }
+
+            services.AddDbContextPool<AccountContext>(
+                options => options.UseSqlServer(connectionString, options =>
+                options.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery)));
 
             services.AddHealthChecks()
                 .AddSqlServer(connectionString, healthQuery: "SELECT 1;");

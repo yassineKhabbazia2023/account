@@ -6,13 +6,11 @@ namespace Kpmg.Account.Core.Models
 {
     public class Accounting
     {
-        public DateOnly FiscalExerciceStartDate { get; set; }
+        public DateTime? FiscalExerciseStartDate { get; set; }
 
-        public int FiscalExerciceDuration { get; set; }
+        public int? FiscalExerciseDuration { get; set; }
 
-        public string? AccountingMethod { get; set; }
-
-        public string? ActivityType { get; set; }
+        public string? AccountingType { get; set; }
 
         public string? FiscalSystem { get; set; }
 

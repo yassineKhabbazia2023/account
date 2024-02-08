@@ -51,7 +51,7 @@
          "ObjectType": 0
       }
    ],
-   "UiHint": "Account.Database\\Account.Database.sqlproj",
+   "UiHint": "(LocalDB)\\MSSQLLocalDB.account",
    "UncountableWords": null,
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": true,
