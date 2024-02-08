@@ -5,8 +5,8 @@
 using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
-using Pulse.Account.Core.Dtos;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
 
@@ -49,9 +49,9 @@ public class DelegationRepositoryTests
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
-                GlobalAccountId = tAccount.AccountGlobalUniqueId,
-                GlobalDelegatorId = tDelegator.ContactGlobalUniqueId,
-                GlobalDelegateeId = tDelegatee.ContactGlobalUniqueId,
+                AccountId = tAccount.AccountId,
+                DelegatorId = tDelegator.ContactId,
+                DelegateeId = tDelegatee.ContactId,
             };
 
             await repository.CreateDelegationAsync(createDelegation);
@@ -59,11 +59,11 @@ public class DelegationRepositoryTests
             var createdDelegation = await context
                 .TDelegation
                 .FirstOrDefaultAsync(d =>
-                    d.Account.AccountGlobalUniqueId == tAccount.AccountGlobalUniqueId
+                    d.Account.AccountId == tAccount.AccountId
                     &&
-                    d.Delegator.ContactGlobalUniqueId == tDelegator.ContactGlobalUniqueId
+                    d.DelegatorId == tDelegator.ContactId
                     &&
-                    d.Delegatee.ContactGlobalUniqueId == tDelegatee.ContactGlobalUniqueId);
+                    d.DelegateeId == tDelegatee.ContactId);
 
             Assert.NotNull(createdDelegation);
             Assert.Equal(createDelegation.StartDate, createdDelegation.StartDate);
@@ -97,13 +97,12 @@ public class DelegationRepositoryTests
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
-                GlobalAccountId = tAccount.AccountGlobalUniqueId,
-                GlobalDelegatorId = Guid.Empty,
-                GlobalDelegateeId = tDelegatee.ContactGlobalUniqueId,
+                AccountId = tAccount.AccountId,
+                DelegateeId = tDelegatee.ContactId,
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
-            Assert.Equal($@"Le contact avec l'identifiant {Guid.Empty} est introuvable", result.Message);
+            Assert.Equal($@"Le contact avec l'identifiant {0} est introuvable", result.Message);
         }
     }
 
@@ -132,13 +131,12 @@ public class DelegationRepositoryTests
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
-                GlobalAccountId = tAccount.AccountGlobalUniqueId,
-                GlobalDelegatorId = Guid.Empty,
-                GlobalDelegateeId = tDelegator.ContactGlobalUniqueId,
+                AccountId = tAccount.AccountId,
+                DelegatorId = tDelegator.ContactId,
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
-            Assert.Equal($@"Le contact avec l'identifiant {Guid.Empty} est introuvable", result.Message);
+            Assert.Equal($@"Le contact avec l'identifiant {0} est introuvable", result.Message);
         }
     }
 
@@ -163,9 +161,8 @@ public class DelegationRepositoryTests
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
-                GlobalAccountId = Guid.Empty,
-                GlobalDelegatorId = tDelegator.ContactGlobalUniqueId,
-                GlobalDelegateeId = tDelegatee.ContactGlobalUniqueId,
+                DelegatorId = tDelegator.ContactId,
+                DelegateeId = tDelegatee.ContactId,
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
@@ -209,7 +206,7 @@ public class DelegationRepositoryTests
 
             // Try get contact delegation
             var repository = new DelegationRepository(context);
-            var conactDelegations = await repository.GetContactDelegationsAsync(tDelegatee.ContactGlobalUniqueId);
+            var conactDelegations = await repository.GetContactDelegationsAsync(tDelegatee.ContactId);
 
             Assert.Equal(1, conactDelegations.Count);
             var contactDelegation = conactDelegations.FirstOrDefault();
@@ -272,7 +269,7 @@ public class DelegationRepositoryTests
 
             // Try get contact delegation
             var repository = new DelegationRepository(context);
-            var delegationList = await repository.GetDelegationsAsync(tDelegator.ContactGlobalUniqueId, tDelegatee.ContactGlobalUniqueId);
+            var delegationList = await repository.GetDelegationsAsync(tDelegator.ContactId, tDelegatee.ContactId);
 
             Assert.Equal(1, delegationList.Count);
             var delegation = delegationList.FirstOrDefault();

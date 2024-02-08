@@ -5,18 +5,18 @@
 using System.Text.Json.Serialization;
 using Pulse.Account.Core.Models;
 
-namespace Pulse.Account.Core.Dtos;
+namespace Pulse.Account.Core.Requests;
 
 public class CreateDelegation
 {
     [JsonRequired]
-    public Guid GlobalAccountId { get; set; }
+    public int AccountId { get; set; }
 
     [JsonRequired]
-    public Guid GlobalDelegatorId { get; set; }
+    public int DelegatorId { get; set; }
 
     [JsonRequired]
-    public Guid GlobalDelegateeId { get; set; }
+    public int DelegateeId { get; set; }
 
     [JsonRequired]
     public DateTime StartDate { get; set; }

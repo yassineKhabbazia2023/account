@@ -2,9 +2,9 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Core.Dtos;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Services;
 
@@ -22,12 +22,12 @@ public class DelegationService : IDelegationService
         return await _delegationRepository.CreateDelegationAsync(delegation);
     }
 
-    public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(Guid delegateeId)
+    public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(int delegateeId)
     {
         return await _delegationRepository.GetContactDelegationsAsync(delegateeId);
     }
 
-    public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(Guid delegatorId, Guid delegateeId)
+    public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId)
     {
         return await _delegationRepository.GetDelegationsAsync(delegatorId, delegateeId);
     }

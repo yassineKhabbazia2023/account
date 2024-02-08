@@ -2,16 +2,16 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Core.Dtos;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Interfaces;
 
 public interface IDelegationRepository
 {
-    Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(Guid delegateeId);
+    Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(int delegateeId);
 
-    Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(Guid delegatorId, Guid delegateeId);
+    Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId);
 
     Task<int> CreateDelegationAsync(CreateDelegation delegation);
 }

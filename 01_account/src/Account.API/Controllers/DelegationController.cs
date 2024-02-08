@@ -3,9 +3,9 @@
 // </copyright>
 
 using Microsoft.AspNetCore.Mvc;
-using Pulse.Account.Core.Dtos;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.API.Controllers;
 
@@ -30,19 +30,14 @@ public class DelegationController : ControllerBase
     /// <summary>
     /// Récupérer les délégations d'un contact donné.
     /// </summary>
-    /// <param name="delegateeId">L'identifiant global du contact.</param>
+    /// <param name="delegateeId">L'identifiant du contact.</param>
     /// <returns>Liste de délégations.</returns>
     [HttpGet("{delegateeId}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Delegation>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyCollection<Delegation>>> GetContactDelegationsAsync(Guid delegateeId)
+    public async Task<ActionResult<IReadOnlyCollection<Delegation>>> GetContactDelegationsAsync(int delegateeId)
     {
-        if (delegateeId == Guid.Empty)
-        {
-            return BadRequest("The delegateeId parameters are required.");
-        }
-
         var delegationList = await _delegationService.GetContactDelegationsAsync(delegateeId);
         return Ok(delegationList!);
     }
@@ -50,20 +45,15 @@ public class DelegationController : ControllerBase
     /// <summary>
     /// Récupérer les délégations accordées par un contact à un autre contact.
     /// </summary>
-    /// <param name="delegatorId">L'identifiant global du contact délégateur.</param>
-    /// <param name="delegateeId">L'identifiant global du contact délégataire.</param>
+    /// <param name="delegatorId">L'identifiant du contact délégateur.</param>
+    /// <param name="delegateeId">L'identifiant du contact délégataire.</param>
     /// <returns>Liste de délégations.</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Delegation>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyCollection<Delegation>>> GetDelegationsAsync([FromQuery] Guid delegatorId, [FromQuery] Guid delegateeId)
+    public async Task<ActionResult<IReadOnlyCollection<Delegation>>> GetDelegationsAsync([FromQuery] int delegatorId, [FromQuery] int delegateeId)
     {
-        if (delegatorId == Guid.Empty || delegateeId == Guid.Empty)
-        {
-            return BadRequest("The delegatorId and delegateeId parameters are required.");
-        }
-
         var delegationList = await _delegationService.GetDelegationsAsync(delegatorId, delegateeId);
         return Ok(delegationList!);
     }

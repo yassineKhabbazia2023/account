@@ -7,9 +7,9 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
-using Pulse.Account.Core.Dtos;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
 
 namespace Account.Api.Tests.Controllers;
@@ -34,9 +34,9 @@ public class DelegationControllerTests
             {
                 request.StartDate.Should().Be(createDelegation.StartDate);
                 request.EndDate.Should().Be(createDelegation.EndDate);
-                request.GlobalAccountId.Should().Be(createDelegation.GlobalAccountId);
-                request.GlobalDelegatorId.Should().Be(createDelegation.GlobalDelegatorId);
-                request.GlobalDelegateeId.Should().Be(createDelegation.GlobalDelegateeId);
+                request.AccountId.Should().Be(createDelegation.AccountId);
+                request.DelegatorId.Should().Be(createDelegation.DelegatorId);
+                request.DelegateeId.Should().Be(createDelegation.DelegateeId);
             })
             .ReturnsAsync(100)
             .Verifiable();
@@ -52,12 +52,12 @@ public class DelegationControllerTests
     [Fact]
     public async Task GetContactDelegationsAsync_Should_Return_ContactDelegations()
     {
-        var contactId = Guid.Parse("11111111-1111-1111-1111-000000000000");
+        var contactId = 100;
         IReadOnlyCollection<Delegation> delegationlist = _fixture.Create<List<Delegation>>();
         var service = new Mock<IDelegationService>(MockBehavior.Strict);
 
-        service.Setup(x => x.GetContactDelegationsAsync(It.IsAny<Guid>()))
-            .Callback<Guid>(id => id.Should().Be(contactId))
+        service.Setup(x => x.GetContactDelegationsAsync(It.IsAny<int>()))
+            .Callback<int>(id => id.Should().Be(contactId))
             .ReturnsAsync(delegationlist)
             .Verifiable();
 
@@ -72,13 +72,13 @@ public class DelegationControllerTests
     [Fact]
     public async Task GetDelegationsAsync_Should_Return_Delegations()
     {
-        var delegatorId = Guid.Parse("11111111-1111-1111-0000-000000000000");
-        var delegateeId = Guid.Parse("11111111-1111-1111-1111-000000000000");
+        var delegatorId = 100;
+        var delegateeId = 200;
         IReadOnlyCollection<Delegation> delegationlist = _fixture.Create<List<Delegation>>();
         var service = new Mock<IDelegationService>(MockBehavior.Strict);
 
-        service.Setup(x => x.GetDelegationsAsync(It.IsAny<Guid>(), It.IsAny<Guid>()))
-            .Callback<Guid, Guid>((sourceId, destinationId) =>
+        service.Setup(x => x.GetDelegationsAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .Callback<int, int>((sourceId, destinationId) =>
             {
                 sourceId.Should().Be(delegatorId);
                 destinationId.Should().Be(delegateeId);

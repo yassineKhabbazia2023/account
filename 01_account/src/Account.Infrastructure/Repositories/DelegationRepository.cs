@@ -7,10 +7,10 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Retry;
-using Pulse.Account.Core.Dtos;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 
@@ -47,9 +47,9 @@ public class DelegationRepository : IDelegationRepository
             Note = delegation.Note,
         };
 
-        tDelegation.Account = await GetAccountAsync(delegation.GlobalAccountId);
-        tDelegation.Delegator = await GetContactAsync(delegation.GlobalDelegatorId);
-        tDelegation.Delegatee = await GetContactAsync(delegation.GlobalDelegateeId);
+        tDelegation.Account = await GetAccountAsync(delegation.AccountId);
+        tDelegation.Delegator = await GetContactAsync(delegation.DelegatorId);
+        tDelegation.Delegatee = await GetContactAsync(delegation.DelegateeId);
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -60,7 +60,7 @@ public class DelegationRepository : IDelegationRepository
         return result;
     }
 
-    public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(Guid delegateeId)
+    public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(int delegateeId)
     {
         var delegationList = new List<TDelegation>();
 
@@ -71,14 +71,14 @@ public class DelegationRepository : IDelegationRepository
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
-                                        .Where(d => d.Delegatee.ContactGlobalUniqueId == delegateeId)
+                                        .Where(d => d.DelegateeId == delegateeId)
                                         .ToListAsync();
         });
 
         return delegationList.ToDelegationList();
     }
 
-    public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(Guid delegatorId, Guid delegateeId)
+    public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId)
     {
         var delegationList = new List<TDelegation>();
 
@@ -89,41 +89,41 @@ public class DelegationRepository : IDelegationRepository
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
-                                        .Where(d => d.Delegator.ContactGlobalUniqueId == delegatorId
+                                        .Where(d => d.DelegatorId == delegatorId
                                          &&
-                                         d.Delegatee.ContactGlobalUniqueId == delegateeId)
+                                         d.DelegateeId == delegateeId)
                                         .ToListAsync();
         });
 
         return delegationList.ToDelegationList();
     }
 
-    private async Task<TContact> GetContactAsync(Guid globlaContactId)
+    private async Task<TContact> GetContactAsync(int contactId)
     {
         var tContact = new TContact();
         await _retryPolicy.ExecuteAsync(async () =>
         {
             tContact = await _accountContext
                                         .TContact
-                                        .FirstOrDefaultAsync(d => d.ContactGlobalUniqueId == globlaContactId);
+                                        .FirstOrDefaultAsync(d => d.ContactId == contactId);
         });
 
         if (tContact is null)
         {
-            throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, globlaContactId));
+            throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
         }
 
         return tContact;
     }
 
-    private async Task<TAccount> GetAccountAsync(Guid globalAccountId)
+    private async Task<TAccount> GetAccountAsync(int accountId)
     {
         var tAccount = new TAccount();
         await _retryPolicy.ExecuteAsync(async () =>
         {
             tAccount = await _accountContext
                                         .TAccount
-                                        .FirstOrDefaultAsync(d => d.AccountGlobalUniqueId == globalAccountId);
+                                        .FirstOrDefaultAsync(d => d.AccountId == accountId);
         });
 
         if(tAccount is null)
