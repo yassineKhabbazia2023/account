@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Kpmg.Account.Core.Models;
+using Microsoft.Identity.Client;
 using Pulse.Account.Infrastructure.Entities;
 using AccountModel = Kpmg.Account.Core.Models.Account;
 
@@ -14,51 +15,55 @@ namespace Pulse.Account.Infrastructure.Mappers
     {
         public static AccountModel TAccountToAccountModel(this TAccount source, int contactId)
         {
-            var roleSignatory = source.TRoles.FirstOrDefault(role => role.IsSignatory == true);
-            var roleConnectedContact = source.TRoles?.FirstOrDefault(role => role.ContactId == contactId);
-            return new AccountModel()
+            var accountModel = new AccountModel();
+            if (source != null)
             {
-                AccountId = source.AccountGlobalUniqueId,
-                AccountNumber = source.SourceAccountNumber,
-                LegalName = source.LegalName,
-                IsFavorite = roleConnectedContact?.IsFavorite,
-                Address = source.TAddress?.Select(address => new Address()
+                var roleSignatory = source.TRoles.FirstOrDefault(role => role.IsSignatory == true);
+                var roleConnectedContact = source.TRoles?.FirstOrDefault(role => role.ContactId == contactId);
+
+                accountModel.AccountId = source.AccountGlobalUniqueId;
+                accountModel.AccountNumber = source.SourceAccountNumber;
+                accountModel.LegalName = source.LegalName;
+                accountModel.IsFavorite = roleConnectedContact?.IsFavorite;
+                accountModel.Address = source.TAddress?.Select(address => new Address()
                 {
                     AddressId = address.AddressId,
                     City = address.City,
                     AddressType = address.AddressType
-                }).ToList(),
-                Owner = new Owner()
+                }).ToList();
+                accountModel.Owner = new Owner()
                 {
                     ContactEmail = roleSignatory?.Contact.ContactEmail,
                     FirstName = roleSignatory?.Contact.FirstName,
                     LastName = roleSignatory?.Contact.LastName
-                },
-                Deployment = source.TDeploymentPlanning?.Select(deploymentPlanning =>
-                    new Deployment()
-                    {
-                        DeploymentId = deploymentPlanning.DeploymentId,
-                        DeploymentDate = deploymentPlanning.DeploymentDate,
-                        Status = deploymentPlanning.Status
-                    }).ToList()
-            };
+                };
+                accountModel.Deployment = source.TDeploymentPlanning?.Select(deploymentPlanning => new Deployment()
+                {
+                    DeploymentId = deploymentPlanning.DeploymentId,
+                    DeploymentDate = deploymentPlanning.DeploymentDate,
+                    Status = deploymentPlanning.Status
+                }).ToList();
+            }
+
+            return accountModel;
         }
 
         public static AccountDetail TAccountToAccountDetail(this TAccount source)
         {
-            return new AccountDetail()
+            var accountDetail = new AccountDetail();
+            if(source != null)
             {
-                AccountId = source.AccountId,
-                AccountNumber = source.SourceAccountNumber,
-                IconName = "icon",
-                IsActive = source.IsActive,
-                Email = source?.Email,
-                EmployeeCount = source?.StaffSize,
-                CommercialName = source?.CommercialName,
-                Accounting = source?.InitAccounting(),
-                Legal = source?.InitLegal(),
-                Vat = source?.InitVat(),
-                Address = source?.TAddress.Select(address => new Address()
+                accountDetail.AccountId = source.AccountId;
+                accountDetail.AccountNumber = source.SourceAccountNumber;
+                accountDetail.IconName = "icon";
+                accountDetail.IsActive = source.IsActive;
+                accountDetail.Email = source.Email;
+                accountDetail.EmployeeCount = source.StaffSize;
+                accountDetail.CommercialName = source.CommercialName;
+                accountDetail.Accounting = source.InitAccounting();
+                accountDetail.Legal = source.InitLegal();
+                accountDetail.Vat = source.InitVat();
+                accountDetail.Address = source.TAddress.Select(address => new Address()
                 {
                     AddressId = address.AddressId,
                     Country = address.Country,
@@ -67,21 +72,23 @@ namespace Pulse.Account.Infrastructure.Mappers
                     Street = address.Street,
                     ZipCode = address.ZipCode,
                     AddressType = address.AddressType
-                }).ToList(),
-                Phone = source?.TPhone.Select(phone => new Phone()
+                }).ToList();
+                accountDetail.Phone = source.TPhone.Select(phone => new Phone()
                 {
                     PhoneId = phone.PhoneId,
                     PhoneNumber = phone.PhoneNumber,
                     Type = phone.Type,
-                }).ToList(),
-                Hub = source?.InitHub(),
-                DeploymentPlanning = source?.TDeploymentPlanning.Select(deployment => new Deployment()
+                }).ToList();
+                accountDetail.Hub = source.InitHub();
+                accountDetail.DeploymentPlanning = source.TDeploymentPlanning.Select(deployment => new Deployment()
                 {
                     DeploymentId = deployment.DeploymentId,
                     DeploymentDate = deployment.DeploymentDate,
                     Status = deployment.Status,
-                }).ToList()
-            };
+                }).ToList();
+            }
+
+            return accountDetail;
         }
 
         private static Hub InitHub(this TAccount tAccount)
