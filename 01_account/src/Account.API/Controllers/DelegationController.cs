@@ -38,8 +38,8 @@ public class DelegationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IReadOnlyCollection<Delegation>>> GetContactDelegationsAsync(int delegateeId)
     {
-        var delegationList = await _delegationService.GetContactDelegationsAsync(delegateeId);
-        return Ok(delegationList!);
+        var delegations = await _delegationService.GetContactDelegationsAsync(delegateeId);
+        return Ok(delegations!);
     }
 
     /// <summary>
@@ -54,8 +54,8 @@ public class DelegationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IReadOnlyCollection<Delegation>>> GetDelegationsAsync([FromQuery] int delegatorId, [FromQuery] int delegateeId)
     {
-        var delegationList = await _delegationService.GetDelegationsAsync(delegatorId, delegateeId);
-        return Ok(delegationList!);
+        var delegations = await _delegationService.GetDelegationsAsync(delegatorId, delegateeId);
+        return Ok(delegations!);
     }
 
     /// <summary>
@@ -69,11 +69,6 @@ public class DelegationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> CreateDelegationAsync([FromBody] CreateDelegation delegation)
     {
-        if (delegation is null)
-        {
-            return BadRequest("The delegation parameter are required.");
-        }
-
         int delegationId = await _delegationService.CreateDelegationAsync(delegation);
 
         return Ok(delegationId);
