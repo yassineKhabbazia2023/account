@@ -36,7 +36,7 @@ public static class DelegationMapper
         return source == null ? null :
              new Core.Models.Account
              {
-                 AccountId = source.AccountGlobalUniqueId,
+                 AccountId = source.AccountId,
                  AccountNumber = source.AccountNumber,
                  LegalName = source.LegalName,
                  Address = source.TAddress.ToAddress(),

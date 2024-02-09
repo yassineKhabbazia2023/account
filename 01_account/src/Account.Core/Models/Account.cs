@@ -9,7 +9,7 @@ namespace Pulse.Account.Core.Models
 {
     public class Account
     {
-        public Guid? AccountId { get; set; }
+        public int AccountId { get; set; }
 
         public string? AccountNumber { get; set; }
 

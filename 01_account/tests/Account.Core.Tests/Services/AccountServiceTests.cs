@@ -24,7 +24,6 @@ namespace Pulse.Account.Core.Tests.Services
         [Fact]
         public async Task Should_GetAccountList_ReturnsOkResultAsync()
         {
-            // Arrange
             string accountMocked = File.ReadAllText(@"./MockedResponses/AccountListMocked.json");
             var accountList = JsonSerializer.Deserialize<Paging<AccountModel>>(accountMocked, _jsonOptions) ?? new Paging<AccountModel>();
             var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);

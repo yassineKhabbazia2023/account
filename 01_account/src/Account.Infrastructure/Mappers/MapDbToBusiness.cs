@@ -16,7 +16,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             var roleConnectedContact = source.TRoles?.FirstOrDefault(role => role.ContactId == contactId);
             return new AccountModel()
             {
-                AccountId = source.AccountGlobalUniqueId,
+                AccountId = source.AccountId,
                 AccountNumber = source.SourceAccountNumber,
                 LegalName = source.LegalName,
                 IsFavorite = roleConnectedContact != null ? roleConnectedContact?.IsFavorite : false,
