@@ -32,7 +32,7 @@ namespace Pulses.Account.API.Configuration
             {
                 options.UseSqlServer(connectionString, opt =>
                 {
-                    opt.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
+                    opt.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                 });
             });
 

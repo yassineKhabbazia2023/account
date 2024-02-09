@@ -149,7 +149,8 @@ namespace Kpmg.Account.Infrastructure.Repositories
                             .ThenInclude(r => r.Contact)
                             .Include(a => a.TAddress)
                             .Include(x => x.TDeploymentPlanning)
-                            .Where(a => a.TRoles.Any(r => r.ContactId == contactId));
+                            .Where(a => a.TRoles.Any(r => r.ContactId == contactId))
+                            .OrderBy(a => a.LegalName);
         }
     }
 }
