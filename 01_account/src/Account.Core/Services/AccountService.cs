@@ -3,13 +3,11 @@
 // </copyright>
 
 using System.Text.Json;
-using Kpmg.Account.Core.Interfaces;
-using Kpmg.Account.Core.Models;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
-using AccountModel = Kpmg.Account.Core.Models.Account;
 
-namespace Kpmg.Account.Core.Services
+namespace Pulse.Account.Core.Services
 {
     public class AccountService : IAccountService
     {
@@ -21,7 +19,7 @@ namespace Kpmg.Account.Core.Services
             _accountRepository = accountRepository;
         }
 
-        public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit, int contactId)
+        public async Task<Paging<Pulse.Account.Core.Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId)
         {
             page = page == 0 ? 1 : page;
             limit = limit == 0 ? int.MaxValue : limit;

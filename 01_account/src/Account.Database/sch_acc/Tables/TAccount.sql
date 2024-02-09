@@ -1,6 +1,7 @@
 ﻿CREATE TABLE [sch_acc].[TAccount] (
 [AccountId]                 INT IDENTITY(1,1) NOT NULL,
 [AccountGlobalUniqueId]     UNIQUEIDENTIFIER  NOT NULL,
+[AccountNumber]             VARCHAR(100)      NOT NULL,
 [LegalName]                 NVARCHAR(255)     NOT NULL,
 [CommercialName]            NVARCHAR(255)     NULL,
 [AccountType]               VARCHAR(50)       NULL, 
@@ -13,7 +14,7 @@
 [Sector]                    VARCHAR(150)      NULL,
 [StaffSizeRange]            VARCHAR(50)       NULL,
 [AccountingMethod]          VARCHAR(150)      NULL,
-[Turnover]                  DECIMAL           NULL,
+[Turnover]                  DECIMAL(18,2)     NULL,
 [LegalFormCode]             VARCHAR(150)      NULL,
 [LegalForm]                 VARCHAR(150)      NULL,
 [FiscalSystem]              VARCHAR(50)       NULL,
@@ -24,14 +25,14 @@
 [TaxationSystem]            VARCHAR(150)      NULL,
 [ActivityDescription]       VARCHAR(150)      NULL,
 [ActivityType]              VARCHAR(150)      NULL,
-[VAT]                       VARCHAR(150)      NULL,
+[VAT]                       VARCHAR(50)       NULL,
 [VATIntra]                  VARCHAR(20)       NULL,
 [VATType]                   VARCHAR(20)       NULL,
 [StaffSize]                 INT               NULL,
 [CreatedBy]                 VARCHAR(50)       NOT NULL,
 [ModifiedBy]                VARCHAR(50)       NULL,
-[CreateDate]                DATETIME2         NOT NULL,
-[UpdateDate]                DATETIME2         NULL,
+[CreationDate]                DATETIME2       NOT NULL,
+[UpdatedDate]                DATETIME2        NULL,
 CONSTRAINT [C_TAccount_PK] PRIMARY KEY CLUSTERED ([AccountId] ASC),
 CONSTRAINT [UQ_TAccount_AccountGlobalUniqueId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC),
 CONSTRAINT [UQ_TPhone_PhoneId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC),
@@ -51,24 +52,6 @@ GO
 CREATE NONCLUSTERED INDEX [IDX_TNaf_NafId]
     ON  [sch_acc].[TAccount]([NafId] ASC)
 
-GO
-EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'La date de la dernière modification',
-    @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
-    @level1type = N'TABLE',
-    @level1name = N'TAccount',
-    @level2type = N'COLUMN',
-    @level2name = 'UpdateDate'
-GO
-EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'La date de la création de l''entité',
-    @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
-    @level1type = N'TABLE',
-    @level1name = N'TAccount',
-    @level2type = N'COLUMN',
-    @level2name = 'CreateDate'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'L''identifiant de l''utilisateur ou du système qui a effectué la dernière modification',
@@ -339,3 +322,30 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'TAccount',
     @level2type = N'COLUMN',
     @level2name = N'NafId'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Le régime fiscale',
+    @level0type = N'SCHEMA',
+    @level0name = N'sch_acc',
+    @level1type = N'TABLE',
+    @level1name = N'TAccount',
+    @level2type = N'COLUMN',
+    @level2name = N'FiscalSystem'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'La date de création',
+    @level0type = N'SCHEMA',
+    @level0name = N'sch_acc',
+    @level1type = N'TABLE',
+    @level1name = N'TAccount',
+    @level2type = N'COLUMN',
+    @level2name = N'CreationDate'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'La date de la dernière modification',
+    @level0type = N'SCHEMA',
+    @level0name = N'sch_acc',
+    @level1type = N'TABLE',
+    @level1name = N'TAccount',
+    @level2type = N'COLUMN',
+    @level2name = N'UpdatedDate'

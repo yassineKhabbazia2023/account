@@ -13,11 +13,11 @@ namespace Pulse.Account.Infrastructure.Entities
         }
 
         /// <summary>
-        /// L&apos;identifiant technique
+        /// L&apos;&apos;identifiant technique
         /// </summary>
         public int NafId { get; set; }
         /// <summary>
-        /// Le code Naf de l&apos;entité
+        /// Le code Naf de l&apos;&apos;entité
         /// </summary>
         public string NafCode { get; set; }
 

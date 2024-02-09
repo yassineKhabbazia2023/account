@@ -2,38 +2,28 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using System.Net;
-using System.Text;
 using System.Text.Json;
 using AutoFixture;
-using Kpmg.Account.Core.Interfaces;
-using Kpmg.Account.Core.Models;
-using Kpmg.Account.Core.Services;
 using Moq;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
-using AccountModel = Kpmg.Account.Core.Models.Account;
+using Pulse.Account.Core.Services;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
-namespace Kpmg.Account.Core.Tests.Services
+namespace Pulse.Account.Core.Tests.Services
 {
     public class AccountServiceTests
     {
-        private readonly Fixture _fixture;
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
-        public AccountServiceTests()
-        {
-            _fixture = new Fixture();
-        }
-
         [Fact]
         public async Task Should_GetAccountList_ReturnsOkResultAsync()
         {
-            // Arrange
             string accountMocked = File.ReadAllText(@"./MockedResponses/AccountListMocked.json");
             var accountList = JsonSerializer.Deserialize<Paging<AccountModel>>(accountMocked, _jsonOptions) ?? new Paging<AccountModel>();
             var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);

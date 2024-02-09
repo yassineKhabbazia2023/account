@@ -5,7 +5,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace Kpmg.Account.Core.Models
+namespace Pulse.Account.Core.Models
 {
     public class AccountDetail
     {

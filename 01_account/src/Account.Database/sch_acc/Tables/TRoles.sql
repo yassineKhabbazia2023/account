@@ -3,10 +3,8 @@
 	[RoleId]			INT IDENTITY(1, 1)	NOT NULL,
 	[AccountId]			INT					NOT NULL,
 	[ContactId]			INT					NOT NULL,
-	[HasBeenDelegated]   BIT					NULL,
 	[IsFavorite]		BIT					NULL,
-	[IsTemporary]		BIT					NULL,
-	[EndDate]           DATETIME2			NULL,
+	[IsSignatory]		BIT					NULL,
 	CONSTRAINT [C_TRoles_PK] PRIMARY KEY CLUSTERED ([RoleId] ASC),
 	CONSTRAINT [C_TAccount_TRoles_FK] FOREIGN KEY ([AccountId]) REFERENCES [sch_acc].[TAccount] ([AccountId]),
 	CONSTRAINT [C_TAccount_TContact_FK] FOREIGN KEY ([ContactId]) REFERENCES [sch_acc].[TContact] ([ContactId])
@@ -48,14 +46,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level2type = N'COLUMN',
     @level2name = N'ContactId'
 GO
-EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'Le rôle est-il confié ou attribué à quelqu''un d''autre',
-    @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
-    @level1type = N'TABLE',
-    @level1name = N'TRoles',
-    @level2type = N'COLUMN',
-    @level2name = N'HasBeenDelegated'
+
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'Le rôle est-il considéré comme un favori ou mis en avant comme tel',
@@ -67,19 +58,11 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level2name = N'IsFavorite'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'Le rôle est-il exercé pour une durée limitée',
+    @value = N'Le signataire',
     @level0type = N'SCHEMA',
     @level0name = N'sch_acc',
     @level1type = N'TABLE',
     @level1name = N'TRoles',
     @level2type = N'COLUMN',
-    @level2name = N'IsTemporary'
+    @level2name = 'IsSignatory'
 GO
-EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'La date de fin ou de validité du rôle',
-    @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
-    @level1type = N'TABLE',
-    @level1name = N'TRoles',
-    @level2type = N'COLUMN',
-    @level2name = N'EndDate'

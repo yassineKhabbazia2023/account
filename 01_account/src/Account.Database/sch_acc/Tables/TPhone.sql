@@ -3,7 +3,7 @@
 	[PhoneId]			INT IDENTITY(1, 1)	NOT NULL,
     [AccountId]         INT                 NOT NULL,       
 	[PhoneNumber]       VARCHAR(15)			NOT NULL,
-	[PhoneType]			VARCHAR(25)         NULL,
+	[Type]			    VARCHAR(25)         NULL,
 	CONSTRAINT [C_TPhone_PK] PRIMARY KEY CLUSTERED ([PhoneId] ASC),
     CONSTRAINT [C_TAccount_TPhone_AccountId_FK] FOREIGN KEY ([AccountId]) REFERENCES [sch_acc].[TAccount] ([AccountId])
 )
@@ -38,7 +38,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1type = N'TABLE',
     @level1name = N'TPhone',
     @level2type = N'COLUMN',
-    @level2name = 'PhoneType'
+    @level2name = 'Type'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'L''identifiant techique de l''entité',

@@ -6,7 +6,7 @@ using System.Reflection;
 using Microsoft.OpenApi.Models;
 using Pulse.Account.API.Configuration.Model;
 
-namespace Kpmg.Account.API.Configuration
+namespace Pulse.Account.API.Configuration
 {
     public static class SwaggerConfiguration
     {

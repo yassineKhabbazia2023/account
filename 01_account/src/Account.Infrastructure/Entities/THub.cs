@@ -13,7 +13,7 @@ namespace Pulse.Account.Infrastructure.Entities
         }
 
         /// <summary>
-        /// L&apos;identifiant technique
+        /// L&apos;&apos;identifiant technique
         /// </summary>
         public int HubId { get; set; }
         /// <summary>

@@ -2,15 +2,15 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Kpmg.Account.API;
-using Kpmg.Account.API.Controllers;
-using Kpmg.Account.Core.Models;
+using Pulse.Account.API;
+using Pulse.Account.API.Controllers;
+using Pulse.Account.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models.Utils;
-using AccountModel = Kpmg.Account.Core.Models.Account;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Account.Api.Tests.Controllers
 {

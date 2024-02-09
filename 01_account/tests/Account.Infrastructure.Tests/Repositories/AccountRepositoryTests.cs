@@ -4,15 +4,15 @@
 
 using System.Text.Json;
 using AutoFixture;
-using Kpmg.Account.Core.Models;
-using Kpmg.Account.Infrastructure.Repositories;
-using Kpmg.Account.Infrastructure.Tests.Configuration;
+using Pulse.Account.Core.Models;
+using Pulse.Account.Infrastructure.Repositories;
+using Pulse.Account.Infrastructure.Tests.Configuration;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
-using AccountModel = Kpmg.Account.Core.Models.Account;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Kpmg.Account.Infrastructure.Tests.Repositories
 {

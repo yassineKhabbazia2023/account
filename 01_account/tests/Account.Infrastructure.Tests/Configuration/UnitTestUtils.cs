@@ -4,17 +4,17 @@
 
 using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
-using Kpmg.Account.Infrastructure.Repositories;
+using Pulse.Account.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using MockQueryable.Moq;
 using Moq;
-using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
+using Kpmg.Account.Infrastructure.Repositories;
 
-namespace Kpmg.Account.Infrastructure.Tests.Configuration
+namespace Pulse.Account.Infrastructure.Tests.Configuration
 {
     [ExcludeFromCodeCoverage]
-    public class UnitTestUtils
+    public static class UnitTestUtils
     {
         public static AccountRepository InitAccountRepository(Fixture fixture, List<TAccount> accountsModel)
         {

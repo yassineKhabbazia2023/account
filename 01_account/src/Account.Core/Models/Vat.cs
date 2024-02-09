@@ -2,7 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-namespace Kpmg.Account.Core.Models
+namespace Pulse.Account.Core.Models
 {
     public class Vat
     {

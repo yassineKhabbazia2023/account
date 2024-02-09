@@ -8,11 +8,11 @@ namespace Pulse.Account.Infrastructure.Entities
     public partial class TPhone
     {
         /// <summary>
-        /// L&apos;identifiant technique
+        /// L&apos;&apos;identifiant technique
         /// </summary>
         public int PhoneId { get; set; }
         /// <summary>
-        /// L&apos;identifiant techique de l&apos;entité
+        /// L&apos;&apos;identifiant techique de l&apos;&apos;entité
         /// </summary>
         public int AccountId { get; set; }
         /// <summary>

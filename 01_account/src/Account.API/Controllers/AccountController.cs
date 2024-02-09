@@ -2,13 +2,13 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using Kpmg.Account.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
-using AccountModel = Kpmg.Account.Core.Models.Account;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
-namespace Kpmg.Account.API.Controllers
+namespace Pulse.Account.API.Controllers
 {
     [Route("api")]
     [ApiController]

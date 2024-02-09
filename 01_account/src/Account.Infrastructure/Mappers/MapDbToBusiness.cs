@@ -4,10 +4,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Kpmg.Account.Core.Models;
+using Pulse.Account.Core.Models;
 using Microsoft.Identity.Client;
 using Pulse.Account.Infrastructure.Entities;
-using AccountModel = Kpmg.Account.Core.Models.Account;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Infrastructure.Mappers
 {
@@ -21,8 +21,8 @@ namespace Pulse.Account.Infrastructure.Mappers
                 var roleSignatory = source.TRoles.FirstOrDefault(role => role.IsSignatory == true);
                 var roleConnectedContact = source.TRoles?.FirstOrDefault(role => role.ContactId == contactId);
 
-                accountModel.AccountId = source.AccountGlobalUniqueId;
-                accountModel.AccountNumber = source.SourceAccountNumber;
+                accountModel.AccountId = source.AccountId;
+                accountModel.AccountNumber = source.AccountNumber;
                 accountModel.LegalName = source.LegalName;
                 accountModel.IsFavorite = roleConnectedContact?.IsFavorite;
                 accountModel.Address = source.TAddress?.Select(address => new Address()
@@ -54,7 +54,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             if(source != null)
             {
                 accountDetail.AccountId = source.AccountId;
-                accountDetail.AccountNumber = source.SourceAccountNumber;
+                accountDetail.AccountNumber = source.AccountNumber;
                 accountDetail.IconName = "icon";
                 accountDetail.IsActive = source.IsActive;
                 accountDetail.Email = source.Email;

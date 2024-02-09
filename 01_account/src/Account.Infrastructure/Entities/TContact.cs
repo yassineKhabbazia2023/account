@@ -15,11 +15,11 @@ namespace Pulse.Account.Infrastructure.Entities
         }
 
         /// <summary>
-        /// L&apos;identifiant technique
+        /// L&apos;&apos;identifiant technique
         /// </summary>
         public int ContactId { get; set; }
         /// <summary>
-        /// L&apos;identifiant global du contact
+        /// L&apos;&apos;identifiant global du contact
         /// </summary>
         public Guid ContactGlobalUniqueId { get; set; }
         /// <summary>
@@ -31,7 +31,7 @@ namespace Pulse.Account.Infrastructure.Entities
         /// </summary>
         public string LastName { get; set; }
         /// <summary>
-        /// l&apos;adresse mail du contact
+        /// l&apos;&apos;adresse mail du contact
         /// </summary>
         public string ContactEmail { get; set; }
         /// <summary>
