@@ -4,27 +4,23 @@
 
 using System.Data;
 using System.Net;
-using Azure;
-using Kpmg.Account.Core.Interfaces;
-using Kpmg.Account.Core.Models;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Retry;
+using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Constants;
 using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
-using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Utils;
-using AccountModel = Kpmg.Account.Core.Models.Account;
 
-namespace Kpmg.Account.Infrastructure.Repositories
+namespace Pulse.Account.Infrastructure.Repositories
 {
     public class AccountRepository : IAccountRepository
     {
@@ -42,7 +38,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
                         sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Constants.RETRYTIMESPAN));
         }
 
-        public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit, int contactId)
+        public async Task<Paging<Pulse.Account.Core.Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId)
         {
             try
             {
@@ -50,7 +46,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
                 {
                     IQueryable<TAccount> entities = GetAccountQueryByContactId(contactId);
 
-                    if (!search.IsNullOrEmpty())
+                    if (!string.IsNullOrEmpty(search))
                     {
                         entities = from n in entities
                                    where n.LegalName.Contains(search)
@@ -68,7 +64,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
 
                     var totalPageCalcul = AccountUtils.CalculTotalPage(count, limit);
 
-                    var pageinateResult = new Paging<AccountModel>()
+                    var pageinateResult = new Paging<Pulse.Account.Core.Models.Account>()
                     {
                         Items = entities.Select(entity => entity.TAccountToAccountModel(contactId)),
                         CurrentPage = page,
@@ -100,8 +96,8 @@ namespace Kpmg.Account.Infrastructure.Repositories
                            .Include(x => x.TPhone)
                            .Where(a => a.AccountId == accountId);
 
-                    var entity = entities.FirstOrDefault();
-                    if(entity == null)
+                    var entity = await entities.FirstOrDefaultAsync();
+                    if (entity == null)
                     {
                         throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
                     }

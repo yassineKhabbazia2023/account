@@ -4,15 +4,15 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using Kpmg.Account.API.Configuration;
 using Kpmg.ExceptionMiddleware;
 using Microsoft.IdentityModel.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Pulse.Account.API.Configuration;
 using Pulse.Account.API.Configuration.Model;
+using Pulses.Account.API.Configuration;
 
-namespace Kpmg.Account.API
+namespace Pulse.Account.API
 {
     [ExcludeFromCodeCoverage]
     public class Startup
@@ -28,39 +28,13 @@ namespace Kpmg.Account.API
                 _configuration = configuration;
                 _swaggerConfiguration = _configuration.GetSection("Swagger").Get<SwaggerModel>();
             }
-
-            EnvironmentName = environment != null ? environment.EnvironmentName : string.Empty;
         }
-
-        public string EnvironmentName { get; set; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            if (_configuration != null)
-            {
-                HealthCheckConfiguration.ConfigureHealthCheckService(services, _configuration);
-                ServicesConfiguration.ServiceRegister(services, _configuration, this.EnvironmentName);
-            }
-
-            SwaggerConfiguration.ConfigureSwaggerService(services, _swaggerConfiguration);
-
+            ArgumentNullException.ThrowIfNull(_configuration);
             services.AddMemoryCache();
             services.AddApplicationInsightsTelemetry(_configuration);
-
-            services.AddCors(options =>
-            {
-                options.AddPolicy(
-                    name: "CorsPolicy",
-                    builder =>
-                    {
-                        builder.AllowAnyHeader()
-                                .AllowAnyMethod()
-                                .AllowCredentials()
-                                .SetIsOriginAllowed(_ => true)
-                                .WithExposedHeaders("content-range", "content-type", "accept-ranges", "link");
-                    });
-            });
-
             services.AddHsts(options =>
             {
                 options.IncludeSubDomains = true;
@@ -75,13 +49,11 @@ namespace Kpmg.Account.API
                     options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                 });
 
-            if (_configuration != null && !string.IsNullOrEmpty(_configuration["AccountApplicationInsightConnectionString"]))
-            {
-                services.AddApplicationInsightsTelemetry(options =>
-                {
-                    options.ConnectionString = _configuration["AccountApplicationInsightConnectionString"];
-                });
-            }
+            services.RegisterCors();
+            services.ConfigureSwaggerService(_swaggerConfiguration);
+            services.RegisterApplicationInsights(_configuration);
+            services.RegisterServices();
+            services.RegisterDatabase(_configuration!);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

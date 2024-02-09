@@ -5,11 +5,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Principal;
 
-namespace Kpmg.Account.Core.Models
+namespace Pulse.Account.Core.Models
 {
     public class Account
     {
-        public Guid? AccountId { get; set; }
+        public int AccountId { get; set; }
 
         public string? AccountNumber { get; set; }
 
@@ -17,10 +17,10 @@ namespace Kpmg.Account.Core.Models
 
         public bool? IsFavorite { get; set; }
 
-        public ICollection<Address>? Address { get; set; }
+        public IReadOnlyCollection<Address>? Address { get; set; }
 
         public Owner? Owner { get; set; }
 
-        public ICollection<Deployment>? Deployment { get; set; }
+        public IReadOnlyCollection<Deployment>? Deployment { get; set; }
     }
 }

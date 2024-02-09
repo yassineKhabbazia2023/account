@@ -2,11 +2,11 @@
 (
 	[AddressId]     INT IDENTITY(1, 1) NOT NULL,
     [AccountId]     INT                NOT NULL,
-	[Street]        NVARCHAR(MAX)      NOT NULL,
+	[Street]        NVARCHAR(255)      NOT NULL,
     [City]          VARCHAR(50)        NOT NULL,
     [State]         VARCHAR(50)        NULL,
     [ZipCode]       VARCHAR(20)        NOT NULL,
-    [Country]       VARCHAR(25)        NOT NULL,
+    [Country]       VARCHAR(50)        NOT NULL,
     [AddressType]   VARCHAR(25)        NULL,
     CONSTRAINT [C_TAddress_PK] PRIMARY KEY CLUSTERED ([AddressId] ASC),
     CONSTRAINT [C_TAccount_TAddress_AccountId_FK] FOREIGN KEY ([AccountId]) REFERENCES [sch_acc].[TAccount] ([AccountId])

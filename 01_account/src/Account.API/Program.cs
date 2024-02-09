@@ -5,7 +5,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Serilog;
 
-namespace Kpmg.Account.API
+namespace Pulse.Account.API
 {
     [ExcludeFromCodeCoverage]
     public static class Program

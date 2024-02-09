@@ -1,0 +1,568 @@
+openapi: 3.0.0
+info:
+  title: Account
+  description: Microservice account
+  contact:
+    name: Lescot, Suliman
+    email: slescot@kpmg.fr
+  license:
+    name: KPMG France 2024
+  version: 1.0.0
+servers:
+  - url: /
+  - url: /account
+tags:
+  - name: Account
+  - name: Favorite
+  - name: Delegation
+paths:
+  /accounts:
+    get:
+      tags: 
+        - Account
+      summary: Rechercher un ou plusieurs entités morales par des critères de recherche (N° IBS, LegaleName).
+      description: Rechercher un ou plusieurs entités morales par trigramme (n° IBS, Nom légale).
+      parameters:
+        - name: search
+          in: query
+          description: critère de recherche (n° IBS, Nom légale)
+          required: false
+          schema:
+            type: string
+            default: 
+        - name: page
+          in: query
+          description: Numéro de la page à afficher
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Nombre délements par page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          description: Tri (e.g., email:asc)
+          required: false
+          schema:
+            type: string
+            default: asc
+      responses:
+        '200':
+          description: Tableau d'entités morales avec les informations principales.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Retourne la liste des entités morales actives selon les crières demandés.
+                properties:
+                  items:
+                    description: Identifiant technique de l'entité morale.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+                  page:
+                    description: Numéro de la page en cours
+                    type: 'integer'
+                    example: 10
+                  totalPages:
+                    description: Nombre total de pages
+                    type: 'integer'
+                    example: 12
+                  totalItems:
+                    description: Nombre total d'elements
+                    type: 'integer'
+                    example: 120
+                items:
+                  $ref: '#/components/schemas/Account'
+        '401':
+          description: l'entité physique ou digitale demandeuse n'est pas authentifiée dans le système.
+  /accounts/{id}:
+    get:
+      tags: 
+        - Account
+      summary: Récupérer les informations détaillées d'une entité morale.
+      description: Retourne l'ensemble des informations de l'entité morale demandée par son identifiant.
+      parameters:
+        - in: path
+          name: id
+          description: Identifiant interne de l'entité morale dont on veut les détails.
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Retourne l'ensemble des informations de l'entité morale demandée.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountDetails'
+        '401':
+          description: l'entité physique ou digitale demandeuse n'est pas authentifiée dans le système.
+        '404':
+          description: Il n'existe pas d'entité morale avec l'identifiant demandé.
+    patch:
+      tags: 
+        - Account
+      summary: Mettre à jour partiellement les informations d'une entité morale.
+      description: Mettre à jour les informations de l'entité morale indiqué.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: Les champs à mettre à jour.
+        content:
+          application/json:
+            example:
+              - op: 'replace'
+                path: '/personaId'
+                value: '4'
+              - op: 'replace'
+                path: '/mobilePhone'
+                value: '+33685785474'
+      responses:
+        '200':
+          description: Les informations de l'entité morale ont bien été mises à jour.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountDetails'
+        '401':
+          description: l'entité physique ou digitale demandeuse n'est pas authentifiée dans le système. 
+        '404':
+          description: Il n'existe pas d'entité morale avec l'identifiant demandé.
+  /favorites:
+    get:
+      tags: 
+        - Favorite
+      summary: En tant qu'entité physique je veux la liste des entitéS morales que j'ai ajoutées en favori.
+      description: Renvoie la liste des entitéS morales actives mises en favori par l'entité physique demandeuse.
+      responses:
+        '200':    # status code
+          description: Renvoie la liste des entitéS morales actives mises en favori par l'entité physique demandeuse.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountFavorite'
+        '401':
+          description: l'entité physique ou digitale demandeuse n'est pas AUTHENTIFIEE dans le système. ou n'a pas accès à cette entité morale.
+  /favorites/{id}:
+    get:
+      tags:
+        - Favorite
+      summary: En tant qu'entité physique, je veux ajouter une entité morale active à laquelle j'ai accès à mes favoris.
+      description: Ajoute l'entité morale spécifiée aux favoris de l'entité physique demandeuse.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '201':    # status code
+          description: L'entité morale spécifiée a bien été ajoutée aux favoris de l'entité physique demandeuse.
+        '202':
+          description: L'entité morale spécifiée fait déjà partie des favoris de l'entité physique demandeuse.
+        '401':
+          description: l'entité physique ou digitale demandeuse n'est pas AUTHENTIFIEE dans le système. ou n'a pas accès à cette entité morale.
+        '404':
+          description: Il n'existe pas d'entité morale avec l'identifiant demandé.
+    delete:
+      tags:
+        - Favorite
+      summary: En tant qu'entité physique, je veux supprimer une entité morale active à laquelle j'ai accès de mes favoris.
+      description: Supprime l'entité morale spécifiée des favoris de l'entité physique demandeuse.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '201':    # status code
+          description: L'entité morale spécifiée a bien été supprimée des favoris de l'entité physique demandeuse.
+        '202':
+          description: L'entité morale spécifiée ne fait pas partie des favoris de l'entité physique demandeuse.
+        '401':
+          description: l'entité physique ou digitale demandeuse n'est pas AUTHENTIFIEE dans le système. ou n'a pas accès à cette entité morale.
+        '404':
+          description: Il n'existe pas d'entité morale avec l'identifiant demandé.
+  /statistics:
+    get:
+      tags: 
+        - Statistic
+      summary: En tant qu'entité physique je veux les statistiques de deploiement des entités morales auxquelles j'ai accès.
+      description: Renvoie la liste des entitéS morales actives mises en favori par l'entité physique demandeuse.
+      responses:
+        '200':    # status code
+          description: Renvoie la liste des entitéS morales actives mises en favori par l'entité physique demandeuse.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountStatistics'
+        '401':
+          description: l'entité physique ou digitale demandeuse n'est pas AUTHENTIFIEE dans le système. ou n'a pas accès à cette entité morale.
+  /api/delegations/{delegateeId}:
+    get:
+      tags:
+        - Delegation
+      summary: En tant qu'entité physique, je veux la liste de mes délégations de pouvoir actuellement en vigueur qui me sont attribuées.
+      description: Renvoie la liste des délégations actives.
+      parameters:
+        - name: delegateeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Delegation'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/delegations:
+    get:
+      tags:
+        - Delegation
+      summary: En tant qu'entité physique, je veux la liste complète des délégations actives émanant d'un délégateur delegatorId et attribuées à un délégué delegateeId.
+      description: Renvoie la liste des délégations actives.
+      parameters:
+        - name: delegatorId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: delegateeId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Delegation'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    post:
+      tags:
+        - Delegation
+      summary: En tant qu'entité physique, je veux établir une délégation de pouvoirs ou de responsabilités sur une entité morale, et désigner cette délégation à une autre entité physique.
+      description: Etablir une délégation de pouvoirs ou de responsabilités sur une entité morale
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDelegation'
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+components:
+  schemas:
+      Account:
+        type: 'object'
+        description: Informations sur une entité morale pour un affichage résumé
+        required:
+          - id
+          - accountNumber
+          - name
+          - city
+          - owner
+          - ownerEmail
+          - deploymentStatus
+          - isFavorite
+        properties:
+          id:
+            description: Identifiant technique de l'entité morale.
+            type: 'string'
+            example: '6b8eb807-b76d-428b-98d9-770128a8424a'
+          accountNumber:
+            description: Numéro de dossier de l'entité morale.
+            type: 'string'
+            example: 'AvengersCorp-1234'
+          name:
+            description: Raison sociale de l'entité morale
+            type: 'string'
+            example: 'Avengers Corp.'
+          city:
+            description: Ville dans laquelle se situe l'entité morale.
+            type: 'string'
+            example: 'Paris'
+          owner:
+            description: Prénom et nom du dirigeant de l'entité morale.
+            type: string
+            example: Ali Gatore
+          ownerEmail:
+            description: Adresse électronique du dirigeant de l'entité morale.
+            type: 'string'
+            example: 'ali.gatore@avengercorp.com'
+          deploymentStatus:
+            description: Etat du déploiement de l'entité morale, parmi A déployer, En cours et Connecté
+            type: 'string'
+            example: 'En_cours'
+          isFavorite:
+            description: Est-ce que cette entité morale fait partie des favori de l'ENTITY physique connectée ?
+            type: 'boolean'
+            example: 'true'
+      AccountDetails: #TODO
+        type: 'object'
+        description: Informations complètes sur une entité morale.
+        required:
+          - id
+          - accountNumber
+          - name
+        properties:
+          id:
+            description: Identifiant technique de l'entité morale.
+            type: 'string'
+            example: '6b8eb807-b76d-428b-98d9-770128a8424a'
+          owner:
+            description: Dirigeant de l'entité morale.
+            type: object
+            properties:
+              name:
+                description: Prénom et nom du dirigeant de l'entité morale.
+                type: string
+                example: 'Martial Lacourt'
+              email:
+                description: Adresse électronique du dirigeant de l'entité morale.
+                type: string
+                example: 'Lacourt.Martial@avengercorp.com'
+              phoneNumber:
+                description: Numéro de téléphone du dirigeant de l'entité morale.
+                type: string
+                example: '06 12 34 56 78'
+          accounting:
+            description: Informations comptables sur l'entité morale
+            type: object
+            properties:
+              creationDate:
+                description: Date à laquelle l'entité morale a été créée, au format DD/mm/YYYY.
+                type: string
+                example: '13/07/2015'
+              fiscalYearStart:
+                description: Date à laquelle l'année fiscale de l'entité morale commence, au format DD/mm/YYYY.
+                type: string
+                example: '01/10/2023'
+              fiscalYearEnd:
+                description: Date à laquelle l'année fiscale de l'entité morale se termine, au format DD/mm/YYYY.
+                type: string
+                example: '30/09/2024'
+              accountingType:
+                description: Type de comptabilité de l'entité morale.
+                type: string
+                example: 'Engagement'
+              taxSystem:
+                description: Régime fiscal applicable à l'entité morale.
+                type: string
+                example: Déclaration contrôlée
+              vatSystem:
+                description: Régime de TVA auquel est soumise l'entité morale.
+                type: string
+                example: Réel simplifié
+              taxationSystem:
+                description:  Régime d'imposition auquel est soumise l'entité morale.
+                type: string
+                example: Impôt sur les sociétés
+              accountingOffice:
+                description: Bureau de rattachement de l'entité morale.
+                type: string
+                example: 'Paris 8ème'
+          accountNumber:
+            description: Numéro de dossier de l'entité morale.
+            type: 'string'
+            example: 'AvengersCorp-1234'
+          name:
+            description: Raison sociale de l'entité morale.
+            type: 'string'
+            example: 'Avengers Corp.'
+          address:
+            description: Adresse de l'entité morale.
+            type: string
+            example: '1 grand rue, 12345 Enamourchon'
+          city:
+            description: Ville de résidence de l'entité morale.
+            type: string
+            example: Enamourchon'
+          legal:
+            description: Informations légales sur l'entité morale.
+            type: object
+            properties:
+              SIREN:
+                description: SIREN de l'entité morale.
+                type: string
+                example: '853784577'
+              SIRET:
+                description: SIRET de l'entité morale.
+                type: string
+                example: '85378457700019'
+              status:
+                description: Forme juridique de l'entité morale.
+                type: string
+                example: SARL
+              activityCode:
+                description: Code NAF ou APE de l'activité de l'entité morale.
+                type: string
+                example: '98799'
+              activity:
+                description: Activité de l'entité morale.
+                type: string
+                example: Prestation de services.
+          employeeCount:
+            description: Nombre d'employés de l'entité morale.
+            type: integer
+            example: 10
+      AccountFavorite:
+        type: 'object'
+        description: Informations sur une entité morale permettant de remplir la barre de favoris d'une entité physique.
+        required:
+          - id
+          - name
+          - icon
+        properties:
+          id:
+            description: Identifiant technique de l'entité morale.
+            type: 'string'
+            example: '6b8eb807-b76d-428b-98d9-770128a8424a'
+          name:
+            description: Raison sociale de l'entité morale
+            type: 'string'
+            example: 'Avengers Corp.'
+          icon:
+            description: Icône associée à l'entité morale, encodée en base64
+            type: 'string'
+            example: 'Apple'
+      AccountStatistics:
+        type: 'object'
+        description: Informations sur une entité morale permettant de remplir la barre de favoris d'une entité physique.
+        properties:
+          entityToDeploy:
+            description: Identifiant technique de l'entité morale.
+            type: 'integer'
+            example: 20
+          entityConnected:
+            description: Raison sociale de l'entité morale
+            type: 'integer'
+            example: 100
+          entityInProgress:
+            description: Icône associée à l'entité morale, encodée en base64
+            type: 'integer'
+            example: 30
+          userDeclared:
+            description: Nombre d'utilisateurs total déclarés sur le portefeuil du collaborateur.
+            type: 'integer'
+            example: 10
+          userConnected:
+            description: Nombre d'utilisateurs connectés sur le portefeuil du collaborateur
+            type: 'integer'
+            example: 70
+          userInvited:
+            description: Nombre d'utilisateurs total invité sur le portefeuil du collaborateur
+            type: 'integer'
+            example: 25
+      Contact:
+        type: object
+        properties:
+          globalContactId:
+            type: string
+            format: uuid
+          firstName:
+            type: string
+            nullable: true
+          lastName:
+            type: string
+            nullable: true
+          contactEmail:
+            type: string
+            nullable: true
+          type:
+            type: string
+            nullable: true
+        additionalProperties: false
+      CreateDelegation:
+        type: object
+        properties:
+          globalAccountId:
+            type: string
+            format: uuid
+          globalDelegatorId:
+            type: string
+            format: uuid
+          globalDelegateeId:
+            type: string
+            format: uuid
+          startDate:
+            type: string
+            format: date-time
+          endDate:
+            type: string
+            format: date-time
+          note:
+            type: string
+            nullable: true
+        additionalProperties: false
+      Delegation:
+        type: object
+        properties:
+          startDate:
+            type: string
+            format: date-time
+          endDate:
+            type: string
+            format: date-time
+            nullable: true
+          status:
+            type: integer
+            format: int32
+          note:
+            type: string
+            nullable: true
+          account:
+            $ref: '#/components/schemas/Account'
+          delegatee:
+            $ref: '#/components/schemas/Contact'
+          delegator:
+            $ref: '#/components/schemas/Contact'
+        additionalProperties: false
+  securitySchemes:
+    Bearer:
+      type: http
+      description: JWT Authorization header using the Bearer scheme.
+      scheme: bearer
+security:
+  - Bearer: []

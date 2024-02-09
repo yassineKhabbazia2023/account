@@ -4,7 +4,7 @@
 
 using AutoFixture;
 
-namespace Kpmg.Account.Core.Tests
+namespace Pulse.Account.Core.Tests
 {
     public static class ModelsBuilder
     {

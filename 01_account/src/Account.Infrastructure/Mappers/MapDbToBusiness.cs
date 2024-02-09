@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using Kpmg.Account.Core.Models;
+﻿// <copyright file="MapDbToBusiness.cs" company="KPMG">
+// Copyright (c) KPMG. All rights reserved.
+// </copyright>
+
+using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Entities;
-using AccountModel = Kpmg.Account.Core.Models.Account;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Infrastructure.Mappers
 {
@@ -18,7 +16,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             var roleConnectedContact = source.TRoles?.FirstOrDefault(role => role.ContactId == contactId);
             return new AccountModel()
             {
-                AccountId = source.AccountGlobalUniqueId,
+                AccountId = source.AccountId,
                 AccountNumber = source.SourceAccountNumber,
                 LegalName = source.LegalName,
                 IsFavorite = roleConnectedContact != null ? roleConnectedContact?.IsFavorite : false,
@@ -44,34 +42,35 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        public static AccountDetail TAccountToAccountDetail(this TAccount source)
+        public static AccountDetail? TAccountToAccountDetail(this TAccount source)
         {
-            return new AccountDetail()
-            {
-                AccountId = source.AccountId,
-                AccountNumber = source.SourceAccountNumber,
-                IconName = "icon",
-                IsActive = source.IsActive,
-                Email = source?.Email,
-                EmployeeCount = source.StaffSize,
-                CommercialName = source.CommercialName,
-                Accounting = new Accounting()
+            return source == null ? null :
+                new AccountDetail()
                 {
-                    FiscalExerciseStartDate = source.FiscalExerciseStartDate,
-                    FiscalExerciseDuration = source.FiscalExerciseDuration,
-                    AccountingType = source.AccountType,
-                    FiscalSystem = source.FiscalSystem,
-                    TaxationSystem = source.TaxationSystem,
-                },
-                Legal = new Legal()
-                {
-                    LegalName = source.LegalName,
-                    Siren = source.ISIN,
-                    Siret = source.Siret,
-                    LegalForm = source.LegalForm,
-                    LegalFormCode = source.LegalFormCode,
-                    StaffSizeRange = source.StaffSizeRange,
-                    Naf = new List<Naf>()
+                    AccountId = source.AccountId,
+                    AccountNumber = source.SourceAccountNumber,
+                    IconName = "icon",
+                    IsActive = source.IsActive,
+                    Email = source?.Email,
+                    EmployeeCount = source!.StaffSize,
+                    CommercialName = source.CommercialName,
+                    Accounting = new Accounting()
+                    {
+                        FiscalExerciseStartDate = source.FiscalExerciseStartDate,
+                        FiscalExerciseDuration = source.FiscalExerciseDuration,
+                        AccountingType = source.AccountType,
+                        FiscalSystem = source.FiscalSystem,
+                        TaxationSystem = source.TaxationSystem,
+                    },
+                    Legal = new Legal()
+                    {
+                        LegalName = source.LegalName,
+                        Siren = source.ISIN,
+                        Siret = source.Siret,
+                        LegalForm = source.LegalForm,
+                        LegalFormCode = source.LegalFormCode,
+                        StaffSizeRange = source.StaffSizeRange,
+                        Naf = new List<Naf>()
                     {
                         new Naf()
                         {
@@ -80,41 +79,41 @@ namespace Pulse.Account.Infrastructure.Mappers
                             NafLabel = source.ActivityDescription
                         }
                     }
-                },
-                Vat = new Vat()
-                {
-                    System = source.VAT,
-                    Intra = source.VATIntra,
-                    Type = source.VATType,
-                },
-                Address = source.TAddress.Select(address => new Address()
-                {
-                    AddressId = address.AddressId,
-                    Country = address.Country,
-                    City = address.City,
-                    State = address.State,
-                    Street = address.Street,
-                    ZipCode = address.ZipCode,
-                    AddressType = address.AddressType
-                }).ToList(),
-                Phone = source.TPhone.Select(phone => new Phone()
-                {
-                    PhoneId = phone.PhoneId,
-                    PhoneNumber = phone.PhoneNumber,
-                    Type = phone.Type,
-                }).ToList(),
-                Hub = new Hub()
-                {
-                    HubId = source.Hub?.HubId,
-                    HubName = source.Hub?.HubName,
-                },
-                DeploymentPlanning = source.TDeploymentPlanning.Select(deployment => new Deployment()
-                {
-                    DeploymentId = deployment.DeploymentId,
-                    DeploymentDate = deployment.DeploymentDate,
-                    Status = deployment.Status,
-                }).ToList()
-            };
+                    },
+                    Vat = new Vat()
+                    {
+                        System = source.VAT,
+                        Intra = source.VATIntra,
+                        Type = source.VATType,
+                    },
+                    Address = source.TAddress.Select(address => new Address()
+                    {
+                        AddressId = address.AddressId,
+                        Country = address.Country,
+                        City = address.City,
+                        State = address.State,
+                        Street = address.Street,
+                        ZipCode = address.ZipCode,
+                        AddressType = address.AddressType
+                    }).ToList(),
+                    Phone = source.TPhone.Select(phone => new Phone()
+                    {
+                        PhoneId = phone.PhoneId,
+                        PhoneNumber = phone.PhoneNumber,
+                        Type = phone.Type,
+                    }).ToList(),
+                    Hub = new Hub()
+                    {
+                        HubId = source.Hub?.HubId,
+                        HubName = source.Hub?.HubName,
+                    },
+                    DeploymentPlanning = source.TDeploymentPlanning.Select(deployment => new Deployment()
+                    {
+                        DeploymentId = deployment.DeploymentId,
+                        DeploymentDate = deployment.DeploymentDate,
+                        Status = deployment.Status,
+                    }).ToList()
+                };
         }
     }
 }

@@ -4,14 +4,14 @@
 
 using System.Text.Json;
 using AutoFixture;
-using Kpmg.Account.Infrastructure.Tests.Configuration;
+using Pulse.Account.Infrastructure.Tests.Configuration;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
-using AccountModel = Kpmg.Account.Core.Models.Account;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
-namespace Kpmg.Account.Infrastructure.Tests.Repositories
+namespace Pulse.Account.Infrastructure.Tests.Repositories
 {
     public class AccountRepositoryTests
     {
@@ -58,7 +58,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
             var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
 
             // Act
-            var accounts = await accountRepository.GetAccountDetailAsync(accountFirst.AccountId);
+            var accounts = await accountRepository.GetAccountDetailAsync(accountFirst!.AccountId);
 
             // Assert
             Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);

@@ -3,50 +3,70 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
-using Kpmg.Account.Core.Interfaces;
-using Kpmg.Account.Core.Services;
-using Kpmg.Account.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Pulse.Account.Core.Interfaces;
-using Pulse.Account.Infrastructure;
-using Pulse.Account.Infrastructure.Context;
+using Pulse.Account.Core.Services;
+using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Repositories;
 
-namespace Pulse.Account.API.Configuration
+namespace Pulses.Account.API.Configuration
 {
     [ExcludeFromCodeCoverage]
     public static class ServicesConfiguration
     {
-        public static void ServiceRegister(IServiceCollection services, IConfiguration configuration, string environmentName)
+        public static void RegisterServices(this IServiceCollection services)
         {
-            RegisterServices(services);
-            if (environmentName != null && !environmentName.Equals("test"))
-            {
-                RegisterDatabase(services, configuration);
-            }
-        }
-
-        private static void RegisterServices(IServiceCollection services)
-        {
-            services.AddTransient<IAccountService, AccountService>();
-
+            services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IDelegationService, DelegationService>();
+            services.AddScoped<IDelegationRepository, DelegationRepository>();
         }
 
-        private static void RegisterDatabase(IServiceCollection services, IConfiguration configuration)
+        public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)
         {
+            ArgumentNullException.ThrowIfNull(configuration);
             var connectionString = configuration["SqlAccountConnectionString"];
-            if (connectionString == null)
+            
+            ArgumentNullException.ThrowIfNullOrEmpty(connectionString);
+            services.AddDbContextPool<AccountContext>(options =>
             {
-                throw new InvalidOperationException(nameof(connectionString));
-            }
-
-            services.AddDbContextPool<AccountContext>(
-                options => options.UseSqlServer(connectionString, options =>
-                options.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery)));
+                options.UseSqlServer(connectionString, opt =>
+                {
+                    opt.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                });
+            });
 
             services.AddHealthChecks()
                 .AddSqlServer(connectionString, healthQuery: "SELECT 1;");
+        }
+
+        public static void RegisterApplicationInsights(this IServiceCollection services, IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            var applicationInsightsConexionString = configuration["AccountApplicationInsightConnectionString"];
+
+            ArgumentNullException.ThrowIfNullOrEmpty(applicationInsightsConexionString);
+            services.AddApplicationInsightsTelemetry(options =>
+            {
+                options.ConnectionString = applicationInsightsConexionString;
+            });
+        }
+
+        public static void RegisterCors(this IServiceCollection services)
+        {
+            services.AddCors(options =>
+                {
+                    options.AddPolicy(
+                        name: "CorsPolicy",
+                        builder =>
+                        {
+                            builder.AllowAnyHeader()
+                                    .AllowAnyMethod()
+                                    .AllowCredentials()
+                                    .SetIsOriginAllowed(_ => true)
+                                    .WithExposedHeaders("content-range", "content-type", "accept-ranges", "link");
+                        });
+                });
         }
     }
 }
