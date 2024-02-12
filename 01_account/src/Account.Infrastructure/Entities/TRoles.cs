@@ -3,32 +3,36 @@
 using System;
 using System.Collections.Generic;
 
-namespace Pulse.Account.Infrastructure.Entities
-{
-    public partial class TRoles
-    {
-        /// <summary>
-        /// L&apos;&apos;identifiant technique
-        /// </summary>
-        public int RoleId { get; set; }
-        /// <summary>
-        /// L&apos;&apos;identifiant technique de l&apos;&apos;entité
-        /// </summary>
-        public int AccountId { get; set; }
-        /// <summary>
-        /// L&apos;&apos;identifiant technique du contact
-        /// </summary>
-        public int ContactId { get; set; }
-        /// <summary>
-        /// Le rôle est-il considéré comme un favori ou mis en avant comme tel
-        /// </summary>
-        public bool? IsFavorite { get; set; }
-        /// <summary>
-        /// Le signataire
-        /// </summary>
-        public bool? IsSignatory { get; set; }
+namespace Pulse.Account.Infrastructure.Entities;
 
-        public virtual TAccount Account { get; set; }
-        public virtual TContact Contact { get; set; }
-    }
+public partial class TRoles
+{
+    /// <summary>
+    /// L&apos;&apos;identifiant technique
+    /// </summary>
+    public int RoleId { get; set; }
+
+    /// <summary>
+    /// L&apos;&apos;identifiant technique de l&apos;&apos;entité
+    /// </summary>
+    public int AccountId { get; set; }
+
+    /// <summary>
+    /// L&apos;&apos;identifiant technique du contact
+    /// </summary>
+    public int ContactId { get; set; }
+
+    /// <summary>
+    /// Le rôle est-il considéré comme un favori ou mis en avant comme tel
+    /// </summary>
+    public bool? IsFavorite { get; set; }
+
+    /// <summary>
+    /// Le signataire
+    /// </summary>
+    public bool? IsSignatory { get; set; }
+
+    public virtual TAccount Account { get; set; }
+
+    public virtual TContact Contact { get; set; }
 }

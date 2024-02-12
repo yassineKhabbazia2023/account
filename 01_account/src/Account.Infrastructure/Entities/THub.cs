@@ -3,24 +3,19 @@
 using System;
 using System.Collections.Generic;
 
-namespace Pulse.Account.Infrastructure.Entities
+namespace Pulse.Account.Infrastructure.Entities;
+
+public partial class THub
 {
-    public partial class THub
-    {
-        public THub()
-        {
-            TAccount = new HashSet<TAccount>();
-        }
+    /// <summary>
+    /// L&apos;&apos;identifiant technique
+    /// </summary>
+    public int HubId { get; set; }
 
-        /// <summary>
-        /// L&apos;&apos;identifiant technique
-        /// </summary>
-        public int HubId { get; set; }
-        /// <summary>
-        /// Le nom du Hub
-        /// </summary>
-        public string HubName { get; set; }
+    /// <summary>
+    /// Le nom du Hub
+    /// </summary>
+    public string HubName { get; set; }
 
-        public virtual ICollection<TAccount> TAccount { get; set; }
-    }
+    public virtual ICollection<TAccount> TAccount { get; set; } = new List<TAccount>();
 }

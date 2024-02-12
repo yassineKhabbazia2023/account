@@ -3,159 +3,190 @@
 using System;
 using System.Collections.Generic;
 
-namespace Pulse.Account.Infrastructure.Entities
+namespace Pulse.Account.Infrastructure.Entities;
+
+public partial class TAccount
 {
-    public partial class TAccount
-    {
-        public TAccount()
-        {
-            TAddress = new HashSet<TAddress>();
-            TDelegation = new HashSet<TDelegation>();
-            TDeploymentPlanning = new HashSet<TDeploymentPlanning>();
-            TPhone = new HashSet<TPhone>();
-            TRoles = new HashSet<TRoles>();
-        }
+    /// <summary>
+    /// L&apos;&apos;identifiant technique
+    /// </summary>
+    public int AccountId { get; set; }
 
-        /// <summary>
-        /// L&apos;&apos;identifiant technique
-        /// </summary>
-        public int AccountId { get; set; }
-        /// <summary>
-        /// L&apos;&apos;identifiant global de l&apos;&apos;entité
-        /// </summary>
-        public Guid AccountGlobalUniqueId { get; set; }
-        public string AccountNumber { get; set; }
-        /// <summary>
-        /// La raison social de l&apos;&apos;entité
-        /// </summary>
-        public string LegalName { get; set; }
-        /// <summary>
-        /// Le  nom commercial de l&apos;&apos;entité
-        /// </summary>
-        public string CommercialName { get; set; }
-        /// <summary>
-        /// Le type de l&apos;&apos;entité
-        /// </summary>
-        public string AccountType { get; set; }
-        /// <summary>
-        /// L&apos;&apos;adresse mail de l&apos;&apos;entité
-        /// </summary>
-        public string Email { get; set; }
-        /// <summary>
-        /// L&apos;&apos;identifiant technique du Hub
-        /// </summary>
-        public int? HubId { get; set; }
-        /// <summary>
-        /// L&apos;&apos;identifiant technique du code Naf
-        /// </summary>
-        public int NafId { get; set; }
-        /// <summary>
-        /// L&apos;&apos;entité est-elle activé
-        /// </summary>
-        public bool IsActive { get; set; }
-        /// <summary>
-        /// La source de création de l&apos;&apos;entité
-        /// </summary>
-        public string SourceAccountNumber { get; set; }
-        /// <summary>
-        /// Le code du secteur
-        /// </summary>
-        public string SectorCode { get; set; }
-        /// <summary>
-        /// Le secteur
-        /// </summary>
-        public string Sector { get; set; }
-        /// <summary>
-        /// La plage du nombre de salariés 
-        /// </summary>
-        public string StaffSizeRange { get; set; }
-        /// <summary>
-        /// Le type de comptabilité
-        /// </summary>
-        public string AccountingMethod { get; set; }
-        /// <summary>
-        /// Le chiffre d&apos;&apos;affaires
-        /// </summary>
-        public decimal? Turnover { get; set; }
-        /// <summary>
-        /// Le code de la forme juridique
-        /// </summary>
-        public string LegalFormCode { get; set; }
-        /// <summary>
-        /// La forme juridique de l&apos;&apos;entité
-        /// </summary>
-        public string LegalForm { get; set; }
-        /// <summary>
-        /// Le régime fiscale
-        /// </summary>
-        public string FiscalSystem { get; set; }
-        /// <summary>
-        /// Début Exercice fiscale
-        /// </summary>
-        public DateTime? FiscalExerciseStartDate { get; set; }
-        /// <summary>
-        /// La durée de l&apos;&apos;exercice fiscale
-        /// </summary>
-        public int? FiscalExerciseDuration { get; set; }
-        /// <summary>
-        /// Le ISIN
-        /// </summary>
-        public string ISIN { get; set; }
-        /// <summary>
-        /// Le Siret
-        /// </summary>
-        public string Siret { get; set; }
-        /// <summary>
-        /// Le Régime d&apos;&apos;imposition
-        /// </summary>
-        public string TaxationSystem { get; set; }
-        /// <summary>
-        /// Description de l&apos;&apos;activité
-        /// </summary>
-        public string ActivityDescription { get; set; }
-        /// <summary>
-        /// Type d&apos;&apos;activité
-        /// </summary>
-        public string ActivityType { get; set; }
-        /// <summary>
-        /// La TVA
-        /// </summary>
-        public string VAT { get; set; }
-        /// <summary>
-        /// Le numéro de TVA intracommunautaire
-        /// </summary>
-        public string VATIntra { get; set; }
-        /// <summary>
-        /// Type de TVA
-        /// </summary>
-        public string VATType { get; set; }
-        /// <summary>
-        /// Le nombre d&apos;&apos;employés de l&apos;&apos;entité
-        /// </summary>
-        public int? StaffSize { get; set; }
-        /// <summary>
-        /// L&apos;&apos;identifiant de l&apos;&apos;utilisateur ou du système qui a crée l&apos;&apos;entité
-        /// </summary>
-        public string CreatedBy { get; set; }
-        /// <summary>
-        /// L&apos;&apos;identifiant de l&apos;&apos;utilisateur ou du système qui a effectué la dernière modification
-        /// </summary>
-        public string ModifiedBy { get; set; }
-        /// <summary>
-        /// La date de création
-        /// </summary>
-        public DateTime CreationDate { get; set; }
-        /// <summary>
-        /// La date de la dernière modification
-        /// </summary>
-        public DateTime? UpdatedDate { get; set; }
+    /// <summary>
+    /// L&apos;&apos;identifiant global de l&apos;&apos;entité
+    /// </summary>
+    public Guid AccountGlobalUniqueId { get; set; }
 
-        public virtual THub Hub { get; set; }
-        public virtual TNaf Naf { get; set; }
-        public virtual ICollection<TAddress> TAddress { get; set; }
-        public virtual ICollection<TDelegation> TDelegation { get; set; }
-        public virtual ICollection<TDeploymentPlanning> TDeploymentPlanning { get; set; }
-        public virtual ICollection<TPhone> TPhone { get; set; }
-        public virtual ICollection<TRoles> TRoles { get; set; }
-    }
+    public string AccountNumber { get; set; }
+
+    /// <summary>
+    /// La raison social de l&apos;&apos;entité
+    /// </summary>
+    public string LegalName { get; set; }
+
+    /// <summary>
+    /// Le  nom commercial de l&apos;&apos;entité
+    /// </summary>
+    public string CommercialName { get; set; }
+
+    /// <summary>
+    /// Le type de l&apos;&apos;entité
+    /// </summary>
+    public string AccountType { get; set; }
+
+    /// <summary>
+    /// L&apos;&apos;adresse mail de l&apos;&apos;entité
+    /// </summary>
+    public string Email { get; set; }
+
+    /// <summary>
+    /// L&apos;&apos;identifiant technique du Hub
+    /// </summary>
+    public int? HubId { get; set; }
+
+    /// <summary>
+    /// L&apos;&apos;identifiant technique du code Naf
+    /// </summary>
+    public int NafId { get; set; }
+
+    /// <summary>
+    /// L&apos;&apos;entité est-elle activé
+    /// </summary>
+    public bool IsActive { get; set; }
+
+    public string IconName { get; set; }
+
+    /// <summary>
+    /// La source de création de l&apos;&apos;entité
+    /// </summary>
+    public string SourceAccountNumber { get; set; }
+
+    /// <summary>
+    /// Le code du secteur
+    /// </summary>
+    public string SectorCode { get; set; }
+
+    /// <summary>
+    /// Le secteur
+    /// </summary>
+    public string Sector { get; set; }
+
+    /// <summary>
+    /// La plage du nombre de salariés 
+    /// </summary>
+    public string StaffSizeRange { get; set; }
+
+    /// <summary>
+    /// Le type de comptabilité
+    /// </summary>
+    public string AccountingMethod { get; set; }
+
+    /// <summary>
+    /// Le chiffre d&apos;&apos;affaires
+    /// </summary>
+    public decimal? Turnover { get; set; }
+
+    /// <summary>
+    /// Le code de la forme juridique
+    /// </summary>
+    public string LegalFormCode { get; set; }
+
+    /// <summary>
+    /// La forme juridique de l&apos;&apos;entité
+    /// </summary>
+    public string LegalForm { get; set; }
+
+    /// <summary>
+    /// Le régime fiscale
+    /// </summary>
+    public string FiscalSystem { get; set; }
+
+    /// <summary>
+    /// Début Exercice fiscale
+    /// </summary>
+    public DateTime? FiscalExerciseStartDate { get; set; }
+
+    /// <summary>
+    /// La durée de l&apos;&apos;exercice fiscale
+    /// </summary>
+    public int? FiscalExerciseDuration { get; set; }
+
+    /// <summary>
+    /// Le ISIN
+    /// </summary>
+    public string ISIN { get; set; }
+
+    /// <summary>
+    /// Le Siret
+    /// </summary>
+    public string Siret { get; set; }
+
+    /// <summary>
+    /// Le Régime d&apos;&apos;imposition
+    /// </summary>
+    public string TaxationSystem { get; set; }
+
+    /// <summary>
+    /// Description de l&apos;&apos;activité
+    /// </summary>
+    public string ActivityDescription { get; set; }
+
+    /// <summary>
+    /// Type d&apos;&apos;activité
+    /// </summary>
+    public string ActivityType { get; set; }
+
+    /// <summary>
+    /// La TVA
+    /// </summary>
+    public string VAT { get; set; }
+
+    /// <summary>
+    /// Le numéro de TVA intracommunautaire
+    /// </summary>
+    public string VATIntra { get; set; }
+
+    /// <summary>
+    /// Type de TVA
+    /// </summary>
+    public string VATType { get; set; }
+
+    /// <summary>
+    /// Le nombre d&apos;&apos;employés de l&apos;&apos;entité
+    /// </summary>
+    public int? StaffSize { get; set; }
+
+    /// <summary>
+    /// L&apos;&apos;identifiant de l&apos;&apos;utilisateur ou du système qui a crée l&apos;&apos;entité
+    /// </summary>
+    public string CreatedBy { get; set; }
+
+    /// <summary>
+    /// L&apos;&apos;identifiant de l&apos;&apos;utilisateur ou du système qui a effectué la dernière modification
+    /// </summary>
+    public string ModifiedBy { get; set; }
+
+    /// <summary>
+    /// La date de création
+    /// </summary>
+    public DateTime CreationDate { get; set; }
+
+    /// <summary>
+    /// La date de la dernière modification
+    /// </summary>
+    public DateTime? UpdatedDate { get; set; }
+
+    public virtual THub Hub { get; set; }
+
+    public virtual TNaf Naf { get; set; }
+
+    public virtual ICollection<TAddress> TAddress { get; set; } = new List<TAddress>();
+
+    public virtual ICollection<TDelegation> TDelegation { get; set; } = new List<TDelegation>();
+
+    public virtual ICollection<TDeploymentPlanning> TDeploymentPlanning { get; set; } = new List<TDeploymentPlanning>();
+
+    public virtual ICollection<TPhone> TPhone { get; set; } = new List<TPhone>();
+
+    public virtual ICollection<TRoles> TRoles { get; set; } = new List<TRoles>();
 }

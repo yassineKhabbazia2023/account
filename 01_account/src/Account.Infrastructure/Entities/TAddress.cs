@@ -3,43 +3,49 @@
 using System;
 using System.Collections.Generic;
 
-namespace Pulse.Account.Infrastructure.Entities
-{
-    public partial class TAddress
-    {
-        /// <summary>
-        /// L&apos;&apos;identifiant technique
-        /// </summary>
-        public int AddressId { get; set; }
-        /// <summary>
-        /// L&apos;&apos;identifiant de l&apos;&apos;entité
-        /// </summary>
-        public int AccountId { get; set; }
-        /// <summary>
-        /// La rue
-        /// </summary>
-        public string Street { get; set; }
-        /// <summary>
-        /// La ville
-        /// </summary>
-        public string City { get; set; }
-        /// <summary>
-        /// Le département
-        /// </summary>
-        public string State { get; set; }
-        /// <summary>
-        /// Le code postal
-        /// </summary>
-        public string ZipCode { get; set; }
-        /// <summary>
-        /// Le pays
-        /// </summary>
-        public string Country { get; set; }
-        /// <summary>
-        /// Le type d&apos;&apos;adresse
-        /// </summary>
-        public string AddressType { get; set; }
+namespace Pulse.Account.Infrastructure.Entities;
 
-        public virtual TAccount Account { get; set; }
-    }
+public partial class TAddress
+{
+    /// <summary>
+    /// L&apos;&apos;identifiant technique
+    /// </summary>
+    public int AddressId { get; set; }
+
+    /// <summary>
+    /// L&apos;&apos;identifiant de l&apos;&apos;entité
+    /// </summary>
+    public int AccountId { get; set; }
+
+    /// <summary>
+    /// La rue
+    /// </summary>
+    public string Street { get; set; }
+
+    /// <summary>
+    /// La ville
+    /// </summary>
+    public string City { get; set; }
+
+    /// <summary>
+    /// Le département
+    /// </summary>
+    public string State { get; set; }
+
+    /// <summary>
+    /// Le code postal
+    /// </summary>
+    public string ZipCode { get; set; }
+
+    /// <summary>
+    /// Le pays
+    /// </summary>
+    public string Country { get; set; }
+
+    /// <summary>
+    /// Le type d&apos;&apos;adresse
+    /// </summary>
+    public string AddressType { get; set; }
+
+    public virtual TAccount Account { get; set; }
 }
