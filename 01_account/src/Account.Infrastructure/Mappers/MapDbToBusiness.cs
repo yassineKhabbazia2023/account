@@ -25,24 +25,9 @@ namespace Pulse.Account.Infrastructure.Mappers
                 accountModel.AccountNumber = source.AccountNumber;
                 accountModel.LegalName = source.LegalName;
                 accountModel.IsFavorite = roleConnectedContact?.IsFavorite;
-                accountModel.Address = source.TAddress?.Select(address => new Address()
-                {
-                    AddressId = address.AddressId,
-                    City = address.City,
-                    AddressType = address.AddressType
-                }).ToList();
-                accountModel.Owner = new Owner()
-                {
-                    ContactEmail = roleSignatory?.Contact.ContactEmail,
-                    FirstName = roleSignatory?.Contact.FirstName,
-                    LastName = roleSignatory?.Contact.LastName
-                };
-                accountModel.Deployment = source.TDeploymentPlanning?.Select(deploymentPlanning => new Deployment()
-                {
-                    DeploymentId = deploymentPlanning.DeploymentId,
-                    DeploymentDate = deploymentPlanning.DeploymentDate,
-                    Status = deploymentPlanning.Status
-                }).ToList();
+                accountModel.Address = source.MapAddress();
+                accountModel.Owner = roleSignatory?.Contact.MapOwner();
+                accountModel.Deployment = source.MapDeploymentPlanning();
             }
 
             return accountModel;
@@ -74,9 +59,19 @@ namespace Pulse.Account.Infrastructure.Mappers
             return accountDetail;
         }
 
+        private static Owner? MapOwner(this TContact tContact)
+        {
+            return tContact == null ? null : new Owner()
+            {
+                ContactEmail = tContact.ContactEmail,
+                FirstName = tContact.FirstName,
+                LastName = tContact.LastName
+            };
+        }
+
         private static ICollection<Deployment>? MapDeploymentPlanning(this TAccount tAccount)
         {
-            return tAccount.TDeploymentPlanning == null ? null : tAccount.TDeploymentPlanning.Select(deployment => new Deployment()
+            return tAccount.TDeploymentPlanning == null ? Array.Empty<Deployment>() : tAccount.TDeploymentPlanning.Select(deployment => new Deployment()
             {
                 DeploymentId = deployment.DeploymentId,
                 DeploymentDate = deployment.DeploymentDate,
@@ -86,7 +81,7 @@ namespace Pulse.Account.Infrastructure.Mappers
 
         private static ICollection<Phone>? MapPhone(this TAccount tAccount)
         {
-            return tAccount.TPhone == null ? null : tAccount.TPhone.Select(phone => new Phone()
+            return tAccount.TPhone == null ? Array.Empty<Phone>() : tAccount.TPhone.Select(phone => new Phone()
             {
                 PhoneId = phone.PhoneId,
                 PhoneNumber = phone.PhoneNumber,
@@ -96,7 +91,7 @@ namespace Pulse.Account.Infrastructure.Mappers
 
         private static ICollection<Address>? MapAddress(this TAccount tAccount)
         {
-            return tAccount.TAddress == null ? null : tAccount.TAddress.Select(address => new Address()
+            return tAccount.TAddress == null ? Array.Empty<Address>() : tAccount.TAddress.Select(address => new Address()
             {
                 AddressId = address.AddressId,
                 Country = address.Country,
