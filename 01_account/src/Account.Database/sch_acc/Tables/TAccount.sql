@@ -9,6 +9,7 @@
 [HubId]                     INT               NULL,
 [NafId]                     INT               NOT NULL,
 [IsActive]                  BIT               NOT NULL,
+[IconName]                  VARCHAR(50)       NULL,
 [SourceAccountNumber]       VARCHAR(50)       NOT NULL,
 [SectorCode]                VARCHAR(50)       NULL,
 [Sector]                    VARCHAR(150)      NULL,
