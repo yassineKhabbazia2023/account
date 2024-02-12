@@ -50,5 +50,10 @@ namespace Pulse.Account.Core.Services
         {
             // implement set favorite function
         }
+
+        public async Task<Statistics> GetStatisticsAsync(int contactId)
+        {
+            return await _accountRepository.GetStatisticsAsync(contactId);
+        }
     }
 }

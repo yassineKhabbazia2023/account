@@ -9,7 +9,7 @@ using Pulse.Account.Core.Services;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
 
-namespace Pulses.Account.API.Configuration
+namespace Pulse.Account.API.Configuration
 {
     [ExcludeFromCodeCoverage]
     public static class ServicesConfiguration

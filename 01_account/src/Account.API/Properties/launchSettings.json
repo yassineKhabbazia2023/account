@@ -1,5 +1,13 @@
 ﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:54356",
+      "sslPort": 44381
+    }
+  },
   "profiles": {
     "Account.API": {
       "commandName": "Project",
@@ -7,8 +15,14 @@
       "launchBrowser": true,
       "applicationUrl": "https://localhost:7248;http://localhost:5248",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "SqlAccountConnectionString": "Data Source=(LocalDB)\\MSSQLLocalDB;Initial Catalog=account;Integrated Security=True;Connect Timeout=60;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False"
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
   }

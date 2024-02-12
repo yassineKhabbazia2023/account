@@ -10,7 +10,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Pulse.Account.API.Configuration;
 using Pulse.Account.API.Configuration.Model;
-using Pulses.Account.API.Configuration;
 
 namespace Pulse.Account.API
 {

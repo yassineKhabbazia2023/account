@@ -8,12 +8,12 @@ using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+
 using Polly;
 using Polly.Retry;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Constants;
 using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
@@ -38,7 +38,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                         sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Constants.RETRYTIMESPAN));
         }
 
-        public async Task<Paging<Pulse.Account.Core.Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId)
+        public async Task<Paging<Core.Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId)
         {
             try
             {
@@ -64,7 +64,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                     var totalPageCalcul = AccountUtils.CalculTotalPage(count, limit);
 
-                    var pageinateResult = new Paging<Pulse.Account.Core.Models.Account>()
+                    var pageinateResult = new Paging<Core.Models.Account>()
                     {
                         Items = entities.Select(entity => entity.TAccountToAccountModel(contactId)),
                         CurrentPage = page,
@@ -111,6 +111,25 @@ namespace Pulse.Account.Infrastructure.Repositories
             {
                 throw new TechnicalException(Errors.InternalTechnicalError, ex);
             }
+        }
+
+        public async Task<Statistics> GetStatisticsAsync(int contactId)
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                var entities = _accountContext.TDeploymentPlanning
+                .Join(_accountContext.TRoles,
+                deployment => deployment.AccountId,
+                role => role.AccountId,
+                (deployment, role) => new { deployment, role })
+                .Where(x => x.role.ContactId == contactId)
+                .GroupBy(x => x.deployment.Status)
+                .Select(s => new { Status = s.Key, Count = s.Select(d => d.deployment.Status).Count() });
+
+                var countByStatus = await entities.ToDictionaryAsync(x => x.Status, x => x.Count);
+
+                return MapDbToBusiness.MapStatistics(countByStatus);
+            }).ConfigureAwait(false);
         }
 
         private IQueryable<TAccount> GetAccountQueryByContactId(int contactId)
