@@ -9,10 +9,10 @@ namespace Pulse.Account.Core.Interfaces
 {
     public interface IAccountRepository
     {
-        Task<Paging<Pulse.Account.Core.Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId);
+        Task<Paging<Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId);
 
-        Task<AccountDetail> GetAccountDetailAsync(int accountId);
+        Task<AccountDetail?> GetAccountDetailAsync(int accountId);
 
-        Task<AccountDetail> UpdateAccountAsync(AccountDetail accountDetail, int accountId);
+        Task<AccountDetail?> UpdateAccountAsync(AccountDetail accountDetail, int accountId);
     }
 }

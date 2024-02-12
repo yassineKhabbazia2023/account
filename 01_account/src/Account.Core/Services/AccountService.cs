@@ -19,7 +19,7 @@ namespace Pulse.Account.Core.Services
             _accountRepository = accountRepository;
         }
 
-        public async Task<Paging<Pulse.Account.Core.Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId)
+        public async Task<Paging<Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId)
         {
             page = page == 0 ? 1 : page;
             limit = limit == 0 ? int.MaxValue : limit;
@@ -27,13 +27,13 @@ namespace Pulse.Account.Core.Services
             return accountList;
         }
 
-        public async Task<AccountDetail> GetAccountDetailAsync(int id)
+        public async Task<AccountDetail?> GetAccountDetailAsync(int id)
         {
             var accountDetail = await _accountRepository.GetAccountDetailAsync(id);
             return accountDetail;
         }
 
-        public async Task<AccountDetail> UpdateAccountAsync(int id, AccountDetail accountDetail)
+        public async Task<AccountDetail?> UpdateAccountAsync(int id, AccountDetail accountDetail)
         {
             return await _accountRepository.UpdateAccountAsync(accountDetail, id);
         }

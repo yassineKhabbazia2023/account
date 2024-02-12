@@ -13,7 +13,7 @@ namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapDbToBusiness
     {
-        public static AccountModel TAccountToAccountModel(this TAccount source, int contactId)
+        public static AccountModel MapTAccountToAccountModel(this TAccount source, int contactId)
         {
             var accountModel = new AccountModel();
             if (source != null)
@@ -48,50 +48,67 @@ namespace Pulse.Account.Infrastructure.Mappers
             return accountModel;
         }
 
-        public static AccountDetail TAccountToAccountDetail(this TAccount source)
+        public static AccountDetail? MapTAccountToAccountDetail(this TAccount source)
         {
-            var accountDetail = new AccountDetail();
-            if(source != null)
+            if (source == null)
             {
-                accountDetail.AccountId = source.AccountId;
-                accountDetail.AccountNumber = source.AccountNumber;
-                accountDetail.IconName = "icon";
-                accountDetail.IsActive = source.IsActive;
-                accountDetail.Email = source.Email;
-                accountDetail.EmployeeCount = source.StaffSize;
-                accountDetail.CommercialName = source.CommercialName;
-                accountDetail.Accounting = source.InitAccounting();
-                accountDetail.Legal = source.InitLegal();
-                accountDetail.Vat = source.InitVat();
-                accountDetail.Address = source.TAddress.Select(address => new Address()
-                {
-                    AddressId = address.AddressId,
-                    Country = address.Country,
-                    City = address.City,
-                    State = address.State,
-                    Street = address.Street,
-                    ZipCode = address.ZipCode,
-                    AddressType = address.AddressType
-                }).ToList();
-                accountDetail.Phone = source.TPhone.Select(phone => new Phone()
-                {
-                    PhoneId = phone.PhoneId,
-                    PhoneNumber = phone.PhoneNumber,
-                    Type = phone.Type,
-                }).ToList();
-                accountDetail.Hub = source.InitHub();
-                accountDetail.DeploymentPlanning = source.TDeploymentPlanning.Select(deployment => new Deployment()
-                {
-                    DeploymentId = deployment.DeploymentId,
-                    DeploymentDate = deployment.DeploymentDate,
-                    Status = deployment.Status,
-                }).ToList();
+                return null;
             }
+
+            var accountDetail = new AccountDetail();
+            accountDetail.AccountId = source.AccountId;
+            accountDetail.AccountNumber = source.AccountNumber;
+            accountDetail.IconName = "icon";
+            accountDetail.IsActive = source.IsActive;
+            accountDetail.Email = source.Email;
+            accountDetail.EmployeeCount = source.StaffSize;
+            accountDetail.CommercialName = source.CommercialName;
+            accountDetail.Accounting = source.MapAccounting();
+            accountDetail.Legal = source.MapLegal();
+            accountDetail.Vat = source.MapVat();
+            accountDetail.Address = source.MapAddress();
+            accountDetail.Phone = source.MapPhone();
+            accountDetail.Hub = source.MapHub();
+            accountDetail.DeploymentPlanning = source.MapDeploymentPlanning();
 
             return accountDetail;
         }
 
-        private static Hub InitHub(this TAccount tAccount)
+        private static ICollection<Deployment>? MapDeploymentPlanning(this TAccount tAccount)
+        {
+            return tAccount.TDeploymentPlanning == null ? null : tAccount.TDeploymentPlanning.Select(deployment => new Deployment()
+            {
+                DeploymentId = deployment.DeploymentId,
+                DeploymentDate = deployment.DeploymentDate,
+                Status = deployment.Status,
+            }).ToList();
+        }
+
+        private static ICollection<Phone>? MapPhone(this TAccount tAccount)
+        {
+            return tAccount.TPhone == null ? null : tAccount.TPhone.Select(phone => new Phone()
+            {
+                PhoneId = phone.PhoneId,
+                PhoneNumber = phone.PhoneNumber,
+                Type = phone.Type,
+            }).ToList();
+        }
+
+        private static ICollection<Address>? MapAddress(this TAccount tAccount)
+        {
+            return tAccount.TAddress == null ? null : tAccount.TAddress.Select(address => new Address()
+            {
+                AddressId = address.AddressId,
+                Country = address.Country,
+                City = address.City,
+                State = address.State,
+                Street = address.Street,
+                ZipCode = address.ZipCode,
+                AddressType = address.AddressType
+            }).ToList();
+        }
+
+        private static Hub MapHub(this TAccount tAccount)
         {
             return new Hub()
             {
@@ -100,7 +117,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static Vat InitVat(this TAccount tAccount)
+        private static Vat MapVat(this TAccount tAccount)
         {
             return new Vat()
             {
@@ -110,7 +127,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static Accounting InitAccounting(this TAccount tAccount)
+        private static Accounting MapAccounting(this TAccount tAccount)
         {
             return new Accounting()
             {
@@ -122,7 +139,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static Legal InitLegal(this TAccount tAccount)
+        private static Legal MapLegal(this TAccount tAccount)
         {
             return new Legal()
             {

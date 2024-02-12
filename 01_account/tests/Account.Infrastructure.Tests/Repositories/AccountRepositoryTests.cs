@@ -33,7 +33,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
             // Arrange
             var accountsModel = _fixture.Create<List<TAccount>>();
             var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
-            var accountObject = accountsModel.Select(item => item.TAccountToAccountModel(123));
+            var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel(123));
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
             {
                 CurrentPage = 1,
@@ -57,7 +57,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
             // Arrange
             var accountsModel = _fixture.Create<List<TAccount>>();
             var accountFirst = accountsModel.FirstOrDefault();
-            var accountDetail = accountFirst?.TAccountToAccountDetail();
+            var accountDetail = accountFirst?.MapTAccountToAccountDetail();
             var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
 
             // Act
@@ -75,7 +75,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
             // Arrange
             var accountsModel = _fixture.Create<List<TAccount>>();
             var accountFirst = accountsModel.FirstOrDefault();
-            var accountDetail = accountFirst?.TAccountToAccountDetail();
+            var accountDetail = accountFirst?.MapTAccountToAccountDetail();
             var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
 
             // Act
@@ -91,7 +91,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
             // Arrange
             var accountsModel = _fixture.Create<List<TAccount>>();
             var accountFirst = accountsModel.FirstOrDefault();
-            var accountDetail = accountFirst?.TAccountToAccountDetail();
+            var accountDetail = accountFirst?.MapTAccountToAccountDetail();
             if(accountDetail?.Accounting != null)
             {
                 accountDetail.Accounting.TaxationSystem = "Impot sur le revenu";

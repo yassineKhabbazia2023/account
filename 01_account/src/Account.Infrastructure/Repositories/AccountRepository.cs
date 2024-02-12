@@ -67,7 +67,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
 
                 var pageinateResult = new Paging<AccountModel>()
                 {
-                    Items = entities.Select(entity => entity.TAccountToAccountModel(contactId)),
+                    Items = entities.Select(entity => entity.MapTAccountToAccountModel(contactId)),
                     CurrentPage = page,
                     TotalItems = count,
                     TotalPage = (int)Math.Ceiling(totalPageCalcul)
@@ -76,7 +76,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
             }).ConfigureAwait(false);
         }
 
-        public async Task<AccountDetail> GetAccountDetailAsync(int accountId)
+        public async Task<AccountDetail?> GetAccountDetailAsync(int accountId)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
@@ -96,13 +96,13 @@ namespace Kpmg.Account.Infrastructure.Repositories
                     throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
                 }
 
-                var accountDetail = entity.TAccountToAccountDetail();
+                var accountDetail = entity.MapTAccountToAccountDetail();
 
                 return accountDetail;
             }).ConfigureAwait(false);
         }
 
-        public async Task<AccountDetail> UpdateAccountAsync(AccountDetail accountDetail, int accountId)
+        public async Task<AccountDetail?> UpdateAccountAsync(AccountDetail accountDetail, int accountId)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
