@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using MockQueryable.Moq;
 using Moq;
 using Pulse.Account.Infrastructure.Entities;
+using Kpmg.Account.Infrastructure.Repositories;
 
 namespace Pulse.Account.Infrastructure.Tests.Configuration
 {

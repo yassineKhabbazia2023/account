@@ -65,7 +65,7 @@ namespace Pulse.Account.Core.Tests.Services
             // Arrange
             string accountMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
             var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
-            _accountRepository.Setup(repository => repository.GetAccountDetailAsync(It.IsAny<int>())).ReturnsAsync(accountDetail);
+            _accountRepository.Setup(repository => repository.UpdateAccountAsync(It.IsAny<AccountDetail>(), It.IsAny<int>())).ReturnsAsync(accountDetail);
 
             var accountService = new AccountService(_accountRepository.Object);
 

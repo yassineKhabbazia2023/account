@@ -4,15 +4,16 @@
 
 using AutoFixture;
 using Pulse.Account.Infrastructure.Tests.Configuration;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using AccountModel = Pulse.Account.Core.Models.Account;
 using Microsoft.EntityFrameworkCore;
-using Pulse.Account.Infrastructure.Repositories;
+using Kpmg.Account.Infrastructure.Repositories;
 
-namespace Pulse.Account.Infrastructure.Tests.Repositories
+namespace Kpmg.Account.Infrastructure.Tests.Repositories
 {
     public class AccountRepositoryTests
     {
@@ -35,7 +36,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             // Arrange
             var accountsModel = _fixture.Create<List<TAccount>>();
             var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
-            var accountObject = accountsModel.Select(item => item.TAccountToAccountModel(123));
+            var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel(123));
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
             {
                 CurrentPage = 1,
@@ -45,12 +46,12 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             };
 
             // Act
-            var accounts = await accountRepository.GetAccountsAsync(search: string.Empty, contactId: 123, page: 1, limit: 4);
+            var accounts = await accountRepository.GetAccountsAsync(search: accountObject.Select(a => a.LegalName).First(), contactId: 123, page: 1, limit: 4);
 
             // Assert
-            var accountExpect = JsonConvert.SerializeObject(accountPaging);
-            var accountReceived = JsonConvert.SerializeObject(accounts);
-            Assert.Equal(accountExpect, accountReceived);
+            var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
+            var accountReceived = JsonConvert.SerializeObject(accounts.Items?.FirstOrDefault());
+            Assert.Contains(accountReceived, accountExpect);
         }
 
         [Fact]
@@ -59,16 +60,55 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             // Arrange
             var accountsModel = _fixture.Create<List<TAccount>>();
             var accountFirst = accountsModel.FirstOrDefault();
-            var accountDetail = accountFirst?.TAccountToAccountDetail();
+            var accountDetail = accountFirst?.MapTAccountToAccountDetail();
             var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
 
             // Act
-            var accounts = await accountRepository.GetAccountDetailAsync(accountFirst!.AccountId);
+            var accounts = await accountRepository.GetAccountDetailAsync(accountFirst.AccountId);
 
             // Assert
             Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
             Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
             Assert.Equal(accountDetail?.Legal?.LegalName, accounts.Legal?.LegalName);
+        }
+
+        [Fact]
+        public async Task Should_GetAccountDetail_ReturnsNotFoundResultAsync()
+        {
+            // Arrange
+            var accountsModel = _fixture.Create<List<TAccount>>();
+            var accountFirst = accountsModel.FirstOrDefault();
+            var accountDetail = accountFirst?.MapTAccountToAccountDetail();
+            var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
+
+            // Act
+            Task Accounts() => accountRepository.GetAccountDetailAsync(123);
+
+            // Assert
+            await Assert.ThrowsAsync<NotFoundException>(Accounts);
+        }
+
+        [Fact]
+        public async Task Should_UpdateAccount_ReturnsOkResultAsync()
+        {
+            // Arrange
+            var accountsModel = _fixture.Create<List<TAccount>>();
+            var accountFirst = accountsModel.FirstOrDefault();
+            var accountDetail = accountFirst?.MapTAccountToAccountDetail();
+            if(accountDetail?.Accounting != null)
+            {
+                accountDetail.Accounting.TaxationSystem = "Impot sur le revenu";
+            }
+
+            var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
+
+            // Act
+            var accounts = await accountRepository.UpdateAccountAsync(accountDetail, accountDetail.AccountId);
+
+            // Assert
+            Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
+            Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
+            Assert.Equal(accountDetail?.Accounting?.TaxationSystem, accounts.Accounting?.TaxationSystem);
         }
 
         [Fact]

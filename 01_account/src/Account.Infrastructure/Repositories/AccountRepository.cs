@@ -4,11 +4,15 @@
 
 using System.Data;
 using System.Net;
+using Azure;
+using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Identity.Client;
+using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
@@ -19,8 +23,9 @@ using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Utils;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
-namespace Pulse.Account.Infrastructure.Repositories
+namespace Kpmg.Account.Infrastructure.Repositories
 {
     public class AccountRepository : IAccountRepository
     {
@@ -38,79 +43,104 @@ namespace Pulse.Account.Infrastructure.Repositories
                         sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Constants.RETRYTIMESPAN));
         }
 
-        public async Task<Paging<Core.Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId)
+        public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit, int contactId)
         {
-            try
+            return await _retryPolicy.ExecuteAsync(async () =>
             {
-                return await _retryPolicy.ExecuteAsync(async () =>
+                IQueryable<TAccount> entities = GetAccountQueryByContactId(contactId);
+
+                if (!search.IsNullOrEmpty())
                 {
-                    IQueryable<TAccount> entities = GetAccountQueryByContactId(contactId);
+                    entities = from n in entities
+                               where n.LegalName.Contains(search)
+                                     || n.SourceAccountNumber.Contains(search)
+                                     || n.TRoles.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search)
+                                                         || role.Contact.LastName.Contains(search)
+                                                         || role.Contact.ContactEmail.Contains(search)))
+                               select n;
+                }
 
-                    if (!string.IsNullOrEmpty(search))
-                    {
-                        entities = from n in entities
-                                   where n.LegalName.Contains(search)
-                                         || n.SourceAccountNumber.Contains(search)
-                                         || n.TRoles.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search)
-                                                             || role.Contact.LastName.Contains(search)
-                                                             || role.Contact.ContactEmail.Contains(search)))
-                                   select n;
-                    }
+                var count = await entities.CountAsync();
 
-                    var count = await entities.CountAsync();
+                entities = entities.Skip((page - 1) * limit);
+                entities = entities.Take(limit);
 
-                    entities = entities.Skip((page - 1) * limit);
-                    entities = entities.Take(limit);
+                var totalPageCalcul = AccountUtils.CalculTotalPage(count, limit);
 
-                    var totalPageCalcul = AccountUtils.CalculTotalPage(count, limit);
-
-                    var pageinateResult = new Paging<Core.Models.Account>()
-                    {
-                        Items = entities.Select(entity => entity.TAccountToAccountModel(contactId)),
-                        CurrentPage = page,
-                        TotalItems = count,
-                        TotalPage = (int)Math.Ceiling(totalPageCalcul)
-                    };
-                    return pageinateResult;
-                }).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                throw new TechnicalException(Errors.InternalTechnicalError, ex);
-            }
+                var pageinateResult = new Paging<AccountModel>()
+                {
+                    Items = entities.Select(entity => entity.MapTAccountToAccountModel(contactId)),
+                    CurrentPage = page,
+                    TotalItems = count,
+                    TotalPage = (int)Math.Ceiling(totalPageCalcul)
+                };
+                return pageinateResult;
+            }).ConfigureAwait(false);
         }
 
-        public async Task<AccountDetail> GetAccountDetailAsync(int accountId)
+        public async Task<AccountDetail?> GetAccountDetailAsync(int accountId)
         {
-            try
+            return await _retryPolicy.ExecuteAsync(async () =>
             {
-                return await _retryPolicy.ExecuteAsync(async () =>
-                {
-                    IQueryable<TAccount> entities = _accountContext.TAccount
-                           .AsNoTracking()
-                           .Include(x => x.TRoles)
-                           .ThenInclude(r => r.Contact)
-                           .Include(a => a.TAddress)
-                           .Include(x => x.TDeploymentPlanning)
-                           .Include(x => x.Hub)
-                           .Include(x => x.TPhone)
-                           .Where(a => a.AccountId == accountId);
+                IQueryable<TAccount> entities = _accountContext.TAccount
+                       .AsNoTracking()
+                       .Include(x => x.TRoles)
+                       .ThenInclude(r => r.Contact)
+                       .Include(a => a.TAddress)
+                       .Include(x => x.TDeploymentPlanning)
+                       .Include(x => x.Hub)
+                       .Include(x => x.TPhone)
+                       .Where(a => a.AccountId == accountId);
 
-                    var entity = await entities.FirstOrDefaultAsync();
-                    if (entity == null)
+                var entity = await entities.FirstOrDefaultAsync();
+                if (entity == null)
+                {
+                    throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
+                }
+
+                var accountDetail = entity.MapTAccountToAccountDetail();
+
+                return accountDetail;
+            }).ConfigureAwait(false);
+        }
+
+        public async Task<AccountDetail?> UpdateAccountAsync(AccountDetail accountDetail, int accountId)
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                var existingAccounts = from account in _accountContext.TAccount
+                                       where account.AccountId.Equals(accountId)
+                                       select account;
+
+                var existingAccountItem = await existingAccounts.FirstOrDefaultAsync();
+                if (existingAccountItem != null)
+                {
+                    if (accountDetail.Legal != null)
                     {
-                        throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
+                        existingAccountItem.LegalForm = accountDetail.Legal.LegalForm;
+                        existingAccountItem.StaffSizeRange = accountDetail.Legal.StaffSizeRange;
+                        existingAccountItem.ActivityType = accountDetail.Legal.Naf?.FirstOrDefault()?.NafLabel;
                     }
 
-                    var accountDetail = entity.TAccountToAccountDetail();
+                    if (accountDetail.Accounting != null)
+                    {
+                        existingAccountItem.FiscalExerciseStartDate = accountDetail.Accounting.FiscalExerciseStartDate;
+                        existingAccountItem.FiscalExerciseDuration = accountDetail.Accounting.FiscalExerciseDuration;
+                        existingAccountItem.AccountingMethod = accountDetail.Accounting.AccountingType;
+                        existingAccountItem.FiscalSystem = accountDetail.Accounting.FiscalSystem;
+                        existingAccountItem.TaxationSystem = accountDetail.Accounting.TaxationSystem;
+                    }
 
-                    return accountDetail;
-                }).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                throw new TechnicalException(Errors.InternalTechnicalError, ex);
-            }
+                    existingAccountItem.HubId = accountDetail.Hub?.HubId;
+                    existingAccountItem.VAT = accountDetail.Vat?.System;
+                    existingAccountItem.VATType = accountDetail.Vat?.Type;
+
+                    _accountContext.TAccount.Update(existingAccountItem);
+                    await _accountContext.SaveChangesAsync();
+                }
+
+                return await GetAccountDetailAsync(accountId);
+            }).ConfigureAwait(false);
         }
 
         public async Task<Statistics> GetStatisticsAsync(int contactId)
@@ -140,7 +170,8 @@ namespace Pulse.Account.Infrastructure.Repositories
                             .ThenInclude(r => r.Contact)
                             .Include(a => a.TAddress)
                             .Include(x => x.TDeploymentPlanning)
-                            .Where(a => a.TRoles.Any(r => r.ContactId == contactId));
+                            .Where(a => a.TRoles.Any(r => r.ContactId == contactId))
+                            .OrderBy(a => a.LegalName);
         }
     }
 }

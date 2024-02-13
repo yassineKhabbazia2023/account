@@ -11,7 +11,9 @@ namespace Pulse.Account.Core.Interfaces
     {
         Task<Paging<Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId);
 
-        Task<AccountDetail> GetAccountDetailAsync(int accountId);
+        Task<AccountDetail?> GetAccountDetailAsync(int accountId);
+
+        Task<AccountDetail?> UpdateAccountAsync(AccountDetail accountDetail, int accountId);
 
         Task<Statistics> GetStatisticsAsync(int contactId);
     }

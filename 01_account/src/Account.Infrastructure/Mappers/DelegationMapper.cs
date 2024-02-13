@@ -58,7 +58,7 @@ public static class DelegationMapper
             };
     }
 
-    public static IReadOnlyCollection<Address> ToAddress(this ICollection<TAddress> source)
+    public static ICollection<Address> ToAddress(this ICollection<TAddress> source)
     {
         return source?.Select(d => d.ToAddress() !).ToList() ?? new List<Address>();
     }
