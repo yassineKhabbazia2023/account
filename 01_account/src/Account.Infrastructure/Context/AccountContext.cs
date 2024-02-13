@@ -97,7 +97,8 @@ public partial class AccountContext : DbContext
                 .HasComment("Le ISIN");
             entity.Property(e => e.IconName)
                 .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(false)
+                .HasComment("Le nom d''icon de l''entité");
             entity.Property(e => e.IsActive).HasComment("L''entité est-elle activé");
             entity.Property(e => e.LegalForm)
                 .HasMaxLength(150)

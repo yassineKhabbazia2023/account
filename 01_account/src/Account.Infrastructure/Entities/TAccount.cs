@@ -54,6 +54,9 @@ public partial class TAccount
     /// </summary>
     public bool IsActive { get; set; }
 
+    /// <summary>
+    /// Le nom d&apos;&apos;icon de l&apos;&apos;entité
+    /// </summary>
     public string IconName { get; set; }
 
     /// <summary>
