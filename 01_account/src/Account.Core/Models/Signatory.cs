@@ -1,10 +1,10 @@
-// <copyright file="Owner.cs" company="KPMG">
+// <copyright file="Signatory.cs" company="KPMG">
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
 namespace Pulse.Account.Core.Models
 {
-    public class Owner
+    public class Signatory
     {
         public string? FirstName { get; set; }
 

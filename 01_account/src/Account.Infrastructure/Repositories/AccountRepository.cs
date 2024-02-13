@@ -16,6 +16,7 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Constants;
 using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Utils;

@@ -30,7 +30,7 @@ namespace Pulse.Account.API.Controllers
         /// <param name="limit">Nombre d'éléments par page.</param>
         /// <returns>Liste d'entités morales.</returns>
         [HttpGet("accounts")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountModel>))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<AccountModel>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync(string? search, int contactId, int page, int limit)

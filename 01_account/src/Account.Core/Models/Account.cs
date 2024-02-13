@@ -19,7 +19,7 @@ namespace Pulse.Account.Core.Models
 
         public IReadOnlyCollection<Address>? Address { get; set; }
 
-        public Owner? Owner { get; set; }
+        public Signatory? Signatory { get; set; }
 
         public IReadOnlyCollection<Deployment>? Deployment { get; set; }
     }

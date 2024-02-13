@@ -17,7 +17,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             return new AccountModel()
             {
                 AccountId = source.AccountId,
-                AccountNumber = source.SourceAccountNumber,
+                AccountNumber = source.AccountNumber,
                 LegalName = source.LegalName,
                 IsFavorite = roleConnectedContact != null ? roleConnectedContact?.IsFavorite : false,
                 Address = source.TAddress?.Select(address => new Address()
@@ -26,7 +26,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                     City = address.City,
                     AddressType = address.AddressType
                 }).ToList(),
-                Owner = new Owner()
+                Signatory = new Signatory()
                 {
                     ContactEmail = roleSignatory?.Contact.ContactEmail,
                     FirstName = roleSignatory?.Contact.FirstName,
@@ -48,8 +48,9 @@ namespace Pulse.Account.Infrastructure.Mappers
                 new AccountDetail()
                 {
                     AccountId = source.AccountId,
-                    AccountNumber = source.SourceAccountNumber,
-                    IconName = "icon",
+                    AccountNumber = source.AccountNumber,
+                    AccountNumberSource = source.SourceAccountNumber,
+                    IconName = source.IconName,
                     IsActive = source.IsActive,
                     Email = source?.Email,
                     EmployeeCount = source!.StaffSize,
