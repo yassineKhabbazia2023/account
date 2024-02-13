@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿// <copyright file="MapDbToBusiness.cs" company="KPMG">
+// Copyright (c) KPMG. All rights reserved.
+// </copyright>
+
 using Pulse.Account.Core.Models;
-using Microsoft.Identity.Client;
 using Pulse.Account.Infrastructure.Entities;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
