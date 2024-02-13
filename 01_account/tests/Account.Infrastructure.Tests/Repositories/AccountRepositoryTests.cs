@@ -3,8 +3,6 @@
 // </copyright>
 
 using AutoFixture;
-using Pulse.Account.Core.Models;
-using Pulse.Account.Infrastructure.Repositories;
 using Pulse.Account.Infrastructure.Tests.Configuration;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Newtonsoft.Json;
@@ -13,7 +11,7 @@ using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using AccountModel = Pulse.Account.Core.Models.Account;
 using Microsoft.EntityFrameworkCore;
-using Pulse.Account.Infrastructure.Repositories;
+using Kpmg.Account.Infrastructure.Repositories;
 
 namespace Kpmg.Account.Infrastructure.Tests.Repositories
 {
