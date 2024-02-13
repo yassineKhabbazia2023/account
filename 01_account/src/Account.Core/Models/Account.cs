@@ -19,7 +19,7 @@ namespace Pulse.Account.Core.Models
 
         public ICollection<Address>? Address { get; set; }
 
-        public Owner? Owner { get; set; }
+        public Signatory? Signatory { get; set; }
 
         public ICollection<Deployment>? Deployment { get; set; }
     }

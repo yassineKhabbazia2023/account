@@ -10,7 +10,7 @@
           "city": "RAISMES"
         }
       ],
-      "owner": {
+      "signatory": {
         "firstName": "Benjamin",
         "lastName": "Wacquet",
         "contactEmail": "benjamin.wacquet@outlook.com",
@@ -32,7 +32,7 @@
           "city": "NANTES"
         }
       ],
-      "owner": {
+      "signatory": {
         "firstName": "Cadio",
         "lastName": "Mika�l",
         "contactEmail": "contact@cajam.com",
@@ -54,7 +54,7 @@
           "city": "CHERBOURG EN COTENTIN"
         }
       ],
-      "owner": {
+      "signatory": {
         "firstName": "Vassel",
         "lastName": "Laura",
         "contactEmail": "laurav50@hotmail.fr",
@@ -76,7 +76,7 @@
           "city": "CULLY"
         }
       ],
-      "owner": {
+      "signatory": {
         "firstName": "Sonnet",
         "lastName": "Val�rie",
         "contactEmail": "2cgestionvsonnet@orange.fr",

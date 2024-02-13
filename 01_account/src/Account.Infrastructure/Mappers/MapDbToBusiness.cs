@@ -23,7 +23,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 accountModel.LegalName = source.LegalName;
                 accountModel.IsFavorite = roleConnectedContact?.IsFavorite;
                 accountModel.Address = source.MapAddress();
-                accountModel.Owner = roleSignatory?.Contact.MapOwner();
+                accountModel.Signatory = roleSignatory?.Contact.MapSignatory();
                 accountModel.Deployment = source.MapDeploymentPlanning();
             }
 
@@ -40,7 +40,8 @@ namespace Pulse.Account.Infrastructure.Mappers
             var accountDetail = new AccountDetail();
             accountDetail.AccountId = source.AccountId;
             accountDetail.AccountNumber = source.AccountNumber;
-            accountDetail.IconName = "icon";
+            accountDetail.AccountNumberSource = source.SourceAccountNumber;
+            accountDetail.IconName = source.IconName;
             accountDetail.IsActive = source.IsActive;
             accountDetail.Email = source.Email;
             accountDetail.EmployeeCount = source.StaffSize;
@@ -56,9 +57,9 @@ namespace Pulse.Account.Infrastructure.Mappers
             return accountDetail;
         }
 
-        private static Owner? MapOwner(this TContact tContact)
+        private static Signatory? MapSignatory(this TContact tContact)
         {
-            return tContact == null ? null : new Owner()
+            return tContact == null ? null : new Signatory()
             {
                 ContactEmail = tContact.ContactEmail,
                 FirstName = tContact.FirstName,

@@ -7,7 +7,7 @@ using Kpmg.Account.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Services;
-using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Repositories;
 
 namespace Pulse.Account.API.Configuration

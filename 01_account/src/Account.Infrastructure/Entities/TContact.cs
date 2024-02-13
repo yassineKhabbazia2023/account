@@ -3,44 +3,43 @@
 using System;
 using System.Collections.Generic;
 
-namespace Pulse.Account.Infrastructure.Entities
+namespace Pulse.Account.Infrastructure.Entities;
+
+public partial class TContact
 {
-    public partial class TContact
-    {
-        public TContact()
-        {
-            TDelegationDelegatee = new HashSet<TDelegation>();
-            TDelegationDelegator = new HashSet<TDelegation>();
-            TRoles = new HashSet<TRoles>();
-        }
+    /// <summary>
+    /// L&apos;&apos;identifiant technique
+    /// </summary>
+    public int ContactId { get; set; }
 
-        /// <summary>
-        /// L&apos;&apos;identifiant technique
-        /// </summary>
-        public int ContactId { get; set; }
-        /// <summary>
-        /// L&apos;&apos;identifiant global du contact
-        /// </summary>
-        public Guid ContactGlobalUniqueId { get; set; }
-        /// <summary>
-        /// Le prénom du contact
-        /// </summary>
-        public string FirstName { get; set; }
-        /// <summary>
-        /// Le nom du contact
-        /// </summary>
-        public string LastName { get; set; }
-        /// <summary>
-        /// l&apos;&apos;adresse mail du contact
-        /// </summary>
-        public string ContactEmail { get; set; }
-        /// <summary>
-        /// Le type de contact
-        /// </summary>
-        public string Type { get; set; }
+    /// <summary>
+    /// L&apos;&apos;identifiant global du contact
+    /// </summary>
+    public Guid ContactGlobalUniqueId { get; set; }
 
-        public virtual ICollection<TDelegation> TDelegationDelegatee { get; set; }
-        public virtual ICollection<TDelegation> TDelegationDelegator { get; set; }
-        public virtual ICollection<TRoles> TRoles { get; set; }
-    }
+    /// <summary>
+    /// Le prénom du contact
+    /// </summary>
+    public string FirstName { get; set; }
+
+    /// <summary>
+    /// Le nom du contact
+    /// </summary>
+    public string LastName { get; set; }
+
+    /// <summary>
+    /// l&apos;&apos;adresse mail du contact
+    /// </summary>
+    public string ContactEmail { get; set; }
+
+    /// <summary>
+    /// Le type de contact
+    /// </summary>
+    public string Type { get; set; }
+
+    public virtual ICollection<TDelegation> TDelegationDelegatee { get; set; } = new List<TDelegation>();
+
+    public virtual ICollection<TDelegation> TDelegationDelegator { get; set; } = new List<TDelegation>();
+
+    public virtual ICollection<TRoles> TRoles { get; set; } = new List<TRoles>();
 }

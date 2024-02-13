@@ -3,27 +3,29 @@
 using System;
 using System.Collections.Generic;
 
-namespace Pulse.Account.Infrastructure.Entities
-{
-    public partial class TDeploymentPlanning
-    {
-        /// <summary>
-        /// L&apos;&apos;identifiant technique
-        /// </summary>
-        public int DeploymentId { get; set; }
-        /// <summary>
-        /// L&apos;&apos;identifiant technique de l&apos;&apos;entité
-        /// </summary>
-        public int AccountId { get; set; }
-        /// <summary>
-        /// La date à laquelle le déploiement a eu lieu 
-        /// </summary>
-        public DateTime DeploymentDate { get; set; }
-        /// <summary>
-        /// Le statut du déploiement
-        /// </summary>
-        public int Status { get; set; }
+namespace Pulse.Account.Infrastructure.Entities;
 
-        public virtual TAccount Account { get; set; }
-    }
+public partial class TDeploymentPlanning
+{
+    /// <summary>
+    /// L&apos;&apos;identifiant technique
+    /// </summary>
+    public int DeploymentId { get; set; }
+
+    /// <summary>
+    /// L&apos;&apos;identifiant technique de l&apos;&apos;entité
+    /// </summary>
+    public int AccountId { get; set; }
+
+    /// <summary>
+    /// La date à laquelle le déploiement a eu lieu 
+    /// </summary>
+    public DateTime DeploymentDate { get; set; }
+
+    /// <summary>
+    /// Le statut du déploiement
+    /// </summary>
+    public int Status { get; set; }
+
+    public virtual TAccount Account { get; set; }
 }

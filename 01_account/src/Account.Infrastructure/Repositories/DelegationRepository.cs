@@ -13,6 +13,7 @@ using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
+using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 

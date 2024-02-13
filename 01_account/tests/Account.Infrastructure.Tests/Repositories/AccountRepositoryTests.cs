@@ -12,6 +12,7 @@ using Pulse.Account.Infrastructure.Mappers;
 using AccountModel = Pulse.Account.Core.Models.Account;
 using Microsoft.EntityFrameworkCore;
 using Kpmg.Account.Infrastructure.Repositories;
+using Pulse.Account.Infrastructure.Context;
 
 namespace Kpmg.Account.Infrastructure.Tests.Repositories
 {
@@ -33,82 +34,94 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
         [Fact]
         public async Task Should_GetAccountList_ReturnsOkResultAsync()
         {
-            // Arrange
-            var accountsModel = _fixture.Create<List<TAccount>>();
-            var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
-            var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel(123));
-            Paging<AccountModel> accountPaging = new Paging<AccountModel>()
+            using (var context = new AccountContext(_options))
             {
-                CurrentPage = 1,
-                Items = accountObject,
-                TotalItems = accountObject.Count(),
-                TotalPage = 1
-            };
+                // Arrange
+                var accountsModel = _fixture.Create<List<TAccount>>();
+                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
+                var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel(123));
+                Paging<AccountModel> accountPaging = new Paging<AccountModel>()
+                {
+                    CurrentPage = 1,
+                    Items = accountObject,
+                    TotalItems = accountObject.Count(),
+                    TotalPage = 1
+                };
 
-            // Act
-            var accounts = await accountRepository.GetAccountsAsync(search: accountObject.Select(a => a.LegalName).First(), contactId: 123, page: 1, limit: 4);
+                // Act
+                var accounts = await accountRepository.GetAccountsAsync(search: accountObject.Select(a => a.LegalName).First(), contactId: 123, page: 1, limit: 4);
 
-            // Assert
-            var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
-            var accountReceived = JsonConvert.SerializeObject(accounts.Items?.FirstOrDefault());
-            Assert.Contains(accountReceived, accountExpect);
+                // Assert
+                var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
+                var accountReceived = JsonConvert.SerializeObject(accounts.Items?.FirstOrDefault());
+                Assert.Contains(accountReceived, accountExpect);
+            }
         }
 
         [Fact]
         public async Task Should_GetAccountDetail_ReturnsOkResultAsync()
         {
-            // Arrange
-            var accountsModel = _fixture.Create<List<TAccount>>();
-            var accountFirst = accountsModel.FirstOrDefault();
-            var accountDetail = accountFirst?.MapTAccountToAccountDetail();
-            var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
+            using (var context = new AccountContext(_options))
+            {
+                // Arrange
+                var accountsModel = _fixture.Create<List<TAccount>>();
+                var accountFirst = accountsModel.FirstOrDefault();
+                var accountDetail = accountFirst?.MapTAccountToAccountDetail();
+                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
 
-            // Act
-            var accounts = await accountRepository.GetAccountDetailAsync(accountFirst.AccountId);
+                // Act
+                var accounts = await accountRepository.GetAccountDetailAsync(accountFirst.AccountId);
 
-            // Assert
-            Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
-            Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
-            Assert.Equal(accountDetail?.Legal?.LegalName, accounts.Legal?.LegalName);
+                // Assert
+                Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
+                Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
+                Assert.Equal(accountDetail?.Legal?.LegalName, accounts.Legal?.LegalName);
+            }
         }
 
         [Fact]
         public async Task Should_GetAccountDetail_ReturnsNotFoundResultAsync()
         {
-            // Arrange
-            var accountsModel = _fixture.Create<List<TAccount>>();
-            var accountFirst = accountsModel.FirstOrDefault();
-            var accountDetail = accountFirst?.MapTAccountToAccountDetail();
-            var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
+            using (var context = new AccountContext(_options))
+            {
+                // Arrange
+                var accountsModel = _fixture.Create<List<TAccount>>();
+                var accountFirst = accountsModel.FirstOrDefault();
+                var accountDetail = accountFirst?.MapTAccountToAccountDetail();
+                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
 
-            // Act
-            Task Accounts() => accountRepository.GetAccountDetailAsync(123);
+                // Act
+                Task Accounts() => accountRepository.GetAccountDetailAsync(123);
 
-            // Assert
-            await Assert.ThrowsAsync<NotFoundException>(Accounts);
+                // Assert
+                await Assert.ThrowsAsync<NotFoundException>(Accounts);
+            }
         }
 
         [Fact]
         public async Task Should_UpdateAccount_ReturnsOkResultAsync()
         {
-            // Arrange
-            var accountsModel = _fixture.Create<List<TAccount>>();
-            var accountFirst = accountsModel.FirstOrDefault();
-            var accountDetail = accountFirst?.MapTAccountToAccountDetail();
-            if(accountDetail?.Accounting != null)
+            using (var context = new AccountContext(_options))
             {
-                accountDetail.Accounting.TaxationSystem = "Impot sur le revenu";
+                // Arrange
+                var accountsModel = _fixture.Create<List<TAccount>>();
+                var accountFirst = accountsModel.FirstOrDefault();
+                var accountDetail = accountFirst?.MapTAccountToAccountDetail();
+                if (accountDetail?.Accounting != null)
+                {
+                    accountDetail.Accounting.TaxationSystem = "Impot sur le revenu";
+                }
+
+                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
+
+                // Act
+                var accounts = await accountRepository.UpdateAccountAsync(accountDetail, accountDetail.AccountId);
+
+                // Assert
+                Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
+                Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
+                Assert.Equal(accountDetail?.Accounting?.TaxationSystem, accounts.Accounting?.TaxationSystem);
             }
-
-            var accountRepository = UnitTestUtils.InitAccountRepository(_fixture, accountsModel);
-
-            // Act
-            var accounts = await accountRepository.UpdateAccountAsync(accountDetail, accountDetail.AccountId);
-
-            // Assert
-            Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
-            Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
-            Assert.Equal(accountDetail?.Accounting?.TaxationSystem, accounts.Accounting?.TaxationSystem);
         }
 
         [Fact]

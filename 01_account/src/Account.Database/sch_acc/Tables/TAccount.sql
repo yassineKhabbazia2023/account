@@ -9,6 +9,7 @@
 [HubId]                     INT               NULL,
 [NafId]                     INT               NOT NULL,
 [IsActive]                  BIT               NOT NULL,
+[IconName]                  VARCHAR(50)       NULL,
 [SourceAccountNumber]       VARCHAR(50)       NOT NULL,
 [SectorCode]                VARCHAR(50)       NULL,
 [Sector]                    VARCHAR(150)      NULL,
@@ -250,6 +251,15 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'TAccount',
     @level2type = N'COLUMN',
     @level2name = N'IsActive'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Le nom d''icon de l''entité',
+    @level0type = N'SCHEMA',
+    @level0name = N'sch_acc',
+    @level1type = N'TABLE',
+    @level1name = N'TAccount',
+    @level2type = N'COLUMN',
+    @level2name = N'IconName'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'L''adresse mail de l''entité',
