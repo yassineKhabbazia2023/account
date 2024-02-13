@@ -2,6 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Entities;
 

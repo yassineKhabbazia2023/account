@@ -15,7 +15,9 @@ using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Retry;
-using Pulse.Account.Core.Models.Constants;
+using Pulse.Account.Core.Constants;
+using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
@@ -138,6 +140,25 @@ namespace Kpmg.Account.Infrastructure.Repositories
                 }
 
                 return await GetAccountDetailAsync(accountId);
+            }).ConfigureAwait(false);
+        }
+
+        public async Task<Statistics> GetStatisticsAsync(int contactId)
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                var entities = _accountContext.TDeploymentPlanning
+                .Join(_accountContext.TRoles,
+                deployment => deployment.AccountId,
+                role => role.AccountId,
+                (deployment, role) => new { deployment, role })
+                .Where(x => x.role.ContactId == contactId)
+                .GroupBy(x => x.deployment.Status)
+                .Select(s => new { Status = s.Key, Count = s.Select(d => d.deployment.Status).Count() });
+
+                var countByStatus = await entities.ToDictionaryAsync(x => x.Status, x => x.Count);
+
+                return MapDbToBusiness.MapStatistics(countByStatus);
             }).ConfigureAwait(false);
         }
 

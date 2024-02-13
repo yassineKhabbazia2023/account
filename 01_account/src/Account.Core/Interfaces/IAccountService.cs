@@ -18,5 +18,7 @@ namespace Pulse.Account.Core.Interfaces
         public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(int contactId);
 
         public void SetFavoriteAsync(int accountId, int contactId, bool isFavorite);
+
+        Task<Statistics> GetStatisticsAsync(int contactId);
     }
 }

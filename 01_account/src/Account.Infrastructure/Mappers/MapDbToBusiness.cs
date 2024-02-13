@@ -155,5 +155,20 @@ namespace Pulse.Account.Infrastructure.Mappers
                 }
             };
         }
+
+        public static Statistics MapStatistics(Dictionary<int, int> countByStatus)
+        {
+            if (countByStatus == null || countByStatus.Count == 0)
+            {
+                return new Statistics();
+            }
+
+            return new Statistics
+            {
+                AccountToDeploy = countByStatus.TryGetValue(0, out var toDeploy) ? toDeploy : 0,
+                AccountInProgress = countByStatus.TryGetValue(1, out var inProgress) ? inProgress : 0,
+                AccountConnected = countByStatus.TryGetValue(2, out var connected) ? connected : 0
+            };
+        }
     }
 }
