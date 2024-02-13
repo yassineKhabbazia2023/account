@@ -2,7 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-namespace Pulse.Account.Core.Models;
+namespace Pulse.Account.Core.Constants;
 
 public enum DelegationStatus
 {

@@ -3,13 +3,14 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
+using Kpmg.Account.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Services;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Repositories;
 
-namespace Pulses.Account.API.Configuration
+namespace Pulse.Account.API.Configuration
 {
     [ExcludeFromCodeCoverage]
     public static class ServicesConfiguration
@@ -26,7 +27,6 @@ namespace Pulses.Account.API.Configuration
         {
             ArgumentNullException.ThrowIfNull(configuration);
             var connectionString = configuration["SqlAccountConnectionString"];
-
             ArgumentNullException.ThrowIfNullOrEmpty(connectionString);
             services.AddDbContextPool<AccountContext>(options =>
             {

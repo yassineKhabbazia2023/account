@@ -10,111 +10,163 @@ namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapDbToBusiness
     {
-        public static AccountModel TAccountToAccountModel(this TAccount source, int contactId)
+        public static AccountModel MapTAccountToAccountModel(this TAccount source, int contactId)
         {
-            var roleSignatory = source.TRoles.FirstOrDefault(role => role.IsSignatory == true);
-            var roleConnectedContact = source.TRoles?.FirstOrDefault(role => role.ContactId == contactId);
-            return new AccountModel()
+            var accountModel = new AccountModel();
+            if (source != null)
             {
-                AccountId = source.AccountId,
-                AccountNumber = source.AccountNumber,
-                LegalName = source.LegalName,
-                IsFavorite = roleConnectedContact != null ? roleConnectedContact?.IsFavorite : false,
-                Address = source.TAddress?.Select(address => new Address()
-                {
-                    AddressId = address.AddressId,
-                    City = address.City,
-                    AddressType = address.AddressType
-                }).ToList(),
-                Signatory = new Signatory()
-                {
-                    ContactEmail = roleSignatory?.Contact.ContactEmail,
-                    FirstName = roleSignatory?.Contact.FirstName,
-                    LastName = roleSignatory?.Contact.LastName
-                },
-                Deployment = source.TDeploymentPlanning?.Select(deploymentPlanning =>
-                    new Deployment()
-                    {
-                        DeploymentId = deploymentPlanning.DeploymentId,
-                        DeploymentDate = deploymentPlanning.DeploymentDate,
-                        Status = deploymentPlanning.Status
-                    }).ToList()
+                var roleSignatory = source.TRoles.FirstOrDefault(role => role.IsSignatory == true);
+                var roleConnectedContact = source.TRoles?.FirstOrDefault(role => role.ContactId == contactId);
+
+                accountModel.AccountId = source.AccountId;
+                accountModel.AccountNumber = source.AccountNumber;
+                accountModel.LegalName = source.LegalName;
+                accountModel.IsFavorite = roleConnectedContact?.IsFavorite;
+                accountModel.Address = source.MapAddress();
+                accountModel.Signatory = roleSignatory?.Contact.MapSignatory();
+                accountModel.Deployment = source.MapDeploymentPlanning();
+            }
+
+            return accountModel;
+        }
+
+        public static AccountDetail? MapTAccountToAccountDetail(this TAccount source)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            var accountDetail = new AccountDetail();
+            accountDetail.AccountId = source.AccountId;
+            accountDetail.AccountNumber = source.AccountNumber;
+            accountDetail.AccountNumberSource = source.SourceAccountNumber;
+            accountDetail.IconName = source.IconName;
+            accountDetail.IsActive = source.IsActive;
+            accountDetail.Email = source.Email;
+            accountDetail.EmployeeCount = source.StaffSize;
+            accountDetail.CommercialName = source.CommercialName;
+            accountDetail.Accounting = source.MapAccounting();
+            accountDetail.Legal = source.MapLegal();
+            accountDetail.Vat = source.MapVat();
+            accountDetail.Address = source.MapAddress();
+            accountDetail.Phone = source.MapPhone();
+            accountDetail.Hub = source.MapHub();
+            accountDetail.DeploymentPlanning = source.MapDeploymentPlanning();
+
+            return accountDetail;
+        }
+
+        private static Signatory? MapSignatory(this TContact tContact)
+        {
+            return tContact == null ? null : new Signatory()
+            {
+                ContactEmail = tContact.ContactEmail,
+                FirstName = tContact.FirstName,
+                LastName = tContact.LastName
             };
         }
 
-        public static AccountDetail? TAccountToAccountDetail(this TAccount source)
+        private static ICollection<Deployment>? MapDeploymentPlanning(this TAccount tAccount)
         {
-            return source == null ? null :
-                new AccountDetail()
+            return tAccount.TDeploymentPlanning == null ? Array.Empty<Deployment>() : tAccount.TDeploymentPlanning.Select(deployment => new Deployment()
+            {
+                DeploymentId = deployment.DeploymentId,
+                DeploymentDate = deployment.DeploymentDate,
+                Status = deployment.Status,
+            }).ToList();
+        }
+
+        private static ICollection<Phone>? MapPhone(this TAccount tAccount)
+        {
+            return tAccount.TPhone == null ? Array.Empty<Phone>() : tAccount.TPhone.Select(phone => new Phone()
+            {
+                PhoneId = phone.PhoneId,
+                PhoneNumber = phone.PhoneNumber,
+                Type = phone.Type,
+            }).ToList();
+        }
+
+        private static ICollection<Address>? MapAddress(this TAccount tAccount)
+        {
+            return tAccount.TAddress == null ? Array.Empty<Address>() : tAccount.TAddress.Select(address => new Address()
+            {
+                AddressId = address.AddressId,
+                Country = address.Country,
+                City = address.City,
+                State = address.State,
+                Street = address.Street,
+                ZipCode = address.ZipCode,
+                AddressType = address.AddressType
+            }).ToList();
+        }
+
+        private static Hub MapHub(this TAccount tAccount)
+        {
+            return new Hub()
+            {
+                HubId = tAccount.Hub?.HubId,
+                HubName = tAccount.Hub?.HubName,
+            };
+        }
+
+        private static Vat MapVat(this TAccount tAccount)
+        {
+            return new Vat()
+            {
+                System = tAccount.VAT,
+                Intra = tAccount.VATIntra,
+                Type = tAccount.VATType,
+            };
+        }
+
+        private static Accounting MapAccounting(this TAccount tAccount)
+        {
+            return new Accounting()
+            {
+                FiscalExerciseStartDate = tAccount.FiscalExerciseStartDate,
+                FiscalExerciseDuration = tAccount.FiscalExerciseDuration,
+                AccountingType = tAccount.AccountType,
+                FiscalSystem = tAccount.FiscalSystem,
+                TaxationSystem = tAccount.TaxationSystem,
+            };
+        }
+
+        private static Legal MapLegal(this TAccount tAccount)
+        {
+            return new Legal()
+            {
+                LegalName = tAccount.LegalName,
+                Siren = tAccount.ISIN,
+                Siret = tAccount.Siret,
+                LegalForm = tAccount.LegalForm,
+                LegalFormCode = tAccount.LegalFormCode,
+                StaffSizeRange = tAccount.StaffSizeRange,
+                Naf = new List<Naf>()
                 {
-                    AccountId = source.AccountId,
-                    AccountNumber = source.AccountNumber,
-                    AccountNumberSource = source.SourceAccountNumber,
-                    IconName = source.IconName,
-                    IsActive = source.IsActive,
-                    Email = source?.Email,
-                    EmployeeCount = source!.StaffSize,
-                    CommercialName = source.CommercialName,
-                    Accounting = new Accounting()
+                    new Naf()
                     {
-                        FiscalExerciseStartDate = source.FiscalExerciseStartDate,
-                        FiscalExerciseDuration = source.FiscalExerciseDuration,
-                        AccountingType = source.AccountType,
-                        FiscalSystem = source.FiscalSystem,
-                        TaxationSystem = source.TaxationSystem,
-                    },
-                    Legal = new Legal()
-                    {
-                        LegalName = source.LegalName,
-                        Siren = source.ISIN,
-                        Siret = source.Siret,
-                        LegalForm = source.LegalForm,
-                        LegalFormCode = source.LegalFormCode,
-                        StaffSizeRange = source.StaffSizeRange,
-                        Naf = new List<Naf>()
-                    {
-                        new Naf()
-                        {
-                            NafId = source.NafId,
-                            NafCode = source.SectorCode,
-                            NafLabel = source.ActivityDescription
-                        }
+                        NafId = tAccount.NafId,
+                        NafCode = tAccount.SectorCode,
+                        NafLabel = tAccount.ActivityDescription
                     }
-                    },
-                    Vat = new Vat()
-                    {
-                        System = source.VAT,
-                        Intra = source.VATIntra,
-                        Type = source.VATType,
-                    },
-                    Address = source.TAddress.Select(address => new Address()
-                    {
-                        AddressId = address.AddressId,
-                        Country = address.Country,
-                        City = address.City,
-                        State = address.State,
-                        Street = address.Street,
-                        ZipCode = address.ZipCode,
-                        AddressType = address.AddressType
-                    }).ToList(),
-                    Phone = source.TPhone.Select(phone => new Phone()
-                    {
-                        PhoneId = phone.PhoneId,
-                        PhoneNumber = phone.PhoneNumber,
-                        Type = phone.Type,
-                    }).ToList(),
-                    Hub = new Hub()
-                    {
-                        HubId = source.Hub?.HubId,
-                        HubName = source.Hub?.HubName,
-                    },
-                    DeploymentPlanning = source.TDeploymentPlanning.Select(deployment => new Deployment()
-                    {
-                        DeploymentId = deployment.DeploymentId,
-                        DeploymentDate = deployment.DeploymentDate,
-                        Status = deployment.Status,
-                    }).ToList()
-                };
+                }
+            };
+        }
+
+        public static Statistics MapStatistics(Dictionary<int, int> countByStatus)
+        {
+            if (countByStatus == null || countByStatus.Count == 0)
+            {
+                return new Statistics();
+            }
+
+            return new Statistics
+            {
+                AccountToDeploy = countByStatus.TryGetValue(0, out var toDeploy) ? toDeploy : 0,
+                AccountInProgress = countByStatus.TryGetValue(1, out var inProgress) ? inProgress : 0,
+                AccountConnected = countByStatus.TryGetValue(2, out var connected) ? connected : 0
+            };
         }
     }
 }

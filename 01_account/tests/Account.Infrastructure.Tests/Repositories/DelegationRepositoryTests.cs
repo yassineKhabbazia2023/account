@@ -5,8 +5,9 @@
 using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
-using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Requests;
+using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
 

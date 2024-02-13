@@ -2,6 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Entities;
 
@@ -57,7 +58,7 @@ public static class DelegationMapper
             };
     }
 
-    public static IReadOnlyCollection<Address> ToAddress(this ICollection<TAddress> source)
+    public static ICollection<Address> ToAddress(this ICollection<TAddress> source)
     {
         return source?.Select(d => d.ToAddress() !).ToList() ?? new List<Address>();
     }

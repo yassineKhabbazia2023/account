@@ -2,18 +2,19 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-namespace Pulse.Account.Infrastructure.Utils;
-
-public static class AccountUtils
+namespace Pulse.Account.Infrastructure.Utils
 {
-    public static float CalculTotalPage(int count, int limit)
+    public static class AccountUtils
     {
-        if(count != 0)
+        public static float CalculTotalPage(int count, int limit)
         {
-            var size = limit > count ? count : (float)limit;
-            return count / size;
-        }
+            if(count != 0)
+            {
+                var size = limit > count ? count : (float)limit;
+                return count / size;
+            }
 
-        return 0;
+            return 0;
+        }
     }
 }

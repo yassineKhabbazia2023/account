@@ -2,9 +2,8 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using System.Diagnostics.Contracts;
-using System.Security.Principal;
 using System.Text.Json.Serialization;
+using Pulse.Account.Core.Constants;
 
 namespace Pulse.Account.Core.Models;
 
