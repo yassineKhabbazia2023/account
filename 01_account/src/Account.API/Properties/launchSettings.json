@@ -8,7 +8,7 @@
       "applicationUrl": "https://localhost:7248;http://localhost:5248",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "SqlAccountConnectionString": "Server=tcp:frdev33accsql01.database.windows.net,1433;Initial Catalog=frdev33accsqldb01account;Persist Security Info=False;User ID=fr-cld-jnantenaina@kpmg.fr;Password=CN4V2pnv38E4xNk7;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Authentication=Active Directory Password"
+        "SqlAccountConnectionString": "Data Source=(LocalDB)\\MSSQLLocalDB;Initial Catalog=account;Integrated Security=True;Connect Timeout=60;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False"
       }
     }
   }

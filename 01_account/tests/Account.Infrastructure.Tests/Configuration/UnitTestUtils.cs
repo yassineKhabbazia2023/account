@@ -4,13 +4,9 @@
 
 using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
-using Microsoft.EntityFrameworkCore;
-using MockQueryable.Moq;
-using Moq;
-using Pulse.Account.Infrastructure.Entities;
-using Kpmg.Account.Infrastructure.Repositories;
 using Pulse.Account.Infrastructure.Context;
-using System.Data;
+using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Repositories;
 
 namespace Pulse.Account.Infrastructure.Tests.Configuration
 {

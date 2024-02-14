@@ -4,14 +4,9 @@
 
 using System.Data;
 using System.Net;
-using Azure;
-using Pulse.Account.Core.Interfaces;
-using Pulse.Account.Core.Models;
-using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Retry;
@@ -26,7 +21,7 @@ using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Utils;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
-namespace Kpmg.Account.Infrastructure.Repositories
+namespace Pulse.Account.Infrastructure.Repositories
 {
     public class AccountRepository : IAccountRepository
     {
@@ -70,7 +65,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
 
                 var pageinateResult = new Paging<AccountModel>()
                 {
-                    Items = entities.Select(entity => entity.MapTAccountToAccountModel(contactId)),
+                    Items = entities.Select(entity => entity.MapTAccountToAccountModel()),
                     CurrentPage = page,
                     TotalItems = count,
                     TotalPage = (int)Math.Ceiling(totalPageCalcul)

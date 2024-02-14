@@ -3,16 +3,16 @@
 // </copyright>
 
 using AutoFixture;
-using Pulse.Account.Infrastructure.Tests.Configuration;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
+using Pulse.Account.Infrastructure.Repositories;
+using Pulse.Account.Infrastructure.Tests.Configuration;
 using AccountModel = Pulse.Account.Core.Models.Account;
-using Microsoft.EntityFrameworkCore;
-using Kpmg.Account.Infrastructure.Repositories;
-using Pulse.Account.Infrastructure.Context;
 
 namespace Kpmg.Account.Infrastructure.Tests.Repositories
 {
@@ -39,7 +39,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                 // Arrange
                 var accountsModel = _fixture.Create<List<TAccount>>();
                 var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
-                var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel(123));
+                var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel());
                 Paging<AccountModel> accountPaging = new Paging<AccountModel>()
                 {
                     CurrentPage = 1,
