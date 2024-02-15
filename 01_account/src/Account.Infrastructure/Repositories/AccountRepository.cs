@@ -111,25 +111,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 var existingAccountItem = await existingAccounts.FirstOrDefaultAsync();
                 if (existingAccountItem != null)
                 {
-                    if (accountDetail.Legal != null)
-                    {
-                        existingAccountItem.LegalForm = accountDetail.Legal.LegalForm;
-                        existingAccountItem.StaffSizeRange = accountDetail.Legal.StaffSizeRange;
-                        existingAccountItem.ActivityDescription = accountDetail.Legal.Naf?.FirstOrDefault()?.NafLabel;
-                    }
-
-                    if (accountDetail.Accounting != null)
-                    {
-                        existingAccountItem.FiscalExerciseStartDate = accountDetail.Accounting.FiscalExerciseStartDate;
-                        existingAccountItem.FiscalExerciseDuration = accountDetail.Accounting.FiscalExerciseDuration;
-                        existingAccountItem.AccountingMethod = accountDetail.Accounting.AccountingType;
-                        existingAccountItem.FiscalSystem = accountDetail.Accounting.FiscalSystem;
-                        existingAccountItem.TaxationSystem = accountDetail.Accounting.TaxationSystem;
-                    }
-
-                    existingAccountItem.HubId = accountDetail.Hub?.HubId;
-                    existingAccountItem.VAT = accountDetail.Vat?.System;
-                    existingAccountItem.VATType = accountDetail.Vat?.Type;
+                    existingAccountItem.MapUpdatedAccount(accountDetail);
 
                     _accountContext.TAccount.Update(existingAccountItem);
                     await _accountContext.SaveChangesAsync();
@@ -173,6 +155,25 @@ namespace Pulse.Account.Infrastructure.Repositories
                     });
 
                 return accountFavorite;
+            }).ConfigureAwait(false);
+        }
+
+        public async Task UpdateAccountFavoriteAsync(int accountId, int contactId, bool isFavorite)
+        {
+            await _retryPolicy.ExecuteAsync(async () =>
+            {
+                var existingRole = from role in _accountContext.TRoles
+                                       where role.AccountId.Equals(accountId) && role.ContactId.Equals(contactId)
+                                       select role;
+
+                var existingRoleItem = await existingRole.FirstOrDefaultAsync();
+                if (existingRoleItem != null)
+                {
+                    existingRoleItem.IsFavorite = isFavorite;
+                    _accountContext.TRoles.Update(existingRoleItem);
+                    await _accountContext.SaveChangesAsync();
+                }
+
             }).ConfigureAwait(false);
         }
 

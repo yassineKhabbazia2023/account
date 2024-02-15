@@ -220,5 +220,28 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 Assert.Contains(accountReceived, accountExpect);
             }
         }
+
+        [Fact]
+        public async Task Should_UpdateAccountFavoriteAsync_ReturnsOkResultAsync()
+        {
+            using (var context = new AccountContext(_options))
+            {
+                // Arrange
+                var accountsModel = _fixture.Create<List<TAccount>>();
+                accountsModel.ForEach(account => account.TRoles.First().IsFavorite = true);
+                context.TAccount.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+
+                var role = accountsModel.Select(account => account.TRoles.Where(role => role.IsFavorite == true).Select(role => role).First()).First();
+                var accountRepository = new AccountRepository(context);
+
+                // Act
+                await accountRepository.UpdateAccountFavoriteAsync(role.AccountId, role.ContactId, false);
+                var accountFavorite = await accountRepository.GetAccountsFavoriteAsync(role.ContactId);
+
+                // Assert
+                Assert.Empty(accountFavorite);
+            }
+        }
     }
 }

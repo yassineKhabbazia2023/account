@@ -44,9 +44,9 @@ namespace Pulse.Account.Core.Services
             return accountFavorite;
         }
 
-        public void SetFavoriteAsync(int accountId, int contactId, bool isFavorite)
+        public async Task SetFavoriteAsync(int accountId, int contactId, bool isFavorite)
         {
-            // implement set favorite function
+            await _accountRepository.UpdateAccountFavoriteAsync(accountId, contactId, isFavorite);
         }
 
         public async Task<Statistics> GetStatisticsAsync(int contactId)

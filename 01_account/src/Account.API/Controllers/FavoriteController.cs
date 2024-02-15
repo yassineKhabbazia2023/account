@@ -47,9 +47,9 @@ namespace Pulse.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult SetFavoriteAsync(int accountId, [Required] int contactId, [Required] bool isFavorite)
+        public async Task<ActionResult> SetFavoriteAsync(int accountId, [Required] int contactId, [Required] bool isFavorite)
         {
-            _accountService.SetFavoriteAsync(accountId, contactId, isFavorite);
+            await _accountService.SetFavoriteAsync(accountId, contactId, isFavorite);
 
             return Ok();
         }

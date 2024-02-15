@@ -110,5 +110,19 @@ namespace Pulse.Account.Core.Tests.Services
             // Assert
             Assert.Equal(accountFavoriteList, accountsFavorite);
         }
+
+        [Fact]
+        public async Task Should_SetAccountFavorite_ReturnsOkResultAsync()
+        {
+            _accountRepository.Setup(repository => repository.UpdateAccountFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
+
+            var accountService = new AccountService(_accountRepository.Object);
+
+            // Act
+            await accountService.SetFavoriteAsync(accountId: 1, contactId: 1, true);
+
+            // Assert
+            _accountRepository.Verify(x => x.UpdateAccountFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Once);
+        }
     }
 }

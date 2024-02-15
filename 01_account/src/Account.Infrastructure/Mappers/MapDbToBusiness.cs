@@ -168,5 +168,28 @@ namespace Pulse.Account.Infrastructure.Mappers
                 AccountConnected = countByStatus.TryGetValue(2, out var connected) ? connected : 0
             };
         }
+
+        public static void MapUpdatedAccount(this TAccount existingAccountItem, AccountDetail accountDetail)
+        {
+            if (accountDetail.Legal != null)
+            {
+                existingAccountItem.LegalForm = accountDetail.Legal.LegalForm;
+                existingAccountItem.StaffSizeRange = accountDetail.Legal.StaffSizeRange;
+                existingAccountItem.ActivityDescription = accountDetail.Legal.Naf?.FirstOrDefault()?.NafLabel;
+            }
+
+            if (accountDetail.Accounting != null)
+            {
+                existingAccountItem.FiscalExerciseStartDate = accountDetail.Accounting.FiscalExerciseStartDate;
+                existingAccountItem.FiscalExerciseDuration = accountDetail.Accounting.FiscalExerciseDuration;
+                existingAccountItem.AccountingMethod = accountDetail.Accounting.AccountingType;
+                existingAccountItem.FiscalSystem = accountDetail.Accounting.FiscalSystem;
+                existingAccountItem.TaxationSystem = accountDetail.Accounting.TaxationSystem;
+            }
+
+            existingAccountItem.HubId = accountDetail.Hub?.HubId;
+            existingAccountItem.VAT = accountDetail.Vat?.System;
+            existingAccountItem.VATType = accountDetail.Vat?.Type;
+        }
     }
 }

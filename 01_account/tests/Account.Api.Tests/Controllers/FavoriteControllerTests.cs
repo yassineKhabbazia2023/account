@@ -2,6 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
@@ -45,6 +46,22 @@ namespace Account.Api.Tests.Controllers
 
             // Assert
             Assert.Equal(accountJson, resultAccounts?.Value);
+        }
+
+        [Fact]
+        public async Task Should_SetFavoriteList_ReturnsOkResultAsync()
+        {
+            // Arrange
+            _accountService.Setup(service => service.SetFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
+
+            var favoriteController = new FavoriteController(_accountService.Object);
+
+            // Act
+            var result = await favoriteController.SetFavoriteAsync(accountId: 5, contactId: 1, true);
+            var resultAccounts = result as OkResult;
+
+            // Assert
+            Assert.Equal(200, resultAccounts?.StatusCode);
         }
     }
 }
