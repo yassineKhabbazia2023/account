@@ -3,7 +3,6 @@
 // </copyright>
 
 using AutoFixture;
-using Pulse.Account.Infrastructure.Tests.Configuration;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models.Utils;
@@ -13,8 +12,9 @@ using AccountModel = Pulse.Account.Core.Models.Account;
 using Microsoft.EntityFrameworkCore;
 using Kpmg.Account.Infrastructure.Repositories;
 using Pulse.Account.Infrastructure.Context;
+using Pulse.Account.Core.Models;
 
-namespace Kpmg.Account.Infrastructure.Tests.Repositories
+namespace Pulse.Account.Infrastructure.Tests.Repositories
 {
     public class AccountRepositoryTests
     {
@@ -38,8 +38,11 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
             {
                 // Arrange
                 var accountsModel = _fixture.Create<List<TAccount>>();
-                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
-                var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel(123));
+                context.TAccount.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+                var accountRepository = new AccountRepository(context);
+                var contactId = accountsModel.Select(account => account.TRoles.Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
+                var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel(contactId));
                 Paging<AccountModel> accountPaging = new Paging<AccountModel>()
                 {
                     CurrentPage = 1,
@@ -49,7 +52,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                 };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(search: accountObject.Select(a => a.LegalName).First(), contactId: 123, page: 1, limit: 4);
+                var accounts = await accountRepository.GetAccountsAsync(search: accountObject.Select(a => a.LegalName).First(), page: 1, limit: 4, contactId);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -67,7 +70,9 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                 var accountsModel = _fixture.Create<List<TAccount>>();
                 var accountFirst = accountsModel.FirstOrDefault();
                 var accountDetail = accountFirst?.MapTAccountToAccountDetail();
-                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
+                context.TAccount.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+                var accountRepository = new AccountRepository(context);
 
                 // Act
                 var accounts = await accountRepository.GetAccountDetailAsync(accountFirst.AccountId);
@@ -86,9 +91,9 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
             {
                 // Arrange
                 var accountsModel = _fixture.Create<List<TAccount>>();
-                var accountFirst = accountsModel.FirstOrDefault();
-                var accountDetail = accountFirst?.MapTAccountToAccountDetail();
-                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
+                context.TAccount.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+                var accountRepository = new AccountRepository(context);
 
                 // Act
                 Task Accounts() => accountRepository.GetAccountDetailAsync(123);
@@ -112,7 +117,9 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                     accountDetail.Accounting.TaxationSystem = "Impot sur le revenu";
                 }
 
-                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
+                context.TAccount.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+                var accountRepository = new AccountRepository(context);
 
                 // Act
                 var accounts = await accountRepository.UpdateAccountAsync(accountDetail, accountDetail.AccountId);
@@ -181,6 +188,36 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                 Assert.Equal(0, result.AccountToDeploy);
                 Assert.Equal(1, result.AccountConnected);
                 Assert.Equal(2, result.AccountInProgress);
+            }
+        }
+
+        [Fact]
+        public async Task Should_GetAccountFavoriteList_ReturnsOkResultAsync()
+        {
+            using (var context = new AccountContext(_options))
+            {
+                // Arrange
+                var accountsModel = _fixture.Create<List<TAccount>>();
+                accountsModel.ForEach(account => account.TRoles.First().IsFavorite = true);
+                context.TAccount.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+                var contactId = accountsModel.Select(account => account.TRoles.Where(role => role.IsFavorite == true).Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
+                var accountRepository = new AccountRepository(context);
+
+                var expectedAccount = accountsModel.Select(entity => new AccountFavorite()
+                {
+                    AccountId = entity.AccountId,
+                    LegalName = entity.LegalName,
+                    IconName = entity.IconName
+                });
+
+                // Act
+                var accounts = await accountRepository.GetAccountsFavoriteAsync(contactId);
+
+                // Assert
+                var accountExpect = JsonConvert.SerializeObject(expectedAccount);
+                var accountReceived = JsonConvert.SerializeObject(accounts.FirstOrDefault());
+                Assert.Contains(accountReceived, accountExpect);
             }
         }
     }

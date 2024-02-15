@@ -67,27 +67,27 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static ICollection<Deployment>? MapDeploymentPlanning(this TAccount tAccount)
+        private static IEnumerable<Deployment>? MapDeploymentPlanning(this TAccount tAccount)
         {
             return tAccount.TDeploymentPlanning == null ? Array.Empty<Deployment>() : tAccount.TDeploymentPlanning.Select(deployment => new Deployment()
             {
                 DeploymentId = deployment.DeploymentId,
                 DeploymentDate = deployment.DeploymentDate,
                 Status = deployment.Status,
-            }).ToList();
+            });
         }
 
-        private static ICollection<Phone>? MapPhone(this TAccount tAccount)
+        private static IEnumerable<Phone>? MapPhone(this TAccount tAccount)
         {
             return tAccount.TPhone == null ? Array.Empty<Phone>() : tAccount.TPhone.Select(phone => new Phone()
             {
                 PhoneId = phone.PhoneId,
                 PhoneNumber = phone.PhoneNumber,
                 Type = phone.Type,
-            }).ToList();
+            });
         }
 
-        private static ICollection<Address>? MapAddress(this TAccount tAccount)
+        private static IEnumerable<Address>? MapAddress(this TAccount tAccount)
         {
             return tAccount.TAddress == null ? Array.Empty<Address>() : tAccount.TAddress.Select(address => new Address()
             {
@@ -98,7 +98,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 Street = address.Street,
                 ZipCode = address.ZipCode,
                 AddressType = address.AddressType
-            }).ToList();
+            });
         }
 
         private static Hub MapHub(this TAccount tAccount)
@@ -126,7 +126,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             {
                 FiscalExerciseStartDate = tAccount.FiscalExerciseStartDate,
                 FiscalExerciseDuration = tAccount.FiscalExerciseDuration,
-                AccountingType = tAccount.AccountType,
+                AccountingType = tAccount.AccountingMethod,
                 FiscalSystem = tAccount.FiscalSystem,
                 TaxationSystem = tAccount.TaxationSystem,
             };
@@ -147,7 +147,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                     new Naf()
                     {
                         NafId = tAccount.NafId,
-                        NafCode = tAccount.SectorCode,
+                        NafCode = tAccount.Naf?.NafCode,
                         NafLabel = tAccount.ActivityDescription
                     }
                 }

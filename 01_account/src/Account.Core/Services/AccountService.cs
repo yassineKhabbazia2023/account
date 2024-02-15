@@ -38,11 +38,10 @@ namespace Pulse.Account.Core.Services
             return await _accountRepository.UpdateAccountAsync(accountDetail, id);
         }
 
-        public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(int contactId)
+        public async Task<IEnumerable<AccountFavorite>> GetAccountFavoritesAsync(int contactId)
         {
-            string accountFavoriteMocked = File.ReadAllText(@"./MockedResponses/AccountFavoriteMocked.json");
-            var accountFavoriteList = JsonSerializer.Deserialize<IReadOnlyCollection<AccountFavorite>>(accountFavoriteMocked, _jsonOptions);
-            return accountFavoriteList ?? new List<AccountFavorite>();
+            var accountFavorite = await _accountRepository.GetAccountsFavoriteAsync(contactId);
+            return accountFavorite;
         }
 
         public void SetFavoriteAsync(int accountId, int contactId, bool isFavorite)

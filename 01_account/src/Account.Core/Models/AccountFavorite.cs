@@ -6,10 +6,10 @@ namespace Pulse.Account.Core.Models
 {
     public class AccountFavorite
     {
-        public string? AccountId { get; set; }
+        public int? AccountId { get; set; }
 
         public string? LegalName { get; set; }
 
-        public string? Icon { get; set; }
+        public string? IconName { get; set; }
     }
 }

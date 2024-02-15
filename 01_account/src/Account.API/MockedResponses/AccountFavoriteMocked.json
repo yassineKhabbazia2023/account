@@ -2,16 +2,16 @@
   {
     "accountId": 100,
     "legalName": "JEAN LEVAGE",
-    "icon": "jeanlevage"
+    "iconName": "jeanlevage"
   },
   {
     "accountId": 150,
     "legalName": "SAS Cadegau",
-    "icon": "sascadegau"
+    "iconName": "sascadegau"
   },
   {
     "accountId": 152,
     "legalName": "EURL Au Salon de Laura",
-    "icon": "eurlausalondelaura"
+    "iconName": "eurlausalondelaura"
   }
 ]

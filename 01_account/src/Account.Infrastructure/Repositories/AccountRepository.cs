@@ -7,17 +7,13 @@ using System.Net;
 using Azure;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
-using Pulse.Account.Core.Interfaces;
-using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
@@ -120,7 +116,7 @@ namespace Kpmg.Account.Infrastructure.Repositories
                     {
                         existingAccountItem.LegalForm = accountDetail.Legal.LegalForm;
                         existingAccountItem.StaffSizeRange = accountDetail.Legal.StaffSizeRange;
-                        existingAccountItem.ActivityType = accountDetail.Legal.Naf?.FirstOrDefault()?.NafLabel;
+                        existingAccountItem.ActivityDescription = accountDetail.Legal.Naf?.FirstOrDefault()?.NafLabel;
                     }
 
                     if (accountDetail.Accounting != null)
@@ -160,6 +156,24 @@ namespace Kpmg.Account.Infrastructure.Repositories
                 var countByStatus = await entities.ToDictionaryAsync(x => x.Status, x => x.Count);
 
                 return MapDbToBusiness.MapStatistics(countByStatus);
+            }).ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<AccountFavorite>> GetAccountsFavoriteAsync(int contactId)
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                var entities = GetAccountQueryByContactId(contactId);
+                var accountFavorite = entities
+                    .Where(entity => entity.TRoles.Any(role => role.IsFavorite == true))
+                    .Select(entity => new AccountFavorite()
+                    {
+                        AccountId = entity.AccountId,
+                        LegalName = entity.LegalName,
+                        IconName = entity.IconName
+                    });
+
+                return accountFavorite;
             }).ConfigureAwait(false);
         }
 
