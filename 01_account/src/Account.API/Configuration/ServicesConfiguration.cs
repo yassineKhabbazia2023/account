@@ -3,7 +3,6 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
-using Kpmg.Account.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Services;
@@ -21,6 +20,8 @@ namespace Pulse.Account.API.Configuration
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IDelegationService, DelegationService>();
             services.AddScoped<IDelegationRepository, DelegationRepository>();
+            services.AddScoped<IRolesService, RolesService>();
+            services.AddScoped<IRolesRepository, RolesRepository>();
         }
 
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)

@@ -4,14 +4,14 @@
 
 using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
+using Pulse.Account.Infrastructure.Repositories;
 using AccountModel = Pulse.Account.Core.Models.Account;
-using Microsoft.EntityFrameworkCore;
-using Kpmg.Account.Infrastructure.Repositories;
-using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Core.Models;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories
@@ -42,7 +42,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 await context.SaveChangesAsync();
                 var accountRepository = new AccountRepository(context);
                 var contactId = accountsModel.Select(account => account.TRoles.Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
-                var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel(contactId));
+                var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel());
                 Paging<AccountModel> accountPaging = new Paging<AccountModel>()
                 {
                     CurrentPage = 1,

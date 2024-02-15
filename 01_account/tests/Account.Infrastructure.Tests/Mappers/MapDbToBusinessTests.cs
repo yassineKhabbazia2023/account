@@ -48,7 +48,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             });
 
             // Act
-            var accountModel = MapDbToBusiness.MapTAccountToAccountModel(tAccountFixture, 123);
+            var accountModel = MapDbToBusiness.MapTAccountToAccountModel(tAccountFixture);
 
             // Assert
             var accountAddressExpect = JsonConvert.SerializeObject(expectedAccount.Address);

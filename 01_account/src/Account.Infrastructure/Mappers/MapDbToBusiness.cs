@@ -10,13 +10,13 @@ namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapDbToBusiness
     {
-        public static AccountModel MapTAccountToAccountModel(this TAccount source, int contactId)
+        public static AccountModel MapTAccountToAccountModel(this TAccount source)
         {
             var accountModel = new AccountModel();
             if (source != null)
             {
                 var roleSignatory = source.TRoles.FirstOrDefault(role => role.IsSignatory == true);
-                var roleConnectedContact = source.TRoles?.FirstOrDefault(role => role.ContactId == contactId);
+                var roleConnectedContact = source.TRoles?.FirstOrDefault();
 
                 accountModel.AccountId = source.AccountId;
                 accountModel.AccountNumber = source.AccountNumber;
