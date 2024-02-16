@@ -32,7 +32,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task Should_GetAccountList_ReturnsOkResultAsync()
+        public async Task GetAccountList_Should_ReturnsOkResultAsync()
         {
             using (var context = new AccountContext(_options))
             {
@@ -62,7 +62,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task Should_GetAccountDetail_ReturnsOkResultAsync()
+        public async Task GetAccountDetail_Should_ReturnsOkResultAsync()
         {
             using (var context = new AccountContext(_options))
             {
@@ -85,7 +85,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task Should_GetAccountDetail_ReturnsNotFoundResultAsync()
+        public async Task GetAccountDetail_Should_ReturnsNotFoundResultAsync()
         {
             using (var context = new AccountContext(_options))
             {
@@ -104,7 +104,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task Should_UpdateAccount_ReturnsOkResultAsync()
+        public async Task UpdateAccount_Should_ReturnsOkResultAsync()
         {
             using (var context = new AccountContext(_options))
             {
@@ -192,7 +192,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task Should_GetAccountFavoriteList_ReturnsOkResultAsync()
+        public async Task GetAccountFavoriteList_Should_ReturnsOkResultAsync()
         {
             using (var context = new AccountContext(_options))
             {
@@ -222,7 +222,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task Should_UpdateAccountFavoriteAsync_ReturnsOkResultAsync()
+        public async Task UpdateAccountFavoriteAsync_Should_ReturnsOkResultAsync()
         {
             using (var context = new AccountContext(_options))
             {

@@ -28,7 +28,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void Given_TAccount_MapTAccountToAccountModel_Should_Return_AccountModel()
+        public void MapTAccountToAccountModel_Should_Return_AccountModel()
         {
             // Arrange
             var tAccountFixture = _fixture.Create<TAccount>();
@@ -60,7 +60,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void Given_TAccount_MapTAccountToAccountDetail_Should_Return_AccountDetail()
+        public void MapTAccountToAccountDetail_Should_Return_AccountDetail()
         {
             // Arrange
             var tAccountFixture = _fixture.Create<TAccount>();

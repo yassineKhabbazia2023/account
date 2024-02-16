@@ -23,7 +23,7 @@ namespace Account.Api.Tests.Controllers
         }
 
         [Fact]
-        public async Task Should_GetAccountFavoriteList_ReturnsOkResultAsync()
+        public async Task GetAccountFavorites_Should_ReturnsOkResultAsync()
         {
             // Arrange
             var accountJson = new List<AccountFavorite>()
@@ -49,7 +49,7 @@ namespace Account.Api.Tests.Controllers
         }
 
         [Fact]
-        public async Task Should_SetFavoriteList_ReturnsOkResultAsync()
+        public async Task SetFavorite_Should_ReturnsOkResultAsync()
         {
             // Arrange
             _accountService.Setup(service => service.SetFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>())).Returns(Task.CompletedTask);

@@ -96,7 +96,7 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         [Fact]
-        public async Task Given_ContactId_Should_GetAccountFavoriteList_ReturnsOkResultAsync()
+        public async Task Should_GetAccountFavoriteList_ReturnsOkResultAsync()
         {
             string accountMocked = File.ReadAllText(@"./MockedResponses/AccountFavoriteMocked.json");
             var accountFavoriteList = JsonSerializer.Deserialize<List<AccountFavorite>>(accountMocked, _jsonOptions) ?? new List<AccountFavorite>();
@@ -122,7 +122,7 @@ namespace Pulse.Account.Core.Tests.Services
             await accountService.SetFavoriteAsync(accountId: 1, contactId: 1, true);
 
             // Assert
-            _accountRepository.Verify(x => x.UpdateAccountFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Once);
+            _accountRepository.Verify(x => x.UpdateAccountFavoriteAsync(1, 1, true), Times.Once);
         }
     }
 }
