@@ -3,10 +3,12 @@
 // </copyright>
 
 using System.Text.Json;
+using AutoMapper.Configuration.Annotations;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
@@ -37,6 +39,32 @@ namespace Account.Api.Tests.Controllers
 
             // Assert
             Assert.Equal(accountList, resultAccounts?.Value);
+        }
+
+        [Fact]
+        public async Task GetSignatory_Should_ReturnOkResultAsync()
+        {
+            // Arrange
+            var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
+            var expected = new List<Signatory>()
+                {
+                    new Signatory()
+                    {
+                        ContactId = 6,
+                        FirstName = "FirstName",
+                        LastName = "LastName",
+                        ContactEmail = "Email",
+                    }
+                };
+            rolesService.Setup(service => service.GetSignatoryAsync(It.IsAny<int>()))
+                .ReturnsAsync(expected);
+            var rolesController = new RolesController(rolesService.Object);
+
+            // Act
+            var result = await rolesController.GetSignatoryAsync(6);
+
+            // Assert
+            Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);
         }
     }
 }

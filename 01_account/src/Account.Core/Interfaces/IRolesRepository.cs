@@ -2,11 +2,14 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 
 namespace Pulse.Account.Core.Interfaces;
 
-public interface IRolesRepository
+public interface IRoleRepository
 {
-    Task<Paging<Pulse.Account.Core.Models.Account>> GetContactRolesAsync(int contactId, int page, int limit);
+    Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, int page, int limit);
+
+    Task<IEnumerable<Signatory>> GetSignatoryAsync(int accountId);
 }

@@ -5,6 +5,7 @@
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -39,7 +40,7 @@ public class RolesRepositoryTests
             var accountsEntity = _fixture.Create<List<TAccount>>();
             context.TAccount.AddRange(accountsEntity);
             context.SaveChanges();
-            var rolesRepository = new RolesRepository(context);
+            var rolesRepository = new RoleRepository(context);
             var contactId = accountsEntity.First().TRoles.First().ContactId;
             var accountObjects = accountsEntity
                                     .SelectMany(item => item.TRoles)
@@ -60,6 +61,29 @@ public class RolesRepositoryTests
             var accountExpect = JsonConvert.SerializeObject(accountPaging);
             var accountReceived = JsonConvert.SerializeObject(accounts);
             Assert.Equal(accountExpect, accountReceived);
+        }
+    }
+
+    [Fact]
+    public async Task GetSignatoryAsync_ShouldReturnCorrect()
+    {
+        // Arrange
+        using (var context = new AccountContext(_context))
+        {
+            var accountsMock = _fixture.Create<List<TAccount>>();
+            context.TAccount.AddRange(accountsMock);
+            context.SaveChanges();
+
+            var rolesRepository = new RoleRepository(context);
+            var data = accountsMock.First().TRoles.Where(r => r.IsSignatory!.Value).ToList();
+            var resultExpected = new List<Signatory>();
+            resultExpected.AddRange(data.MapTRolesToSignatory());
+
+            // Act
+            var roles = await rolesRepository.GetSignatoryAsync(data.First().AccountId);
+
+            // Assert
+            Assert.Equivalent(resultExpected, roles);
         }
     }
 }

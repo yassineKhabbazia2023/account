@@ -3,15 +3,16 @@
 // </copyright>
 
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 
 namespace Pulse.Account.Core.Services;
 
 public class RolesService : IRolesService
 {
-    private readonly IRolesRepository _rolesRepository;
+    private readonly IRoleRepository _rolesRepository;
 
-    public RolesService(IRolesRepository rolesRepository)
+    public RolesService(IRoleRepository rolesRepository)
     {
         _rolesRepository = rolesRepository;
     }
@@ -21,5 +22,10 @@ public class RolesService : IRolesService
         page = page == 0 ? 1 : page;
         limit = limit == 0 ? int.MaxValue : limit;
         return _rolesRepository.GetContactRolesAsync(contactId, page, limit);
+    }
+
+    public Task<IEnumerable<Signatory>> GetSignatoryAsync(int accountId)
+    {
+        return _rolesRepository.GetSignatoryAsync(accountId);
     }
 }
