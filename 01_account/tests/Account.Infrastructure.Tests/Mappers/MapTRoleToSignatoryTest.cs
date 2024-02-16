@@ -19,7 +19,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [Fact]
         public void MapTContactToSignatory_CaseNull()
         {
-            TRoles? role = null;
+            TRole? role = null;
             var result = role.MapTContactToSignatory();
             Assert.Null(result);
         }
@@ -28,7 +28,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapTContactToSignatory_CaseSuccess()
         {
             // Arrange
-            TRoles? role = _fixture.Create<TRoles?>();
+            TRole? role = _fixture.Create<TRole?>();
             var expected = new Signatory()
             {
                 ContactId = role!.ContactId,
@@ -47,7 +47,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [Fact]
         public void MapTRolesToSignatory_CaseEmpty()
         {
-            List<TRoles>? roles = new List<TRoles>();
+            List<TRole>? roles = new List<TRole>();
             var expected = new List<Signatory>();
             var result = roles.MapTRolesToSignatory();
             Assert.Equal(expected, result);
@@ -57,7 +57,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapTRolesToSignatory_CaseSuccess()
         {
             // Arrange
-            List<TRoles>? roles = _fixture.Create<List<TRoles>?>();
+            List<TRole>? roles = _fixture.Create<List<TRole>?>();
             var expected = new List<Signatory>()
             {
                 new Signatory()

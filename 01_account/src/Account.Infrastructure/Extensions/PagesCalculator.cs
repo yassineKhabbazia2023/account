@@ -1,12 +1,12 @@
-﻿// <copyright file="AccountUtils.cs" company="KPMG">
+﻿// <copyright file="PagesCalculator.cs" company="KPMG">
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-namespace Pulse.Account.Infrastructure.Utils
+namespace Pulse.Account.Infrastructure.Extensions
 {
-    public static class AccountUtils
+    public static class PagesCalculator
     {
-        public static float CalculTotalPage(int count, int limit)
+        public static float GetTotalPages(int count, int limit)
         {
             if(count != 0)
             {

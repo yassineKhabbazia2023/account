@@ -15,5 +15,9 @@ namespace Pulse.Account.Core.Models
         public string? FiscalSystem { get; set; }
 
         public string? TaxationSystem { get; set; }
+
+        public string? ActivityType { get; set; }
+
+        public string? ActivityDescription { get; set; }
     }
 }

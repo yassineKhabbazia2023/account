@@ -1,4 +1,4 @@
-﻿CREATE TABLE [sch_acc].[THub]
+﻿CREATE TABLE [account].[THub]
 (
 	[HubId]          INT IDENTITY(1,1)	NOT NULL,
 	[HubName]        VARCHAR(150)       NOT NULL,
@@ -9,7 +9,7 @@ GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'L''identifiant technique',
     @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
+    @level0name = N'account',
     @level1type = N'TABLE',
     @level1name = N'THub',
     @level2type = N'COLUMN',
@@ -18,7 +18,7 @@ GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'Le nom du Hub',
     @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
+    @level0name = N'account',
     @level1type = N'TABLE',
     @level1name = N'THub',
     @level2type = N'COLUMN',

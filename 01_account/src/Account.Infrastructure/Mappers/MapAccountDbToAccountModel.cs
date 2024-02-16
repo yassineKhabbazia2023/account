@@ -1,4 +1,4 @@
-﻿// <copyright file="MapDbToBusiness.cs" company="KPMG">
+﻿// <copyright file="MapAccountDbToAccountModel.cs" company="KPMG">
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
@@ -8,15 +8,21 @@ using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Infrastructure.Mappers
 {
-    public static class MapDbToBusiness
+    public static class MapAccountDbToAccountModel
     {
-        public static AccountModel MapTAccountToAccountModel(this TAccount source)
+        public static AccountModel? MapTAccountToAccountModel(this TAccount source)
         {
+            if (source == null)
+            {
+                return null;
+            }
+
             var accountModel = new AccountModel();
+
             if (source != null)
             {
-                var roleSignatory = source.TRoles.FirstOrDefault(role => role.IsSignatory == true);
-                var roleConnectedContact = source.TRoles?.FirstOrDefault();
+                var roleSignatory = source.TRole.FirstOrDefault(role => role.IsSignatory == true);
+                var roleConnectedContact = source.TRole?.FirstOrDefault();
 
                 accountModel.AccountId = source.AccountId;
                 accountModel.AccountNumber = source.AccountNumber;
@@ -40,7 +46,6 @@ namespace Pulse.Account.Infrastructure.Mappers
             var accountDetail = new AccountDetail();
             accountDetail.AccountId = source.AccountId;
             accountDetail.AccountNumber = source.AccountNumber;
-            accountDetail.AccountNumberSource = source.SourceAccountNumber;
             accountDetail.IconName = source.IconName;
             accountDetail.IsActive = source.IsActive;
             accountDetail.Email = source.Email;
@@ -95,7 +100,9 @@ namespace Pulse.Account.Infrastructure.Mappers
                 Country = address.Country,
                 City = address.City,
                 State = address.State,
-                Street = address.Street,
+                AddressLine1 = address.AddressLine1,
+                AddressLine2 = address.AddressLine2,
+                AddressLine3 = address.AddressLine3,
                 ZipCode = address.ZipCode,
                 AddressType = address.AddressType
             }).ToList();
@@ -129,6 +136,8 @@ namespace Pulse.Account.Infrastructure.Mappers
                 AccountingType = tAccount.AccountType,
                 FiscalSystem = tAccount.FiscalSystem,
                 TaxationSystem = tAccount.TaxationSystem,
+                ActivityType = tAccount.ActivityType,
+                ActivityDescription = tAccount.ActivityDescription,
             };
         }
 
@@ -142,16 +151,25 @@ namespace Pulse.Account.Infrastructure.Mappers
                 LegalForm = tAccount.LegalForm,
                 LegalFormCode = tAccount.LegalFormCode,
                 StaffSizeRange = tAccount.StaffSizeRange,
-                Naf = new List<Naf>()
-                {
-                    new Naf()
-                    {
-                        NafId = tAccount.NafId,
-                        NafCode = tAccount.SectorCode,
-                        NafLabel = tAccount.ActivityDescription
-                    }
-                }
+                Naf = tAccount.MapNaf(),
             };
+        }
+
+        private static ICollection<Naf> MapNaf(this TAccount tAccount)
+        {
+            if (tAccount.Naf == null)
+            {
+                return new List<Naf>();
+            }
+
+            var naf = new Naf
+            {
+                NafId = tAccount.Naf.NafId,
+                NafCode = tAccount.Naf.NafCode,
+                NafLabel = tAccount.Naf.NafLabel
+            };
+
+            return new List<Naf> { naf };
         }
 
         public static Statistics MapStatistics(Dictionary<int, int> countByStatus)

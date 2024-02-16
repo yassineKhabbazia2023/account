@@ -126,4 +126,18 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="Status" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="aba84b25-f767-4795-a7fd-89be13865d54" ChangeDateTime="02/16/2024 15:21:38">
+    <Property Name="ElementName" Value="[account].[TAccount].[AccountType]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[account].[TAccount]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="AccountMethod" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="1a9eca54-566f-4e8f-ab44-47dc490ccab5" ChangeDateTime="02/16/2024 15:22:01">
+    <Property Name="ElementName" Value="[account].[TAccount].[AccountMethod]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[account].[TAccount]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="AccountType" />
+  </Operation>
 </Operations>

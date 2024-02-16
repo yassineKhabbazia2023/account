@@ -19,8 +19,6 @@ namespace Pulse.Account.Core.Models
 
         public string? Email { get; set; }
 
-        public string? AccountNumberSource { get; set; }
-
         public string? AccountingOffice { get; set; }
 
         public int? EmployeeCount { get; set; }

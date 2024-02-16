@@ -1,4 +1,4 @@
-﻿CREATE TABLE [sch_acc].[TContact]
+﻿CREATE TABLE [actor].[TContact]
 (
 	[ContactId]				INT IDENTITY(1, 1)	NOT NULL,
 	[ContactGlobalUniqueId]	UNIQUEIDENTIFIER	NOT NULL,
@@ -11,13 +11,13 @@
 
 GO
 CREATE NONCLUSTERED INDEX [IDX_TContact_ContactGlobalUniqueId]
-    ON  [sch_acc].[TContact]([ContactGlobalUniqueId] ASC);
+    ON  [actor].[TContact]([ContactGlobalUniqueId] ASC);
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'L''identifiant technique',
     @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
+    @level0name = N'actor',
     @level1type = N'TABLE',
     @level1name = N'TContact',
     @level2type = N'COLUMN',
@@ -26,7 +26,7 @@ GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'L''identifiant global du contact',
     @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
+    @level0name = N'actor',
     @level1type = N'TABLE',
     @level1name = N'TContact',
     @level2type = N'COLUMN',
@@ -35,7 +35,7 @@ GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'Le prénom du contact',
     @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
+    @level0name = N'actor',
     @level1type = N'TABLE',
     @level1name = N'TContact',
     @level2type = N'COLUMN',
@@ -44,7 +44,7 @@ GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'Le nom du contact',
     @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
+    @level0name = N'actor',
     @level1type = N'TABLE',
     @level1name = N'TContact',
     @level2type = N'COLUMN',
@@ -53,7 +53,7 @@ GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'l''adresse mail du contact',
     @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
+    @level0name = N'actor',
     @level1type = N'TABLE',
     @level1name = N'TContact',
     @level2type = N'COLUMN',
@@ -62,7 +62,7 @@ GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'Le type de contact',
     @level0type = N'SCHEMA',
-    @level0name = N'sch_acc',
+    @level0name = N'actor',
     @level1type = N'TABLE',
     @level1name = N'TContact',
     @level2type = N'COLUMN',

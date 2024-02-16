@@ -2,6 +2,8 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
+using System.Net;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
@@ -9,12 +11,13 @@ using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Interfaces;
-using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
-using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
-using Pulse.Account.Infrastructure.Utils;
+using Pulse.Account.Infrastructure.Context;
+using Pulse.Account.Infrastructure.Extensions;
+using Pulse.Account.Core.Models;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -38,21 +41,21 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            IEnumerable<TAccount> entities = await _accountContext.TAccount
+            IQueryable<TAccount> entities = _accountContext.TAccount
                                                         .AsNoTracking()
-                                                        .Include(x => x.TRoles)
+                                                        .Include(x => x.TRole)
                                                         .ThenInclude(r => r.Contact)
                                                         .Include(a => a.TAddress)
                                                         .Include(x => x.TDeploymentPlanning)
-                                                        .Where(a => a.TRoles.Any(r => r.ContactId == contactId))
-                                                        .OrderBy(x => x.LegalName).ToListAsync();
+                                                        .Where(a => a.TRole.Any(r => r.ContactId == contactId))
+                                                        .OrderBy(x => x.LegalName);
 
-            var count = entities.Count();
+            var count = await entities.CountAsync();
 
             entities = entities.Skip((page - 1) * limit);
             entities = entities.Take(limit);
 
-            var totalPageCalcul = AccountUtils.CalculTotalPage(count, limit);
+            var totalPageCalcul = PagesCalculator.GetTotalPages(count, limit);
 
             var pageinateResult = new Paging<Core.Models.Account>()
             {
@@ -70,7 +73,7 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            IReadOnlyCollection<TRoles> res = await _accountContext.TRoles
+            IReadOnlyCollection<TRole> res = await _accountContext.TRole
                 .AsNoTracking()
             .Include(x => x.Contact)
                 .Where(x => x.AccountId == accountId && x.IsSignatory!.Value).ToListAsync();
@@ -78,4 +81,6 @@ public class RoleRepository : IRoleRepository
             return res.MapTRolesToSignatory();
         }).ConfigureAwait(false);
     }
+
+    Task<IEnumerable<Signatory>> IRoleRepository.GetSignatoryAsync(int accountId) => throw new NotImplementedException();
 }

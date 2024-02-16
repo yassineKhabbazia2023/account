@@ -76,6 +76,8 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                 Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
                 Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
                 Assert.Equal(accountDetail?.Legal?.LegalName, accounts.Legal?.LegalName);
+                Assert.Equal(accountDetail?.Legal?.Siren, accounts.Legal?.Siren);
+                Assert.Equal(accountDetail?.Legal?.Siret, accounts.Legal?.Siret);
             }
         }
 
@@ -121,6 +123,8 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                 Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
                 Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
                 Assert.Equal(accountDetail?.Accounting?.TaxationSystem, accounts.Accounting?.TaxationSystem);
+                Assert.Equal(accountDetail?.Accounting?.ActivityType, accounts.Accounting?.ActivityType);
+                Assert.Equal(accountDetail?.Accounting?.ActivityDescription, accounts.Accounting?.ActivityDescription);
             }
         }
 
@@ -152,7 +156,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                         Status = 0,
                     }
                 };
-                var roles = new List<TRoles>
+                var roles = new List<TRole>
                 {
                     new()
                     {
@@ -172,7 +176,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                 };
                 var repository = new AccountRepository(context);
                 context.TDeploymentPlanning.AddRange(expected);
-                context.TRoles.AddRange(roles);
+                context.TRole.AddRange(roles);
                 await context.SaveChangesAsync();
 
                 var result = await repository.GetStatisticsAsync(1);

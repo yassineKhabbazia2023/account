@@ -5,7 +5,7 @@ namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapRoleDbToBusiness
     {
-        public static Signatory? MapTContactToSignatory(this TRoles? role)
+        public static Signatory? MapTContactToSignatory(this TRole? role)
         {
             if (role == null)
             {
@@ -21,7 +21,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        public static IEnumerable<Signatory> MapTRolesToSignatory(this IReadOnlyCollection<TRoles> roles)
+        public static IEnumerable<Signatory> MapTRolesToSignatory(this IReadOnlyCollection<TRole> roles)
         {
             var res = new List<Signatory>();
 

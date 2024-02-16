@@ -40,10 +40,12 @@ public class RolesRepositoryTests
             var accountsEntity = _fixture.Create<List<TAccount>>();
             context.TAccount.AddRange(accountsEntity);
             context.SaveChanges();
+
             var rolesRepository = new RoleRepository(context);
-            var contactId = accountsEntity.First().TRoles.First().ContactId;
+            var contactId = accountsEntity.First().TRole.First().ContactId;
+
             var accountObjects = accountsEntity
-                                    .SelectMany(item => item.TRoles)
+                                    .SelectMany(item => item.TRole)
                                     .Where(x => x.ContactId == contactId)
                                     .Select(x => x.Account.MapTAccountToAccountModel());
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
@@ -75,7 +77,7 @@ public class RolesRepositoryTests
             context.SaveChanges();
 
             var rolesRepository = new RoleRepository(context);
-            var data = accountsMock.First().TRoles.Where(r => r.IsSignatory!.Value).ToList();
+            var data = accountsMock.First().TRole.Where(r => r.IsSignatory!.Value).ToList();
             var resultExpected = new List<Signatory>();
             resultExpected.AddRange(data.MapTRolesToSignatory());
 

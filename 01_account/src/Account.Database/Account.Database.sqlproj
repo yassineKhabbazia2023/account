@@ -57,21 +57,21 @@
     <Folder Include="Properties" />
     <Folder Include="Security" />
     <Folder Include="Security\Schemas" />
-    <Folder Include="sch_acc" />
-    <Folder Include="sch_acc\Tables" />
+    <Folder Include="account" />
+    <Folder Include="account\Tables" />
     <Folder Include="postDeployment" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Security\Account_Schema.sql" />
-    <Build Include="sch_acc\Tables\TAccount.sql" />
-    <Build Include="sch_acc\Tables\TAddress.sql" />
-    <Build Include="sch_acc\Tables\TNaf.sql" />
-    <Build Include="sch_acc\Tables\TDeploymentPlanning.sql" />
-    <Build Include="sch_acc\Tables\TPhone.sql" />
-    <Build Include="sch_acc\Tables\TRoles.sql" />
-    <Build Include="sch_acc\Tables\TContact.sql" />
-    <Build Include="sch_acc\Tables\TDelegation.sql" />
-    <Build Include="sch_acc\Tables\THub.sql" />
+    <Build Include="account\Tables\TAccount.sql" />
+    <Build Include="account\Tables\TAddress.sql" />
+    <Build Include="account\Tables\TNaf.sql" />
+    <Build Include="account\Tables\TDeploymentPlanning.sql" />
+    <Build Include="account\Tables\TPhone.sql" />
+    <Build Include="account\Tables\TRole.sql" />
+    <Build Include="account\Tables\TContact.sql" />
+    <Build Include="account\Tables\TDelegation.sql" />
+    <Build Include="account\Tables\THub.sql" />
+    <Build Include="Security\Schemas\account.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Account.Database.refactorlog" />

@@ -8,7 +8,11 @@ namespace Pulse.Account.Core.Models
     {
         public int AddressId { get; set; }
 
-        public string? Street { get; set; }
+        public string? AddressLine1 { get; set; }
+
+        public string? AddressLine2 { get; set; }
+
+        public string? AddressLine3 { get; set; }
 
         public string? State { get; set; }
 
