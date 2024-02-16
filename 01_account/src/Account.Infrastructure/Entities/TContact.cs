@@ -41,5 +41,5 @@ public partial class TContact
 
     public virtual ICollection<TDelegation> TDelegationDelegator { get; set; } = new List<TDelegation>();
 
-    public virtual ICollection<TRoles> TRoles { get; set; } = new List<TRoles>();
+    public virtual ICollection<TRole> TRole { get; set; } = new List<TRole>();
 }

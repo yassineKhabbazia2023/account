@@ -17,5 +17,7 @@ public partial class TNaf
     /// </summary>
     public string NafCode { get; set; }
 
+    public string NafLabel { get; set; }
+
     public virtual ICollection<TAccount> TAccount { get; set; } = new List<TAccount>();
 }

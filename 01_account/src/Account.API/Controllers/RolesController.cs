@@ -5,6 +5,7 @@
 using Kpmg.ExceptionMiddleware.Model;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 
 namespace Pulse.Account.API.Controllers
@@ -42,6 +43,21 @@ namespace Pulse.Account.API.Controllers
         {
             var result = await _rolesService.GetContactRolesAsync(contactId, page, limit);
 
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Récupérer la liste des signataires d'une entité morale.
+        /// </summary>
+        /// <param name="accountId">Identifiant de l'entité morale.</param>
+        /// <returns>La liste des signataires.</returns>
+        [HttpGet("/roles/signatory/{accountId}")]
+        [ProducesResponseType(typeof(IEnumerable<Signatory>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IEnumerable<Signatory>>> GetSignatoryAsync(int accountId)
+        {
+            var result = await _rolesService.GetSignatoryAsync(accountId);
             return Ok(result);
         }
     }

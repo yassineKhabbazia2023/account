@@ -1,4 +1,4 @@
-﻿// <copyright file="DelegationMapper.cs" company="KPMG">
+﻿// <copyright file="MapDelegationDbToDelegationModel.cs" company="KPMG">
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
@@ -8,7 +8,7 @@ using Pulse.Account.Infrastructure.Entities;
 
 namespace Pulse.Account.Infrastructure.Mappers;
 
-public static class DelegationMapper
+public static class MapDelegationDbToDelegationModel
 {
     public static IReadOnlyCollection<Delegation> ToDelegations(this ICollection<TDelegation> source)
     {
@@ -69,7 +69,7 @@ public static class DelegationMapper
             new Address
             {
                 AddressId = source.AddressId,
-                Street = source.Street,
+                AddressLine1 = source.AddressLine1,
                 ZipCode = source.ZipCode,
                 City = source.City,
                 State = source.State,

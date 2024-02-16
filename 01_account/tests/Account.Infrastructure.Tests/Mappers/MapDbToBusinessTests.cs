@@ -43,12 +43,14 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 City = address.City,
                 Country = address.Country,
                 State = address.State,
-                Street = address.Street,
+                AddressLine1 = address.AddressLine1,
+                AddressLine2 = address.AddressLine2,
+                AddressLine3 = address.AddressLine3,
                 ZipCode = address.ZipCode
             });
 
             // Act
-            var accountModel = MapDbToBusiness.MapTAccountToAccountModel(tAccountFixture);
+            var accountModel = MapAccountDbToAccountModel.MapTAccountToAccountModel(tAccountFixture);
 
             // Assert
             var accountAddressExpect = JsonConvert.SerializeObject(expectedAccount.Address);
@@ -76,12 +78,14 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 City = address.City,
                 Country = address.Country,
                 State = address.State,
-                Street = address.Street,
+                AddressLine1 = address.AddressLine1,
+                AddressLine2 = address.AddressLine2,
+                AddressLine3 = address.AddressLine3,
                 ZipCode = address.ZipCode
             });
 
             // Act
-            var accountModel = MapDbToBusiness.MapTAccountToAccountDetail(tAccountFixture);
+            var accountModel = MapAccountDbToAccountModel.MapTAccountToAccountDetail(tAccountFixture);
 
             // Assert
             var accountAddressExpect = JsonConvert.SerializeObject(expectedAccount.Address);

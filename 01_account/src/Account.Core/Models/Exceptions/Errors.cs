@@ -9,6 +9,6 @@ namespace Pulse.Account.Core.Models.Exceptions
     public static class Errors
     {
         public static readonly string NotFoundError = "Entity not found";
-        public static readonly string NonNullException = "Entity cannot be null";
+        public static readonly string NotNullException = "Entity cannot be null";
     }
 }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Pulse.Account.Infrastructure.Entities;
 
-public partial class TRoles
+public partial class TRole
 {
     /// <summary>
     /// L&apos;&apos;identifiant technique

@@ -41,7 +41,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 context.TAccount.AddRange(accountsModel);
                 await context.SaveChangesAsync();
                 var accountRepository = new AccountRepository(context);
-                var contactId = accountsModel.Select(account => account.TRoles.Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
+                var contactId = accountsModel.Select(account => account.TRole.Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
                 var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel());
                 Paging<AccountModel> accountPaging = new Paging<AccountModel>()
                 {
@@ -81,6 +81,8 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
                 Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
                 Assert.Equal(accountDetail?.Legal?.LegalName, accounts.Legal?.LegalName);
+                Assert.Equal(accountDetail?.Legal?.Siren, accounts.Legal?.Siren);
+                Assert.Equal(accountDetail?.Legal?.Siret, accounts.Legal?.Siret);
             }
         }
 
@@ -128,6 +130,8 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 Assert.Equal(accountDetail?.AccountNumber, accounts.AccountNumber);
                 Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
                 Assert.Equal(accountDetail?.Accounting?.TaxationSystem, accounts.Accounting?.TaxationSystem);
+                Assert.Equal(accountDetail?.Accounting?.ActivityType, accounts.Accounting?.ActivityType);
+                Assert.Equal(accountDetail?.Accounting?.ActivityDescription, accounts.Accounting?.ActivityDescription);
             }
         }
 
@@ -159,7 +163,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                         Status = 0,
                     }
                 };
-                var roles = new List<TRoles>
+                var roles = new List<TRole>
                 {
                     new()
                     {
@@ -179,7 +183,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
                 var repository = new AccountRepository(context);
                 context.TDeploymentPlanning.AddRange(expected);
-                context.TRoles.AddRange(roles);
+                context.TRole.AddRange(roles);
                 await context.SaveChangesAsync();
 
                 var result = await repository.GetStatisticsAsync(1);
@@ -198,10 +202,10 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             {
                 // Arrange
                 var accountsModel = _fixture.Create<List<TAccount>>();
-                accountsModel.ForEach(account => account.TRoles.First().IsFavorite = true);
+                accountsModel.ForEach(account => account.TRole.First().IsFavorite = true);
                 context.TAccount.AddRange(accountsModel);
                 await context.SaveChangesAsync();
-                var contactId = accountsModel.Select(account => account.TRoles.Where(role => role.IsFavorite == true).Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
+                var contactId = accountsModel.Select(account => account.TRole.Where(role => role.IsFavorite == true).Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
                 var accountRepository = new AccountRepository(context);
 
                 var expectedAccount = accountsModel.Select(entity => new AccountFavorite()
@@ -228,11 +232,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             {
                 // Arrange
                 var accountsModel = _fixture.Create<List<TAccount>>();
-                accountsModel.ForEach(account => account.TRoles.First().IsFavorite = true);
+                accountsModel.ForEach(account => account.TRole.First().IsFavorite = true);
                 context.TAccount.AddRange(accountsModel);
                 await context.SaveChangesAsync();
 
-                var role = accountsModel.Select(account => account.TRoles.Where(role => role.IsFavorite == true).Select(role => role).First()).First();
+                var role = accountsModel.Select(account => account.TRole.Where(role => role.IsFavorite == true).Select(role => role).First()).First();
                 var accountRepository = new AccountRepository(context);
 
                 // Act

@@ -17,10 +17,16 @@ public partial class TAddress
     /// </summary>
     public int AccountId { get; set; }
 
+    public string AddressLine1 { get; set; }
+
+    public string AddressLine2 { get; set; }
+
+    public string AddressLine3 { get; set; }
+
     /// <summary>
-    /// La rue
+    /// Le code postal
     /// </summary>
-    public string Street { get; set; }
+    public string ZipCode { get; set; }
 
     /// <summary>
     /// La ville
@@ -31,11 +37,6 @@ public partial class TAddress
     /// Le département
     /// </summary>
     public string State { get; set; }
-
-    /// <summary>
-    /// Le code postal
-    /// </summary>
-    public string ZipCode { get; set; }
 
     /// <summary>
     /// Le pays

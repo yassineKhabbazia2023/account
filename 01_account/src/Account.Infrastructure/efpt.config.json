@@ -6,7 +6,7 @@
    "FilterSchemas": false,
    "IncludeConnectionString": false,
    "ModelNamespace": null,
-   "OutputContextPath": null,
+   "OutputContextPath": "Context",
    "OutputPath": "Entities",
    "PreserveCasingWithRegex": true,
    "ProjectRootNamespace": "Pulse.Account.Infrastructure",
@@ -16,39 +16,39 @@
    "T4TemplatePath": null,
    "Tables": [
       {
-         "Name": "[sch_acc].[TAccount]",
+         "Name": "[account].[TAccount]",
          "ObjectType": 0
       },
       {
-         "Name": "[sch_acc].[TAddress]",
+         "Name": "[account].[TAddress]",
          "ObjectType": 0
       },
       {
-         "Name": "[sch_acc].[TContact]",
+         "Name": "[account].[TDelegation]",
          "ObjectType": 0
       },
       {
-         "Name": "[sch_acc].[TDelegation]",
+         "Name": "[account].[TDeploymentPlanning]",
          "ObjectType": 0
       },
       {
-         "Name": "[sch_acc].[TDeploymentPlanning]",
+         "Name": "[account].[THub]",
          "ObjectType": 0
       },
       {
-         "Name": "[sch_acc].[THub]",
+         "Name": "[account].[TNaf]",
          "ObjectType": 0
       },
       {
-         "Name": "[sch_acc].[TNaf]",
+         "Name": "[account].[TPhone]",
          "ObjectType": 0
       },
       {
-         "Name": "[sch_acc].[TPhone]",
+         "Name": "[account].[TRole]",
          "ObjectType": 0
       },
       {
-         "Name": "[sch_acc].[TRoles]",
+         "Name": "[actor].[TContact]",
          "ObjectType": 0
       }
    ],
@@ -70,6 +70,7 @@
    "UseNoObjectFilter": false,
    "UseNodaTime": false,
    "UseNullableReferences": false,
+   "UsePrefixNavigationNaming": false,
    "UseSchemaFolders": false,
    "UseSchemaNamespaces": false,
    "UseSpatial": false,

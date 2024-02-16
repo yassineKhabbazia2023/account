@@ -17,8 +17,8 @@ using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
-using Pulse.Account.Infrastructure.Utils;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Infrastructure.Repositories
@@ -50,7 +50,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                     entities = from n in entities
                                where n.LegalName.Contains(search)
                                      || n.SourceAccountNumber.Contains(search)
-                                     || n.TRoles.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search)
+                                     || n.TRole.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search)
                                                          || role.Contact.LastName.Contains(search)
                                                          || role.Contact.ContactEmail.Contains(search)))
                                select n;
@@ -61,7 +61,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 entities = entities.Skip((page - 1) * limit);
                 entities = entities.Take(limit);
 
-                var totalPageCalcul = AccountUtils.CalculTotalPage(count, limit);
+                var totalPageCalcul = PagesCalculator.GetTotalPages(count, limit);
 
                 var pageinateResult = new Paging<AccountModel>()
                 {
@@ -80,7 +80,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             {
                 IQueryable<TAccount> entities = _accountContext.TAccount
                        .AsNoTracking()
-                       .Include(x => x.TRoles)
+                       .Include(x => x.TRole)
                        .ThenInclude(r => r.Contact)
                        .Include(a => a.TAddress)
                        .Include(x => x.TDeploymentPlanning)
@@ -108,21 +108,20 @@ namespace Pulse.Account.Infrastructure.Repositories
                                        where account.AccountId.Equals(accountId)
                                        select account;
 
-                var existingAccountItem = await existingAccounts.FirstOrDefaultAsync();
-                if (existingAccountItem == null)
+                var existingAccount = await existingAccounts.FirstOrDefaultAsync();
+                if (existingAccount == null)
                 {
                     throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
                 }
 
                 if (accountDetail == null)
                 {
-                    throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NonNullException);
+                    throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotNullException);
                 }
 
-                existingAccountItem.MapUpdatedAccount(accountDetail);
-                _accountContext.TAccount.Update(existingAccountItem);
+                existingAccount.MapUpdatedAccount(accountDetail);
+                _accountContext.TAccount.Update(existingAccount);
                 await _accountContext.SaveChangesAsync();
-
                 return await GetAccountDetailAsync(accountId);
             }).ConfigureAwait(false);
         }
@@ -132,7 +131,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             return await _retryPolicy.ExecuteAsync(async () =>
             {
                 var entities = _accountContext.TDeploymentPlanning
-                .Join(_accountContext.TRoles,
+                .Join(_accountContext.TRole,
                 deployment => deployment.AccountId,
                 role => role.AccountId,
                 (deployment, role) => new { deployment, role })
@@ -142,7 +141,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 var countByStatus = await entities.ToDictionaryAsync(x => x.Status, x => x.Count);
 
-                return MapDbToBusiness.MapStatistics(countByStatus);
+                return MapAccountDbToAccountModel.MapStatistics(countByStatus);
             }).ConfigureAwait(false);
         }
 
@@ -152,7 +151,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             {
                 var entities = GetAccountQueryByContactId(contactId);
                 var accountFavorite = entities
-                    .Where(entity => entity.TRoles.Any(role => role.IsFavorite == true))
+                    .Where(entity => entity.TRole.Any(role => role.IsFavorite == true))
                     .Select(entity => new AccountFavorite()
                     {
                         AccountId = entity.AccountId,
@@ -168,15 +167,15 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             await _retryPolicy.ExecuteAsync(async () =>
             {
-                var existingRole = from role in _accountContext.TRoles
-                                       where role.AccountId.Equals(accountId) && role.ContactId.Equals(contactId)
+                var existingRole = from role in _accountContext.TRole
+                                   where role.AccountId.Equals(accountId) && role.ContactId.Equals(contactId)
                                        select role;
 
                 var existingRoleItem = await existingRole.FirstOrDefaultAsync();
                 if (existingRoleItem != null)
                 {
                     existingRoleItem.IsFavorite = isFavorite;
-                    _accountContext.TRoles.Update(existingRoleItem);
+                    _accountContext.TRole.Update(existingRoleItem);
                     await _accountContext.SaveChangesAsync();
                 }
             }).ConfigureAwait(false);
@@ -186,11 +185,11 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return _accountContext.TAccount
                             .AsNoTracking()
-                            .Include(x => x.TRoles)
+                            .Include(x => x.TRole)
                             .ThenInclude(r => r.Contact)
                             .Include(a => a.TAddress)
                             .Include(x => x.TDeploymentPlanning)
-                            .Where(a => a.TRoles.Any(r => r.ContactId == contactId))
+                            .Where(a => a.TRole.Any(r => r.ContactId == contactId))
                             .OrderBy(a => a.LegalName);
         }
     }
