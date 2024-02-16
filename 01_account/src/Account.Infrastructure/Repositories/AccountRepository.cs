@@ -109,13 +109,19 @@ namespace Pulse.Account.Infrastructure.Repositories
                                        select account;
 
                 var existingAccountItem = await existingAccounts.FirstOrDefaultAsync();
-                if (existingAccountItem != null)
+                if (existingAccountItem == null)
                 {
-                    existingAccountItem.MapUpdatedAccount(accountDetail);
-
-                    _accountContext.TAccount.Update(existingAccountItem);
-                    await _accountContext.SaveChangesAsync();
+                    throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
                 }
+
+                if (accountDetail == null)
+                {
+                    throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NonNullException);
+                }
+
+                existingAccountItem.MapUpdatedAccount(accountDetail);
+                _accountContext.TAccount.Update(existingAccountItem);
+                await _accountContext.SaveChangesAsync();
 
                 return await GetAccountDetailAsync(accountId);
             }).ConfigureAwait(false);
@@ -173,7 +179,6 @@ namespace Pulse.Account.Infrastructure.Repositories
                     _accountContext.TRoles.Update(existingRoleItem);
                     await _accountContext.SaveChangesAsync();
                 }
-
             }).ConfigureAwait(false);
         }
 
