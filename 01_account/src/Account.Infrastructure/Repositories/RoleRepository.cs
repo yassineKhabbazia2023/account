@@ -2,22 +2,18 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
-using System.Net;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Interfaces;
-using Pulse.Account.Core.Models.Exceptions;
-using Pulse.Account.Core.Models.Utils;
-using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Infrastructure.Mappers;
-using Pulse.Account.Infrastructure.Context;
-using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Infrastructure.Context;
+using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Extensions;
+using Pulse.Account.Infrastructure.Mappers;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -81,6 +77,4 @@ public class RoleRepository : IRoleRepository
             return res.MapTRolesToSignatory();
         }).ConfigureAwait(false);
     }
-
-    Task<IEnumerable<Signatory>> IRoleRepository.GetSignatoryAsync(int accountId) => throw new NotImplementedException();
 }
