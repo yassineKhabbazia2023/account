@@ -94,35 +94,5 @@ namespace Pulse.Account.Core.Tests.Services
             Assert.NotNull(result);
             Assert.Equal(expected, result);
         }
-
-        [Fact]
-        public async Task Should_GetAccountFavoriteList_ReturnsOkResultAsync()
-        {
-            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountFavoriteMocked.json");
-            var accountFavoriteList = JsonSerializer.Deserialize<List<AccountFavorite>>(accountMocked, _jsonOptions) ?? new List<AccountFavorite>();
-            _accountRepository.Setup(repository => repository.GetAccountsFavoriteAsync(It.IsAny<int>())).ReturnsAsync(accountFavoriteList);
-
-            var accountService = new AccountService(_accountRepository.Object);
-
-            // Act
-            var accountsFavorite = await accountService.GetAccountFavoritesAsync(contactId: 1);
-
-            // Assert
-            Assert.Equal(accountFavoriteList, accountsFavorite);
-        }
-
-        [Fact]
-        public async Task Should_SetAccountFavorite_ReturnsOkResultAsync()
-        {
-            _accountRepository.Setup(repository => repository.UpdateAccountFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
-
-            var accountService = new AccountService(_accountRepository.Object);
-
-            // Act
-            await accountService.SetFavoriteAsync(accountId: 1, contactId: 1, true);
-
-            // Assert
-            _accountRepository.Verify(x => x.UpdateAccountFavoriteAsync(1, 1, true), Times.Once);
-        }
     }
 }

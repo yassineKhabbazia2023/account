@@ -12,7 +12,6 @@ using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
 using AccountModel = Pulse.Account.Core.Models.Account;
-using Pulse.Account.Core.Models;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories
 {
@@ -192,59 +191,6 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 Assert.Equal(0, result.AccountToDeploy);
                 Assert.Equal(1, result.AccountConnected);
                 Assert.Equal(2, result.AccountInProgress);
-            }
-        }
-
-        [Fact]
-        public async Task GetAccountsFavoriteAsync_Should_ReturnsOkResultAsync()
-        {
-            using (var context = new AccountContext(_options))
-            {
-                // Arrange
-                var accountsModel = _fixture.Create<List<TAccount>>();
-                accountsModel.ForEach(account => account.TRole.First().IsFavorite = true);
-                context.TAccount.AddRange(accountsModel);
-                await context.SaveChangesAsync();
-                var contactId = accountsModel.Select(account => account.TRole.Where(role => role.IsFavorite == true).Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
-                var accountRepository = new AccountRepository(context);
-
-                var expectedAccount = accountsModel.Select(entity => new AccountFavorite()
-                {
-                    AccountId = entity.AccountId,
-                    LegalName = entity.LegalName,
-                    IconName = entity.IconName
-                });
-
-                // Act
-                var accounts = await accountRepository.GetAccountsFavoriteAsync(contactId);
-
-                // Assert
-                var accountExpect = JsonConvert.SerializeObject(expectedAccount);
-                var accountReceived = JsonConvert.SerializeObject(accounts.FirstOrDefault());
-                Assert.Contains(accountReceived, accountExpect);
-            }
-        }
-
-        [Fact]
-        public async Task UpdateAccountFavoriteAsync_Should_ReturnsOkResultAsync()
-        {
-            using (var context = new AccountContext(_options))
-            {
-                // Arrange
-                var accountsModel = _fixture.Create<List<TAccount>>();
-                accountsModel.ForEach(account => account.TRole.First().IsFavorite = true);
-                context.TAccount.AddRange(accountsModel);
-                await context.SaveChangesAsync();
-
-                var role = accountsModel.Select(account => account.TRole.Where(role => role.IsFavorite == true).Select(role => role).First()).First();
-                var accountRepository = new AccountRepository(context);
-
-                // Act
-                await accountRepository.UpdateAccountFavoriteAsync(role.AccountId, role.ContactId, false);
-                var accountFavorite = await accountRepository.GetAccountsFavoriteAsync(role.ContactId);
-
-                // Assert
-                Assert.Empty(accountFavorite);
             }
         }
     }

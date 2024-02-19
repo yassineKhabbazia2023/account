@@ -15,10 +15,6 @@ namespace Pulse.Account.Core.Interfaces
 
         public Task<AccountDetail?> UpdateAccountAsync(int id, AccountDetail accountDetail);
 
-        public Task<IEnumerable<AccountFavorite>> GetAccountFavoritesAsync(int contactId);
-
-        public Task SetFavoriteAsync(int accountId, int contactId, bool isFavorite);
-
         Task<Statistics> GetStatisticsAsync(int contactId);
     }
 }

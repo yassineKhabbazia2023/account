@@ -11,7 +11,6 @@ namespace Pulse.Account.Core.Services
 {
     public class AccountService : IAccountService
     {
-        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         private readonly IAccountRepository _accountRepository;
 
         public AccountService(IAccountRepository accountRepository)
@@ -34,16 +33,6 @@ namespace Pulse.Account.Core.Services
         public async Task<AccountDetail?> UpdateAccountAsync(int id, AccountDetail accountDetail)
         {
             return await _accountRepository.UpdateAccountAsync(accountDetail, id);
-        }
-
-        public async Task<IEnumerable<AccountFavorite>> GetAccountFavoritesAsync(int contactId)
-        {
-            return await _accountRepository.GetAccountsFavoriteAsync(contactId);
-        }
-
-        public async Task SetFavoriteAsync(int accountId, int contactId, bool isFavorite)
-        {
-            await _accountRepository.UpdateAccountFavoriteAsync(accountId, contactId, isFavorite);
         }
 
         public async Task<Statistics> GetStatisticsAsync(int contactId)

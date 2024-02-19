@@ -145,42 +145,6 @@ namespace Pulse.Account.Infrastructure.Repositories
             }).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<AccountFavorite>> GetAccountsFavoriteAsync(int contactId)
-        {
-            return await _retryPolicy.ExecuteAsync(async () =>
-            {
-                var entities = GetAccountQueryByContactId(contactId);
-                var accountFavorite = entities
-                    .Where(entity => entity.TRole.Any(role => role.IsFavorite == true))
-                    .Select(entity => new AccountFavorite()
-                    {
-                        AccountId = entity.AccountId,
-                        LegalName = entity.LegalName,
-                        IconName = entity.IconName
-                    });
-
-                return accountFavorite;
-            }).ConfigureAwait(false);
-        }
-
-        public async Task UpdateAccountFavoriteAsync(int accountId, int contactId, bool isFavorite)
-        {
-            await _retryPolicy.ExecuteAsync(async () =>
-            {
-                var existingRole = from role in _accountContext.TRole
-                                   where role.AccountId.Equals(accountId) && role.ContactId.Equals(contactId)
-                                       select role;
-
-                var existingRoleItem = await existingRole.FirstOrDefaultAsync();
-                if (existingRoleItem != null)
-                {
-                    existingRoleItem.IsFavorite = isFavorite;
-                    _accountContext.TRole.Update(existingRoleItem);
-                    await _accountContext.SaveChangesAsync();
-                }
-            }).ConfigureAwait(false);
-        }
-
         private IQueryable<TAccount> GetAccountQueryByContactId(int contactId)
         {
             return _accountContext.TAccount

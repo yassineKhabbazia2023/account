@@ -13,11 +13,11 @@ namespace Pulse.Account.API.Controllers
     [ApiController]
     public class FavoriteController : ControllerBase
     {
-        private readonly IAccountService _accountService;
+        private readonly IFavoriteService _favoriteService;
 
-        public FavoriteController(IAccountService entityService)
+        public FavoriteController(IFavoriteService favoriteService)
         {
-            _accountService = entityService;
+            _favoriteService = favoriteService;
         }
 
         /// <summary>
@@ -29,9 +29,9 @@ namespace Pulse.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountFavorite>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IReadOnlyCollection<AccountFavorite>>> GetAccountFavoritesAsync([Required] int contactId)
+        public async Task<ActionResult<IReadOnlyCollection<AccountFavorite>>> GetAccountFavoritesByContactIdAsync([Required] int contactId)
         {
-            var result = await _accountService.GetAccountFavoritesAsync(contactId);
+            var result = await _favoriteService.GetAccountFavoritesByContactIdAsync(contactId);
 
             return Ok(result);
         }
@@ -49,7 +49,7 @@ namespace Pulse.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> SetFavoriteAsync(int accountId, [Required] int contactId, [Required] bool isFavorite)
         {
-            await _accountService.SetFavoriteAsync(accountId, contactId, isFavorite);
+            await _favoriteService.SetFavoriteAsync(accountId, contactId, isFavorite);
 
             return Ok();
         }

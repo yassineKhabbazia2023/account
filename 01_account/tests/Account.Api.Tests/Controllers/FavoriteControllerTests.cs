@@ -15,11 +15,11 @@ namespace Account.Api.Tests.Controllers
 {
     public class FavoriteControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
-        private readonly Mock<IAccountService> _accountService;
+        private readonly Mock<IFavoriteService> _favoriteService;
 
         public FavoriteControllerTests()
         {
-            _accountService = new Mock<IAccountService>(MockBehavior.Strict);
+            _favoriteService = new Mock<IFavoriteService>(MockBehavior.Strict);
         }
 
         [Fact]
@@ -36,12 +36,12 @@ namespace Account.Api.Tests.Controllers
                 }
             };
 
-            _accountService.Setup(service => service.GetAccountFavoritesAsync(It.IsAny<int>())).ReturnsAsync(accountJson);
+            _favoriteService.Setup(service => service.GetAccountFavoritesByContactIdAsync(It.IsAny<int>())).ReturnsAsync(accountJson);
 
-            var favoriteController = new FavoriteController(_accountService.Object);
+            var favoriteController = new FavoriteController(_favoriteService.Object);
 
             // Act
-            var accounts = await favoriteController.GetAccountFavoritesAsync(contactId: 1);
+            var accounts = await favoriteController.GetAccountFavoritesByContactIdAsync(contactId: 1);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
@@ -52,9 +52,9 @@ namespace Account.Api.Tests.Controllers
         public async Task SetFavorite_Should_ReturnsOkResultAsync()
         {
             // Arrange
-            _accountService.Setup(service => service.SetFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
+            _favoriteService.Setup(service => service.SetFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
 
-            var favoriteController = new FavoriteController(_accountService.Object);
+            var favoriteController = new FavoriteController(_favoriteService.Object);
 
             // Act
             var result = await favoriteController.SetFavoriteAsync(accountId: 5, contactId: 1, true);
