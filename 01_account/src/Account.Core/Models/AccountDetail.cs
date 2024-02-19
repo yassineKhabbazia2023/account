@@ -31,12 +31,12 @@ namespace Pulse.Account.Core.Models
 
         public Vat? Vat { get; set; }
 
-        public ICollection<Address>? Address { get; set; }
+        public IEnumerable<Address>? Address { get; set; }
 
-        public ICollection<Phone>? Phone { get; set; }
+        public IEnumerable<Phone>? Phone { get; set; }
 
         public Hub? Hub { get; set; }
 
-        public ICollection<Deployment>? DeploymentPlanning { get; set; }
+        public IEnumerable<Deployment>? DeploymentPlanning { get; set; }
     }
 }

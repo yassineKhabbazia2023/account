@@ -11,10 +11,9 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
-using Pulse.Account.Infrastructure.Tests.Configuration;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
-namespace Kpmg.Account.Infrastructure.Tests.Repositories
+namespace Pulse.Account.Infrastructure.Tests.Repositories
 {
     public class AccountRepositoryTests
     {
@@ -32,13 +31,16 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task Should_GetAccountList_ReturnsOkResultAsync()
+        public async Task GetAccountList_Should_ReturnsOkResultAsync()
         {
             using (var context = new AccountContext(_options))
             {
                 // Arrange
                 var accountsModel = _fixture.Create<List<TAccount>>();
-                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
+                context.TAccount.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+                var accountRepository = new AccountRepository(context);
+                var contactId = accountsModel.Select(account => account.TRole.Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
                 var accountObject = accountsModel.Select(item => item.MapTAccountToAccountModel());
                 Paging<AccountModel> accountPaging = new Paging<AccountModel>()
                 {
@@ -49,7 +51,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                 };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(search: accountObject.Select(a => a.LegalName).First(), contactId: 123, page: 1, limit: 4);
+                var accounts = await accountRepository.GetAccountsAsync(search: accountObject.Select(a => a.LegalName).First(), page: 1, limit: 4, contactId);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -59,7 +61,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task Should_GetAccountDetail_ReturnsOkResultAsync()
+        public async Task GetAccountDetail_Should_ReturnsOkResultAsync()
         {
             using (var context = new AccountContext(_options))
             {
@@ -67,7 +69,9 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                 var accountsModel = _fixture.Create<List<TAccount>>();
                 var accountFirst = accountsModel.FirstOrDefault();
                 var accountDetail = accountFirst?.MapTAccountToAccountDetail();
-                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
+                context.TAccount.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+                var accountRepository = new AccountRepository(context);
 
                 // Act
                 var accounts = await accountRepository.GetAccountDetailAsync(accountFirst.AccountId);
@@ -82,15 +86,15 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task Should_GetAccountDetail_ReturnsNotFoundResultAsync()
+        public async Task GetAccountDetail_Should_ReturnsNotFoundResultAsync()
         {
             using (var context = new AccountContext(_options))
             {
                 // Arrange
                 var accountsModel = _fixture.Create<List<TAccount>>();
-                var accountFirst = accountsModel.FirstOrDefault();
-                var accountDetail = accountFirst?.MapTAccountToAccountDetail();
-                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
+                context.TAccount.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+                var accountRepository = new AccountRepository(context);
 
                 // Act
                 Task Accounts() => accountRepository.GetAccountDetailAsync(123);
@@ -101,7 +105,7 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task Should_UpdateAccount_ReturnsOkResultAsync()
+        public async Task UpdateAccount_Should_ReturnsOkResultAsync()
         {
             using (var context = new AccountContext(_options))
             {
@@ -114,7 +118,9 @@ namespace Kpmg.Account.Infrastructure.Tests.Repositories
                     accountDetail.Accounting.TaxationSystem = "Impot sur le revenu";
                 }
 
-                var accountRepository = await UnitTestUtils.InitAccountRepository(_fixture, accountsModel, context);
+                context.TAccount.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+                var accountRepository = new AccountRepository(context);
 
                 // Act
                 var accounts = await accountRepository.UpdateAccountAsync(accountDetail, accountDetail.AccountId);

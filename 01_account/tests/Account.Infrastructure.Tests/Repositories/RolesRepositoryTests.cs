@@ -11,7 +11,6 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
-using Pulse.Account.Infrastructure.Tests.Configuration;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Kpmg.Account.Infrastructure.Tests.Repositories;

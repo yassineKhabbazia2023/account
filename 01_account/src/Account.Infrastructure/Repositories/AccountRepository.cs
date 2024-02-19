@@ -109,33 +109,19 @@ namespace Pulse.Account.Infrastructure.Repositories
                                        select account;
 
                 var existingAccount = await existingAccounts.FirstOrDefaultAsync();
-                if (existingAccount != null)
+                if (existingAccount == null)
                 {
-                    if (accountDetail.Legal != null)
-                    {
-                        existingAccount.LegalForm = accountDetail.Legal.LegalForm;
-                        existingAccount.StaffSizeRange = accountDetail.Legal.StaffSizeRange;
-                    }
-
-                    if (accountDetail.Accounting != null)
-                    {
-                        existingAccount.FiscalExerciseStartDate = accountDetail.Accounting.FiscalExerciseStartDate;
-                        existingAccount.FiscalExerciseDuration = accountDetail.Accounting.FiscalExerciseDuration;
-                        existingAccount.AccountingMethod = accountDetail.Accounting.AccountingType;
-                        existingAccount.FiscalSystem = accountDetail.Accounting.FiscalSystem;
-                        existingAccount.TaxationSystem = accountDetail.Accounting.TaxationSystem;
-                        existingAccount.ActivityType = accountDetail.Accounting.ActivityType;
-                        existingAccount.ActivityDescription = accountDetail.Accounting.ActivityDescription;
-                    }
-
-                    existingAccount.HubId = accountDetail.Hub?.HubId;
-                    existingAccount.VAT = accountDetail.Vat?.System;
-                    existingAccount.VATType = accountDetail.Vat?.Type;
-
-                    _accountContext.TAccount.Update(existingAccount);
-                    await _accountContext.SaveChangesAsync();
+                    throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
                 }
 
+                if (accountDetail == null)
+                {
+                    throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotNullException);
+                }
+
+                existingAccount.MapUpdatedAccount(accountDetail);
+                _accountContext.TAccount.Update(existingAccount);
+                await _accountContext.SaveChangesAsync();
                 return await GetAccountDetailAsync(accountId);
             }).ConfigureAwait(false);
         }

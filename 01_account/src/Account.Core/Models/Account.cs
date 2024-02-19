@@ -17,10 +17,10 @@ namespace Pulse.Account.Core.Models
 
         public bool? IsFavorite { get; set; }
 
-        public ICollection<Address>? Address { get; set; }
+        public IEnumerable<Address>? Address { get; set; }
 
         public Signatory? Signatory { get; set; }
 
-        public ICollection<Deployment>? Deployment { get; set; }
+        public IEnumerable<Deployment>? Deployment { get; set; }
     }
 }

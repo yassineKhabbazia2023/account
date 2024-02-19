@@ -8,7 +8,7 @@ namespace Pulse.Account.Core.Models.Exceptions
 {
     public static class Errors
     {
-        public static readonly string InternalTechnicalError = "An internal error occurred; contact technical support";
         public static readonly string NotFoundError = "Entity not found";
+        public static readonly string NotNullException = "Entity cannot be null";
     }
 }

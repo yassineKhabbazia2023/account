@@ -72,27 +72,27 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static ICollection<Deployment>? MapDeploymentPlanning(this TAccount tAccount)
+        private static IEnumerable<Deployment>? MapDeploymentPlanning(this TAccount tAccount)
         {
             return tAccount.TDeploymentPlanning == null ? Array.Empty<Deployment>() : tAccount.TDeploymentPlanning.Select(deployment => new Deployment()
             {
                 DeploymentId = deployment.DeploymentId,
                 DeploymentDate = deployment.DeploymentDate,
                 Status = deployment.Status,
-            }).ToList();
+            });
         }
 
-        private static ICollection<Phone>? MapPhone(this TAccount tAccount)
+        private static IEnumerable<Phone>? MapPhone(this TAccount tAccount)
         {
             return tAccount.TPhone == null ? Array.Empty<Phone>() : tAccount.TPhone.Select(phone => new Phone()
             {
                 PhoneId = phone.PhoneId,
                 PhoneNumber = phone.PhoneNumber,
                 Type = phone.Type,
-            }).ToList();
+            });
         }
 
-        private static ICollection<Address>? MapAddress(this TAccount tAccount)
+        private static IEnumerable<Address>? MapAddress(this TAccount tAccount)
         {
             return tAccount.TAddress == null ? Array.Empty<Address>() : tAccount.TAddress.Select(address => new Address()
             {
@@ -105,7 +105,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 AddressLine3 = address.AddressLine3,
                 ZipCode = address.ZipCode,
                 AddressType = address.AddressType
-            }).ToList();
+            });
         }
 
         private static Hub MapHub(this TAccount tAccount)
@@ -133,7 +133,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             {
                 FiscalExerciseStartDate = tAccount.FiscalExerciseStartDate,
                 FiscalExerciseDuration = tAccount.FiscalExerciseDuration,
-                AccountingType = tAccount.AccountType,
+                AccountingType = tAccount.AccountingMethod,
                 FiscalSystem = tAccount.FiscalSystem,
                 TaxationSystem = tAccount.TaxationSystem,
                 ActivityType = tAccount.ActivityType,
@@ -185,6 +185,30 @@ namespace Pulse.Account.Infrastructure.Mappers
                 AccountInProgress = countByStatus.TryGetValue(1, out var inProgress) ? inProgress : 0,
                 AccountConnected = countByStatus.TryGetValue(2, out var connected) ? connected : 0
             };
+        }
+
+        public static void MapUpdatedAccount(this TAccount existingAccount, AccountDetail accountDetail)
+        {
+            if (accountDetail.Legal != null)
+            {
+                existingAccount.LegalForm = accountDetail.Legal.LegalForm;
+                existingAccount.StaffSizeRange = accountDetail.Legal.StaffSizeRange;
+            }
+
+            if (accountDetail.Accounting != null)
+            {
+                existingAccount.FiscalExerciseStartDate = accountDetail.Accounting.FiscalExerciseStartDate;
+                existingAccount.FiscalExerciseDuration = accountDetail.Accounting.FiscalExerciseDuration;
+                existingAccount.AccountingMethod = accountDetail.Accounting.AccountingType;
+                existingAccount.FiscalSystem = accountDetail.Accounting.FiscalSystem;
+                existingAccount.TaxationSystem = accountDetail.Accounting.TaxationSystem;
+                existingAccount.ActivityType = accountDetail.Accounting.ActivityType;
+                existingAccount.ActivityDescription = accountDetail.Accounting.ActivityDescription;
+            }
+
+            existingAccount.HubId = accountDetail.Hub?.HubId;
+            existingAccount.VAT = accountDetail.Vat?.System;
+            existingAccount.VATType = accountDetail.Vat?.Type;
         }
     }
 }

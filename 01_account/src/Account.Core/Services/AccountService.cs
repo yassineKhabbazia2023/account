@@ -11,7 +11,6 @@ namespace Pulse.Account.Core.Services
 {
     public class AccountService : IAccountService
     {
-        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         private readonly IAccountRepository _accountRepository;
 
         public AccountService(IAccountRepository accountRepository)
@@ -23,31 +22,17 @@ namespace Pulse.Account.Core.Services
         {
             page = page == 0 ? 1 : page;
             limit = limit == 0 ? int.MaxValue : limit;
-            var accountList = await _accountRepository.GetAccountsAsync(search, page, limit, contactId);
-            return accountList;
+            return await _accountRepository.GetAccountsAsync(search, page, limit, contactId);
         }
 
         public async Task<AccountDetail?> GetAccountDetailAsync(int id)
         {
-            var accountDetail = await _accountRepository.GetAccountDetailAsync(id);
-            return accountDetail;
+            return await _accountRepository.GetAccountDetailAsync(id);
         }
 
         public async Task<AccountDetail?> UpdateAccountAsync(int id, AccountDetail accountDetail)
         {
             return await _accountRepository.UpdateAccountAsync(accountDetail, id);
-        }
-
-        public IReadOnlyCollection<AccountFavorite> GetAccountFavoritesAsync(int contactId)
-        {
-            string accountFavoriteMocked = File.ReadAllText(@"./MockedResponses/AccountFavoriteMocked.json");
-            var accountFavoriteList = JsonSerializer.Deserialize<IReadOnlyCollection<AccountFavorite>>(accountFavoriteMocked, _jsonOptions);
-            return accountFavoriteList ?? new List<AccountFavorite>();
-        }
-
-        public void SetFavoriteAsync(int accountId, int contactId, bool isFavorite)
-        {
-            // implement set favorite function
         }
 
         public async Task<Statistics> GetStatisticsAsync(int contactId)

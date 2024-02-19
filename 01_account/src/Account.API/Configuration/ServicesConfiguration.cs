@@ -16,8 +16,10 @@ namespace Pulse.Account.API.Configuration
     {
         public static void RegisterServices(this IServiceCollection services)
         {
+            services.AddScoped<IFavoriteService, FavoriteService>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IFavoriteRepository, FavoriteRepository>();
             services.AddScoped<IDelegationService, DelegationService>();
             services.AddScoped<IDelegationRepository, DelegationRepository>();
             services.AddScoped<IRolesService, RolesService>();

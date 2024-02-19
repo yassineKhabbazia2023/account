@@ -84,32 +84,6 @@ namespace Account.Api.Tests.Controllers
         }
 
         [Fact]
-        public void Should_GetAccountFavoriteList_ReturnsOkResultAsync()
-        {
-            // Arrange
-            var accountJson = new List<AccountFavorite>()
-            {
-                new()
-                {
-                    AccountId = "93012CC8-77B9-4161-8DBD-61915D935E21",
-                    LegalName = "JEAN LEVAGE",
-                    Icon = "jeanlevage"
-                }
-            };
-
-            _accountService.Setup(service => service.GetAccountFavoritesAsync(It.IsAny<int>())).Returns(accountJson);
-
-            var accountController = new AccountController(_accountService.Object);
-
-            // Act
-            var accounts = accountController.GetAccountFavoritesAsync(contactId: 1);
-            var resultAccounts = accounts?.Result as OkObjectResult;
-
-            // Assert
-            Assert.Equal(accountJson, resultAccounts?.Value);
-        }
-
-        [Fact]
         public async Task Should_GetStatistics_Nominal()
         {
             var expected = new Statistics

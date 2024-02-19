@@ -74,40 +74,6 @@ namespace Pulse.Account.API.Controllers
         }
 
         /// <summary>
-        /// Lister les entités morales favorites d'un contact.
-        /// </summary>
-        /// <param name="contactId">ID du contact.</param>
-        /// <returns>Liste des entités morales favorites.</returns>
-        [HttpGet("favorites/{contactId}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountFavorite>))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IReadOnlyCollection<AccountFavorite>> GetAccountFavoritesAsync(int contactId)
-        {
-            var result = _accountService.GetAccountFavoritesAsync(contactId);
-
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Modifier le statut de favori d'une entité morale pour un contact donné.
-        /// </summary>
-        /// <param name="accountId">ID de l'entité morale.</param>
-        /// <param name="contactId">ID du contact.</param>
-        /// <param name="isFavorite">True si le l'entité morale fait parti des favoris, false sinon.</param>
-        /// <returns>OK si la mise à jour s'est bien déroulée.</returns>
-        [HttpPatch("favorites/{accountId}/{contactId}/{isFavorite}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult SetFavoriteAsync(int accountId, int contactId, bool isFavorite)
-        {
-            _accountService.SetFavoriteAsync(accountId, contactId, isFavorite);
-
-            return Ok();
-        }
-
-        /// <summary>
         /// Récupérer les statistiques des comptes en fonction de leur statut.
         /// </summary>
         /// <param name="contactId">ID du contact.</param>
