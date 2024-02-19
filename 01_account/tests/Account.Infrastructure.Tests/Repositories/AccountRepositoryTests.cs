@@ -196,7 +196,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAccountFavoriteList_Should_ReturnsOkResultAsync()
+        public async Task GetAccountsFavoriteAsync_Should_ReturnsOkResultAsync()
         {
             using (var context = new AccountContext(_options))
             {

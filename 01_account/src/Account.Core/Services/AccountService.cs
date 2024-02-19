@@ -23,14 +23,12 @@ namespace Pulse.Account.Core.Services
         {
             page = page == 0 ? 1 : page;
             limit = limit == 0 ? int.MaxValue : limit;
-            var accountList = await _accountRepository.GetAccountsAsync(search, page, limit, contactId);
-            return accountList;
+            return await _accountRepository.GetAccountsAsync(search, page, limit, contactId);
         }
 
         public async Task<AccountDetail?> GetAccountDetailAsync(int id)
         {
-            var accountDetail = await _accountRepository.GetAccountDetailAsync(id);
-            return accountDetail;
+            return await _accountRepository.GetAccountDetailAsync(id);
         }
 
         public async Task<AccountDetail?> UpdateAccountAsync(int id, AccountDetail accountDetail)
@@ -40,8 +38,7 @@ namespace Pulse.Account.Core.Services
 
         public async Task<IEnumerable<AccountFavorite>> GetAccountFavoritesAsync(int contactId)
         {
-            var accountFavorite = await _accountRepository.GetAccountsFavoriteAsync(contactId);
-            return accountFavorite;
+            return await _accountRepository.GetAccountsFavoriteAsync(contactId);
         }
 
         public async Task SetFavoriteAsync(int accountId, int contactId, bool isFavorite)
