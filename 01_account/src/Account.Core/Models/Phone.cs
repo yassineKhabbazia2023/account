@@ -1,5 +1,5 @@
-// <copyright file="Phone.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+// <copyright file="Phone.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 namespace Pulse.Account.Core.Models

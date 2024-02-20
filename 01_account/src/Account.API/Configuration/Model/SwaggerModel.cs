@@ -1,5 +1,5 @@
-﻿// <copyright file="SwaggerModel.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="SwaggerModel.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 namespace Pulse.Account.API.Configuration.Model

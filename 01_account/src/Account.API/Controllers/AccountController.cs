@@ -1,5 +1,5 @@
-﻿// <copyright file="AccountController.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="AccountController.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using Microsoft.AspNetCore.Mvc;

@@ -1,8 +1,7 @@
-﻿// <copyright file="AccountService.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="AccountService.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Text.Json;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;

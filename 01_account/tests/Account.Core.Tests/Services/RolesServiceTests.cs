@@ -1,5 +1,5 @@
-﻿// <copyright file="RolesServiceTests.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="RolesServiceTests.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using System.Text.Json;
@@ -10,7 +10,7 @@ using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
-namespace Kpmg.Account.Core.Tests.Services;
+namespace Pulse.Account.Core.Tests.Services;
 
 public class RolesServiceTests
 {

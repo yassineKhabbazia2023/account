@@ -1,5 +1,5 @@
-﻿// <copyright file="IRolesService.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="IRolesService.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using Pulse.Account.Core.Models;

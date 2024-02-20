@@ -6,10 +6,10 @@
 
 	<!-- Common properties for all projects -->
 	<PropertyGroup>
-		<Authors>KPMG</Authors>
-		<Company>KPMG</Company>
-		<Copyright>Copyright (C) 2023 KPMG</Copyright>
-		<Product>Kpmg Pulse</Product>
+		<Authors>Pulse</Authors>
+		<Company>Pulse</Company>
+		<Copyright>Copyright (C) 2023 Pulse</Copyright>
+		<Product>Pulse</Product>
 	</PropertyGroup>
 
 	<!-- Common NuGet packages for all projects -->

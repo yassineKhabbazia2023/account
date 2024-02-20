@@ -1,5 +1,5 @@
-﻿// <copyright file="RolesService.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="RolesService.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using Pulse.Account.Core.Interfaces;
@@ -17,7 +17,7 @@ public class RolesService : IRolesService
         _rolesRepository = rolesRepository;
     }
 
-    public Task<Paging<Core.Models.Account>> GetContactRolesAsync(int contactId, int page, int limit)
+    public Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, int page, int limit)
     {
         page = page == 0 ? 1 : page;
         limit = limit == 0 ? int.MaxValue : limit;

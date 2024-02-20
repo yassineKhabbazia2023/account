@@ -1,5 +1,5 @@
-﻿// <copyright file="PagesCalculator.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="PagesCalculator.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 namespace Pulse.Account.Infrastructure.Extensions

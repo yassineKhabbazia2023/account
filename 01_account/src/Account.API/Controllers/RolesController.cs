@@ -1,5 +1,5 @@
-﻿// <copyright file="RolesController.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="RolesController.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using Kpmg.ExceptionMiddleware.Model;
@@ -36,7 +36,7 @@ namespace Pulse.Account.API.Controllers
         /// <param name="limit">Nombre d'éléments par page.</param>
         /// <returns>Liste d'entités morales.</returns>
         [HttpGet("/roles/{contactId}")]
-        [ProducesResponseType(typeof(Paging<Pulse.Account.Core.Models.Account>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Paging<Core.Models.Account>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<Paging<Core.Models.Account>>> GetContactRolesAsync(int contactId, int page, int limit)

@@ -1,5 +1,5 @@
-﻿// <copyright file="RolesRepositoryTests.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="RolesRepositoryTests.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using AutoFixture;
@@ -13,7 +13,7 @@ using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
-namespace Kpmg.Account.Infrastructure.Tests.Repositories;
+namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
 public class RolesRepositoryTests
 {
