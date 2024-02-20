@@ -3,6 +3,7 @@
 // </copyright>
 
 using AutoFixture;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models;
@@ -13,7 +14,7 @@ using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
-namespace Kpmg.Account.Infrastructure.Tests.Repositories;
+namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
 public class RolesRepositoryTests
 {
@@ -85,6 +86,40 @@ public class RolesRepositoryTests
 
             // Assert
             Assert.Equivalent(resultExpected, roles);
+        }
+    }
+
+    [Fact]
+    public async Task CreateRoleAsync_ShouldReturnCreated()
+    {
+        // Arrange
+        using (var context = new AccountContext(_context))
+        {
+            var roleMock = _fixture.Create<Role>();
+
+            var rolesRepository = new RoleRepository(context);
+
+            // Act
+            var roles = await rolesRepository.CreateRoleAsync(roleMock);
+
+            // Assert
+            Assert.Equal(1, roles);
+        }
+    }
+
+    [Fact]
+    public async Task CreateRoleAsync_ShouldThrow_NotFoundException()
+    {
+        // Arrange
+        using (var context = new AccountContext(_context))
+        {
+            var rolesRepository = new RoleRepository(context);
+
+            // Act
+            Task Roles() => rolesRepository.CreateRoleAsync(null);
+
+            // Assert
+            await Assert.ThrowsAsync<NotFoundException>(Roles);
         }
     }
 }

@@ -2,6 +2,8 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using System.Net;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;
@@ -14,6 +16,7 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
+using Pulse.Account.Core.Models.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -76,5 +79,22 @@ public class RoleRepository : IRoleRepository
 
             return res.MapTRolesToSignatory();
         }).ConfigureAwait(false);
+    }
+
+    public async Task<int> CreateRoleAsync(Role role)
+    {
+        int result = 0;
+        if (role == null)
+        {
+            throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotNullException);
+        }
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            _accountContext.TRole.Add(role.MapRoleBusinessToRoleDb());
+            result = await _accountContext.SaveChangesAsync();
+        }).ConfigureAwait(false);
+
+        return result;
     }
 }

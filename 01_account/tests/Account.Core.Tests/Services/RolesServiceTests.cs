@@ -10,7 +10,7 @@ using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
-namespace Kpmg.Account.Core.Tests.Services;
+namespace Pulse.Account.Core.Tests.Services;
 
 public class RolesServiceTests
 {
@@ -64,5 +64,30 @@ public class RolesServiceTests
 
         // Assert
         Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public async Task CreateRole_Should_ReturnsCreatedResultAsync()
+    {
+        // Arrange
+        var roleParam = new Role()
+        {
+            RoleId = 6,
+            AccountId = 6,
+            ContactId = 6,
+            IsFavorite = false,
+            IsSignatory = false
+        };
+
+        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<Role>()))
+            .ReturnsAsync(1);
+        var roleService = new RolesService(roleRepository.Object);
+
+        // Act
+        var result = await roleService.CreateRoleAsync(roleParam);
+
+        // Assert
+        Assert.Equal(1, result);
     }
 }

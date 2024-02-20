@@ -2,6 +2,7 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
+using System.Net;
 using Kpmg.ExceptionMiddleware.Model;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
@@ -59,6 +60,21 @@ namespace Pulse.Account.API.Controllers
         {
             var result = await _rolesService.GetSignatoryAsync(accountId);
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Créer un role pour un contact dans une entité morale.
+        /// </summary>
+        /// <param name="role">Objet role qui va lier un contact à une entité morale.</param>
+        /// <returns>http 201.</returns>
+        [HttpPost("/roles")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> CreateRoleAsync(Role role)
+        {
+            var result = await _rolesService.CreateRoleAsync(role);
+            return StatusCode(StatusCodes.Status201Created, result);
         }
     }
 }

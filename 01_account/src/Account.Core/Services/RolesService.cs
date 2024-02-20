@@ -28,4 +28,9 @@ public class RolesService : IRolesService
     {
         return _rolesRepository.GetSignatoryAsync(accountId);
     }
+
+    public async Task<int> CreateRoleAsync(Role role)
+    {
+        return await _rolesRepository.CreateRoleAsync(role);
+    }
 }

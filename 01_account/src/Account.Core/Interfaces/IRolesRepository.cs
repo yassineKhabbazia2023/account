@@ -12,4 +12,6 @@ public interface IRoleRepository
     Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, int page, int limit);
 
     Task<IEnumerable<Signatory>> GetSignatoryAsync(int accountId);
+
+    Task<int> CreateRoleAsync(Role role);
 }

@@ -2,8 +2,10 @@
 // Copyright (c) KPMG. All rights reserved.
 // </copyright>
 
+using System.Net;
 using System.Text.Json;
 using AutoMapper.Configuration.Annotations;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
@@ -65,6 +67,32 @@ namespace Account.Api.Tests.Controllers
 
             // Assert
             Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);
+        }
+
+        [Fact]
+        public async Task CreateRole_Should_ReturnCreatedResultAsync()
+        {
+            // Arrange
+            var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
+            var roleParam = new Role()
+            {
+                RoleId = 6,
+                AccountId = 6,
+                ContactId = 6,
+                IsFavorite = false,
+                IsSignatory = false
+            };
+            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<Role>()))
+                .ReturnsAsync(1);
+            var rolesController = new RolesController(rolesService.Object);
+
+            // Act
+            var actionResult = await rolesController.CreateRoleAsync(roleParam);
+            var result = actionResult as ObjectResult;
+
+            // Assert
+            result.StatusCode.Should().Be(201);
+            rolesService.Verify(x => x.CreateRoleAsync(roleParam), Times.Once);
         }
     }
 }
