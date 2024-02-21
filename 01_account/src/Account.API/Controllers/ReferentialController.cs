@@ -31,5 +31,18 @@ namespace Pulse.Account.API.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Récupère la liste des NAF.
+        /// </summary>
+        /// <returns>Liste des NAF.</returns>
+        [HttpGet("nafs")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Naf?>))]
+        public async Task<ActionResult<IReadOnlyCollection<Naf?>>> GetNafsAsync()
+        {
+            var result = await _referentialService.GetNafsAsync();
+
+            return Ok(result);
+        }
     }
 }

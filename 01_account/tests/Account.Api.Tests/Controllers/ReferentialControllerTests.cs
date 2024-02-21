@@ -36,5 +36,19 @@ namespace Account.Api.Tests.Controllers
             result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
             result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(hubs);
         }
+
+        [Fact]
+        public async Task GetNafsAsync_Should_Return_OkResult()
+        {
+            var nafs = _fixture.CreateMany<Naf>();
+            _service.Setup(x => x.GetNafsAsync()).ReturnsAsync(nafs).Verifiable();
+
+            var referentialController = new ReferentialController(_service.Object);
+
+            var result = await referentialController.GetNafsAsync();
+
+            result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
+            result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(nafs);
+        }
     }
 }

@@ -4,7 +4,6 @@
 
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
@@ -41,6 +40,24 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 Assert.NotNull(result);
                 Assert.Equal(tHubs.Count(), result.Count());
+            }
+        }
+
+        [Fact]
+        public async Task GetNafsAsync_Should_Return_NafList()
+        {
+            using (var context = new AccountContext(_options))
+            {
+                var tNafs = _fixture.CreateMany<TNaf>();
+                context.AddRange(tNafs);
+                await context.SaveChangesAsync();
+
+                var repository = new ReferentialRepository(context);
+
+                var result = await repository.GetNafsAsync();
+
+                Assert.NotNull(result);
+                Assert.Equal(tNafs.Count(), result.Count());
             }
         }
     }

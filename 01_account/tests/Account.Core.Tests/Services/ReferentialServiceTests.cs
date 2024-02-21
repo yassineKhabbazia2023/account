@@ -34,5 +34,19 @@ namespace Pulse.Account.Core.Tests.Services
             Assert.NotNull(result);
             Assert.Equal(hubs, result);
         }
+
+        [Fact]
+        public async Task GetNafsAsync_Should_Return_NafList()
+        {
+            var nafs = _fixture.CreateMany<Naf>();
+            _repositoryMock.Setup(x => x.GetNafsAsync()).ReturnsAsync(nafs);
+
+            var service = new ReferentialService(_repositoryMock.Object);
+
+            var result = await service.GetNafsAsync();
+
+            Assert.NotNull(result);
+            Assert.Equal(nafs, result);
+        }
     }
 }

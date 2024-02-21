@@ -9,5 +9,7 @@ namespace Pulse.Account.Core.Interfaces
     public interface IReferentialRepository
     {
         Task<IEnumerable<Hub?>> GetHubsAsync();
+
+        Task<IEnumerable<Naf?>> GetNafsAsync();
     }
 }

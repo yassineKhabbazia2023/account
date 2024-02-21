@@ -97,20 +97,20 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void MapTHubsToHubs_Should_Return_HubList()
+        public void MapHubEntitiesToHubs_Should_Return_HubList()
         {
             var expected = _fixture.CreateMany<THub>();
 
-            var result = MapperReferentialDbToBusiness.MapTHubsToHubs(expected);
+            var result = MapperReferentialDbToBusiness.MapHubEntitiesToHubs(expected);
 
             Assert.NotNull(result);
             Assert.Equal(expected.Count(), result.Count());
         }
 
         [Fact]
-        public void MapMapTHubsToHubs_When_SourceIsNull_Should_Return_EmptyList()
+        public void MapHubEntitiesToHubs_When_SourceIsNull_Should_Return_EmptyList()
         {
-            var result = MapperReferentialDbToBusiness.MapTHubsToHubs(null!);
+            var result = MapperReferentialDbToBusiness.MapHubEntitiesToHubs(null!);
 
             Assert.NotNull(result);
             Assert.Empty(result);
@@ -132,6 +132,47 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapHubEntityToHub_When_SourceIsNull_Should_ReturnNull()
         {
             var result = MapperReferentialDbToBusiness.MapHubEntityToHub(null!);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void MapNafEntitiesToNafs_Should_Return_NafList()
+        {
+            var expected = _fixture.CreateMany<TNaf>();
+
+            var result = MapperReferentialDbToBusiness.MapNafEntitiesToNafs(expected);
+
+            Assert.NotNull(result);
+            Assert.Equal(expected.Count(), result.Count());
+        }
+
+        [Fact]
+        public void MapNafEntitiesToNafs_When_SourceIsNull_Should_Return_EmptyList()
+        {
+            var result = MapperReferentialDbToBusiness.MapNafEntitiesToNafs(null!);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void MapNafEntityToNaf_Should_Return_Naf()
+        {
+            var expected = _fixture.Create<TNaf>();
+
+            var result = MapperReferentialDbToBusiness.MapNafEntityToNaf(expected);
+
+            Assert.NotNull(result);
+            Assert.Equal(expected.NafId, result.NafId);
+            Assert.Equal(expected.NafCode, result.NafCode);
+            Assert.Equal(expected.NafLabel, result.NafLabel);
+        }
+
+        [Fact]
+        public void MapNafEntityToNaf_When_SourceIsNull_Should_ReturnNull()
+        {
+            var result = MapperReferentialDbToBusiness.MapNafEntityToNaf(null!);
 
             Assert.Null(result);
         }

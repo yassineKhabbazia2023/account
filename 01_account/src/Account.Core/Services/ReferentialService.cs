@@ -20,5 +20,10 @@ namespace Pulse.Account.Core.Services
         {
             return await _referentialRepository.GetHubsAsync();
         }
+
+        public async Task<IEnumerable<Naf?>> GetNafsAsync()
+        {
+            return await _referentialRepository.GetNafsAsync();
+        }
     }
 }
