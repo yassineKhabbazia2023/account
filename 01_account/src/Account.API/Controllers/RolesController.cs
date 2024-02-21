@@ -14,7 +14,7 @@ namespace Pulse.Account.API.Controllers
     /// Les différents endpoints pour la gestion rôles.
     /// </summary>
     [ApiController]
-    [Route("api")]
+    [Route("api/roles")]
     public class RolesController : ControllerBase
     {
         private readonly IRolesService _rolesService;
@@ -32,16 +32,16 @@ namespace Pulse.Account.API.Controllers
         /// Lister les entités morales auxquelles un contact est lié.
         /// </summary>
         /// <param name="contactId">Identification de l'utilisateur connecté.</param>
-        /// <param name="page">Numéro de page.</param>
-        /// <param name="limit">Nombre d'éléments par page.</param>
+        /// <param name="pageNumber">Numéro de page.</param>
+        /// <param name="pageSize">Nombre d'éléments par page.</param>
         /// <returns>Liste d'entités morales.</returns>
-        [HttpGet("/roles/{contactId}")]
-        [ProducesResponseType(typeof(Paging<Core.Models.Account>), StatusCodes.Status200OK)]
+        [HttpGet("/{contactId}")]
+        [ProducesResponseType(typeof(Paging<Pulse.Account.Core.Models.Account>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Paging<Core.Models.Account>>> GetContactRolesAsync(int contactId, int page, int limit)
+        public async Task<ActionResult<Paging<Core.Models.Account>>> GetContactRolesAsync(int contactId, int pageNumber, int pageSize)
         {
-            var result = await _rolesService.GetContactRolesAsync(contactId, page, limit);
+            var result = await _rolesService.GetContactRolesAsync(contactId, pageNumber, pageSize);
 
             return Ok(result);
         }
@@ -51,11 +51,11 @@ namespace Pulse.Account.API.Controllers
         /// </summary>
         /// <param name="accountId">Identifiant de l'entité morale.</param>
         /// <returns>La liste des signataires.</returns>
-        [HttpGet("/roles/signatory/{accountId}")]
-        [ProducesResponseType(typeof(IEnumerable<Signatory>), StatusCodes.Status200OK)]
+        [HttpGet("/signatory/{accountId}")]
+        [ProducesResponseType(typeof(IEnumerable<Contact>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<IEnumerable<Signatory>>> GetSignatoryAsync(int accountId)
+        public async Task<ActionResult<IEnumerable<Contact>>> GetSignatoryAsync(int accountId)
         {
             var result = await _rolesService.GetSignatoryAsync(accountId);
             return Ok(result);

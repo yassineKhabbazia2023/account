@@ -6,12 +6,12 @@ namespace Pulse.Account.Infrastructure.Extensions
 {
     public static class PagesCalculator
     {
-        public static float GetTotalPages(int count, int limit)
+        public static float GetTotalPages(int totalRows, int pageSize)
         {
-            if(count != 0)
+            if(totalRows != 0)
             {
-                var size = limit > count ? count : (float)limit;
-                return count / size;
+                var size = pageSize > totalRows ? totalRows : (float)pageSize;
+                return totalRows / size;
             }
 
             return 0;

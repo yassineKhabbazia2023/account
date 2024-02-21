@@ -18,14 +18,14 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories;
 public class RolesRepositoryTests
 {
     private readonly Fixture _fixture;
-    private readonly DbContextOptions<AccountContext> _context;
+    private readonly DbContextOptions<AccountContext> _dbContextOptions;
 
     public RolesRepositoryTests()
     {
         _fixture = new Fixture();
         _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        _context = new DbContextOptionsBuilder<AccountContext>()
+        _dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
                         .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                         .Options;
     }
@@ -34,7 +34,7 @@ public class RolesRepositoryTests
     public async Task GetContactRolesAsync_Should_ReturnsCorrectPaging()
     {
         // Arrange
-        using (var context = new AccountContext(_context))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             var accountsEntity = _fixture.Create<List<TAccount>>();
             context.TAccount.AddRange(accountsEntity);
@@ -46,7 +46,8 @@ public class RolesRepositoryTests
             var accountObjects = accountsEntity
                                     .SelectMany(item => item.TRole)
                                     .Where(x => x.ContactId == contactId)
-                                    .Select(x => x.Account.MapTAccountToAccountModel());
+                                    .Select(x => x.Account.MapToAccount(contactId));
+
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
             {
                 CurrentPage = 1,
@@ -56,7 +57,7 @@ public class RolesRepositoryTests
             };
 
             // Act
-            var accounts = await rolesRepository.GetContactRolesAsync(contactId, page: 1, limit: 4);
+            var accounts = await rolesRepository.GetContactRolesAsync(contactId, pageNumber: 1, pageSize: 4);
 
             // Assert
             var accountExpect = JsonConvert.SerializeObject(accountPaging);
@@ -69,7 +70,7 @@ public class RolesRepositoryTests
     public async Task GetSignatoryAsync_ShouldReturnCorrect()
     {
         // Arrange
-        using (var context = new AccountContext(_context))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             var accountsMock = _fixture.Create<List<TAccount>>();
             context.TAccount.AddRange(accountsMock);
@@ -77,8 +78,8 @@ public class RolesRepositoryTests
 
             var rolesRepository = new RoleRepository(context);
             var data = accountsMock.First().TRole.Where(r => r.IsSignatory!.Value).ToList();
-            var resultExpected = new List<Signatory>();
-            resultExpected.AddRange(data.MapTRolesToSignatory());
+            var resultExpected = new List<Contact>();
+            resultExpected.AddRange(data.MapToContacts());
 
             // Act
             var roles = await rolesRepository.GetSignatoryAsync(data.First().AccountId);

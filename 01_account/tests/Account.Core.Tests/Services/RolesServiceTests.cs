@@ -4,11 +4,13 @@
 
 using System.Text.Json;
 using Moq;
+using AutoFixture;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
+using FluentAssertions;
 
 namespace Pulse.Account.Core.Tests.Services;
 
@@ -32,7 +34,7 @@ public class RolesServiceTests
         var rolesService = new RolesService(rolesRepository.Object);
 
         // Act
-        var accounts = await rolesService.GetContactRolesAsync(contactId: 123, page: 0, limit: 0);
+        var accounts = await rolesService.GetContactRolesAsync(contactId: 123, pageNumber: 0, pageSize: 0);
 
         // Assert
         Assert.Equal(accountList, accounts);
@@ -40,27 +42,22 @@ public class RolesServiceTests
     }
 
     [Fact]
-    public async Task GetSignatory_Should_ReturnsOkResultAsync()
+    public async Task GetSignatoryAsync_Should_Returns_Account_Signatory()
     {
         // Arrange
-        var signatoryContactId = 6;
-        var expected = new List<Signatory>()
-                {
-                    new Signatory()
-                    {
-                        ContactId = signatoryContactId,
-                        FirstName = "FirstName",
-                        LastName = "LastName",
-                        ContactEmail = "Email",
-                    }
-                };
+        var accountId = 116;
+        var fixture = new Fixture();
+        var expected = new List<Contact> { fixture.Create<Contact>() };
+
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
+            .Callback<int>(id => id.Should().Be(accountId))
             .ReturnsAsync(expected);
+
         var roleService = new RolesService(roleRepository.Object);
 
         // Act
-        var result = await roleService.GetSignatoryAsync(signatoryContactId);
+        var result = await roleService.GetSignatoryAsync(accountId);
 
         // Assert
         Assert.Equal(expected, result);

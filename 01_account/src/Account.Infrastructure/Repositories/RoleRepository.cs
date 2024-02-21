@@ -14,6 +14,7 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -33,11 +34,11 @@ public class RoleRepository : IRoleRepository
                     sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Constants.RETRYTIMESPAN));
     }
 
-    public async Task<Paging<Core.Models.Account>> GetContactRolesAsync(int contactId, int page, int limit)
+    public async Task<Paging<Core.Models.Account>> GetContactRolesAsync(int contactId, int pageNumber, int pageSize)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            IQueryable<TAccount> entities = _accountContext.TAccount
+            IQueryable<TAccount> query = _accountContext.TAccount
                                                         .AsNoTracking()
                                                         .Include(x => x.TRole)
                                                         .ThenInclude(r => r.Contact)
@@ -46,35 +47,35 @@ public class RoleRepository : IRoleRepository
                                                         .Where(a => a.TRole.Any(r => r.ContactId == contactId))
                                                         .OrderBy(x => x.LegalName);
 
-            var count = await entities.CountAsync();
+            var totalRows = await query.CountAsync();
 
-            entities = entities.Skip((page - 1) * limit);
-            entities = entities.Take(limit);
+            query = query.Skip((pageNumber - 1) * pageSize);
+            query = query.Take(pageSize);
 
-            var totalPageCalcul = PagesCalculator.GetTotalPages(count, limit);
+            var totalPages = PagesCalculator.GetTotalPages(totalRows, pageSize);
+            var entities = await query.ToListAsync();
 
-            var pageinateResult = new Paging<Core.Models.Account>()
-            {
-                Items = entities.Select(entity => entity.MapTAccountToAccountModel()),
-                CurrentPage = page,
-                TotalItems = count,
-                TotalPage = (int)Math.Ceiling(totalPageCalcul)
-            };
+            return MapAccountDbToAccountModel.MapToPaginAccounts(
+                  entities,
+                  contactId,
+                  pageNumber,
+                  totalRows,
+                  totalPages);
 
-            return pageinateResult;
         }).ConfigureAwait(false);
     }
 
-    public async Task<IEnumerable<Signatory>> GetSignatoryAsync(int accountId)
+    public async Task<IEnumerable<Contact>> GetSignatoryAsync(int accountId)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            IReadOnlyCollection<TRole> res = await _accountContext.TRole
+            var result = await _accountContext.TRole
                 .AsNoTracking()
-            .Include(x => x.Contact)
-                .Where(x => x.AccountId == accountId && x.IsSignatory!.Value).ToListAsync();
+                .Include(x => x.Contact)
+                .Where(x => x.AccountId == accountId && x.IsSignatory!.Value)
+                .ToListAsync();
 
-            return res.MapTRolesToSignatory();
+            return result.MapToContacts();
         }).ConfigureAwait(false);
     }
 }

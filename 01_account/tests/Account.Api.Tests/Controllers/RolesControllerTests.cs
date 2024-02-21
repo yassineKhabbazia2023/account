@@ -3,6 +3,7 @@
 // </copyright>
 
 using System.Text.Json;
+using AutoFixture;
 using AutoMapper.Configuration.Annotations;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -34,7 +35,7 @@ namespace Account.Api.Tests.Controllers
             var rolesController = new RolesController(rolesService.Object);
 
             // Act
-            var accounts = await rolesController.GetContactRolesAsync(contactId: 123, page: 1, limit: 4);
+            var accounts = await rolesController.GetContactRolesAsync(contactId: 123, pageNumber: 1, pageSize: 4);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
@@ -42,26 +43,20 @@ namespace Account.Api.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetSignatory_Should_ReturnOkResultAsync()
+        public async Task GetSignatoryAsync_Should_Returns_Account_Signatory()
         {
             // Arrange
+            var accountId = 116;
+            var fixture = new Fixture();
+            var expected = new List<Contact> { fixture.Create<Contact>() };
+
             var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
-            var expected = new List<Signatory>()
-                {
-                    new Signatory()
-                    {
-                        ContactId = 6,
-                        FirstName = "FirstName",
-                        LastName = "LastName",
-                        ContactEmail = "Email",
-                    }
-                };
             rolesService.Setup(service => service.GetSignatoryAsync(It.IsAny<int>()))
                 .ReturnsAsync(expected);
             var rolesController = new RolesController(rolesService.Object);
 
             // Act
-            var result = await rolesController.GetSignatoryAsync(6);
+            var result = await rolesController.GetSignatoryAsync(accountId);
 
             // Assert
             Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);

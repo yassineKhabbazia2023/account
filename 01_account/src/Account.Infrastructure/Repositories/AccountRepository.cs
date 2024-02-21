@@ -39,38 +39,36 @@ namespace Pulse.Account.Infrastructure.Repositories
                         sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Constants.RETRYTIMESPAN));
         }
 
-        public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int page, int limit, int contactId)
+        public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int pageNumber, int pageSize, int contactId)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                IQueryable<TAccount> entities = GetAccountQueryByContactId(contactId);
+                IQueryable<TAccount> query = GetAccountQueryByContactId(contactId);
 
-                if (!search.IsNullOrEmpty())
+                if (!string.IsNullOrWhiteSpace(search))
                 {
-                    entities = from n in entities
-                               where n.LegalName.Contains(search)
-                                     || n.SourceAccountNumber.Contains(search)
-                                     || n.TRole.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search)
-                                                         || role.Contact.LastName.Contains(search)
-                                                         || role.Contact.ContactEmail.Contains(search)))
-                               select n;
+                    query = from n in query
+                            where n.LegalName.Contains(search)
+                                  || n.SourceAccountNumber.Contains(search)
+                                  || n.TRole.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search)
+                                                      || role.Contact.LastName.Contains(search)
+                                                      || role.Contact.ContactEmail.Contains(search)))
+                            select n;
                 }
 
-                var count = await entities.CountAsync();
+                var totalRows = await query.CountAsync();
 
-                entities = entities.Skip((page - 1) * limit);
-                entities = entities.Take(limit);
+                query = query.Skip((pageNumber - 1) * pageSize);
+                query = query.Take(pageSize);
 
-                var totalPageCalcul = PagesCalculator.GetTotalPages(count, limit);
+                var totalPages = PagesCalculator.GetTotalPages(totalRows, pageSize);
 
-                var pageinateResult = new Paging<AccountModel>()
-                {
-                    Items = entities.Select(entity => entity.MapTAccountToAccountModel()),
-                    CurrentPage = page,
-                    TotalItems = count,
-                    TotalPage = (int)Math.Ceiling(totalPageCalcul)
-                };
-                return pageinateResult;
+                return MapAccountDbToAccountModel.MapToPaginAccounts(
+                    await query.ToListAsync(),
+                    contactId,
+                    pageNumber,
+                    totalRows,
+                    totalPages);
             }).ConfigureAwait(false);
         }
 
@@ -94,9 +92,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                     throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
                 }
 
-                var accountDetail = entity.MapTAccountToAccountDetail();
-
-                return accountDetail;
+                return entity.MapToAccountDetail();
             }).ConfigureAwait(false);
         }
 
@@ -119,7 +115,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                     throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotNullException);
                 }
 
-                existingAccount.MapUpdatedAccount(accountDetail);
+                existingAccount.MapToUpdatedAccount(accountDetail);
                 _accountContext.TAccount.Update(existingAccount);
                 await _accountContext.SaveChangesAsync();
                 return await GetAccountDetailAsync(accountId);
@@ -141,7 +137,21 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 var countByStatus = await entities.ToDictionaryAsync(x => x.Status, x => x.Count);
 
-                return MapAccountDbToAccountModel.MapStatistics(countByStatus);
+                return MapAccountDbToAccountModel.MapToStatistics(countByStatus);
+            }).ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId)
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                var result = await _accountContext.TRole
+                    .AsNoTracking()
+                    .Include(x => x.Contact)
+                    .Where(x => x.AccountId == accountId)
+                    .ToListAsync();
+
+                return result.MapToContacts();
             }).ConfigureAwait(false);
         }
 

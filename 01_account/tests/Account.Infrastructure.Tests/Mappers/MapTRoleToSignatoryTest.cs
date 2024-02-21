@@ -20,7 +20,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapTContactToSignatory_CaseNull()
         {
             TRole? role = null;
-            var result = role.MapTContactToSignatory();
+            var result = role.MapToContact();
             Assert.Null(result);
         }
 
@@ -29,7 +29,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         {
             // Arrange
             TRole? role = _fixture.Create<TRole?>();
-            var expected = new Signatory()
+            var expected = new Contact
             {
                 ContactId = role!.ContactId,
                 ContactEmail = role.Contact.ContactEmail,
@@ -38,7 +38,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             };
 
             // Act
-            var result = role.MapTContactToSignatory();
+            var result = role.MapToContact();
 
             // Assert
             Assert.Equivalent(expected, result);
@@ -48,8 +48,8 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapTRolesToSignatory_CaseEmpty()
         {
             List<TRole>? roles = new List<TRole>();
-            var expected = new List<Signatory>();
-            var result = roles.MapTRolesToSignatory();
+            var expected = new List<Contact>();
+            var result = roles.MapToContacts();
             Assert.Equal(expected, result);
         }
 
@@ -58,9 +58,9 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         {
             // Arrange
             List<TRole>? roles = _fixture.Create<List<TRole>?>();
-            var expected = new List<Signatory>()
+            var expected = new List<Contact>
             {
-                new Signatory()
+                new Contact()
                 {
                     ContactId = roles!.First().ContactId,
                     ContactEmail = roles!.First().Contact.ContactEmail,
@@ -70,7 +70,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             };
 
             // Act
-            var result = roles!.MapTRolesToSignatory();
+            var result = roles!.MapToContacts();
 
             // Assert
             Assert.Equivalent(expected, result);
