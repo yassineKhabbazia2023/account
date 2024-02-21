@@ -1,11 +1,14 @@
-﻿// <copyright file="RolesServiceTests.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="RolesServiceTests.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Net;
 using System.Text.Json;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Moq;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
@@ -67,7 +70,7 @@ public class RolesServiceTests
     }
 
     [Fact]
-    public async Task CreateRole_Should_ReturnsCreatedResultAsync()
+    public void CreateRole_Should_ReturnsCreatedResultAsync()
     {
         // Arrange
         var roleParam = new Role()
@@ -81,13 +84,31 @@ public class RolesServiceTests
 
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<Role>()))
-            .ReturnsAsync(1);
+            .Returns(Task.CompletedTask);
         var roleService = new RolesService(roleRepository.Object);
 
         // Act
-        var result = await roleService.CreateRoleAsync(roleParam);
+        var result = roleService.CreateRoleAsync(roleParam);
 
         // Assert
-        Assert.Equal(1, result);
+        Assert.Equal(Task.CompletedTask, result);
+    }
+
+
+
+    [Fact]
+    public async Task CreateRoleAsync_ShouldThrow_BadRequestException()
+    {
+        // Arrange
+        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        roleRepository.Setup(repo => repo.CreateRoleAsync(null))
+            .ThrowsAsync(new BadRequestException(HttpStatusCode.BadRequest.ToString(), Errors.NotNullException));
+        var roleService = new RolesService(roleRepository.Object);
+
+        // Act
+        Task Roles() => roleService.CreateRoleAsync(null);
+
+        // Assert
+        await Assert.ThrowsAsync<BadRequestException>(Roles);
     }
 }

@@ -1,9 +1,12 @@
-﻿// <copyright file="RolesService.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="RolesService.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Net;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 
 namespace Pulse.Account.Core.Services;
@@ -29,8 +32,13 @@ public class RolesService : IRolesService
         return _rolesRepository.GetSignatoryAsync(accountId);
     }
 
-    public async Task<int> CreateRoleAsync(Role role)
+    public async Task CreateRoleAsync(Role role)
     {
-        return await _rolesRepository.CreateRoleAsync(role);
+        if (role == null)
+        {
+            throw new BadRequestException(HttpStatusCode.BadRequest.ToString(), Errors.NotNullException);
+        }
+
+        await _rolesRepository.CreateRoleAsync(role);
     }
 }

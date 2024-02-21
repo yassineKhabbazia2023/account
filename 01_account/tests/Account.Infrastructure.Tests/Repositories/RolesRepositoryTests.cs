@@ -90,7 +90,7 @@ public class RolesRepositoryTests
     }
 
     [Fact]
-    public async Task CreateRoleAsync_ShouldReturnCreated()
+    public void CreateRoleAsync_ShouldReturnCreated()
     {
         // Arrange
         using (var context = new AccountContext(_context))
@@ -100,26 +100,10 @@ public class RolesRepositoryTests
             var rolesRepository = new RoleRepository(context);
 
             // Act
-            var roles = await rolesRepository.CreateRoleAsync(roleMock);
+            var result = rolesRepository.CreateRoleAsync(roleMock);
 
             // Assert
-            Assert.Equal(1, roles);
-        }
-    }
-
-    [Fact]
-    public async Task CreateRoleAsync_ShouldThrow_NotFoundException()
-    {
-        // Arrange
-        using (var context = new AccountContext(_context))
-        {
-            var rolesRepository = new RoleRepository(context);
-
-            // Act
-            Task Roles() => rolesRepository.CreateRoleAsync(null);
-
-            // Assert
-            await Assert.ThrowsAsync<NotFoundException>(Roles);
+            Assert.Equal(Task.CompletedTask, result);
         }
     }
 }

@@ -13,5 +13,5 @@ public interface IRolesService
 
     Task<IEnumerable<Signatory>> GetSignatoryAsync(int accountId);
 
-    Task<int> CreateRoleAsync(Role role);
+    Task CreateRoleAsync(Role role);
 }

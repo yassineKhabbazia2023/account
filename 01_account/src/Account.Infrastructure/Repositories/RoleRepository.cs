@@ -17,6 +17,7 @@ using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Core.Models.Exceptions;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -81,20 +82,12 @@ public class RoleRepository : IRoleRepository
         }).ConfigureAwait(false);
     }
 
-    public async Task<int> CreateRoleAsync(Role role)
+    public async Task CreateRoleAsync(Role role)
     {
-        int result = 0;
-        if (role == null)
-        {
-            throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotNullException);
-        }
-
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            _accountContext.TRole.Add(role.MapRoleBusinessToRoleDb());
-            result = await _accountContext.SaveChangesAsync();
+            _accountContext.TRole.Add(role.MapRoleToRoleDb());
+            await _accountContext.SaveChangesAsync();
         }).ConfigureAwait(false);
-
-        return result;
     }
 }

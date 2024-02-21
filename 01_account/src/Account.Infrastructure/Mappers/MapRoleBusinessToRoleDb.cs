@@ -1,5 +1,5 @@
-﻿// <copyright file="MapBusinessToDb.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="MapRoleBusinessToRoleDb.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using System.Net;
@@ -10,15 +10,10 @@ using Pulse.Account.Infrastructure.Entities;
 
 namespace Pulse.Account.Infrastructure.Mappers
 {
-    public static class MapBusinessToDb
+    public static class MapRoleBusinessToRoleDb
     {
-        public static TRole MapRoleBusinessToRoleDb(this Role role)
+        public static TRole MapRoleToRoleDb(this Role role)
         {
-            if (role == null)
-            {
-                throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotNullException);
-            }
-
             return new TRole()
             {
                 AccountId = role.AccountId,
