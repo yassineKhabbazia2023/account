@@ -15,8 +15,6 @@ namespace Pulse.Account.Core.Interfaces
 
         public Task<AccountDetail?> UpdateAccountAsync(int id, AccountDetail accountDetail);
 
-        Task<Statistics> GetStatisticsAsync(int contactId);
-
         Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId);
     }
 }

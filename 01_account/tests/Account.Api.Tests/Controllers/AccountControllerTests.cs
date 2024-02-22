@@ -85,27 +85,6 @@ namespace Account.Api.Tests.Controllers
         }
 
         [Fact]
-        public async Task Should_GetStatistics_Nominal()
-        {
-            var expected = new Statistics
-            {
-                AccountConnected = 10,
-                AccountToDeploy = 3,
-                AccountInProgress = 5
-            };
-
-            _accountService.Setup(service => service.GetStatisticsAsync(It.IsAny<int>())).ReturnsAsync(expected);
-            var accountController = new AccountController(_accountService.Object);
-
-            var statistics = await accountController.GetStatistics(It.IsAny<int>());
-            var result = statistics?.Result as OkObjectResult;
-
-            Assert.NotNull(result);
-            Assert.Equal(expected, result.Value);
-
-        }
-
-        [Fact]
         public async Task GetContactsAccountAsync_Should_Returns_Contacts_Account()
         {
             // Arrange

@@ -76,22 +76,6 @@ namespace Pulse.Account.API.Controllers
         }
 
         /// <summary>
-        /// Récupérer les statistiques des comptes en fonction de leur statut.
-        /// </summary>
-        /// <param name="contactId">ID du contact.</param>
-        /// <returns>Le nombre de compte par statut.</returns>
-        [HttpGet("statistics/{contactId}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Statistics))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Statistics>> GetStatistics(int contactId)
-        {
-            var result = await _accountService.GetStatisticsAsync(contactId);
-
-            return Ok(result);
-        }
-
-        /// <summary>
         /// Récupérer la liste des contacts d'une entité morale.
         /// </summary>
         /// <param name="accountId">Identifiant de l'entité morale.</param>

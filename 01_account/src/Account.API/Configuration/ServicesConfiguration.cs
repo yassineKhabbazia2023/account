@@ -26,6 +26,8 @@ namespace Pulse.Account.API.Configuration
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IReferentialService, ReferentialService>();
             services.AddScoped<IReferentialRepository, ReferentialRepository>();
+            services.AddScoped<IStatisticsService, StatisticsService>();
+            services.AddScoped<IStatisticsRepository, StatisticsRepository>();
         }
 
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)

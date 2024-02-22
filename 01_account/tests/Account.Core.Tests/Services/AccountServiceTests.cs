@@ -99,25 +99,6 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         [Fact]
-        public async Task Should_GetStatistics_Nominal()
-        {
-            var expected = new Statistics
-            {
-                AccountConnected = 10,
-                AccountToDeploy = 3,
-                AccountInProgress = 5
-            };
-
-            _accountRepository.Setup(r => r.GetStatisticsAsync(It.IsAny<int>())).ReturnsAsync(expected);
-            var accountService = new AccountService(_accountRepository.Object);
-
-            var result = await accountService.GetStatisticsAsync(It.IsAny<int>());
-
-            Assert.NotNull(result);
-            Assert.Equal(expected, result);
-        }
-
-        [Fact]
         public async Task GetContactsAccountAsync_WhenNotEmptyAccountId_ShouldReturnsContacts()
         {
             // Arrange

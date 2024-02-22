@@ -163,66 +163,6 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task Should_Statistics_Nominal()
-        {
-            using (var context = new AccountContext(_dbContextOptions))
-            {
-                var expected = new List<TDeploymentPlanning>
-                {
-                    new()
-                    {
-                        AccountId = 1,
-                        Status = 1
-                    },
-                    new()
-                    {
-                        AccountId = 2,
-                        Status = 1
-                    },
-                    new()
-                    {
-                        AccountId = 1,
-                        Status = 2
-                    },
-                    new()
-                    {
-                        AccountId = 3,
-                        Status = 0,
-                    }
-                };
-                var roles = new List<TRole>
-                {
-                    new()
-                    {
-                        ContactId = 1,
-                        AccountId = 1
-                    },
-                    new()
-                    {
-                        ContactId = 1,
-                        AccountId = 2
-                    },
-                    new()
-                    {
-                        ContactId = 2,
-                        AccountId = 3
-                    }
-                };
-                var repository = new AccountRepository(context);
-                context.TDeploymentPlanning.AddRange(expected);
-                context.TRole.AddRange(roles);
-                await context.SaveChangesAsync();
-
-                var result = await repository.GetStatisticsAsync(1);
-
-                Assert.NotNull(result);
-                Assert.Equal(0, result.AccountToDeploy);
-                Assert.Equal(1, result.AccountConnected);
-                Assert.Equal(2, result.AccountInProgress);
-            }
-        }
-
-        [Fact]
         public async Task GetContactsAccountAsync_Should_Return_ContactsAccount()
         {
             // Arrange
