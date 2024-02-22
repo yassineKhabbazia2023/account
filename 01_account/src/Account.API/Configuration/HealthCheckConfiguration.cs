@@ -1,5 +1,5 @@
-﻿// <copyright file="HealthCheckConfiguration.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="HealthCheckConfiguration.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using HealthChecks.UI.Client;

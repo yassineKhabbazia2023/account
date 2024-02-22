@@ -1,5 +1,5 @@
-﻿// <copyright file="DelegationRepository.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="DelegationRepository.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using Kpmg.ExceptionMiddleware.AdvancedException;

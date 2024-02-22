@@ -1,5 +1,5 @@
-﻿// <copyright file="FavoriteRepositoryTests.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="FavoriteRepositoryTests.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using AutoFixture;

@@ -1,5 +1,5 @@
-﻿// <copyright file="SwaggerConfiguration.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="SwaggerConfiguration.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using System.Reflection;
@@ -16,11 +16,11 @@ namespace Pulse.Account.API.Configuration
             {
                 swaggerGenOptions.AddServer(new OpenApiServer()
                 {
-                    Url = "/",
+                    Url = "/account",
                 });
                 swaggerGenOptions.AddServer(new OpenApiServer()
                 {
-                    Url = "/account",
+                    Url = "/",
                 });
                 swaggerGenOptions.SwaggerDoc(swaggerConfiguration?.Version, new OpenApiInfo
                 {

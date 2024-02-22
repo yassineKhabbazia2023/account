@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// <copyright file="Errors.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
+// </copyright>
 
 namespace Pulse.Account.Core.Models.Exceptions
 {

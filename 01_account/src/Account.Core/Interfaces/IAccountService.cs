@@ -1,5 +1,5 @@
-﻿// <copyright file="IAccountService.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="IAccountService.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using Pulse.Account.Core.Models;
@@ -9,12 +9,14 @@ namespace Pulse.Account.Core.Interfaces
 {
     public interface IAccountService
     {
-        public Task<Paging<Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId);
+        public Task<Paging<Models.Account>> GetAccountsAsync(string? search, int pageNumber, int pageSize, int contactId);
 
         public Task<AccountDetail?> GetAccountDetailAsync(int id);
 
         public Task<AccountDetail?> UpdateAccountAsync(int id, AccountDetail accountDetail);
 
         Task<Statistics> GetStatisticsAsync(int contactId);
+
+        Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId);
     }
 }

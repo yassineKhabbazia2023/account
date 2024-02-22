@@ -1,5 +1,5 @@
-﻿// <copyright file="ServicesConfiguration.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="ServicesConfiguration.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
@@ -24,6 +24,8 @@ namespace Pulse.Account.API.Configuration
             services.AddScoped<IDelegationRepository, DelegationRepository>();
             services.AddScoped<IRolesService, RolesService>();
             services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<IReferentialService, ReferentialService>();
+            services.AddScoped<IReferentialRepository, ReferentialRepository>();
         }
 
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)

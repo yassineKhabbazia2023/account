@@ -1,70 +1,86 @@
-﻿// <copyright file="MapAccountDbToAccountModel.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="MapAccountDbToAccountModel.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Azure;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
-using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapAccountDbToAccountModel
     {
-        public static AccountModel? MapTAccountToAccountModel(this TAccount source)
+        public static Paging<Core.Models.Account> MapToPaginAccounts(
+            this ICollection<TAccount> source,
+            int contactId,
+            int pageNumber,
+            int totalRows,
+            float totalPageCalcul)
+        {
+            return
+             new Paging<Core.Models.Account>()
+             {
+                 Items = source.MapToAccounts(contactId),
+                 CurrentPage = pageNumber,
+                 TotalItems = totalRows,
+                 TotalPage = (int)Math.Ceiling(totalPageCalcul)
+             };
+        }
+
+        public static IEnumerable<Core.Models.Account> MapToAccounts(this ICollection<TAccount> source, int contactId)
+        {
+            return source?.Select(a => a.MapToAccount(contactId) !) ?? Enumerable.Empty<Core.Models.Account>();
+        }
+
+        public static Core.Models.Account? MapToAccount(this TAccount source, int contactId)
         {
             if (source == null)
             {
                 return null;
             }
 
-            var accountModel = new AccountModel();
+            var signatory = source.TRole?.FirstOrDefault(r => r.IsSignatory == true);
+            var currentContact = source.TRole?.FirstOrDefault(r => r.ContactId == contactId);
 
-            if (source != null)
-            {
-                var roleSignatory = source.TRole.FirstOrDefault(role => role.IsSignatory == true);
-                var roleConnectedContact = source.TRole?.FirstOrDefault();
-
-                accountModel.AccountId = source.AccountId;
-                accountModel.AccountNumber = source.AccountNumber;
-                accountModel.LegalName = source.LegalName;
-                accountModel.IsFavorite = roleConnectedContact?.IsFavorite;
-                accountModel.Address = source.MapAddress();
-                accountModel.Signatory = roleSignatory?.Contact.MapSignatory();
-                accountModel.Deployment = source.MapDeploymentPlanning();
-            }
-
-            return accountModel;
+            return
+                new Core.Models.Account
+                {
+                    AccountId = source.AccountId,
+                    AccountNumber = source.AccountNumber,
+                    LegalName = source.LegalName,
+                    IsFavorite = currentContact?.IsFavorite,
+                    Address = source.MapToAddress(),
+                    Signatory = signatory?.Contact.MapToContact(),
+                    Deployment = source.MapToDeploymentPlanning(),
+                };
         }
 
-        public static AccountDetail? MapTAccountToAccountDetail(this TAccount source)
+        public static AccountDetail? MapToAccountDetail(this TAccount source)
         {
-            if (source == null)
+            return source == null ? null :
+            new AccountDetail
             {
-                return null;
-            }
-
-            var accountDetail = new AccountDetail();
-            accountDetail.AccountId = source.AccountId;
-            accountDetail.AccountNumber = source.AccountNumber;
-            accountDetail.IconName = source.IconName;
-            accountDetail.IsActive = source.IsActive;
-            accountDetail.Email = source.Email;
-            accountDetail.EmployeeCount = source.StaffSize;
-            accountDetail.CommercialName = source.CommercialName;
-            accountDetail.Accounting = source.MapAccounting();
-            accountDetail.Legal = source.MapLegal();
-            accountDetail.Vat = source.MapVat();
-            accountDetail.Address = source.MapAddress();
-            accountDetail.Phone = source.MapPhone();
-            accountDetail.Hub = source.MapHub();
-            accountDetail.DeploymentPlanning = source.MapDeploymentPlanning();
-
-            return accountDetail;
+                AccountId = source.AccountId,
+                AccountNumber = source.AccountNumber,
+                IconName = source.IconName,
+                IsActive = source.IsActive,
+                Email = source.Email,
+                EmployeeCount = source.StaffSize,
+                CommercialName = source.CommercialName,
+                Accounting = source.MapToAccounting(),
+                Legal = source.MapToLegal(),
+                Vat = source.MapToVat(),
+                Address = source.MapToAddress(),
+                Phone = source.MapToPhone(),
+                Hub = source.MapToHub(),
+                DeploymentPlanning = source.MapToDeploymentPlanning()
+            };
         }
 
-        private static Signatory? MapSignatory(this TContact tContact)
+        private static Contact? MapToContact(this TContact tContact)
         {
-            return tContact == null ? null : new Signatory()
+            return tContact == null ? null : new Contact
             {
                 ContactEmail = tContact.ContactEmail,
                 FirstName = tContact.FirstName,
@@ -72,43 +88,46 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static IEnumerable<Deployment>? MapDeploymentPlanning(this TAccount tAccount)
+        private static IEnumerable<Deployment>? MapToDeploymentPlanning(this TAccount tAccount)
         {
-            return tAccount.TDeploymentPlanning == null ? Array.Empty<Deployment>() : tAccount.TDeploymentPlanning.Select(deployment => new Deployment()
-            {
-                DeploymentId = deployment.DeploymentId,
-                DeploymentDate = deployment.DeploymentDate,
-                Status = deployment.Status,
-            });
+            return tAccount.TDeploymentPlanning == null ? Array.Empty<Deployment>() :
+                tAccount.TDeploymentPlanning.Select(deployment => new Deployment
+                {
+                    DeploymentId = deployment.DeploymentId,
+                    DeploymentDate = deployment.DeploymentDate,
+                    Status = deployment.Status,
+                });
         }
 
-        private static IEnumerable<Phone>? MapPhone(this TAccount tAccount)
+        private static IEnumerable<Phone>? MapToPhone(this TAccount tAccount)
         {
-            return tAccount.TPhone == null ? Array.Empty<Phone>() : tAccount.TPhone.Select(phone => new Phone()
-            {
-                PhoneId = phone.PhoneId,
-                PhoneNumber = phone.PhoneNumber,
-                Type = phone.Type,
-            });
+            return tAccount.TPhone == null ? Array.Empty<Phone>() :
+                tAccount.TPhone.Select(phone => new Phone
+                {
+                    PhoneId = phone.PhoneId,
+                    PhoneNumber = phone.PhoneNumber,
+                    Type = phone.Type,
+                });
         }
 
-        private static IEnumerable<Address>? MapAddress(this TAccount tAccount)
+        private static IEnumerable<Address>? MapToAddress(this TAccount tAccount)
         {
-            return tAccount.TAddress == null ? Array.Empty<Address>() : tAccount.TAddress.Select(address => new Address()
-            {
-                AddressId = address.AddressId,
-                Country = address.Country,
-                City = address.City,
-                State = address.State,
-                AddressLine1 = address.AddressLine1,
-                AddressLine2 = address.AddressLine2,
-                AddressLine3 = address.AddressLine3,
-                ZipCode = address.ZipCode,
-                AddressType = address.AddressType
-            });
+            return tAccount.TAddress == null ? Array.Empty<Address>() :
+                tAccount.TAddress.Select(address => new Address
+                {
+                    AddressId = address.AddressId,
+                    Country = address.Country,
+                    City = address.City,
+                    State = address.State,
+                    AddressLine1 = address.AddressLine1,
+                    AddressLine2 = address.AddressLine2,
+                    AddressLine3 = address.AddressLine3,
+                    ZipCode = address.ZipCode,
+                    AddressType = address.AddressType
+                });
         }
 
-        private static Hub MapHub(this TAccount tAccount)
+        private static Hub MapToHub(this TAccount tAccount)
         {
             return new Hub()
             {
@@ -117,7 +136,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static Vat MapVat(this TAccount tAccount)
+        private static Vat MapToVat(this TAccount tAccount)
         {
             return new Vat()
             {
@@ -127,9 +146,9 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static Accounting MapAccounting(this TAccount tAccount)
+        private static Accounting MapToAccounting(this TAccount tAccount)
         {
-            return new Accounting()
+            return new Accounting
             {
                 FiscalExerciseStartDate = tAccount.FiscalExerciseStartDate,
                 FiscalExerciseDuration = tAccount.FiscalExerciseDuration,
@@ -141,9 +160,9 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static Legal MapLegal(this TAccount tAccount)
+        private static Legal MapToLegal(this TAccount tAccount)
         {
-            return new Legal()
+            return new Legal
             {
                 LegalName = tAccount.LegalName,
                 Siren = tAccount.ISIN,
@@ -151,11 +170,11 @@ namespace Pulse.Account.Infrastructure.Mappers
                 LegalForm = tAccount.LegalForm,
                 LegalFormCode = tAccount.LegalFormCode,
                 StaffSizeRange = tAccount.StaffSizeRange,
-                Naf = tAccount.MapNaf(),
+                Naf = tAccount.MapToNaf(),
             };
         }
 
-        private static ICollection<Naf> MapNaf(this TAccount tAccount)
+        private static List<Naf> MapToNaf(this TAccount tAccount)
         {
             if (tAccount.Naf == null)
             {
@@ -172,7 +191,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             return new List<Naf> { naf };
         }
 
-        public static Statistics MapStatistics(Dictionary<int, int> countByStatus)
+        public static Statistics MapToStatistics(Dictionary<int, int> countByStatus)
         {
             if (countByStatus == null || countByStatus.Count == 0)
             {
@@ -187,7 +206,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        public static void MapUpdatedAccount(this TAccount existingAccount, AccountDetail accountDetail)
+        public static void MapToUpdatedAccount(this TAccount existingAccount, AccountDetail accountDetail)
         {
             if (accountDetail.Legal != null)
             {

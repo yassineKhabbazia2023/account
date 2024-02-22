@@ -1,5 +1,5 @@
-﻿// <copyright file="FavoriteRepository.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="FavoriteRepository.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using System.Data;

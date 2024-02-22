@@ -1,8 +1,7 @@
-﻿// <copyright file="AccountService.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="AccountService.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Text.Json;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
@@ -18,11 +17,11 @@ namespace Pulse.Account.Core.Services
             _accountRepository = accountRepository;
         }
 
-        public async Task<Paging<Models.Account>> GetAccountsAsync(string? search, int page, int limit, int contactId)
+        public async Task<Paging<Models.Account>> GetAccountsAsync(string? search, int pageNumber, int pageSize, int contactId)
         {
-            page = page == 0 ? 1 : page;
-            limit = limit == 0 ? int.MaxValue : limit;
-            return await _accountRepository.GetAccountsAsync(search, page, limit, contactId);
+            pageNumber = pageNumber == 0 ? 1 : pageNumber;
+            pageSize = pageSize == 0 ? int.MaxValue : pageSize;
+            return await _accountRepository.GetAccountsAsync(search, pageNumber, pageSize, contactId);
         }
 
         public async Task<AccountDetail?> GetAccountDetailAsync(int id)
@@ -38,6 +37,11 @@ namespace Pulse.Account.Core.Services
         public async Task<Statistics> GetStatisticsAsync(int contactId)
         {
             return await _accountRepository.GetStatisticsAsync(contactId);
+        }
+
+        public async Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId)
+        {
+            return await _accountRepository.GetContactsAccountAsync(accountId);
         }
     }
 }

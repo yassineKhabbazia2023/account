@@ -1,5 +1,5 @@
-﻿// <copyright file="AccountControllerTests.cs" company="KPMG">
-// Copyright (c) KPMG. All rights reserved.
+﻿// <copyright file="AccountControllerTests.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using System.Text.Json;
@@ -12,6 +12,7 @@ using Moq;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models.Utils;
 using AccountModel = Pulse.Account.Core.Models.Account;
+using AutoFixture;
 
 namespace Account.Api.Tests.Controllers
 {
@@ -40,7 +41,7 @@ namespace Account.Api.Tests.Controllers
             var accountController = new AccountController(_accountService.Object);
 
             // Act
-            var accounts = await accountController.GetAccountsAsync(search: string.Empty, contactId: 123, page: 1, limit: 4);
+            var accounts = await accountController.GetAccountsAsync(search: string.Empty, contactId: 123, pageNumber: 1, pageSize: 4);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
@@ -102,6 +103,26 @@ namespace Account.Api.Tests.Controllers
             Assert.NotNull(result);
             Assert.Equal(expected, result.Value);
 
+        }
+
+        [Fact]
+        public async Task GetContactsAccountAsync_Should_Returns_Contacts_Account()
+        {
+            // Arrange
+            var accountId = 6000;
+            var fixture = new Fixture();
+            var expected = fixture.Create<List<Contact>>();
+
+            var accountService = new Mock<IAccountService>(MockBehavior.Strict);
+            accountService.Setup(service => service.GetContactsAccountAsync(It.IsAny<int>()))
+                .ReturnsAsync(expected);
+            var accountController = new AccountController(accountService.Object);
+
+            // Act
+            var result = await accountController.GetContactsAccountAsync(accountId);
+
+            // Assert
+            Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);
         }
     }
 }
