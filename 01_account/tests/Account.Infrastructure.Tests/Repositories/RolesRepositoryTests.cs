@@ -3,10 +3,12 @@
 // </copyright>
 
 using AutoFixture;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
@@ -86,6 +88,24 @@ public class RolesRepositoryTests
 
             // Assert
             Assert.Equivalent(resultExpected, roles);
+        }
+    }
+
+    [Fact]
+    public void CreateRoleAsync_ShouldReturnCreated()
+    {
+        // Arrange
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var roleMock = _fixture.Create<CreateRole>();
+
+            var rolesRepository = new RoleRepository(context);
+
+            // Act
+            var result = rolesRepository.CreateRoleAsync(roleMock);
+
+            // Assert
+            Assert.Equal(Task.CompletedTask, result);
         }
     }
 }

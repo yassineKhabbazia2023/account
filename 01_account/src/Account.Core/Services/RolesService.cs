@@ -2,9 +2,13 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Net;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Services;
 
@@ -27,5 +31,10 @@ public class RolesService : IRolesService
     public async Task<IEnumerable<Contact>> GetSignatoryAsync(int accountId)
     {
         return await _rolesRepository.GetSignatoryAsync(accountId);
+    }
+
+    public async Task CreateRoleAsync(CreateRole role)
+    {
+        await _rolesRepository.CreateRoleAsync(role);
     }
 }

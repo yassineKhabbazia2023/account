@@ -2,12 +2,16 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Net;
 using System.Text.Json;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Moq;
 using AutoFixture;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
 using FluentAssertions;
@@ -61,5 +65,47 @@ public class RolesServiceTests
 
         // Assert
         Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void CreateRole_Should_ReturnsCreatedResultAsync()
+    {
+        // Arrange
+        var roleParam = new CreateRole()
+        {
+            AccountId = 6,
+            ContactId = 6,
+            IsFavorite = false,
+            IsSignatory = false
+        };
+
+        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<CreateRole>()))
+            .Returns(Task.CompletedTask);
+        var roleService = new RolesService(roleRepository.Object);
+
+        // Act
+        var result = roleService.CreateRoleAsync(roleParam);
+
+        // Assert
+        Assert.Equal(Task.CompletedTask, result);
+    }
+
+
+
+    [Fact]
+    public async Task CreateRoleAsync_ShouldThrow_BadRequestException()
+    {
+        // Arrange
+        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        roleRepository.Setup(repo => repo.CreateRoleAsync(null))
+            .ThrowsAsync(new BadRequestException(HttpStatusCode.BadRequest.ToString(), Errors.NotNullException));
+        var roleService = new RolesService(roleRepository.Object);
+
+        // Act
+        Task Roles() => roleService.CreateRoleAsync(null);
+
+        // Assert
+        await Assert.ThrowsAsync<BadRequestException>(Roles);
     }
 }

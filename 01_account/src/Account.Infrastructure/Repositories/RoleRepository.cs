@@ -2,6 +2,8 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using System.Net;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;
@@ -14,6 +16,9 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
+using Pulse.Account.Core.Models.Exceptions;
+using Kpmg.ExceptionMiddleware.AdvancedException;
+using Pulse.Account.Core.Requests;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Pulse.Account.Infrastructure.Repositories;
@@ -76,6 +81,15 @@ public class RoleRepository : IRoleRepository
                 .ToListAsync();
 
             return result.MapToContacts();
+        }).ConfigureAwait(false);
+    }
+
+    public async Task CreateRoleAsync(CreateRole role)
+    {
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            _accountContext.TRole.Add(role.MapRoleToRoleDb());
+            await _accountContext.SaveChangesAsync();
         }).ConfigureAwait(false);
     }
 }
