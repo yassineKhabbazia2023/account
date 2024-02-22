@@ -35,11 +35,6 @@ public class RolesService : IRolesService
 
     public async Task CreateRoleAsync(CreateRole role)
     {
-        if (role == null)
-        {
-            throw new BadRequestException(HttpStatusCode.BadRequest.ToString(), Errors.NotNullException);
-        }
-
         await _rolesRepository.CreateRoleAsync(role);
     }
 }
