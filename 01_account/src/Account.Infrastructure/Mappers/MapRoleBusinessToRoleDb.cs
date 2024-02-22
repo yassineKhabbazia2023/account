@@ -11,7 +11,13 @@ namespace Pulse.Account.Infrastructure.Mappers
     {
         public static TRole MapRoleToRoleDb(this CreateRole role)
         {
-            return new TRole()
+            return role == null ? null : new TRole
+            {
+                AccountId = role.AccountId,
+                ContactId = role.ContactId,
+                IsFavorite = role.IsFavorite,
+                IsSignatory = role.IsSignatory
+            };
             {
                 AccountId = role.AccountId,
                 ContactId = role.ContactId,
