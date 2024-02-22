@@ -18,12 +18,6 @@ namespace Pulse.Account.Infrastructure.Mappers
                 IsFavorite = role.IsFavorite,
                 IsSignatory = role.IsSignatory
             };
-            {
-                AccountId = role.AccountId,
-                ContactId = role.ContactId,
-                IsFavorite = role.IsFavorite,
-                IsSignatory = role.IsSignatory
-            };
         }
     }
 }
