@@ -3,6 +3,8 @@
 // </copyright>
 
 using System.Text.Json;
+using AutoFixture;
+using FluentAssertions;
 using Moq;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -14,7 +16,7 @@ namespace Pulse.Account.Core.Tests.Services
 {
     public class AccountServiceTests
     {
-        private Mock<IAccountRepository> _accountRepository;
+        private readonly Mock<IAccountRepository> _accountRepository;
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -27,16 +29,36 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         [Fact]
-        public async Task Should_GetAccountList_ReturnsOkResultAsync()
+        public async Task GetAccountsAsync_NotEmptyPageNumberAndPageSize_ShouldReturnsAccounts()
         {
             string accountMocked = File.ReadAllText(@"./MockedResponses/AccountListMocked.json");
             var accountList = JsonSerializer.Deserialize<Paging<AccountModel>>(accountMocked, _jsonOptions) ?? new Paging<AccountModel>();
-            _accountRepository.Setup(repository => repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(accountList);
+            _accountRepository.Setup(repository =>
+                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(accountList);
 
             var accountService = new AccountService(_accountRepository.Object);
 
             // Act
-            var accounts = await accountService.GetAccountsAsync(search: string.Empty, contactId: 123, page: 1, limit: 4);
+            var accounts = await accountService.GetAccountsAsync(search: string.Empty, contactId: 123, pageNumber: 1, pageSize: 4);
+
+            // Assert
+            Assert.Equal(accountList, accounts);
+        }
+
+        [Fact]
+        public async Task GetAccountsAsync_EmptyPageNumberAndPageSize_ShouldReturnsAccounts()
+        {
+            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountListMocked.json");
+            var accountList = JsonSerializer.Deserialize<Paging<AccountModel>>(accountMocked, _jsonOptions) ?? new Paging<AccountModel>();
+            _accountRepository.Setup(repository =>
+                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(accountList);
+
+            var accountService = new AccountService(_accountRepository.Object);
+
+            // Act
+            var accounts = await accountService.GetAccountsAsync(search: string.Empty, contactId: 123, pageNumber: 0, pageSize: 0);
 
             // Assert
             Assert.Equal(accountList, accounts);
@@ -92,6 +114,28 @@ namespace Pulse.Account.Core.Tests.Services
             var result = await accountService.GetStatisticsAsync(It.IsAny<int>());
 
             Assert.NotNull(result);
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public async Task GetContactsAccountAsync_WhenNotEmptyAccountId_ShouldReturnsContacts()
+        {
+            // Arrange
+            var accountId = 6000;
+            var fixture = new Fixture();
+            var expected = fixture.Create<List<Contact>>();
+
+            var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
+            accountRepository.Setup(repo => repo.GetContactsAccountAsync(It.IsAny<int>()))
+                .Callback<int>(id => id.Should().Be(accountId))
+                .ReturnsAsync(expected);
+
+            var accountService = new AccountService(accountRepository.Object);
+
+            // Act
+            var result = await accountService.GetContactsAccountAsync(accountId);
+
+            // Assert
             Assert.Equal(expected, result);
         }
     }

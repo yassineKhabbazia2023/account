@@ -4,12 +4,15 @@
 
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Interfaces;
 
 public interface IRoleRepository
 {
-    Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, int page, int limit);
+    Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, int pageNumber, int pageSize);
 
-    Task<IEnumerable<Signatory>> GetSignatoryAsync(int accountId);
+    Task<IEnumerable<Contact>> GetSignatoryAsync(int accountId);
+
+    Task CreateRoleAsync(CreateRole role);
 }

@@ -28,7 +28,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void MapTAccountToAccountModel_ShouldReturnAccountModel()
+        public void MapToAccount_ShouldReturnAccountModel()
         {
             // Arrange
             var tAccountFixture = _fixture.Create<TAccount>();
@@ -50,7 +50,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             });
 
             // Act
-            var accountModel = MapAccountDbToAccountModel.MapTAccountToAccountModel(tAccountFixture);
+            var accountModel = MapAccountDbToAccountModel.MapToAccount(tAccountFixture, 0);
 
             // Assert
             var accountAddressExpect = JsonConvert.SerializeObject(expectedAccount.Address);
@@ -62,15 +62,15 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void MapTAccountToAccountModel_WithNullSource_ShouldReturnNull()
+        public void MapToAccount_WithNullSource_ShouldReturnNull()
         {
-            var result = MapAccountDbToAccountModel.MapTAccountToAccountModel(null!);
+            var result = MapAccountDbToAccountModel.MapToAccount(null!, 0);
 
             Assert.Null(result);
         }
 
         [Fact]
-        public void MapTAccountToAccountDetail_ShouldReturnAccountDetail()
+        public void MapToAccountDetail_ShouldReturnAccountDetail()
         {
             // Arrange
             var tAccountFixture = _fixture.Create<TAccount>();
@@ -93,7 +93,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             });
 
             // Act
-            var accountModel = MapAccountDbToAccountModel.MapTAccountToAccountDetail(tAccountFixture);
+            var accountModel = MapAccountDbToAccountModel.MapToAccountDetail(tAccountFixture);
 
             // Assert
             var accountAddressExpect = JsonConvert.SerializeObject(expectedAccount.Address);
@@ -105,15 +105,15 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void MapTAccountToAccountDetail_WithNullSource_ShouldReturnNull()
+        public void MapToAccountDetail_WithNullSource_ShouldReturnNull()
         {
-            var result = MapAccountDbToAccountModel.MapTAccountToAccountDetail(null!);
+            var result = MapAccountDbToAccountModel.MapToAccountDetail(null!);
 
             Assert.Null(result);
         }
 
         [Fact]
-        public void MapHubEntitiesToHubs_ShouldReturnHubList()
+        public void MapHubEntitiesToHubs_ShouldReturnHubs()
         {
             var expected = _fixture.CreateMany<THub>();
 
@@ -153,7 +153,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void MapNafEntitiesToNafs_ShouldReturnNafList()
+        public void MapNafEntitiesToNafs_ShouldReturnNafs()
         {
             var expected = _fixture.CreateMany<TNaf>();
 

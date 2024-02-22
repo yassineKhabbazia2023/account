@@ -19,7 +19,7 @@ namespace Pulse.Account.Core.Models
 
         public IEnumerable<Address>? Address { get; set; }
 
-        public Signatory? Signatory { get; set; }
+        public Contact? Signatory { get; set; }
 
         public IEnumerable<Deployment>? Deployment { get; set; }
     }
