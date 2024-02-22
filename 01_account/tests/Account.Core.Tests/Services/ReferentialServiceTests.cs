@@ -22,7 +22,7 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         [Fact]
-        public async Task GetHubsAsync_Should_Return_HubList()
+        public async Task GetHubsAsync_ShouldReturnHubList()
         {
             var hubs = _fixture.CreateMany<Hub>();
             _repositoryMock.Setup(x => x.GetHubsAsync()).ReturnsAsync(hubs);
@@ -36,7 +36,7 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         [Fact]
-        public async Task GetNafsAsync_Should_Return_NafList()
+        public async Task GetNafsAsync_ShouldReturnNafList()
         {
             var nafs = _fixture.CreateMany<Naf>();
             _repositoryMock.Setup(x => x.GetNafsAsync()).ReturnsAsync(nafs);

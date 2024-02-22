@@ -24,7 +24,7 @@ namespace Account.Api.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetHubsAsync_Should_Return_OkResult()
+        public async Task GetHubsAsync_ShouldReturnOkResult()
         {
             var hubs = _fixture.CreateMany<Hub>();
             _service.Setup(x => x.GetHubsAsync()).ReturnsAsync(hubs).Verifiable();
@@ -38,7 +38,7 @@ namespace Account.Api.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetNafsAsync_Should_Return_OkResult()
+        public async Task GetNafsAsync_ShouldReturnOkResult()
         {
             var nafs = _fixture.CreateMany<Naf>();
             _service.Setup(x => x.GetNafsAsync()).ReturnsAsync(nafs).Verifiable();

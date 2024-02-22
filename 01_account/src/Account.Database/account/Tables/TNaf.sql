@@ -1,7 +1,7 @@
 ﻿CREATE TABLE [account].[TNaf] (
     [NafId]    INT           IDENTITY (1, 1) NOT NULL,
     [NafCode]  VARCHAR (10)  NOT NULL,
-    [NafLabel] VARCHAR (100) NULL,
+    [NafLabel] VARCHAR (255) NULL,
     CONSTRAINT [C_TNaf_PK] PRIMARY KEY CLUSTERED ([NafId] ASC)
 );
 

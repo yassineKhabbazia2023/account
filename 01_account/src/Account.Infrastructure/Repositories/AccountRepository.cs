@@ -85,14 +85,11 @@ namespace Pulse.Account.Infrastructure.Repositories
                        .Include(a => a.TAddress)
                        .Include(x => x.TDeploymentPlanning)
                        .Include(x => x.Hub)
+                       .Include(x => x.Naf)
                        .Include(x => x.TPhone)
                        .Where(a => a.AccountId == accountId);
 
-                var entity = await entities.FirstOrDefaultAsync();
-                if (entity == null)
-                {
-                    throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
-                }
+                var entity = await entities.FirstOrDefaultAsync() ?? throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
 
                 var accountDetail = entity.MapTAccountToAccountDetail();
 
@@ -108,11 +105,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                                        where account.AccountId.Equals(accountId)
                                        select account;
 
-                var existingAccount = await existingAccounts.FirstOrDefaultAsync();
-                if (existingAccount == null)
-                {
-                    throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
-                }
+                var existingAccount = await existingAccounts.FirstOrDefaultAsync() ?? throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
 
                 if (accountDetail == null)
                 {

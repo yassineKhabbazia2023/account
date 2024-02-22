@@ -26,7 +26,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetHubsAsync_Should_Return_HubList()
+        public async Task GetHubsAsync_ShouldReturnHubList()
         {
             using (var context = new AccountContext(_options))
             {
@@ -44,7 +44,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetNafsAsync_Should_Return_NafList()
+        public async Task GetNafsAsync_ShouldReturnNafList()
         {
             using (var context = new AccountContext(_options))
             {
