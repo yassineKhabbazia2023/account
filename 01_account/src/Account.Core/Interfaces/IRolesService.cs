@@ -4,6 +4,7 @@
 
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Interfaces;
 
@@ -13,5 +14,5 @@ public interface IRolesService
 
     Task<IEnumerable<Signatory>> GetSignatoryAsync(int accountId);
 
-    Task CreateRoleAsync(Role role);
+    Task CreateRoleAsync(CreateRole role);
 }

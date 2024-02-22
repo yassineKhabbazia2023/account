@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
@@ -95,7 +96,7 @@ public class RolesRepositoryTests
         // Arrange
         using (var context = new AccountContext(_context))
         {
-            var roleMock = _fixture.Create<Role>();
+            var roleMock = _fixture.Create<CreateRole>();
 
             var rolesRepository = new RoleRepository(context);
 

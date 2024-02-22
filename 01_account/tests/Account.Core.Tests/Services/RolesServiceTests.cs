@@ -10,6 +10,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
@@ -73,9 +74,8 @@ public class RolesServiceTests
     public void CreateRole_Should_ReturnsCreatedResultAsync()
     {
         // Arrange
-        var roleParam = new Role()
+        var roleParam = new CreateRole()
         {
-            RoleId = 6,
             AccountId = 6,
             ContactId = 6,
             IsFavorite = false,
@@ -83,7 +83,7 @@ public class RolesServiceTests
         };
 
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
-        roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<Role>()))
+        roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<CreateRole>()))
             .Returns(Task.CompletedTask);
         var roleService = new RolesService(roleRepository.Object);
 

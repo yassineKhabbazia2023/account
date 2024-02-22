@@ -13,6 +13,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Account.Api.Tests.Controllers
@@ -75,15 +76,14 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
-            var roleParam = new Role()
+            var roleParam = new CreateRole()
             {
-                RoleId = 6,
                 AccountId = 6,
                 ContactId = 6,
                 IsFavorite = false,
                 IsSignatory = false
             };
-            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<Role>()))
+            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRole>()))
                 .Returns(Task.CompletedTask);
             var rolesController = new RolesController(rolesService.Object);
 
@@ -101,7 +101,7 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
-            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<Role>()))
+            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRole>()))
                 .Throws(new BadRequestException(HttpStatusCode.BadRequest.ToString(), Errors.NotNullException));
             var rolesController = new RolesController(rolesService.Object);
 

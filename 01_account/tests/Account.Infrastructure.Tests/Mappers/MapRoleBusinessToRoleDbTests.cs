@@ -3,7 +3,7 @@
 // </copyright>
 
 using AutoFixture;
-using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 
@@ -24,7 +24,7 @@ public class MapRoleBusinessToRoleDbTests
     public void MapTContactToSignatory_CaseSuccess()
     {
         // Arrange
-        Role? role = _fixture.Create<Role?>();
+        CreateRole? role = _fixture.Create<CreateRole?>();
         var expected = new TRole()
         {
             ContactId = role!.ContactId,

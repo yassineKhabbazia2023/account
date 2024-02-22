@@ -2,17 +2,14 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Net;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
-using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Exceptions;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
 
 namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapRoleBusinessToRoleDb
     {
-        public static TRole MapRoleToRoleDb(this Role role)
+        public static TRole MapRoleToRoleDb(this CreateRole role)
         {
             return new TRole()
             {

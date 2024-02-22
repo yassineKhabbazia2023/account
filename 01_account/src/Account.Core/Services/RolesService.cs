@@ -8,6 +8,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Services;
 
@@ -32,7 +33,7 @@ public class RolesService : IRolesService
         return _rolesRepository.GetSignatoryAsync(accountId);
     }
 
-    public async Task CreateRoleAsync(Role role)
+    public async Task CreateRoleAsync(CreateRole role)
     {
         if (role == null)
         {

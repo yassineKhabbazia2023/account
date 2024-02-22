@@ -18,6 +18,7 @@ using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Core.Models.Exceptions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -82,7 +83,7 @@ public class RoleRepository : IRoleRepository
         }).ConfigureAwait(false);
     }
 
-    public async Task CreateRoleAsync(Role role)
+    public async Task CreateRoleAsync(CreateRole role)
     {
         await _retryPolicy.ExecuteAsync(async () =>
         {

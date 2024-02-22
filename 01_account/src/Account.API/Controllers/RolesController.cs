@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.API.Controllers;
 
@@ -71,7 +72,7 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> CreateRoleAsync(Role role)
+    public async Task<ActionResult> CreateRoleAsync(CreateRole role)
     {
         await _rolesService.CreateRoleAsync(role);
         return StatusCode(StatusCodes.Status201Created);
