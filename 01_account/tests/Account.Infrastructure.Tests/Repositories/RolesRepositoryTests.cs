@@ -95,7 +95,7 @@ public class RolesRepositoryTests
     public void CreateRoleAsync_ShouldReturnCreated()
     {
         // Arrange
-        using (var context = new AccountContext(_context))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             var roleMock = _fixture.Create<CreateRole>();
 
