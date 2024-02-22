@@ -38,6 +38,19 @@ namespace Account.Api.Tests.Controllers
         }
 
         [Fact]
+        public async Task GetHubsAsync_WithNoHubInBase_ShouldReturnOkResult()
+        {
+            _service.Setup(x => x.GetHubsAsync()).ReturnsAsync(Enumerable.Empty<Hub>()).Verifiable();
+
+            var referentialController = new ReferentialController(_service.Object);
+
+            var result = await referentialController.GetHubsAsync();
+
+            result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
+            result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(Enumerable.Empty<Hub>());
+        }
+
+        [Fact]
         public async Task GetNafsAsync_ShouldReturnOkResult()
         {
             var nafs = _fixture.CreateMany<Naf>();
@@ -49,6 +62,19 @@ namespace Account.Api.Tests.Controllers
 
             result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
             result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(nafs);
+        }
+
+        [Fact]
+        public async Task GetNafsAsync_WithNoNafInBase_ShouldReturnOkResult()
+        {
+            _service.Setup(x => x.GetNafsAsync()).ReturnsAsync(Enumerable.Empty<Naf>()).Verifiable();
+
+            var referentialController = new ReferentialController(_service.Object);
+
+            var result = await referentialController.GetNafsAsync();
+
+            result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
+            result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(Enumerable.Empty<Naf>());
         }
     }
 }

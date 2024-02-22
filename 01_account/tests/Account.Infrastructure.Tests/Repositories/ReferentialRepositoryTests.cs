@@ -26,7 +26,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetHubsAsync_ShouldReturnHubList()
+        public async Task GetHubsAsync_ShouldReturnHubs()
         {
             using (var context = new AccountContext(_options))
             {
@@ -44,7 +44,21 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetNafsAsync_ShouldReturnNafList()
+        public async Task GetHubsAsync_WithEmptyHubTable_ShouldReturnEmptyList()
+        {
+            using (var context = new AccountContext(_options))
+            {
+                var repository = new ReferentialRepository(context);
+
+                var result = await repository.GetHubsAsync();
+
+                Assert.NotNull(result);
+                Assert.Empty(result);
+            }
+        }
+
+        [Fact]
+        public async Task GetNafsAsync_ShouldReturnNafs()
         {
             using (var context = new AccountContext(_options))
             {
@@ -58,6 +72,20 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 Assert.NotNull(result);
                 Assert.Equal(tNafs.Count(), result.Count());
+            }
+        }
+
+        [Fact]
+        public async Task GetNafsAsync_WithEmptyNafTable_ShouldReturnEmptyList()
+        {
+            using (var context = new AccountContext(_options))
+            {
+                var repository = new ReferentialRepository(context);
+
+                var result = await repository.GetNafsAsync();
+
+                Assert.NotNull(result);
+                Assert.Empty(result);
             }
         }
     }

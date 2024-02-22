@@ -9,7 +9,7 @@ namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapperReferentialDbToBusiness
     {
-        public static IEnumerable<Hub?> MapHubEntitiesToHubs(IEnumerable<THub> source)
+        public static IEnumerable<Hub?> MapHubEntitiesToHubs(this IEnumerable<THub> source)
         {
             return source?.Select(s => s.MapHubEntityToHub()) ?? Enumerable.Empty<Hub>();
         }
@@ -24,7 +24,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 };
         }
 
-        public static IEnumerable<Naf?> MapNafEntitiesToNafs(IEnumerable<TNaf> source)
+        public static IEnumerable<Naf?> MapNafEntitiesToNafs(this IEnumerable<TNaf> source)
         {
             return source?.Select(s => s.MapNafEntityToNaf()) ?? Enumerable.Empty<Naf>();
         }

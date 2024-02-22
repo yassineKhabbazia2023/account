@@ -107,11 +107,6 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 var existingAccount = await existingAccounts.FirstOrDefaultAsync() ?? throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
 
-                if (accountDetail == null)
-                {
-                    throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotNullException);
-                }
-
                 existingAccount.MapUpdatedAccount(accountDetail);
                 _accountContext.TAccount.Update(existingAccount);
                 await _accountContext.SaveChangesAsync();

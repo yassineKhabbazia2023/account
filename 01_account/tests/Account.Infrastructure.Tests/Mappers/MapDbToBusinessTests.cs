@@ -62,6 +62,14 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
+        public void MapTAccountToAccountModel_WithNullSource_ShouldReturnNull()
+        {
+            var result = MapAccountDbToAccountModel.MapTAccountToAccountModel(null!);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
         public void MapTAccountToAccountDetail_ShouldReturnAccountDetail()
         {
             // Arrange
@@ -94,6 +102,14 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             Assert.Equal(expectedAccount.Legal?.LegalName, accountModel.Legal?.LegalName);
             Assert.Equal(expectedAccount.AccountNumber, accountModel.AccountNumber);
             Assert.Equal(expectedAccount.AccountId, accountModel.AccountId);
+        }
+
+        [Fact]
+        public void MapTAccountToAccountDetail_WithNullSource_ShouldReturnNull()
+        {
+            var result = MapAccountDbToAccountModel.MapTAccountToAccountDetail(null!);
+
+            Assert.Null(result);
         }
 
         [Fact]

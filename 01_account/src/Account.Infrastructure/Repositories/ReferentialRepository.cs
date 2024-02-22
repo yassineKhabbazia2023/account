@@ -35,7 +35,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             {
                 var hubs = await _accountContext.THub.AsNoTracking().ToListAsync();
 
-                return MapperReferentialDbToBusiness.MapHubEntitiesToHubs(hubs);
+                return hubs.MapHubEntitiesToHubs();
             }).ConfigureAwait(false);
         }
 
@@ -45,7 +45,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             {
                 var nafs = await _accountContext.TNaf.AsNoTracking().ToListAsync();
 
-                return MapperReferentialDbToBusiness.MapNafEntitiesToNafs(nafs);
+                return nafs.MapNafEntitiesToNafs();
             }).ConfigureAwait(false);
         }
     }
