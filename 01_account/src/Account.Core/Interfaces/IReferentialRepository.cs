@@ -3,6 +3,7 @@
 // </copyright>
 
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 
 namespace Pulse.Account.Core.Interfaces
 {
@@ -10,6 +11,6 @@ namespace Pulse.Account.Core.Interfaces
     {
         Task<IEnumerable<Hub?>> GetHubsAsync();
 
-        Task<IEnumerable<Naf?>> GetNafsAsync();
+        Task<Paging<Naf>> GetNafsAsync(string? search, int pageNumber, int pageSize);
     }
 }

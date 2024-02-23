@@ -9,6 +9,7 @@ using Moq;
 using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 
 namespace Account.Api.Tests.Controllers
 {
@@ -53,12 +54,12 @@ namespace Account.Api.Tests.Controllers
         [Fact]
         public async Task GetNafsAsync_ShouldReturnOkResult()
         {
-            var nafs = _fixture.CreateMany<Naf>();
-            _service.Setup(x => x.GetNafsAsync()).ReturnsAsync(nafs).Verifiable();
+            var nafs = _fixture.Create<Paging<Naf>>();
+            _service.Setup(x => x.GetNafsAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(nafs).Verifiable();
 
             var referentialController = new ReferentialController(_service.Object);
 
-            var result = await referentialController.GetNafsAsync();
+            var result = await referentialController.GetNafsAsync(string.Empty, 0, 0);
 
             result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
             result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(nafs);
@@ -67,14 +68,15 @@ namespace Account.Api.Tests.Controllers
         [Fact]
         public async Task GetNafsAsync_WithNoNafInBase_ShouldReturnOkResult()
         {
-            _service.Setup(x => x.GetNafsAsync()).ReturnsAsync(Enumerable.Empty<Naf>()).Verifiable();
+            var expected = new Paging<Naf> { Items = Enumerable.Empty<Naf>() };
+            _service.Setup(x => x.GetNafsAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(expected).Verifiable();
 
             var referentialController = new ReferentialController(_service.Object);
 
-            var result = await referentialController.GetNafsAsync();
+            var result = await referentialController.GetNafsAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>());
 
             result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
-            result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(Enumerable.Empty<Naf>());
+            result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(expected);
         }
     }
 }

@@ -35,12 +35,16 @@ namespace Pulse.Account.API.Controllers
         /// <summary>
         /// Récupère la liste des NAF.
         /// </summary>
+        /// <param name="search">Critère de recherche (code NAF).</param>
+        /// <param name="pageNumber">Numéro de page.</param>
+        /// <param name="pageSize">Nombre d'éléments par page.</param>
         /// <returns>Liste des NAF.</returns>
         [HttpGet("nafs")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Naf?>))]
-        public async Task<ActionResult<IReadOnlyCollection<Naf?>>> GetNafsAsync()
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IReadOnlyCollection<Naf?>>> GetNafsAsync(string? search, int pageNumber, int pageSize)
         {
-            var result = await _referentialService.GetNafsAsync();
+            var result = await _referentialService.GetNafsAsync(search, pageNumber, pageSize);
 
             return Ok(result);
         }

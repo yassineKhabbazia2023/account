@@ -3,6 +3,7 @@
 // </copyright>
 
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
 
 namespace Pulse.Account.Infrastructure.Mappers
@@ -24,9 +25,20 @@ namespace Pulse.Account.Infrastructure.Mappers
                 };
         }
 
-        public static IEnumerable<Naf?> MapNafEntitiesToNafs(this IEnumerable<TNaf> source)
+        public static Paging<Naf> MapToPagingNaf(this IEnumerable<TNaf?> source, int pageNumber, int totalRows, float totalPageCalcul)
         {
-            return source?.Select(s => s.MapNafEntityToNaf()) ?? Enumerable.Empty<Naf>();
+            return new Paging<Naf>
+            {
+                Items = source?.MapNafEntitiesToNafs() ?? Enumerable.Empty<Naf>(),
+                CurrentPage = pageNumber,
+                TotalItems = totalRows,
+                TotalPage = (int)Math.Ceiling(totalPageCalcul)
+            };
+        }
+
+        public static IEnumerable<Naf> MapNafEntitiesToNafs(this IEnumerable<TNaf?> source)
+        {
+            return source?.Select(s => s.MapNafEntityToNaf() !) ?? Enumerable.Empty<Naf>();
         }
 
         public static Naf? MapNafEntityToNaf(this TNaf source)

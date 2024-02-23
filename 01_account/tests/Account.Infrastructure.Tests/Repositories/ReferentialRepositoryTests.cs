@@ -68,10 +68,10 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 var repository = new ReferentialRepository(context);
 
-                var result = await repository.GetNafsAsync();
+                var result = await repository.GetNafsAsync(string.Empty, 1, 10);
 
                 Assert.NotNull(result);
-                Assert.Equal(tNafs.Count(), result.Count());
+                Assert.Equal(tNafs.Count(), result?.Items?.Count());
             }
         }
 
@@ -82,10 +82,10 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             {
                 var repository = new ReferentialRepository(context);
 
-                var result = await repository.GetNafsAsync();
+                var result = await repository.GetNafsAsync(string.Empty, 0, 0);
 
                 Assert.NotNull(result);
-                Assert.Empty(result);
+                Assert.Empty(result.Items);
             }
         }
     }

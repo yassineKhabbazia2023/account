@@ -6,6 +6,7 @@ using AutoFixture;
 using Moq;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Services;
 
 namespace Pulse.Account.Core.Tests.Services
@@ -38,12 +39,12 @@ namespace Pulse.Account.Core.Tests.Services
         [Fact]
         public async Task GetNafsAsync_ShouldReturnNafList()
         {
-            var nafs = _fixture.CreateMany<Naf>();
-            _repositoryMock.Setup(x => x.GetNafsAsync()).ReturnsAsync(nafs);
+            var nafs = _fixture.Create<Paging<Naf>>();
+            _repositoryMock.Setup(x => x.GetNafsAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(nafs);
 
             var service = new ReferentialService(_repositoryMock.Object);
 
-            var result = await service.GetNafsAsync();
+            var result = await service.GetNafsAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>());
 
             Assert.NotNull(result);
             Assert.Equal(nafs, result);

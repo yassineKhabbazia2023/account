@@ -153,6 +153,32 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
+        public void MapToPagingNaf_ShouldReturnPagingNaf()
+        {
+            var expectedSource = _fixture.CreateMany<TNaf>();
+            var expectedpageNumber = 1;
+            var expectedTotalRows = 1;
+            var expectedTotalPageCalcul = 1f;
+
+            var result = MapperReferentialDbToBusiness.MapToPagingNaf(expectedSource, expectedpageNumber, expectedTotalRows, expectedTotalPageCalcul);
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedSource.Count(), result.Items.Count());
+            Assert.Equal(expectedpageNumber, result.CurrentPage);
+            Assert.Equal(expectedTotalRows, result.TotalItems);
+            Assert.Equal(expectedTotalPageCalcul, result.TotalPage);
+        }
+
+        [Fact]
+        public void MapToPagingNaf_WithNullSource_ShouldReturnEmptyItemList()
+        {
+            var result = MapperReferentialDbToBusiness.MapToPagingNaf(null!, 1, 1, 1f);
+
+            Assert.NotNull(result);
+            Assert.Empty(result.Items);
+        }
+
+        [Fact]
         public void MapNafEntitiesToNafs_ShouldReturnNafs()
         {
             var expected = _fixture.CreateMany<TNaf>();
