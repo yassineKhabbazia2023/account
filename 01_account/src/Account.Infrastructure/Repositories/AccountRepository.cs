@@ -110,25 +110,6 @@ namespace Pulse.Account.Infrastructure.Repositories
             }).ConfigureAwait(false);
         }
 
-        public async Task<Statistics> GetStatisticsAsync(int contactId)
-        {
-            return await _retryPolicy.ExecuteAsync(async () =>
-            {
-                var entities = _accountContext.TDeploymentPlanning
-                .Join(_accountContext.TRole,
-                deployment => deployment.AccountId,
-                role => role.AccountId,
-                (deployment, role) => new { deployment, role })
-                .Where(x => x.role.ContactId == contactId)
-                .GroupBy(x => x.deployment.Status)
-                .Select(s => new { Status = s.Key, Count = s.Select(d => d.deployment.Status).Count() });
-
-                var countByStatus = await entities.ToDictionaryAsync(x => x.Status, x => x.Count);
-
-                return MapAccountDbToAccountModel.MapToStatistics(countByStatus);
-            }).ConfigureAwait(false);
-        }
-
         public async Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
