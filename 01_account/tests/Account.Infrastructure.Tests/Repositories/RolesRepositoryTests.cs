@@ -144,11 +144,6 @@ public class RolesRepositoryTests
         // Arrange
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var roleMock = _fixture.Create<TRole>();
-            roleMock.IsSignatory = true;
-            context.TRole.Add(roleMock);
-            context.SaveChanges();
-
             var rolesRepository = new RoleRepository(context);
 
             // Act
