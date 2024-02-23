@@ -68,7 +68,7 @@ public class RolesServiceTests
     }
 
     [Fact]
-    public void CreateRole_Should_ReturnsCreatedResultAsync()
+    public async Task CreateRole_Should_ReturnsCreatedResultAsync()
     {
         // Arrange
         var roleParam = new CreateRole()
@@ -85,13 +85,11 @@ public class RolesServiceTests
         var roleService = new RolesService(roleRepository.Object);
 
         // Act
-        var result = roleService.CreateRoleAsync(roleParam);
+        await roleService.CreateRoleAsync(roleParam);
 
         // Assert
-        Assert.Equal(Task.CompletedTask, result);
+        roleRepository.VerifyAll();
     }
-
-
 
     [Fact]
     public async Task CreateRoleAsync_ShouldThrow_BadRequestException()
@@ -107,5 +105,21 @@ public class RolesServiceTests
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(Roles);
+    }
+
+    [Fact]
+    public async Task UpdateRole_Should_ReturnsOkResultAsync()
+    {
+        // Arrange
+        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        roleRepository.Setup(repo => repo.UpdateRoleAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
+            .Returns(Task.CompletedTask);
+        var roleService = new RolesService(roleRepository.Object);
+
+        // Act
+        await roleService.UpdateRoleAsync(1, 1, true);
+
+        // Assert
+        roleRepository.VerifyAll();
     }
 }

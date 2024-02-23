@@ -92,4 +92,22 @@ public class RoleRepository : IRoleRepository
             await _accountContext.SaveChangesAsync();
         }).ConfigureAwait(false);
     }
+
+    public async Task UpdateRoleAsync(int accountId, int contactId, bool isSignatory)
+    {
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var existingRole = from role in _accountContext.TRole
+                               where role.AccountId.Equals(accountId) && role.ContactId.Equals(contactId)
+                               select role;
+
+            var existingRoleItem = await existingRole.FirstOrDefaultAsync();
+            if (existingRoleItem != null)
+            {
+                existingRoleItem.IsSignatory = isSignatory;
+                _accountContext.TRole.Update(existingRoleItem);
+                await _accountContext.SaveChangesAsync();
+            }
+        }).ConfigureAwait(false);
+    }
 }

@@ -37,4 +37,9 @@ public class RolesService : IRolesService
     {
         await _rolesRepository.CreateRoleAsync(role);
     }
+
+    public async Task UpdateRoleAsync(int accountId, int contactId, bool isSignatory)
+    {
+        await _rolesRepository.UpdateRoleAsync(accountId, contactId, isSignatory);
+    }
 }

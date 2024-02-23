@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using Kpmg.ExceptionMiddleware.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -76,5 +77,22 @@ public class RolesController : ControllerBase
     {
         await _rolesService.CreateRoleAsync(role);
         return StatusCode(StatusCodes.Status201Created);
+    }
+
+    /// <summary>
+    /// Modifier un role pour un contact.
+    /// </summary>
+    /// <param name="accountId">Identifiant de l'entité morale.</param>
+    /// <param name="contactId">Identifiant de l'utilisateur.</param>
+    /// <param name="isSignatory">True si l'utilisateur est signataire, false sinon.</param>
+    /// <returns>http 200.</returns>
+    [HttpPatch]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> UpdateRoleAsync([Required] int accountId, [Required] int contactId, [Required] bool isSignatory)
+    {
+        await _rolesService.UpdateRoleAsync(accountId, contactId, isSignatory);
+        return Ok();
     }
 }
