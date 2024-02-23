@@ -3,11 +3,14 @@
 // </copyright>
 
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 
 namespace Pulse.Account.Core.Interfaces
 {
     public interface IReferentialRepository
     {
         Task<IEnumerable<Hub?>> GetHubsAsync();
+
+        Task<Paging<Naf>> GetNafsAsync(string? search, int pageNumber, int pageSize);
     }
 }

@@ -79,5 +79,6 @@
   <ItemGroup>
     <PostDeploy Include="Script.Referential.PostDeployment.sql" />
     <None Include="postDeployment\Hub.Refential.sql" />
+    <None Include="postDeployment\Script.Naf.sql" />
   </ItemGroup>
 </Project>

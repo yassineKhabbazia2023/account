@@ -2,12 +2,13 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Collections.Generic;
+using System.Net;
 using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -119,9 +120,6 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             using (var context = new AccountContext(_dbContextOptions))
             {
                 // Arrange
-                var accountsModel = _fixture.Create<List<TAccount>>();
-                context.TAccount.AddRange(accountsModel);
-                await context.SaveChangesAsync();
                 var accountRepository = new AccountRepository(context);
 
                 // Act
@@ -159,6 +157,21 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 Assert.Equal(accountDetail?.Accounting?.TaxationSystem, accounts.Accounting?.TaxationSystem);
                 Assert.Equal(accountDetail?.Accounting?.ActivityType, accounts.Accounting?.ActivityType);
                 Assert.Equal(accountDetail?.Accounting?.ActivityDescription, accounts.Accounting?.ActivityDescription);
+            }
+        }
+
+        [Fact]
+        public async Task UpdateAccount_WithNoAccountFound_ShouldReturnNotFoundException()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                var accountRepository = new AccountRepository(context);
+                var accountDetail = new AccountDetail { AccountId = 1 };
+
+                var result = await Assert.ThrowsAsync<NotFoundException>(async () => await accountRepository.UpdateAccountAsync(accountDetail, accountDetail.AccountId));
+
+                Assert.Equal(HttpStatusCode.NotFound.ToString(), result.Code);
+                Assert.Equal(Errors.NotFoundError, result.Message);
             }
         }
 

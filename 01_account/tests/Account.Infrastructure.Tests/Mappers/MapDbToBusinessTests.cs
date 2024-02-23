@@ -28,7 +28,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void MapTAccountToAccountModel_Should_Return_AccountModel()
+        public void MapToAccount_ShouldReturnAccountModel()
         {
             // Arrange
             var tAccountFixture = _fixture.Create<TAccount>();
@@ -62,7 +62,15 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void MapTAccountToAccountDetail_Should_Return_AccountDetail()
+        public void MapToAccount_WithNullSource_ShouldReturnNull()
+        {
+            var result = MapAccountDbToAccountModel.MapToAccount(null!, 0);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void MapToAccountDetail_ShouldReturnAccountDetail()
         {
             // Arrange
             var tAccountFixture = _fixture.Create<TAccount>();
@@ -97,27 +105,35 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void MapTHubsToHubs_Should_Return_HubList()
+        public void MapToAccountDetail_WithNullSource_ShouldReturnNull()
+        {
+            var result = MapAccountDbToAccountModel.MapToAccountDetail(null!);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void MapHubEntitiesToHubs_ShouldReturnHubs()
         {
             var expected = _fixture.CreateMany<THub>();
 
-            var result = MapperReferentialDbToBusiness.MapTHubsToHubs(expected);
+            var result = MapperReferentialDbToBusiness.MapHubEntitiesToHubs(expected);
 
             Assert.NotNull(result);
             Assert.Equal(expected.Count(), result.Count());
         }
 
         [Fact]
-        public void MapMapTHubsToHubs_When_SourceIsNull_Should_Return_EmptyList()
+        public void MapHubEntitiesToHubs_WithNullSource_ShouldReturnEmptyList()
         {
-            var result = MapperReferentialDbToBusiness.MapTHubsToHubs(null!);
+            var result = MapperReferentialDbToBusiness.MapHubEntitiesToHubs(null!);
 
             Assert.NotNull(result);
             Assert.Empty(result);
         }
 
         [Fact]
-        public void MapHubEntityToHub_Should_Return_Hub()
+        public void MapHubEntityToHub_ShouldReturnHub()
         {
             var expected = _fixture.Create<THub>();
 
@@ -129,9 +145,76 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void MapHubEntityToHub_When_SourceIsNull_Should_ReturnNull()
+        public void MapHubEntityToHub_WithNullSource_ShouldReturnNull()
         {
             var result = MapperReferentialDbToBusiness.MapHubEntityToHub(null!);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void MapToPagingNaf_ShouldReturnPagingNaf()
+        {
+            var expectedSource = _fixture.CreateMany<TNaf>();
+            var expectedpageNumber = 1;
+            var expectedTotalRows = 1;
+            var expectedTotalPageCalcul = 1f;
+
+            var result = MapperReferentialDbToBusiness.MapToPagingNaf(expectedSource, expectedpageNumber, expectedTotalRows, expectedTotalPageCalcul);
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedSource.Count(), result.Items.Count());
+            Assert.Equal(expectedpageNumber, result.CurrentPage);
+            Assert.Equal(expectedTotalRows, result.TotalItems);
+            Assert.Equal(expectedTotalPageCalcul, result.TotalPage);
+        }
+
+        [Fact]
+        public void MapToPagingNaf_WithNullSource_ShouldReturnEmptyItemList()
+        {
+            var result = MapperReferentialDbToBusiness.MapToPagingNaf(null!, 1, 1, 1f);
+
+            Assert.NotNull(result);
+            Assert.Empty(result.Items);
+        }
+
+        [Fact]
+        public void MapNafEntitiesToNafs_ShouldReturnNafs()
+        {
+            var expected = _fixture.CreateMany<TNaf>();
+
+            var result = MapperReferentialDbToBusiness.MapNafEntitiesToNafs(expected);
+
+            Assert.NotNull(result);
+            Assert.Equal(expected.Count(), result.Count());
+        }
+
+        [Fact]
+        public void MapNafEntitiesToNafs_WithNullSource_ShouldReturnEmptyList()
+        {
+            var result = MapperReferentialDbToBusiness.MapNafEntitiesToNafs(null!);
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void MapNafEntityToNaf_ShouldReturnNaf()
+        {
+            var expected = _fixture.Create<TNaf>();
+
+            var result = MapperReferentialDbToBusiness.MapNafEntityToNaf(expected);
+
+            Assert.NotNull(result);
+            Assert.Equal(expected.NafId, result.NafId);
+            Assert.Equal(expected.NafCode, result.NafCode);
+            Assert.Equal(expected.NafLabel, result.NafLabel);
+        }
+
+        [Fact]
+        public void MapNafEntityToNaf_WithNullSource_ShouldReturnNull()
+        {
+            var result = MapperReferentialDbToBusiness.MapNafEntityToNaf(null!);
 
             Assert.Null(result);
         }

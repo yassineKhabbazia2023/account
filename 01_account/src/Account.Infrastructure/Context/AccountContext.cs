@@ -333,7 +333,7 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("Le code Naf de l''entité");
             entity.Property(e => e.NafLabel)
-                .HasMaxLength(100)
+                .HasMaxLength(255)
                 .IsUnicode(false);
         });
 

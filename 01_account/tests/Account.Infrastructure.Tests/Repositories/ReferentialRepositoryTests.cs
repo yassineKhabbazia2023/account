@@ -4,7 +4,6 @@
 
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
@@ -27,7 +26,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetHubsAsync_Should_Return_HubList()
+        public async Task GetHubsAsync_ShouldReturnHubs()
         {
             using (var context = new AccountContext(_options))
             {
@@ -41,6 +40,52 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 Assert.NotNull(result);
                 Assert.Equal(tHubs.Count(), result.Count());
+            }
+        }
+
+        [Fact]
+        public async Task GetHubsAsync_WithEmptyHubTable_ShouldReturnEmptyList()
+        {
+            using (var context = new AccountContext(_options))
+            {
+                var repository = new ReferentialRepository(context);
+
+                var result = await repository.GetHubsAsync();
+
+                Assert.NotNull(result);
+                Assert.Empty(result);
+            }
+        }
+
+        [Fact]
+        public async Task GetNafsAsync_ShouldReturnNafs()
+        {
+            using (var context = new AccountContext(_options))
+            {
+                var tNafs = _fixture.CreateMany<TNaf>();
+                context.AddRange(tNafs);
+                await context.SaveChangesAsync();
+
+                var repository = new ReferentialRepository(context);
+
+                var result = await repository.GetNafsAsync(string.Empty, 1, 10);
+
+                Assert.NotNull(result);
+                Assert.Equal(tNafs.Count(), result?.Items?.Count());
+            }
+        }
+
+        [Fact]
+        public async Task GetNafsAsync_WithEmptyNafTable_ShouldReturnEmptyList()
+        {
+            using (var context = new AccountContext(_options))
+            {
+                var repository = new ReferentialRepository(context);
+
+                var result = await repository.GetNafsAsync(string.Empty, 0, 0);
+
+                Assert.NotNull(result);
+                Assert.Empty(result.Items);
             }
         }
     }
