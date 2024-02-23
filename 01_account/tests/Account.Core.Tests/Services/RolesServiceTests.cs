@@ -112,12 +112,12 @@ public class RolesServiceTests
     {
         // Arrange
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
-        roleRepository.Setup(repo => repo.UpdateRoleAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
+        roleRepository.Setup(repo => repo.UpdateRoleSignatoryAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(Task.CompletedTask);
         var roleService = new RolesService(roleRepository.Object);
 
         // Act
-        await roleService.UpdateRoleAsync(1, 1, true);
+        await roleService.UpdateRoleSignatoryAsync(1, 1, true);
 
         // Assert
         roleRepository.VerifyAll();

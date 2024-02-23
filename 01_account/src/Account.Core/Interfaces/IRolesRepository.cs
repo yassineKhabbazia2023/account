@@ -16,5 +16,5 @@ public interface IRoleRepository
 
     Task CreateRoleAsync(CreateRole role);
 
-    Task UpdateRoleAsync(int accountId, int contactId, bool isSignatory);
+    Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory);
 }

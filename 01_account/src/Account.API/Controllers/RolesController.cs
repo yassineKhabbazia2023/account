@@ -90,9 +90,9 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> UpdateRoleAsync([Required] int accountId, [Required] int contactId, [Required] bool isSignatory)
+    public async Task<ActionResult> UpdateRoleSignatoryAsync([Required] int accountId, [Required] int contactId, [Required] bool isSignatory)
     {
-        await _rolesService.UpdateRoleAsync(accountId, contactId, isSignatory);
+        await _rolesService.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
         return Ok();
     }
 }
