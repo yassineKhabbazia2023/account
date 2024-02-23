@@ -19,7 +19,6 @@ using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Core.Models.Exceptions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Pulse.Account.Core.Requests;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -90,6 +89,29 @@ public class RoleRepository : IRoleRepository
         {
             _accountContext.TRole.Add(role.MapRoleToRoleDb());
             await _accountContext.SaveChangesAsync();
+        }).ConfigureAwait(false);
+    }
+
+    public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
+    {
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var existingRole = from role in _accountContext.TRole
+                               where role.AccountId.Equals(accountId) && role.ContactId.Equals(contactId)
+                               select role;
+
+            var existingRoleItem = await existingRole.FirstOrDefaultAsync();
+            if (existingRoleItem == null)
+            {
+                throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
+            }
+
+            if (existingRoleItem.IsSignatory != isSignatory)
+            {
+                existingRoleItem.IsSignatory = isSignatory;
+                _accountContext.TRole.Update(existingRoleItem);
+                await _accountContext.SaveChangesAsync();
+            }
         }).ConfigureAwait(false);
     }
 }

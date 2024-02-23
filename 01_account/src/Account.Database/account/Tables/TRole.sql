@@ -7,7 +7,8 @@
 	[IsSignatory]		BIT					NULL,
 	CONSTRAINT [C_TRole_PK] PRIMARY KEY CLUSTERED ([RoleId] ASC),
 	CONSTRAINT [C_TAccount_TRole_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[TAccount] ([AccountId]),
-	CONSTRAINT [C_TAccount_TContact_FK] FOREIGN KEY ([ContactId]) REFERENCES [actor].[TContact] ([ContactId])
+	CONSTRAINT [C_TAccount_TContact_FK] FOREIGN KEY ([ContactId]) REFERENCES [actor].[TContact] ([ContactId]), 
+    CONSTRAINT [C_TRole_AccountId_ContactId] UNIQUE ([AccountId], [ContactId])
 )
 
 GO

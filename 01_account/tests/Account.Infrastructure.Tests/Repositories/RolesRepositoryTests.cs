@@ -92,7 +92,7 @@ public class RolesRepositoryTests
     }
 
     [Fact]
-    public void CreateRoleAsync_ShouldReturnCreated()
+    public async Task CreateRoleAsync_ShouldReturnCreated()
     {
         // Arrange
         using (var context = new AccountContext(_dbContextOptions))
@@ -102,10 +102,55 @@ public class RolesRepositoryTests
             var rolesRepository = new RoleRepository(context);
 
             // Act
-            var result = rolesRepository.CreateRoleAsync(roleMock);
+            await rolesRepository.CreateRoleAsync(roleMock);
+            var roleObjects = context.TRole
+                                    .Where(x => x.ContactId == roleMock.ContactId && x.AccountId == roleMock.AccountId)
+                                    .Select(x => x);
+            var role = await roleObjects.FirstOrDefaultAsync();
 
             // Assert
-            Assert.Equal(Task.CompletedTask, result);
+            Assert.Equivalent(roleMock, role);
+        }
+    }
+
+    [Fact]
+    public async Task UpdateRoleAsync_ShouldReturnOk()
+    {
+        // Arrange
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var roleMock = _fixture.Create<TRole>();
+            roleMock.IsSignatory = true;
+            context.TRole.Add(roleMock);
+            context.SaveChanges();
+
+            var rolesRepository = new RoleRepository(context);
+
+            // Act
+            await rolesRepository.UpdateRoleSignatoryAsync(roleMock.AccountId, roleMock.ContactId, false);
+            var roleObjects = context.TRole
+                                    .Where(x => x.ContactId == roleMock.ContactId && x.AccountId == roleMock.AccountId)
+                                    .Select(x => x);
+            var role = await roleObjects.FirstOrDefaultAsync();
+
+            // Assert
+            Assert.Equal(false, role.IsSignatory);
+        }
+    }
+
+    [Fact]
+    public async Task UpdateRoleAsync_ShouldReturnNotFound()
+    {
+        // Arrange
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var rolesRepository = new RoleRepository(context);
+
+            // Act
+            Task RoleUpdate() => rolesRepository.UpdateRoleSignatoryAsync(1, 1, false);
+
+            // Assert
+            await Assert.ThrowsAsync<NotFoundException>(RoleUpdate);
         }
     }
 }
