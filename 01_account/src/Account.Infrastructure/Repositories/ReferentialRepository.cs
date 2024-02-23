@@ -2,19 +2,17 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Linq;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 
 namespace Pulse.Account.Infrastructure.Repositories
@@ -55,7 +53,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 query = query.Skip((pageNumber - 1) * pageSize);
                 query = query.Take(pageSize);
 
-                var totalPages = PagesCalculator.GetTotalPages(totalRows, pageSize);
+                var totalPages = Pagination.GetTotalPages(totalRows, pageSize);
 
                 var nafs = await query.ToListAsync();
 

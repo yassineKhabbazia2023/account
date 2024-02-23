@@ -5,7 +5,6 @@
 using System.Net;
 using System.Text.Json;
 using AutoFixture;
-using AutoMapper.Configuration.Annotations;
 using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Microsoft.AspNetCore.Mvc;

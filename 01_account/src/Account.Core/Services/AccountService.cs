@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
@@ -19,8 +20,8 @@ namespace Pulse.Account.Core.Services
 
         public async Task<Paging<Models.Account>> GetAccountsAsync(string? search, int pageNumber, int pageSize, int contactId)
         {
-            pageNumber = pageNumber == 0 ? 1 : pageNumber;
-            pageSize = pageSize == 0 ? int.MaxValue : pageSize;
+            pageNumber = Pagination.GetValidPageNumber(pageNumber);
+            pageSize = Pagination.GetValidPageSize(pageSize);
             return await _accountRepository.GetAccountsAsync(search, pageNumber, pageSize, contactId);
         }
 

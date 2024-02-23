@@ -17,15 +17,35 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void MapTContactToSignatory_CaseNull()
+        public void MapToContact_NullSource_ReturnsNull()
         {
+            // Arrange
             TRole? role = null;
+
+            // Act
             var result = role.MapToContact();
+
+            // Assert
             Assert.Null(result);
         }
 
+
         [Fact]
-        public void MapTContactToSignatory_CaseSuccess()
+        public void MapToContacts_EmptySource_ReturnsEmptyCollection()
+        {
+            // Arrange
+            List<TRole>? roles = new();
+            List<Contact> expected = new();
+
+            // Act
+            var result = roles.MapToContacts();
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void MapToContacts_NotNulllSource_ReturnsMappedContact()
         {
             // Arrange
             TRole? role = _fixture.Create<TRole?>();
@@ -45,16 +65,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
-        public void MapTRolesToSignatory_CaseEmpty()
-        {
-            List<TRole>? roles = new List<TRole>();
-            var expected = new List<Contact>();
-            var result = roles.MapToContacts();
-            Assert.Equal(expected, result);
-        }
-
-        [Fact]
-        public void MapTRolesToSignatory_CaseSuccess()
+        public void MapToContacts_NotEmptySource_ReturnsMappedContact()
         {
             // Arrange
             List<TRole>? roles = _fixture.Create<List<TRole>?>();

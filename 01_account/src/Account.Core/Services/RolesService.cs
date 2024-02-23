@@ -4,6 +4,7 @@
 
 using System.Net;
 using Kpmg.ExceptionMiddleware.AdvancedException;
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Exceptions;
@@ -21,10 +22,10 @@ public class RolesService : IRolesService
         _rolesRepository = rolesRepository;
     }
 
-    public async Task<Paging<Core.Models.Account>> GetContactRolesAsync(int contactId, int pageNumber, int pageSize)
+    public async Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, int pageNumber, int pageSize)
     {
-        pageNumber = pageNumber == 0 ? 1 : pageNumber;
-        pageSize = pageSize == 0 ? int.MaxValue : pageSize;
+        pageNumber = Pagination.GetValidPageNumber(pageNumber);
+        pageSize = Pagination.GetValidPageSize(pageSize);
         return await _rolesRepository.GetContactRolesAsync(contactId, pageNumber, pageSize);
     }
 

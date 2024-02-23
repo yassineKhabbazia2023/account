@@ -14,11 +14,10 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Infrastructure.Extensions;
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
-using Pulse.Account.Core.Models.Exceptions;
-using Kpmg.ExceptionMiddleware.AdvancedException;
 using Pulse.Account.Core.Requests;
+using Pulse.Account.Core.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -56,7 +55,7 @@ public class RoleRepository : IRoleRepository
             query = query.Skip((pageNumber - 1) * pageSize);
             query = query.Take(pageSize);
 
-            var totalPages = PagesCalculator.GetTotalPages(totalRows, pageSize);
+            var totalPages = Pagination.GetTotalPages(totalRows, pageSize);
             var entities = await query.ToListAsync();
 
             return MapAccountDbToAccountModel.MapToPaginAccounts(
@@ -96,20 +95,20 @@ public class RoleRepository : IRoleRepository
     {
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            var existingRole = from role in _accountContext.TRole
-                               where role.AccountId.Equals(accountId) && role.ContactId.Equals(contactId)
-                               select role;
+            var roles = from r in _accountContext.TRole
+                               where r.AccountId.Equals(accountId) && r.ContactId.Equals(contactId)
+                               select r;
 
-            var existingRoleItem = await existingRole.FirstOrDefaultAsync();
-            if (existingRoleItem == null)
+            var role = await roles.FirstOrDefaultAsync();
+            if (role == null)
             {
-                throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
+                throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
             }
 
-            if (existingRoleItem.IsSignatory != isSignatory)
+            if (role.IsSignatory != isSignatory)
             {
-                existingRoleItem.IsSignatory = isSignatory;
-                _accountContext.TRole.Update(existingRoleItem);
+                role.IsSignatory = isSignatory;
+                _accountContext.TRole.Update(role);
                 await _accountContext.SaveChangesAsync();
             }
         }).ConfigureAwait(false);

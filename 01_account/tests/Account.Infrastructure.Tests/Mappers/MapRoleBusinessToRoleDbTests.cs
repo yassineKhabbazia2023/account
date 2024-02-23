@@ -21,6 +21,19 @@ public class MapRoleBusinessToRoleDbTests
     }
 
     [Fact]
+    public void MapRoleToRoleDb_WithNullRole_ReturnsNull()
+    {
+        // Arrange
+        CreateRole? role = null;
+
+        // Act
+        var result = role?.MapRoleToRoleDb();
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
     public void MapTContactToSignatory_CaseSuccess()
     {
         // Arrange
