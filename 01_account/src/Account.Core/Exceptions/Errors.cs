@@ -2,8 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Runtime.Serialization;
-
 namespace Pulse.Account.Core.Exceptions
 {
     public static class Errors
@@ -19,5 +17,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string NotFoundRoleCode = "ACC004";
         public static readonly string NotFoundRoleMessage = "Le contact avec l'identifiant {0} n'a aucun role sur l'account {1}";
+
+        public static readonly string DelegationDateInvalidCode = "ACC005";
+        public static readonly string DelegationDateInvalidMessage = "Impossible de créer une délégation : le EndDate doit être supérieur au StartDate.";
     }
 }

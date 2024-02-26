@@ -4,9 +4,11 @@
 
 using AutoFixture;
 using FluentAssertions;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
@@ -26,7 +28,10 @@ public class DelegationControllerTests
     [Fact]
     public async Task CreateDelegationAsync_When_Request_IsValide_Should_Create_Delegation()
     {
-        var createDelegation = _fixture.Create<CreateDelegation>();
+        var createDelegation = _fixture.Build<CreateDelegation>()
+            .With(p => p.StartDate, DateTime.Now)
+            .With(p => p.EndDate, DateTime.Now.AddDays(1))
+            .Create();
         var service = new Mock<IDelegationService>(MockBehavior.Strict);
 
         service.Setup(x => x.CreateDelegationAsync(createDelegation))
@@ -47,6 +52,28 @@ public class DelegationControllerTests
         actionResult.As<OkObjectResult>().StatusCode.Should().Be(200);
         actionResult.As<OkObjectResult>().Value.Should().Be(100);
         service.VerifyAll();
+    }
+
+    [Fact]
+    public void CreateDelegationAsync_InvalidDate_ThrowsException()
+    {
+        // Arrange
+        var createDelegation = _fixture.Build<CreateDelegation>()
+          .With(p => p.StartDate, DateTime.Now)
+          .With(p => p.EndDate, DateTime.Now.AddDays(-1))
+          .Create();
+        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
+        var service = new DelegationService(repository.Object);
+
+        var controller = new DelegationController(service);
+
+        // Act
+        var act = async () => await controller.CreateDelegationAsync(createDelegation);
+
+        // Assert
+        var exception = Assert.ThrowsAsync<BadRequestException>(act);
+        Assert.Equal(Errors.DelegationDateInvalidMessage, exception.Result.Message);
+        Assert.Equal(Errors.DelegationDateInvalidCode, exception.Result.Code);
     }
 
     [Fact]

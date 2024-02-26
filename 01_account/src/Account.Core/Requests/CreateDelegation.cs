@@ -3,7 +3,6 @@
 // </copyright>
 
 using System.Text.Json.Serialization;
-using Pulse.Account.Core.Models;
 
 namespace Pulse.Account.Core.Requests;
 

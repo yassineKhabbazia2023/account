@@ -4,7 +4,9 @@
 
 using AutoFixture;
 using FluentAssertions;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Moq;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
@@ -24,7 +26,10 @@ public class DelegationServiceTest
     [Fact]
     public async Task CreateDelegationAsync_When_Request_IsValide_Should_Create_Delegation()
     {
-        var createDelegation = _fixture.Create<CreateDelegation>();
+        var createDelegation = _fixture.Build<CreateDelegation>()
+            .With(p => p.StartDate, DateTime.Now)
+            .With(p => p.EndDate, DateTime.Now.AddDays(1))
+            .Create();
         var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
 
         repository.Setup(x => x.CreateDelegationAsync(createDelegation))
@@ -44,6 +49,26 @@ public class DelegationServiceTest
 
         id.Should().Be(100);
         repository.VerifyAll();
+    }
+
+    [Fact]
+    public void CreateDelegationAsync_InvalidDate_ThrowException()
+    {
+        // Arrange
+        var createDelegation = _fixture.Build<CreateDelegation>()
+            .With(p => p.StartDate, DateTime.Now)
+            .With(p => p.EndDate, DateTime.Now.AddDays(-1))
+            .Create();
+        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
+        var service = new DelegationService(repository.Object);
+
+        // Act
+        var act = async () => await service.CreateDelegationAsync(createDelegation);
+
+        // Assert
+        var exception = Assert.ThrowsAsync<BadRequestException>(act);
+        Assert.Equal(Errors.DelegationDateInvalidMessage, exception.Result.Message);
+        Assert.Equal(Errors.DelegationDateInvalidCode, exception.Result.Code);
     }
 
     [Fact]
