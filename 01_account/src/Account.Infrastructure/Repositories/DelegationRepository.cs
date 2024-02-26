@@ -44,9 +44,9 @@ public class DelegationRepository : IDelegationRepository
         var tDelegation = new TDelegation
         {
             CreationDate = DateTime.UtcNow,
-            StartDate = delegation.StartDate,
+            StartDate = delegation.StartDate!.Value,
             EndDate = delegation.EndDate,
-            Status = (int)DelegationStatus.PENDING,
+            Status = delegation.Status,
             Note = delegation.Note,
         };
 

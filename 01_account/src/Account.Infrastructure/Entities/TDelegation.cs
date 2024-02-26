@@ -40,7 +40,7 @@ public partial class TDelegation
     /// <summary>
     /// La délégation est-elle active ou non
     /// </summary>
-    public int Status { get; set; }
+    public string Status { get; set; }
 
     /// <summary>
     /// La note associé à la délégation

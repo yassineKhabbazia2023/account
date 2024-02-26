@@ -51,6 +51,7 @@ public class DelegationRepositoryTests
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 AccountId = tAccount.AccountId,
+                Status = "pending",
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
             };
@@ -69,7 +70,7 @@ public class DelegationRepositoryTests
             Assert.NotNull(createdDelegation);
             Assert.Equal(createDelegation.StartDate, createdDelegation.StartDate);
             Assert.Equal(createDelegation.EndDate, createdDelegation.EndDate);
-            Assert.Equal((int)DelegationStatus.PENDING, createdDelegation.Status);
+            Assert.Equal(createDelegation.Status, createdDelegation.Status);
         }
     }
 
@@ -99,6 +100,7 @@ public class DelegationRepositoryTests
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 AccountId = tAccount.AccountId,
+                Status = "pending",
                 DelegateeId = tDelegatee.ContactId,
                 DelegatorId = 0,
             };
@@ -134,6 +136,7 @@ public class DelegationRepositoryTests
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 AccountId = tAccount.AccountId,
+                Status = "pending",
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = 0,
             };
@@ -165,6 +168,7 @@ public class DelegationRepositoryTests
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 AccountId = 3,
+                Status = "pending",
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
             };
@@ -202,7 +206,7 @@ public class DelegationRepositoryTests
                 AccountId = tAccount.AccountId,
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
-                Status = (int)DelegationStatus.PENDING,
+                Status = "pending",
                 Note = "Note",
             };
             await context.TDelegation.AddAsync(tDelegation);
@@ -217,7 +221,7 @@ public class DelegationRepositoryTests
             Assert.NotNull(contactDelegation);
             Assert.Equal(contactDelegation.StartDate, tDelegation.StartDate);
             Assert.Equal(contactDelegation.EndDate, tDelegation.EndDate);
-            Assert.Equal(contactDelegation.Status, (DelegationStatus)tDelegation.Status);
+            Assert.Equal(contactDelegation.Status, tDelegation.Status);
             Assert.Equal(contactDelegation.Note, tDelegation.Note);
             Assert.Equal(contactDelegation.CreationDate, tDelegation.CreationDate);
             Assert.Equal(contactDelegation.Account!.AccountId, tDelegation.Account.AccountId);
@@ -254,7 +258,7 @@ public class DelegationRepositoryTests
                 AccountId = tAccount.AccountId,
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
-                Status = (int)DelegationStatus.PENDING,
+                Status = "pending",
                 Note = "Note",
             };
 
@@ -265,7 +269,7 @@ public class DelegationRepositoryTests
                 AccountId = tAccount.AccountId,
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = anotherDelegatee.ContactId,
-                Status = (int)DelegationStatus.PENDING,
+                Status = "pending",
                 Note = "Note 2",
             };
             await context.TDelegation.AddRangeAsync(new List<TDelegation> { tDelegation, anothetTDelegation });
@@ -280,7 +284,7 @@ public class DelegationRepositoryTests
             Assert.NotNull(delegation);
             Assert.Equal(delegation.StartDate, tDelegation.StartDate);
             Assert.Equal(delegation.EndDate, tDelegation.EndDate);
-            Assert.Equal(delegation.Status, (DelegationStatus)tDelegation.Status);
+            Assert.Equal(delegation.Status, tDelegation.Status);
             Assert.Equal(delegation.Note, tDelegation.Note);
             Assert.Equal(delegation.CreationDate, tDelegation.CreationDate);
             Assert.Equal(delegation.Account!.AccountId, tDelegation.Account.AccountId);

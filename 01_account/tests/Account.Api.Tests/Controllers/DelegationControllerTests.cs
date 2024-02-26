@@ -84,7 +84,7 @@ public class DelegationControllerTests
     }
 
     [Fact]
-    public void CreateDelegationAsync_InvalidDate_ThrowsException()
+    public void CreateDelegationAsync_InvalidEndDate_ThrowsException()
     {
         // Arrange
         var createDelegation = _fixture.Build<CreateDelegation>()
@@ -101,8 +101,30 @@ public class DelegationControllerTests
 
         // Assert
         var exception = Assert.ThrowsAsync<BadRequestException>(act);
-        Assert.Equal(Errors.DelegationDateInvalidMessage, exception.Result.Message);
-        Assert.Equal(Errors.DelegationDateInvalidCode, exception.Result.Code);
+        Assert.Equal(Errors.DelegationEndDateInvalidMessage, exception.Result.Message);
+        Assert.Equal(Errors.DelegationEndDateInvalidCode, exception.Result.Code);
+    }
+
+    [Fact]
+    public void CreateDelegationAsync_InvalidStartDate_ThrowsException()
+    {
+        // Arrange
+        var createDelegation = _fixture.Build<CreateDelegation>()
+          .Without(p => p.StartDate)
+          .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
+          .Create();
+        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
+        var service = new DelegationService(repository.Object);
+
+        var controller = new DelegationController(service);
+
+        // Act
+        var act = async () => await controller.CreateDelegationAsync(createDelegation);
+
+        // Assert
+        var exception = Assert.ThrowsAsync<BadRequestException>(act);
+        Assert.Equal(Errors.DelegationStartDateInvalidMessage, exception.Result.Message);
+        Assert.Equal(Errors.DelegationStartDateInvalidCode, exception.Result.Code);
     }
 
     [Fact]

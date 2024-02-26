@@ -2,8 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Text.Json.Serialization;
-
 namespace Pulse.Account.Core.Requests;
 
 public class CreateDelegation
@@ -14,7 +12,9 @@ public class CreateDelegation
 
     required public int DelegateeId { get; set; }
 
-    required public DateTime StartDate { get; set; }
+    required public DateTime? StartDate { get; set; }
+
+    required public string Status { get; set; }
 
     public DateTime? EndDate { get; set; }
 

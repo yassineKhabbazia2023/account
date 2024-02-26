@@ -269,7 +269,11 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("La note associé à la délégation");
             entity.Property(e => e.StartDate).HasComment("La date effective du début de la délégation");
-            entity.Property(e => e.Status).HasComment("La délégation est-elle active ou non");
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasComment("La délégation est-elle active ou non");
 
             entity.HasOne(d => d.Account).WithMany(p => p.TDelegation)
                 .HasForeignKey(d => d.AccountId)

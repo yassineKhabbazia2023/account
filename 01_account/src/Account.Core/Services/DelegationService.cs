@@ -22,9 +22,14 @@ public class DelegationService : IDelegationService
 
     public async Task<int> CreateDelegationAsync(CreateDelegation delegation)
     {
-        if (!Validation.ValidateDateDelegation(delegation))
+        if (!Validation.ValidateStartDateDelegation(delegation))
         {
-            throw new BadRequestException(Errors.DelegationDateInvalidCode, Errors.DelegationDateInvalidMessage);
+            throw new BadRequestException(Errors.DelegationStartDateInvalidCode, Errors.DelegationStartDateInvalidMessage);
+        }
+
+        if (!Validation.ValidateEndDateDelegation(delegation))
+        {
+            throw new BadRequestException(Errors.DelegationEndDateInvalidCode, Errors.DelegationEndDateInvalidMessage);
         }
 
         return await _delegationRepository.CreateDelegationAsync(delegation);
