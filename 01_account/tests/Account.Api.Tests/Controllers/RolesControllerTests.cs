@@ -10,9 +10,9 @@ using Kpmg.ExceptionMiddleware.AdvancedException;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using AccountModel = Pulse.Account.Core.Models.Account;
@@ -97,7 +97,7 @@ namespace Account.Api.Tests.Controllers
             // Arrange
             var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
             rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRole>()))
-                .Throws(new BadRequestException(HttpStatusCode.BadRequest.ToString(), Errors.NotNullException));
+                .Throws(new BadRequestException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage));
             var rolesController = new RolesController(rolesService.Object);
 
             // Act

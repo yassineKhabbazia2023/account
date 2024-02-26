@@ -2,12 +2,9 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Net;
-using Kpmg.ExceptionMiddleware.AdvancedException;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 

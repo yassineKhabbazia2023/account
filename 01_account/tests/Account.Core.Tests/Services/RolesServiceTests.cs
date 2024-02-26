@@ -9,12 +9,12 @@ using Moq;
 using AutoFixture;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
 using FluentAssertions;
+using Pulse.Account.Core.Exceptions;
 
 namespace Pulse.Account.Core.Tests.Services;
 
@@ -97,7 +97,7 @@ public class RolesServiceTests
         // Arrange
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.CreateRoleAsync(null))
-            .ThrowsAsync(new BadRequestException(HttpStatusCode.BadRequest.ToString(), Errors.NotNullException));
+            .ThrowsAsync(new BadRequestException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage));
         var roleService = new RolesService(roleRepository.Object);
 
         // Act
