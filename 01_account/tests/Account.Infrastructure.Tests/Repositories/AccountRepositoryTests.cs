@@ -7,8 +7,8 @@ using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -170,8 +170,8 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 var result = await Assert.ThrowsAsync<NotFoundException>(async () => await accountRepository.UpdateAccountAsync(accountDetail, accountDetail.AccountId));
 
-                Assert.Equal(HttpStatusCode.NotFound.ToString(), result.Code);
-                Assert.Equal(Errors.NotFoundError, result.Message);
+                Assert.Equal(Errors.NotFoundAccountCode, result.Code);
+                Assert.Equal(Errors.NotFoundAccountMessage, result.Message);
             }
         }
 
