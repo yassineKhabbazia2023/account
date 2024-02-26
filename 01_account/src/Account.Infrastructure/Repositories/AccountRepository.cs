@@ -86,7 +86,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                        .Where(a => a.AccountId == accountId);
 
                 var entity = await entities.FirstOrDefaultAsync() ??
-                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
 
                 return entity.MapToAccountDetail();
             }).ConfigureAwait(false);
@@ -101,7 +101,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                                        select account;
 
                 var existingAccount = await existingAccounts.FirstOrDefaultAsync() ??
-                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
 
                 existingAccount.MapToUpdatedAccount(accountDetail);
                 _accountContext.TAccount.Update(existingAccount);

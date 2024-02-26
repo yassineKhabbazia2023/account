@@ -131,7 +131,7 @@ public class DelegationRepository : IDelegationRepository
 
         if(tAccount is null)
         {
-            throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+            throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
         }
 
         return tAccount;
