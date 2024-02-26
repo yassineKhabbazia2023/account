@@ -29,8 +29,37 @@ public class DelegationControllerTests
     public async Task CreateDelegationAsync_When_Request_IsValide_Should_Create_Delegation()
     {
         var createDelegation = _fixture.Build<CreateDelegation>()
-            .With(p => p.StartDate, DateTime.Now)
-            .With(p => p.EndDate, DateTime.Now.AddDays(1))
+            .With(p => p.StartDate, DateTime.UtcNow)
+            .With(p => p.EndDate, DateTime.UtcNow.AddDays(1))
+            .Create();
+        var service = new Mock<IDelegationService>(MockBehavior.Strict);
+
+        service.Setup(x => x.CreateDelegationAsync(createDelegation))
+            .Callback<CreateDelegation>(request =>
+            {
+                request.StartDate.Should().Be(createDelegation.StartDate);
+                request.EndDate.Should().Be(createDelegation.EndDate);
+                request.AccountId.Should().Be(createDelegation.AccountId);
+                request.DelegatorId.Should().Be(createDelegation.DelegatorId);
+                request.DelegateeId.Should().Be(createDelegation.DelegateeId);
+            })
+            .ReturnsAsync(100)
+            .Verifiable();
+
+        var controller = new DelegationController(service.Object);
+        var actionResult = await controller.CreateDelegationAsync(createDelegation);
+
+        actionResult.As<OkObjectResult>().StatusCode.Should().Be(200);
+        actionResult.As<OkObjectResult>().Value.Should().Be(100);
+        service.VerifyAll();
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_EndDateNull_ReturnOk()
+    {
+        var createDelegation = _fixture.Build<CreateDelegation>()
+            .With(p => p.StartDate, DateTime.UtcNow)
+            .Without(p => p.EndDate)
             .Create();
         var service = new Mock<IDelegationService>(MockBehavior.Strict);
 
@@ -59,8 +88,8 @@ public class DelegationControllerTests
     {
         // Arrange
         var createDelegation = _fixture.Build<CreateDelegation>()
-          .With(p => p.StartDate, DateTime.Now)
-          .With(p => p.EndDate, DateTime.Now.AddDays(-1))
+          .With(p => p.StartDate, DateTime.UtcNow)
+          .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
           .Create();
         var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
         var service = new DelegationService(repository.Object);

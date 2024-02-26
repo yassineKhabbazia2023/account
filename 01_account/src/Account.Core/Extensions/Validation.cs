@@ -6,12 +6,9 @@ namespace Pulse.Account.Core.Extensions
     {
         public static bool ValidateDateDelegation(CreateDelegation delegation)
         {
-            if (delegation.EndDate.CompareTo(delegation.StartDate) < 0)
-            {
-                return false;
-            }
-
-            return true;
+            return delegation != null &&
+                (delegation.EndDate == null ||
+                    (delegation.EndDate != null && delegation.EndDate.Value.CompareTo(delegation.StartDate) >= 0));
         }
     }
 }

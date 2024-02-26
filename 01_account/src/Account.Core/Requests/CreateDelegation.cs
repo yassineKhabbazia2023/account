@@ -8,20 +8,15 @@ namespace Pulse.Account.Core.Requests;
 
 public class CreateDelegation
 {
-    [JsonRequired]
-    public int AccountId { get; set; }
+    required public int AccountId { get; set; }
 
-    [JsonRequired]
-    public int DelegatorId { get; set; }
+    required public int DelegatorId { get; set; }
 
-    [JsonRequired]
-    public int DelegateeId { get; set; }
+    required public int DelegateeId { get; set; }
 
-    [JsonRequired]
-    public DateTime StartDate { get; set; }
+    required public DateTime StartDate { get; set; }
 
-    [JsonRequired]
-    public DateTime EndDate { get; set; }
+    public DateTime? EndDate { get; set; }
 
     public string? Note { get; set; }
 }

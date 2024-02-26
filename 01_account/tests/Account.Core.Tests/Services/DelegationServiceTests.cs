@@ -27,8 +27,8 @@ public class DelegationServiceTest
     public async Task CreateDelegationAsync_When_Request_IsValide_Should_Create_Delegation()
     {
         var createDelegation = _fixture.Build<CreateDelegation>()
-            .With(p => p.StartDate, DateTime.Now)
-            .With(p => p.EndDate, DateTime.Now.AddDays(1))
+            .With(p => p.StartDate, DateTime.UtcNow)
+            .With(p => p.EndDate, DateTime.UtcNow.AddDays(1))
             .Create();
         var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
 
@@ -56,8 +56,8 @@ public class DelegationServiceTest
     {
         // Arrange
         var createDelegation = _fixture.Build<CreateDelegation>()
-            .With(p => p.StartDate, DateTime.Now)
-            .With(p => p.EndDate, DateTime.Now.AddDays(-1))
+            .With(p => p.StartDate, DateTime.UtcNow)
+            .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
             .Create();
         var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
         var service = new DelegationService(repository.Object);
@@ -69,6 +69,35 @@ public class DelegationServiceTest
         var exception = Assert.ThrowsAsync<BadRequestException>(act);
         Assert.Equal(Errors.DelegationDateInvalidMessage, exception.Result.Message);
         Assert.Equal(Errors.DelegationDateInvalidCode, exception.Result.Code);
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_EndDateNull_ReturnOk()
+    {
+        // Arrange
+        var createDelegation = _fixture.Build<CreateDelegation>()
+            .With(p => p.StartDate, DateTime.UtcNow)
+            .Without(p => p.EndDate)
+            .Create();
+        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
+        repository.Setup(x => x.CreateDelegationAsync(createDelegation))
+        .Callback<CreateDelegation>(request =>
+        {
+            request.StartDate.Should().Be(createDelegation.StartDate);
+            request.EndDate.Should().Be(createDelegation.EndDate);
+            request.AccountId.Should().Be(createDelegation.AccountId);
+            request.DelegatorId.Should().Be(createDelegation.DelegatorId);
+            request.DelegateeId.Should().Be(createDelegation.DelegateeId);
+        })
+        .ReturnsAsync(100)
+        .Verifiable();
+        var service = new DelegationService(repository.Object);
+
+        // Act
+        var id = await service.CreateDelegationAsync(createDelegation);
+
+        // Assert
+        id.Should().Be(100);
     }
 
     [Fact]

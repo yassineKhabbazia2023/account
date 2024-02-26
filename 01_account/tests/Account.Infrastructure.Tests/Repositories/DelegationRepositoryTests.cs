@@ -100,6 +100,7 @@ public class DelegationRepositoryTests
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 AccountId = tAccount.AccountId,
                 DelegateeId = tDelegatee.ContactId,
+                DelegatorId = 0,
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
@@ -134,6 +135,7 @@ public class DelegationRepositoryTests
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 AccountId = tAccount.AccountId,
                 DelegatorId = tDelegator.ContactId,
+                DelegateeId = 0,
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
@@ -162,6 +164,7 @@ public class DelegationRepositoryTests
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
+                AccountId = 3,
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
             };
