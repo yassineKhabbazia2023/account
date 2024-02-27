@@ -12,13 +12,13 @@ using Polly.Retry;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using AccountModel = Pulse.Account.Core.Models.Account;
+using Pulse.Account.Core.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Repositories
 {
@@ -86,7 +86,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                        .Where(a => a.AccountId == accountId);
 
                 var entity = await entities.FirstOrDefaultAsync() ??
-                throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
 
                 return entity.MapToAccountDetail();
             }).ConfigureAwait(false);
@@ -101,7 +101,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                                        select account;
 
                 var existingAccount = await existingAccounts.FirstOrDefaultAsync() ??
-                throw new NotFoundException(HttpStatusCode.NotFound.ToString(), Errors.NotFoundError);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
 
                 existingAccount.MapToUpdatedAccount(accountDetail);
                 _accountContext.TAccount.Update(existingAccount);

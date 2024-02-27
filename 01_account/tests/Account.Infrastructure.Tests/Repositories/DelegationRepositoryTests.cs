@@ -5,6 +5,9 @@
 using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
+using Pulse.Account.Core.Constants;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -159,10 +162,11 @@ public class DelegationRepositoryTests
                 Status = "pending",
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
+                AccountId = 1
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
-            Assert.Equal(@"L'identifiant de l'entité indiquée est incorrect", result.Message);
+            Assert.Equal(string.Format(Errors.NotFoundAccountMessage, createDelegation.AccountId), result.Message);
         }
     }
 
