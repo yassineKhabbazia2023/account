@@ -162,7 +162,6 @@ public class DelegationRepositoryTests
                 Status = "pending",
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
-                AccountId = 1
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
