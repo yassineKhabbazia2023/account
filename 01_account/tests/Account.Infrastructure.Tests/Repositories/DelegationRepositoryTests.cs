@@ -5,7 +5,6 @@
 using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
-using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -16,22 +15,23 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories;
 public class DelegationRepositoryTests
 {
     private readonly Fixture _fixture;
+    private readonly DbContextOptions<AccountContext> _dbContextOptions;
 
     public DelegationRepositoryTests()
     {
         _fixture = new Fixture();
         _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+        _dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
+          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+          .Options;
     }
 
     [Fact]
     public async Task CreateDelegationAsync_When_Request_IsValide_Should_Create_Delegation()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
             var tAccount = _fixture.Create<TAccount>();
@@ -77,11 +77,7 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task CreateDelegationAsync_When_Delegator_NotExists__Should_ThrowException()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
             var tAccount = _fixture.Create<TAccount>();
@@ -113,11 +109,7 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task CreateDelegationAsync_When_Delegatee_NotExists__Should_ThrowException()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
             var tAccount = _fixture.Create<TAccount>();
@@ -149,11 +141,7 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task CreateDelegationAsync_When_Account_NotExists__Should_ThrowException()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Contacts
             var tDelegator = _fixture.Create<TContact>();
@@ -181,11 +169,7 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task GetContactDelegationsAsync_Should_Return_ContactDelegations()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
             var tAccount = _fixture.Create<TAccount>();
@@ -232,11 +216,7 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task GetDelegationsAsync_Should_Return_Delegations()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
             var tAccount = _fixture.Create<TAccount>();

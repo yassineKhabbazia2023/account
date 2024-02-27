@@ -6,15 +6,17 @@ namespace Pulse.Account.Core.Extensions
     {
         public static bool ValidateStartDateDelegation(CreateDelegation delegation)
         {
-            return delegation is not null &&
-                delegation.StartDate is not null;
+            return delegation?.StartDate != null;
         }
 
         public static bool ValidateEndDateDelegation(CreateDelegation delegation)
         {
-            return delegation is not null &&
-                (delegation.EndDate is null ||
-                    (delegation.EndDate is not null && delegation.EndDate.Value.CompareTo(delegation.StartDate) >= 0));
+            if (delegation?.EndDate == null)
+            {
+                return true;
+            }
+
+            return delegation?.EndDate > delegation?.StartDate;
         }
     }
 }
