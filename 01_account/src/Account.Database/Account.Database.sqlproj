@@ -80,5 +80,12 @@
     <PostDeploy Include="Script.Referential.PostDeployment.sql" />
     <None Include="postDeployment\Hub.Refential.sql" />
     <None Include="postDeployment\Script.Naf.sql" />
+    <None Include="postDeployment\Script.Account.sql" />
+    <None Include="postDeployment\Script.Address.sql" />
+    <None Include="postDeployment\Script.Contact.sql" />
+    <None Include="postDeployment\Script.Phone.sql" />
+    <None Include="postDeployment\Script.Role.sql" />
+    <None Include="postDeployment\Script.DeploymentPlanning.sql" />
+    <None Include="postDeployment\Script.Delegation.sql" />
   </ItemGroup>
 </Project>

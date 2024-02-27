@@ -2,7 +2,7 @@
 (
 	[PhoneId]			INT IDENTITY(1, 1)	NOT NULL,
     [AccountId]         INT                 NOT NULL,       
-	[PhoneNumber]       VARCHAR(15)			NOT NULL,
+	[PhoneNumber]       VARCHAR(20)			NOT NULL,
 	[Type]			    VARCHAR(25)         NULL,
 	CONSTRAINT [C_TPhone_PK] PRIMARY KEY CLUSTERED ([PhoneId] ASC),
     CONSTRAINT [C_TAccount_TPhone_AccountId_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[TAccount] ([AccountId])
