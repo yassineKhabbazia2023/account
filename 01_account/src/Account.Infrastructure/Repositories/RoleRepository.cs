@@ -82,7 +82,7 @@ public class RoleRepository : IRoleRepository
         }).ConfigureAwait(false);
     }
 
-    public async Task CreateRoleAsync(CreateRole role)
+    public async Task CreateRoleAsync(CreateRoleRequest role)
     {
         await _retryPolicy.ExecuteAsync(async () =>
         {

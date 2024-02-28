@@ -67,7 +67,7 @@ public class DelegationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> CreateDelegationAsync([FromBody] CreateDelegation delegation)
+    public async Task<ActionResult> CreateDelegationAsync([FromBody] CreateDelegationRequest delegation)
     {
         int delegationId = await _delegationService.CreateDelegationAsync(delegation);
 

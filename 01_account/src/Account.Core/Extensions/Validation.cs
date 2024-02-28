@@ -4,12 +4,12 @@ namespace Pulse.Account.Core.Extensions
 {
     public static class Validation
     {
-        public static bool ValidateStartDateDelegation(CreateDelegation delegation)
+        public static bool ValidateStartDateDelegation(CreateDelegationRequest delegation)
         {
             return delegation?.StartDate != null;
         }
 
-        public static bool ValidateEndDateDelegation(CreateDelegation delegation)
+        public static bool ValidateEndDateDelegation(CreateDelegationRequest delegation)
         {
             if (delegation?.EndDate == null)
             {

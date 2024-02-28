@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Net;
 using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
@@ -132,6 +131,47 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
+        public async Task GetAccountAsync_Should_ReturnsAccountAsync()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var accountsModel = _fixture.Create<List<TAccount>>();
+                var accountFirst = accountsModel[0];
+                var accountDetail = accountFirst?.MapToAccountDetail();
+                context.TAccount.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+                var accountRepository = new AccountRepository(context);
+
+                // Act
+                var accounts = await accountRepository.GetAccountAsync(accountFirst!.AccountId);
+
+                // Assert
+                Assert.Equal(accountDetail?.AccountNumber, accounts!.AccountNumber);
+                Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
+                Assert.Equal(accountDetail?.Legal?.LegalName, accounts.Legal?.LegalName);
+                Assert.Equal(accountDetail?.Legal?.Siren, accounts.Legal?.Siren);
+                Assert.Equal(accountDetail?.Legal?.Siret, accounts.Legal?.Siret);
+            }
+        }
+
+        [Fact]
+        public async Task GetAccountAsync_Should_ThrowsNotFoundExceptionAsync()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var accountRepository = new AccountRepository(context);
+
+                // Act
+                Task Accounts() => accountRepository.GetAccountAsync(123);
+
+                // Assert
+                await Assert.ThrowsAsync<NotFoundException>(Accounts);
+            }
+        }
+
+        [Fact]
         public async Task UpdateAccount_Should_ReturnsOkResultAsync()
         {
             using (var context = new AccountContext(_dbContextOptions))
@@ -150,29 +190,15 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var accountRepository = new AccountRepository(context);
 
                 // Act
-                var accounts = await accountRepository.UpdateAccountAsync(accountDetail!, accountDetail!.AccountId);
+                await accountRepository.UpdateAccountAsync(accountDetail!.AccountId, accountDetail!);
 
                 // Assert
-                Assert.Equal(accountDetail?.AccountNumber, accounts!.AccountNumber);
-                Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
-                Assert.Equal(accountDetail?.Accounting?.TaxationSystem, accounts.Accounting?.TaxationSystem);
-                Assert.Equal(accountDetail?.Accounting?.ActivityType, accounts.Accounting?.ActivityType);
-                Assert.Equal(accountDetail?.Accounting?.ActivityDescription, accounts.Accounting?.ActivityDescription);
-            }
-        }
-
-        [Fact]
-        public async Task UpdateAccount_WithNoAccountFound_ShouldReturnNotFoundException()
-        {
-            using (var context = new AccountContext(_dbContextOptions))
-            {
-                var accountRepository = new AccountRepository(context);
-                var accountDetail = new AccountDetail { AccountId = 1 };
-
-                var result = await Assert.ThrowsAsync<NotFoundException>(async () => await accountRepository.UpdateAccountAsync(accountDetail, accountDetail.AccountId));
-
-                Assert.Equal(Errors.NotFoundAccountCode, result.Code);
-                Assert.Equal(string.Format(Errors.NotFoundAccountMessage, accountDetail.AccountId), result.Message);
+                var updatedAccont = await context.TAccount.SingleAsync(a => a.AccountId == accountDetail.AccountId);
+                Assert.Equal(accountDetail?.AccountNumber, updatedAccont!.AccountNumber);
+                Assert.Equal(accountDetail?.AccountId, updatedAccont.AccountId);
+                Assert.Equal(accountDetail?.Accounting?.TaxationSystem, updatedAccont.TaxationSystem);
+                Assert.Equal(accountDetail?.Accounting?.ActivityType, updatedAccont.ActivityType);
+                Assert.Equal(accountDetail?.Accounting?.ActivityDescription, updatedAccont.ActivityDescription);
             }
         }
 

@@ -1,10 +1,10 @@
-﻿// <copyright file="CreateDelegation.cs" company="Pulse">
+﻿// <copyright file="CreateDelegationRequest.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 namespace Pulse.Account.Core.Requests;
 
-public class CreateDelegation
+public class CreateDelegationRequest
 {
     required public int AccountId { get; set; }
 

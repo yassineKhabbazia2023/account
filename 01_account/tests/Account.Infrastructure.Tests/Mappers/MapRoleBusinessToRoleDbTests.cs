@@ -24,7 +24,7 @@ public class MapRoleBusinessToRoleDbTests
     public void MapRoleToRoleDb_WithNullRole_ReturnsNull()
     {
         // Arrange
-        CreateRole? role = null;
+        CreateRoleRequest? role = null;
 
         // Act
         var result = role?.MapRoleToRoleDb();
@@ -37,7 +37,7 @@ public class MapRoleBusinessToRoleDbTests
     public void MapTContactToSignatory_CaseSuccess()
     {
         // Arrange
-        CreateRole? role = _fixture.Create<CreateRole?>();
+        CreateRoleRequest? role = _fixture.Create<CreateRoleRequest?>();
         var expected = new TRole()
         {
             ContactId = role!.ContactId,

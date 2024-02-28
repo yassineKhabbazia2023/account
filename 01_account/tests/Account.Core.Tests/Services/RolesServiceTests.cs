@@ -9,12 +9,12 @@ using Moq;
 using AutoFixture;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
 using FluentAssertions;
-using Pulse.Account.Core.Exceptions;
 
 namespace Pulse.Account.Core.Tests.Services;
 
@@ -71,7 +71,7 @@ public class RolesServiceTests
     public async Task CreateRole_Should_ReturnsCreatedResultAsync()
     {
         // Arrange
-        var roleParam = new CreateRole()
+        var roleParam = new CreateRoleRequest()
         {
             AccountId = 6,
             ContactId = 6,
@@ -80,7 +80,7 @@ public class RolesServiceTests
         };
 
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
-        roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<CreateRole>()))
+        roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
             .Returns(Task.CompletedTask);
         var roleService = new RolesService(roleRepository.Object);
 
@@ -97,7 +97,8 @@ public class RolesServiceTests
         // Arrange
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.CreateRoleAsync(null))
-            .ThrowsAsync(new BadRequestException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage));
+            .ThrowsAsync(new BadRequestException(Errors.NotFoundAccountMessage, Errors.NotFoundAccountMessage));
+
         var roleService = new RolesService(roleRepository.Object);
 
         // Act

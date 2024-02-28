@@ -1,10 +1,10 @@
-// <copyright file="CreateRole.cs" company="Pulse">
+// <copyright file="CreateRoleRequest.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 namespace Pulse.Account.Core.Requests
 {
-    public class CreateRole
+    public class CreateRoleRequest
     {
         public int AccountId { get; set; }
 

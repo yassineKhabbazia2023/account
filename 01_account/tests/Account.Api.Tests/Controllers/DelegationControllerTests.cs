@@ -28,14 +28,14 @@ public class DelegationControllerTests
     [Fact]
     public async Task CreateDelegationAsync_When_Request_IsValide_Should_Create_Delegation()
     {
-        var createDelegation = _fixture.Build<CreateDelegation>()
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
             .With(p => p.StartDate, DateTime.UtcNow)
             .With(p => p.EndDate, DateTime.UtcNow.AddDays(1))
             .Create();
         var service = new Mock<IDelegationService>(MockBehavior.Strict);
 
         service.Setup(x => x.CreateDelegationAsync(createDelegation))
-            .Callback<CreateDelegation>(request =>
+            .Callback<CreateDelegationRequest>(request =>
             {
                 request.StartDate.Should().Be(createDelegation.StartDate);
                 request.EndDate.Should().Be(createDelegation.EndDate);
@@ -57,14 +57,14 @@ public class DelegationControllerTests
     [Fact]
     public async Task CreateDelegationAsync_EndDateNull_ReturnOk()
     {
-        var createDelegation = _fixture.Build<CreateDelegation>()
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
             .With(p => p.StartDate, DateTime.UtcNow)
             .Without(p => p.EndDate)
             .Create();
         var service = new Mock<IDelegationService>(MockBehavior.Strict);
 
         service.Setup(x => x.CreateDelegationAsync(createDelegation))
-            .Callback<CreateDelegation>(request =>
+            .Callback<CreateDelegationRequest>(request =>
             {
                 request.StartDate.Should().Be(createDelegation.StartDate);
                 request.EndDate.Should().Be(createDelegation.EndDate);
@@ -87,7 +87,7 @@ public class DelegationControllerTests
     public void CreateDelegationAsync_InvalidEndDate_ThrowsException()
     {
         // Arrange
-        var createDelegation = _fixture.Build<CreateDelegation>()
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
           .With(p => p.StartDate, DateTime.UtcNow)
           .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
           .Create();
@@ -109,7 +109,7 @@ public class DelegationControllerTests
     public void CreateDelegationAsync_InvalidStartDate_ThrowsException()
     {
         // Arrange
-        var createDelegation = _fixture.Build<CreateDelegation>()
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
           .Without(p => p.StartDate)
           .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
           .Create();

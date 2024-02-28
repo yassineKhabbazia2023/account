@@ -20,7 +20,7 @@ public class DelegationService : IDelegationService
         _delegationRepository = delegationRepository;
     }
 
-    public async Task<int> CreateDelegationAsync(CreateDelegation delegation)
+    public async Task<int> CreateDelegationAsync(CreateDelegationRequest delegation)
     {
         if (!Validation.ValidateStartDateDelegation(delegation))
         {

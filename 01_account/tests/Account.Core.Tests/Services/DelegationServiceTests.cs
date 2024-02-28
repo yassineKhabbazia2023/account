@@ -26,14 +26,14 @@ public class DelegationServiceTest
     [Fact]
     public async Task CreateDelegationAsync_When_Request_IsValide_Should_Create_Delegation()
     {
-        var createDelegation = _fixture.Build<CreateDelegation>()
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
             .With(p => p.StartDate, DateTime.UtcNow)
             .With(p => p.EndDate, DateTime.UtcNow.AddDays(1))
             .Create();
         var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
 
         repository.Setup(x => x.CreateDelegationAsync(createDelegation))
-            .Callback<CreateDelegation>(request =>
+            .Callback<CreateDelegationRequest>(request =>
             {
                 request.StartDate.Should().Be(createDelegation.StartDate);
                 request.EndDate.Should().Be(createDelegation.EndDate);
@@ -55,7 +55,7 @@ public class DelegationServiceTest
     public void CreateDelegationAsync_InvalidEndDate_ThrowException()
     {
         // Arrange
-        var createDelegation = _fixture.Build<CreateDelegation>()
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
             .With(p => p.StartDate, DateTime.UtcNow)
             .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
             .Create();
@@ -75,7 +75,7 @@ public class DelegationServiceTest
     public void CreateDelegationAsync_InvalidStartDate_ThrowException()
     {
         // Arrange
-        var createDelegation = _fixture.Build<CreateDelegation>()
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
             .Without(p => p.StartDate)
             .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
             .Create();
@@ -95,13 +95,13 @@ public class DelegationServiceTest
     public async Task CreateDelegationAsync_EndDateNull_ReturnOk()
     {
         // Arrange
-        var createDelegation = _fixture.Build<CreateDelegation>()
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
             .With(p => p.StartDate, DateTime.UtcNow)
             .Without(p => p.EndDate)
             .Create();
         var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
         repository.Setup(x => x.CreateDelegationAsync(createDelegation))
-        .Callback<CreateDelegation>(request =>
+        .Callback<CreateDelegationRequest>(request =>
         {
             request.StartDate.Should().Be(createDelegation.StartDate);
             request.EndDate.Should().Be(createDelegation.EndDate);

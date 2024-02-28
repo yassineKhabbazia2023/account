@@ -49,7 +49,7 @@ public class DelegationRepositoryTests
 
             // Try create a delegation
             var repository = new DelegationRepository(context);
-            var createDelegation = new CreateDelegation()
+            var createDelegation = new CreateDelegationRequest()
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
@@ -94,7 +94,7 @@ public class DelegationRepositoryTests
 
             // Try create a delegation
             var repository = new DelegationRepository(context);
-            var createDelegation = new CreateDelegation()
+            var createDelegation = new CreateDelegationRequest()
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
@@ -126,7 +126,7 @@ public class DelegationRepositoryTests
 
             // Try create a delegation
             var repository = new DelegationRepository(context);
-            var createDelegation = new CreateDelegation()
+            var createDelegation = new CreateDelegationRequest()
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
@@ -154,7 +154,7 @@ public class DelegationRepositoryTests
 
             // Try create a delegation
             var repository = new DelegationRepository(context);
-            var createDelegation = new CreateDelegation()
+            var createDelegation = new CreateDelegationRequest()
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),

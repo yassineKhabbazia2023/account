@@ -97,7 +97,7 @@ public class RolesRepositoryTests
         // Arrange
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var roleMock = _fixture.Create<CreateRole>();
+            var roleMock = _fixture.Create<CreateRoleRequest>();
 
             var rolesRepository = new RoleRepository(context);
 

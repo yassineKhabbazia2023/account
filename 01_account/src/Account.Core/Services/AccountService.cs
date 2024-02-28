@@ -25,14 +25,19 @@ namespace Pulse.Account.Core.Services
             return await _accountRepository.GetAccountsAsync(search, pageNumber, pageSize, contactId);
         }
 
-        public async Task<AccountDetail?> GetAccountDetailAsync(int id)
+        public async Task<AccountDetail?> GetAccountAsync(int accountId)
         {
-            return await _accountRepository.GetAccountDetailAsync(id);
+            return await _accountRepository.GetAccountAsync(accountId);
         }
 
-        public async Task<AccountDetail?> UpdateAccountAsync(int id, AccountDetail accountDetail)
+        public async Task<AccountDetail?> GetAccountDetailAsync(int accountId)
         {
-            return await _accountRepository.UpdateAccountAsync(accountDetail, id);
+            return await _accountRepository.GetAccountDetailAsync(accountId);
+        }
+
+        public async Task UpdateAccountAsync(int accountId, AccountDetail accountDetail)
+        {
+            await _accountRepository.UpdateAccountAsync(accountId, accountDetail);
         }
 
         public async Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId)

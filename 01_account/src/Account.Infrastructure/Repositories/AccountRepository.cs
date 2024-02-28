@@ -12,13 +12,13 @@ using Polly.Retry;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using AccountModel = Pulse.Account.Core.Models.Account;
-using Pulse.Account.Core.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Repositories
 {
@@ -70,11 +70,28 @@ namespace Pulse.Account.Infrastructure.Repositories
             }).ConfigureAwait(false);
         }
 
+        public async Task<AccountDetail?> GetAccountAsync(int accountId)
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                var account = await _accountContext.TAccount
+                       .AsNoTracking()
+                       .FirstOrDefaultAsync(a => a.AccountId == accountId);
+
+                if (account == null)
+                {
+                    throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                }
+
+                return account.MapToAccountDetail();
+            }).ConfigureAwait(false);
+        }
+
         public async Task<AccountDetail?> GetAccountDetailAsync(int accountId)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                IQueryable<TAccount> entities = _accountContext.TAccount
+                var account = await _accountContext.TAccount
                        .AsNoTracking()
                        .Include(x => x.TRole)
                        .ThenInclude(r => r.Contact)
@@ -83,30 +100,25 @@ namespace Pulse.Account.Infrastructure.Repositories
                        .Include(x => x.Hub)
                        .Include(x => x.Naf)
                        .Include(x => x.TPhone)
-                       .Where(a => a.AccountId == accountId);
+                       .FirstOrDefaultAsync(a => a.AccountId == accountId);
 
-                var entity = await entities.FirstOrDefaultAsync() ??
-                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
+                if (account == null)
+                {
+                    throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                }
 
-                return entity.MapToAccountDetail();
+                return account.MapToAccountDetail();
             }).ConfigureAwait(false);
         }
 
-        public async Task<AccountDetail?> UpdateAccountAsync(AccountDetail accountDetail, int accountId)
+        public async Task UpdateAccountAsync(int accountId, AccountDetail accountDetail)
         {
-            return await _retryPolicy.ExecuteAsync(async () =>
+            await _retryPolicy.ExecuteAsync(async () =>
             {
-                var existingAccounts = from account in _accountContext.TAccount
-                                       where account.AccountId.Equals(accountId)
-                                       select account;
-
-                var existingAccount = await existingAccounts.FirstOrDefaultAsync() ??
-                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
-
+                var existingAccount = await _accountContext.TAccount.SingleAsync(x => x.AccountId == accountId);
                 existingAccount.MapToUpdatedAccount(accountDetail);
                 _accountContext.TAccount.Update(existingAccount);
                 await _accountContext.SaveChangesAsync();
-                return await GetAccountDetailAsync(accountId);
             }).ConfigureAwait(false);
         }
 

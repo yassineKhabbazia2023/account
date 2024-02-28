@@ -23,5 +23,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string DelegationStartDateInvalidCode = "ACC006";
         public static readonly string DelegationStartDateInvalidMessage = "Impossible de créer une délégation : La date de début de la délégation ne peut pas être null.";
+
+        public static readonly string BadRequestRoleCode = "ACC007";
+        public static readonly string BadRequestRoleMessage = "Impossible de créer un role : les informations fournies dans la requête sont incorrectes.";
     }
 }

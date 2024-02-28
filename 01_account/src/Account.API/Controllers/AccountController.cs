@@ -3,11 +3,11 @@
 // </copyright>
 
 using Kpmg.ExceptionMiddleware.Model;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
-using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.API.Controllers
@@ -62,17 +62,19 @@ namespace Pulse.Account.API.Controllers
         /// Mettre à jour partiellement les informations d'une entité morale.
         /// </summary>
         /// <param name="accountId">ID de l'entité morale.</param>
-        /// <param name="accountDetail">Informations à mettre à jour.</param>
+        /// <param name="accountPatch">Informations à mettre à jour.</param>
         /// <returns>Les informations détaillées de l'entité morale mises à jour.</returns>
         [HttpPatch("{accountId}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<AccountDetail>> UpdateAccountAsync(int accountId, [FromBody] AccountDetail accountDetail)
+        public async Task<IActionResult> UpdateAccountAsync(int accountId, [FromBody] JsonPatchDocument<AccountDetail> accountPatch)
         {
-            var result = await _accountService.UpdateAccountAsync(accountId, accountDetail);
+            var accountToUpdate = await _accountService.GetAccountAsync(accountId);
+            accountPatch.ApplyTo(accountToUpdate!);
+            await _accountService.UpdateAccountAsync(accountId, accountToUpdate!);
 
-            return Ok(result);
+            return Ok();
         }
 
         /// <summary>

@@ -210,7 +210,6 @@ namespace Pulse.Account.Infrastructure.Mappers
         {
             if (accountDetail.Legal != null)
             {
-                existingAccount.LegalForm = accountDetail.Legal.LegalForm;
                 existingAccount.StaffSizeRange = accountDetail.Legal.StaffSizeRange;
             }
 

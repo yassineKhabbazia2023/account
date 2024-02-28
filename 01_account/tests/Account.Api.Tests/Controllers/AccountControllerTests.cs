@@ -13,6 +13,8 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models.Utils;
 using AccountModel = Pulse.Account.Core.Models.Account;
 using AutoFixture;
+using Microsoft.AspNetCore.JsonPatch;
+using FluentAssertions;
 
 namespace Account.Api.Tests.Controllers
 {
@@ -71,17 +73,27 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             string accountMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
-            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
-            _accountService.Setup(service => service.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>())).ReturnsAsync(accountDetail);
 
+            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
+            _accountService.Setup(service => service.GetAccountAsync(It.IsAny<int>())).ReturnsAsync(accountDetail);
+            _accountService.Setup(service => service.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>()))
+                .Callback<int, AccountDetail>((id, account) =>
+                {
+                    id.Should().Be(accountDetail.AccountId);
+                })
+                .Returns(Task.CompletedTask);
+
+            var jsonPatch = new JsonPatchDocument<AccountDetail>();
+            jsonPatch.Replace(a => a.Hub, accountDetail.Hub);
+            jsonPatch.Replace(a => a.Accounting, accountDetail.Accounting);
+            jsonPatch.Replace(a => a.Legal!.StaffSizeRange, accountDetail.Legal?.StaffSizeRange);
             var accountController = new AccountController(_accountService.Object);
 
             // Act
-            var accounts = await accountController.UpdateAccountAsync(accountId: 1, accountDetail);
-            var resultAccounts = accounts?.Result as OkObjectResult;
+            var result = await accountController.UpdateAccountAsync(accountId: accountDetail.AccountId, jsonPatch) as OkResult;
 
             // Assert
-            Assert.Equal(accountDetail, resultAccounts?.Value);
+            Assert.Equal(200, result!.StatusCode);
         }
 
         [Fact]

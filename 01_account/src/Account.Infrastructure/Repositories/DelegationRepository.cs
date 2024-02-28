@@ -33,7 +33,7 @@ public class DelegationRepository : IDelegationRepository
                 sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(3000));
     }
 
-    public async Task<int> CreateDelegationAsync(CreateDelegation delegation)
+    public async Task<int> CreateDelegationAsync(CreateDelegationRequest delegation)
     {
         int result = -1;
         if (delegation is null)

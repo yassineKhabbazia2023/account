@@ -10,6 +10,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Services;
+using Pulse.Account.Infrastructure.Repositories;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Core.Tests.Services
@@ -75,7 +76,24 @@ namespace Pulse.Account.Core.Tests.Services
             var accountService = new AccountService(_accountRepository.Object);
 
             // Act
-            var accounts = await accountService.GetAccountDetailAsync(id: 1);
+            var accounts = await accountService.GetAccountDetailAsync(accountId: 1);
+
+            // Assert
+            Assert.Equal(accountDetail, accounts);
+        }
+
+        [Fact]
+        public async Task Should_GetAccountDetail_ReturnsAccounttAsync()
+        {
+            // Arrange
+            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
+            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
+            _accountRepository.Setup(repository => repository.GetAccountAsync(It.IsAny<int>())).ReturnsAsync(accountDetail);
+
+            var accountService = new AccountService(_accountRepository.Object);
+
+            // Act
+            var accounts = await accountService.GetAccountAsync(accountId: 1);
 
             // Assert
             Assert.Equal(accountDetail, accounts);
@@ -87,15 +105,16 @@ namespace Pulse.Account.Core.Tests.Services
             // Arrange
             string accountMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
             var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
-            _accountRepository.Setup(repository => repository.UpdateAccountAsync(It.IsAny<AccountDetail>(), It.IsAny<int>())).ReturnsAsync(accountDetail);
+            _accountRepository.Setup(repository => repository.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>()))
+                .Returns(Task.CompletedTask);
 
             var accountService = new AccountService(_accountRepository.Object);
 
             // Act
-            var accounts = await accountService.UpdateAccountAsync(id: 1, accountDetail);
+            await accountService.UpdateAccountAsync(accountId: 1, accountDetail);
 
             // Assert
-            Assert.Equal(accountDetail, accounts);
+            _accountRepository.Verify(repository => repository.UpdateAccountAsync(1, accountDetail));
         }
 
         [Fact]

@@ -10,9 +10,9 @@ using Kpmg.ExceptionMiddleware.AdvancedException;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
-using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using AccountModel = Pulse.Account.Core.Models.Account;
@@ -71,14 +71,14 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
-            var roleParam = new CreateRole()
+            var roleParam = new CreateRoleRequest()
             {
                 AccountId = 6,
                 ContactId = 6,
                 IsFavorite = false,
                 IsSignatory = false
             };
-            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRole>()))
+            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
                 .Returns(Task.CompletedTask);
             var rolesController = new RolesController(rolesService.Object);
 
@@ -87,7 +87,7 @@ namespace Account.Api.Tests.Controllers
             var result = actionResult as StatusCodeResult;
 
             // Assert
-            result.StatusCode.Should().Be(201);
+            result!.StatusCode.Should().Be(201);
             rolesService.Verify(x => x.CreateRoleAsync(roleParam), Times.Once);
         }
 
@@ -96,12 +96,12 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
-            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRole>()))
-                .Throws(new BadRequestException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage));
+            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
+                .Throws(new BadRequestException(Errors.BadRequestRoleCode, Errors.BadRequestRoleMessage));
             var rolesController = new RolesController(rolesService.Object);
 
             // Act
-            Task Roles() => rolesController.CreateRoleAsync(null);
+            Task Roles() => rolesController.CreateRoleAsync(null!);
 
             // Assert
             await Assert.ThrowsAsync<BadRequestException>(Roles);

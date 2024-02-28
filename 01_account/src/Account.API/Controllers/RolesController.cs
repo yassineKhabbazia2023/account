@@ -73,7 +73,7 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> CreateRoleAsync(CreateRole role)
+    public async Task<ActionResult> CreateRoleAsync(CreateRoleRequest role)
     {
         await _rolesService.CreateRoleAsync(role);
         return StatusCode(StatusCodes.Status201Created);
