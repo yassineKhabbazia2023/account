@@ -72,6 +72,11 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
+            if (!_accountContext.TAccount.Any(x => x.AccountId == accountId))
+            {
+                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+            }
+
             var result = await _accountContext.TRole
                 .AsNoTracking()
                 .Include(x => x.Contact)
@@ -86,6 +91,16 @@ public class RoleRepository : IRoleRepository
     {
         await _retryPolicy.ExecuteAsync(async () =>
         {
+            if (!_accountContext.TAccount.Any(x => x.AccountId == role.AccountId))
+            {
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, role.AccountId));
+            }
+
+            if (!_accountContext.TContact.Any(x => x.ContactId == role.ContactId))
+            {
+                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
+            }
+
             _accountContext.TRole.Add(role.MapRoleToRoleDb());
             await _accountContext.SaveChangesAsync();
         }).ConfigureAwait(false);

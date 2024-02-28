@@ -70,25 +70,26 @@ namespace Account.Api.Tests.Controllers
         public async Task CreateRole_Should_ReturnCreatedResultAsync()
         {
             // Arrange
-            var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
-            var roleParam = new CreateRoleRequest()
+            var mockRoleService = new Mock<IRolesService>(MockBehavior.Strict);
+            var roleRequest = new CreateRoleRequest
             {
                 AccountId = 6,
                 ContactId = 6,
                 IsFavorite = false,
                 IsSignatory = false
             };
-            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
+
+            mockRoleService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
                 .Returns(Task.CompletedTask);
-            var rolesController = new RolesController(rolesService.Object);
+
+            var rolesController = new RolesController(mockRoleService.Object);
 
             // Act
-            var actionResult = await rolesController.CreateRoleAsync(roleParam);
-            var result = actionResult as StatusCodeResult;
+            var result = await rolesController.CreateRoleAsync(roleRequest);
 
             // Assert
-            result!.StatusCode.Should().Be(201);
-            rolesService.Verify(x => x.CreateRoleAsync(roleParam), Times.Once);
+            mockRoleService.Verify(s => s.CreateRoleAsync(roleRequest), Times.Once);
+            Assert.IsType<CreatedResult>(result);
         }
 
         [Fact]

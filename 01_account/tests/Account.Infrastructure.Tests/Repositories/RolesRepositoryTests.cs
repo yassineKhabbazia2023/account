@@ -92,25 +92,122 @@ public class RolesRepositoryTests
     }
 
     [Fact]
-    public async Task CreateRoleAsync_ShouldReturnCreated()
+    public async Task CreateRoleAsync_WithValidRequest_ShouldReturnCreated()
     {
         // Arrange
-        using (var context = new AccountContext(_dbContextOptions))
+        const int accountId = 123;
+        const int contactId = 456;
+        var roleRequest = new CreateRoleRequest
         {
-            var roleMock = _fixture.Create<CreateRoleRequest>();
+            AccountId = accountId,
+            ContactId = contactId,
+            IsFavorite = true,
+            IsSignatory = false,
+        };
 
-            var rolesRepository = new RoleRepository(context);
+        using var accountContext = new AccountContext(_dbContextOptions);
 
-            // Act
-            await rolesRepository.CreateRoleAsync(roleMock);
-            var roleObjects = context.TRole
-                                    .Where(x => x.ContactId == roleMock.ContactId && x.AccountId == roleMock.AccountId)
-                                    .Select(x => x);
-            var role = await roleObjects.FirstOrDefaultAsync();
+        accountContext.TAccount.Add(new TAccount
+        {
+            AccountId = accountId,
+            AccountNumber = "00001114455",
+            CreatedBy = "UnitTest@kpmg.fr",
+            Email = "account-mail@kpmg.fr",
+            LegalName = "Pulse",
+            SourceAccountNumber = "IBS",
+        });
+        accountContext.TContact.Add(new TContact
+        {
+            ContactId = contactId,
+            ContactEmail = "Contact-mail@kpmg.fr",
+            FirstName = "Contact-FN",
+            LastName = "Contact-LT",
+            Type = "Customer",
+        });
 
-            // Assert
-            Assert.Equivalent(roleMock, role);
-        }
+        await accountContext.SaveChangesAsync();
+
+        var rolesRepository = new RoleRepository(accountContext);
+
+        // Act
+        await rolesRepository.CreateRoleAsync(roleRequest);
+
+        // Assert
+        Assert.Single(accountContext.TRole);
+    }
+
+    [Fact]
+    public async Task CreateRoleAsync_WithInValidAccount_ShouldThrowsNotFoundException()
+    {
+        // Arrange
+        const int invalidAccountId = 100;
+        const int contactId = 456;
+        var roleRequest = new CreateRoleRequest
+        {
+            AccountId = invalidAccountId,
+            ContactId = contactId,
+            IsFavorite = true,
+            IsSignatory = false,
+        };
+
+        using var accountContext = new AccountContext(_dbContextOptions);
+        accountContext.TContact.Add(new TContact
+        {
+            ContactId = contactId,
+            ContactEmail = "Contact-mail@kpmg.fr",
+            FirstName = "Contact-FN",
+            LastName = "Contact-LT",
+            Type = "Customer",
+        });
+
+        await accountContext.SaveChangesAsync();
+
+        var rolesRepository = new RoleRepository(accountContext);
+
+        // Act
+        Func<Task> action = async () => await rolesRepository.CreateRoleAsync(roleRequest);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<NotFoundException>(() => action());
+        Assert.Equal($"L'entité avec l'identifiant {invalidAccountId} est introuvable", exception.Message);
+    }
+
+    [Fact]
+    public async Task CreateRoleAsync_WithInValidContact_ShouldReturnCreated()
+    {
+        // Arrange
+        const int accountId = 123;
+        const int invalidContactId = 456;
+        var roleRequest = new CreateRoleRequest
+        {
+            AccountId = accountId,
+            ContactId = invalidContactId,
+            IsFavorite = true,
+            IsSignatory = false,
+        };
+
+        using var accountContext = new AccountContext(_dbContextOptions);
+
+        accountContext.TAccount.Add(new TAccount
+        {
+            AccountId = accountId,
+            AccountNumber = "00001114455",
+            CreatedBy = "UnitTest@kpmg.fr",
+            Email = "account-mail@kpmg.fr",
+            LegalName = "Pulse",
+            SourceAccountNumber = "IBS",
+        });
+
+        await accountContext.SaveChangesAsync();
+
+        var rolesRepository = new RoleRepository(accountContext);
+
+        // Act
+        Func<Task> action = async () => await rolesRepository.CreateRoleAsync(roleRequest);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<NotFoundException>(() => action());
+        Assert.Equal($"Le contact avec l'identifiant {invalidContactId} est introuvable", exception.Message);
     }
 
     [Fact]

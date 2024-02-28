@@ -76,7 +76,7 @@ public class RolesController : ControllerBase
     public async Task<ActionResult> CreateRoleAsync(CreateRoleRequest role)
     {
         await _rolesService.CreateRoleAsync(role);
-        return StatusCode(StatusCodes.Status201Created);
+        return Created();
     }
 
     /// <summary>
