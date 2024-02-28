@@ -4,9 +4,11 @@
 
 using AutoFixture;
 using FluentAssertions;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
@@ -26,7 +28,10 @@ public class DelegationControllerTests
     [Fact]
     public async Task CreateDelegationAsync_When_Request_IsValide_Should_Create_Delegation()
     {
-        var createDelegation = _fixture.Create<CreateDelegation>();
+        var createDelegation = _fixture.Build<CreateDelegation>()
+            .With(p => p.StartDate, DateTime.UtcNow)
+            .With(p => p.EndDate, DateTime.UtcNow.AddDays(1))
+            .Create();
         var service = new Mock<IDelegationService>(MockBehavior.Strict);
 
         service.Setup(x => x.CreateDelegationAsync(createDelegation))
@@ -47,6 +52,79 @@ public class DelegationControllerTests
         actionResult.As<OkObjectResult>().StatusCode.Should().Be(200);
         actionResult.As<OkObjectResult>().Value.Should().Be(100);
         service.VerifyAll();
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_EndDateNull_ReturnOk()
+    {
+        var createDelegation = _fixture.Build<CreateDelegation>()
+            .With(p => p.StartDate, DateTime.UtcNow)
+            .Without(p => p.EndDate)
+            .Create();
+        var service = new Mock<IDelegationService>(MockBehavior.Strict);
+
+        service.Setup(x => x.CreateDelegationAsync(createDelegation))
+            .Callback<CreateDelegation>(request =>
+            {
+                request.StartDate.Should().Be(createDelegation.StartDate);
+                request.EndDate.Should().Be(createDelegation.EndDate);
+                request.AccountId.Should().Be(createDelegation.AccountId);
+                request.DelegatorId.Should().Be(createDelegation.DelegatorId);
+                request.DelegateeId.Should().Be(createDelegation.DelegateeId);
+            })
+            .ReturnsAsync(100)
+            .Verifiable();
+
+        var controller = new DelegationController(service.Object);
+        var actionResult = await controller.CreateDelegationAsync(createDelegation);
+
+        actionResult.As<OkObjectResult>().StatusCode.Should().Be(200);
+        actionResult.As<OkObjectResult>().Value.Should().Be(100);
+        service.VerifyAll();
+    }
+
+    [Fact]
+    public void CreateDelegationAsync_InvalidEndDate_ThrowsException()
+    {
+        // Arrange
+        var createDelegation = _fixture.Build<CreateDelegation>()
+          .With(p => p.StartDate, DateTime.UtcNow)
+          .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
+          .Create();
+        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
+        var service = new DelegationService(repository.Object);
+
+        var controller = new DelegationController(service);
+
+        // Act
+        var act = async () => await controller.CreateDelegationAsync(createDelegation);
+
+        // Assert
+        var exception = Assert.ThrowsAsync<BadRequestException>(act);
+        Assert.Equal(Errors.DelegationEndDateInvalidMessage, exception.Result.Message);
+        Assert.Equal(Errors.DelegationEndDateInvalidCode, exception.Result.Code);
+    }
+
+    [Fact]
+    public void CreateDelegationAsync_InvalidStartDate_ThrowsException()
+    {
+        // Arrange
+        var createDelegation = _fixture.Build<CreateDelegation>()
+          .Without(p => p.StartDate)
+          .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
+          .Create();
+        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
+        var service = new DelegationService(repository.Object);
+
+        var controller = new DelegationController(service);
+
+        // Act
+        var act = async () => await controller.CreateDelegationAsync(createDelegation);
+
+        // Assert
+        var exception = Assert.ThrowsAsync<BadRequestException>(act);
+        Assert.Equal(Errors.DelegationStartDateInvalidMessage, exception.Result.Message);
+        Assert.Equal(Errors.DelegationStartDateInvalidCode, exception.Result.Code);
     }
 
     [Fact]

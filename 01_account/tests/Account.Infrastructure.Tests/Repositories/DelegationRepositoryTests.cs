@@ -18,22 +18,23 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories;
 public class DelegationRepositoryTests
 {
     private readonly Fixture _fixture;
+    private readonly DbContextOptions<AccountContext> _dbContextOptions;
 
     public DelegationRepositoryTests()
     {
         _fixture = new Fixture();
         _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+        _dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
+          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+          .Options;
     }
 
     [Fact]
     public async Task CreateDelegationAsync_When_Request_IsValide_Should_Create_Delegation()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
             var tAccount = _fixture.Create<TAccount>();
@@ -53,6 +54,7 @@ public class DelegationRepositoryTests
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 AccountId = tAccount.AccountId,
+                Status = "pending",
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
             };
@@ -71,18 +73,14 @@ public class DelegationRepositoryTests
             Assert.NotNull(createdDelegation);
             Assert.Equal(createDelegation.StartDate, createdDelegation.StartDate);
             Assert.Equal(createDelegation.EndDate, createdDelegation.EndDate);
-            Assert.Equal((int)DelegationStatus.PENDING, createdDelegation.Status);
+            Assert.Equal(createDelegation.Status, createdDelegation.Status);
         }
     }
 
     [Fact]
     public async Task CreateDelegationAsync_When_Delegator_NotExists__Should_ThrowException()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
             var tAccount = _fixture.Create<TAccount>();
@@ -101,7 +99,9 @@ public class DelegationRepositoryTests
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 AccountId = tAccount.AccountId,
+                Status = "pending",
                 DelegateeId = tDelegatee.ContactId,
+                DelegatorId = 0,
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
@@ -112,11 +112,7 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task CreateDelegationAsync_When_Delegatee_NotExists__Should_ThrowException()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
             var tAccount = _fixture.Create<TAccount>();
@@ -135,7 +131,9 @@ public class DelegationRepositoryTests
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 AccountId = tAccount.AccountId,
+                Status = "pending",
                 DelegatorId = tDelegator.ContactId,
+                DelegateeId = 0,
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
@@ -146,11 +144,7 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task CreateDelegationAsync_When_Account_NotExists__Should_ThrowException()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Contacts
             var tDelegator = _fixture.Create<TContact>();
@@ -164,9 +158,10 @@ public class DelegationRepositoryTests
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
+                AccountId = 3,
+                Status = "pending",
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
-                AccountId = 1
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
@@ -177,11 +172,7 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task GetContactDelegationsAsync_Should_Return_ContactDelegations()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
             var tAccount = _fixture.Create<TAccount>();
@@ -202,7 +193,7 @@ public class DelegationRepositoryTests
                 AccountId = tAccount.AccountId,
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
-                Status = (int)DelegationStatus.PENDING,
+                Status = "pending",
                 Note = "Note",
             };
             await context.TDelegation.AddAsync(tDelegation);
@@ -217,7 +208,7 @@ public class DelegationRepositoryTests
             Assert.NotNull(contactDelegation);
             Assert.Equal(contactDelegation.StartDate, tDelegation.StartDate);
             Assert.Equal(contactDelegation.EndDate, tDelegation.EndDate);
-            Assert.Equal(contactDelegation.Status, (DelegationStatus)tDelegation.Status);
+            Assert.Equal(contactDelegation.Status, tDelegation.Status);
             Assert.Equal(contactDelegation.Note, tDelegation.Note);
             Assert.Equal(contactDelegation.CreationDate, tDelegation.CreationDate);
             Assert.Equal(contactDelegation.Account!.AccountId, tDelegation.Account.AccountId);
@@ -228,11 +219,7 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task GetDelegationsAsync_Should_Return_Delegations()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                          .Options;
-
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
             var tAccount = _fixture.Create<TAccount>();
@@ -254,7 +241,7 @@ public class DelegationRepositoryTests
                 AccountId = tAccount.AccountId,
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
-                Status = (int)DelegationStatus.PENDING,
+                Status = "pending",
                 Note = "Note",
             };
 
@@ -265,7 +252,7 @@ public class DelegationRepositoryTests
                 AccountId = tAccount.AccountId,
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = anotherDelegatee.ContactId,
-                Status = (int)DelegationStatus.PENDING,
+                Status = "pending",
                 Note = "Note 2",
             };
             await context.TDelegation.AddRangeAsync(new List<TDelegation> { tDelegation, anothetTDelegation });
@@ -280,7 +267,7 @@ public class DelegationRepositoryTests
             Assert.NotNull(delegation);
             Assert.Equal(delegation.StartDate, tDelegation.StartDate);
             Assert.Equal(delegation.EndDate, tDelegation.EndDate);
-            Assert.Equal(delegation.Status, (DelegationStatus)tDelegation.Status);
+            Assert.Equal(delegation.Status, tDelegation.Status);
             Assert.Equal(delegation.Note, tDelegation.Note);
             Assert.Equal(delegation.CreationDate, tDelegation.CreationDate);
             Assert.Equal(delegation.Account!.AccountId, tDelegation.Account.AccountId);

@@ -6,13 +6,16 @@
 	[DelegateeId]	        INT 				NOT NULL,
 	[StartDate]				DATETIME2			NOT NULL,
 	[EndDate]				DATETIME2			NULL,
-	[Status]				INT                 NOT NULL,
+	[Status]				VARCHAR(10)         NOT NULL,
     [Note]                  VARCHAR(255)        NULL,
 	[CreationDate]			DATETIME2			NOT NULL, 
 	CONSTRAINT [C_TDelegation_PK] PRIMARY KEY CLUSTERED ([DelegationId] ASC),
 	CONSTRAINT [C_TDelegation_TAccount_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[TAccount] ([AccountId]),
 	CONSTRAINT [C_TDelegation_TContact_DelegatorId_FK] FOREIGN KEY ([DelegatorId]) REFERENCES actor.[TContact] ([ContactId]),
-	CONSTRAINT [C_TDelegation_TContact_DelegateeId_FK] FOREIGN KEY ([DelegateeId]) REFERENCES actor.[TContact] ([ContactId])
+	CONSTRAINT [C_TDelegation_TContact_DelegateeId_FK] FOREIGN KEY ([DelegateeId]) REFERENCES actor.[TContact] ([ContactId]),
+    CONSTRAINT [CHK_Status] CHECK ([Status] = 'pending'
+                                        OR [Status] = 'enable'
+                                        OR [Status] = 'disable')
 )
 
 GO

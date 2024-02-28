@@ -24,7 +24,7 @@ public static class MapDelegationDbToDelegationModel
                 CreationDate = source.CreationDate,
                 StartDate = source.StartDate,
                 EndDate = source.EndDate,
-                Status = (DelegationStatus)source.Status,
+                Status = source.Status,
                 Note = source.Note,
                 Account = source.Account?.ToAccount(),
                 Delegatee = source.Delegatee?.ToContact(),
