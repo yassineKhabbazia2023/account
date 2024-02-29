@@ -16,10 +16,12 @@ namespace Pulse.Account.Core.Tests.Services;
 
 public class DelegationServiceTest
 {
+    private readonly Mock<IDelegationRepository> _repository;
     private readonly Fixture _fixture;
 
     public DelegationServiceTest()
     {
+        _repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
         _fixture = new Fixture();
     }
 
@@ -30,9 +32,8 @@ public class DelegationServiceTest
             .With(p => p.StartDate, DateTime.UtcNow)
             .With(p => p.EndDate, DateTime.UtcNow.AddDays(1))
             .Create();
-        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
 
-        repository.Setup(x => x.CreateDelegationAsync(createDelegation))
+        _repository.Setup(x => x.CreateDelegationAsync(createDelegation))
             .Callback<CreateDelegationRequest>(request =>
             {
                 request.StartDate.Should().Be(createDelegation.StartDate);
@@ -44,11 +45,11 @@ public class DelegationServiceTest
             .ReturnsAsync(100)
             .Verifiable();
 
-        var service = new DelegationService(repository.Object);
+        var service = new DelegationService(_repository.Object);
         var id = await service.CreateDelegationAsync(createDelegation);
 
         id.Should().Be(100);
-        repository.VerifyAll();
+        _repository.VerifyAll();
     }
 
     [Fact]
@@ -125,19 +126,18 @@ public class DelegationServiceTest
     {
         var contactId = 100;
         IReadOnlyCollection<Delegation> delegationlist = _fixture.Create<List<Delegation>>();
-        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
 
-        repository.Setup(x => x.GetContactDelegationsAsync(It.IsAny<int>()))
+        _repository.Setup(x => x.GetContactDelegationsAsync(It.IsAny<int>()))
             .Callback<int>(id => id.Should().Be(contactId))
             .ReturnsAsync(delegationlist)
             .Verifiable();
 
-        var service = new DelegationService(repository.Object);
+        var service = new DelegationService(_repository.Object);
         var contactDelegations = await service.GetContactDelegationsAsync(contactId);
 
         contactDelegations.Should().NotBeNull();
         contactDelegations.Should().BeEquivalentTo(delegationlist);
-        repository.VerifyAll();
+        _repository.VerifyAll();
     }
 
     [Fact]
@@ -146,9 +146,8 @@ public class DelegationServiceTest
         var delegatorId = 100;
         var delegateeId = 200;
         IReadOnlyCollection<Delegation> delegationlist = _fixture.Create<List<Delegation>>();
-        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
 
-        repository.Setup(x => x.GetDelegationsAsync(It.IsAny<int>(), It.IsAny<int>()))
+        _repository.Setup(x => x.GetDelegationsAsync(It.IsAny<int>(), It.IsAny<int>()))
             .Callback<int, int>((sourceId, destinationId) =>
             {
                 sourceId.Should().Be(delegatorId);
@@ -157,11 +156,22 @@ public class DelegationServiceTest
             .ReturnsAsync(delegationlist)
             .Verifiable();
 
-        var service = new DelegationService(repository.Object);
+        var service = new DelegationService(_repository.Object);
         var contactDelegations = await service.GetDelegationsAsync(delegatorId, delegateeId);
 
         contactDelegations.Should().NotBeNull();
         contactDelegations.Should().BeEquivalentTo(delegationlist);
-        repository.VerifyAll();
+        _repository.VerifyAll();
+    }
+
+    [Fact]
+    public async Task DeleteDelegationAsync_Nominal()
+    {
+        _repository.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
+
+        var service = new DelegationService(_repository.Object);
+        await service.DeleteDelegationAsync(It.IsAny<int>());
+
+        _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>()), Times.Once);
     }
 }

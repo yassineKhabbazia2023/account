@@ -5,7 +5,9 @@
 using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
@@ -89,6 +91,17 @@ public class RolesRepositoryTests
             // Assert
             Assert.Equivalent(resultExpected, roles);
         }
+    }
+
+    [Fact]
+    public async Task GetSignatoryAsync_WithNotExistingAccountId_ShouldThrowNotFoundException()
+    {
+        var repository = new RoleRepository(new AccountContext(_dbContextOptions));
+
+        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.GetSignatoryAsync(It.IsAny<int>()));
+
+        Assert.Equal(Errors.NotFoundAccountCode, result.Code);
+        Assert.Equal(Errors.NotFoundAccountMessage, result.Message);
     }
 
     [Fact]

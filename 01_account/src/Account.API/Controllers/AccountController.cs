@@ -2,9 +2,11 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.Model;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
@@ -70,6 +72,11 @@ namespace Pulse.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateAccountAsync(int accountId, [FromBody] JsonPatchDocument<AccountDetail> accountPatch)
         {
+            if (accountPatch == null)
+            {
+                throw new BadRequestException(Errors.BadRequestAccountPatchCode, Errors.BadRequestAccountPatchMessage);
+            }
+
             var accountToUpdate = await _accountService.GetAccountAsync(accountId);
             accountPatch.ApplyTo(accountToUpdate!);
             await _accountService.UpdateAccountAsync(accountId, accountToUpdate!);

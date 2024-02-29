@@ -35,6 +35,11 @@ public class DelegationService : IDelegationService
         return await _delegationRepository.CreateDelegationAsync(delegation);
     }
 
+    public async Task DeleteDelegationAsync(int delegationId)
+    {
+        await _delegationRepository.DeleteDelegationAsync(delegationId);
+    }
+
     public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(int delegateeId)
     {
         return await _delegationRepository.GetContactDelegationsAsync(delegateeId);

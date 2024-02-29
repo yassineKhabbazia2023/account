@@ -101,6 +101,23 @@ public class DelegationRepository : IDelegationRepository
         return delegations.ToDelegations();
     }
 
+    public async Task DeleteDelegationAsync(int delegationId)
+    {
+        if (delegationId <= 0)
+        {
+            throw new BadRequestException(Errors.BadRequestDeleteDelegationCode, Errors.BadRequestDeleteDelegationMessage);
+        }
+
+        var tDelegation = await GetDelegationAsync(delegationId);
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            tDelegation.Status = Constants.DISABLEDDELEGATIONSTATUS;
+            _accountContext.TDelegation.Update(tDelegation);
+            await _accountContext.SaveChangesAsync();
+        });
+    }
+
     private async Task<TContact> GetContactAsync(int contactId)
     {
         var tContact = new TContact();
@@ -135,5 +152,22 @@ public class DelegationRepository : IDelegationRepository
         }
 
         return tAccount;
+    }
+
+    private async Task<TDelegation> GetDelegationAsync(int delegationId)
+    {
+        TDelegation? tDelegation = null;
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            tDelegation = await _accountContext.TDelegation.FirstOrDefaultAsync(d => d.DelegationId == delegationId);
+        });
+
+        if (tDelegation == null)
+        {
+            throw new NotFoundException(Errors.NotFoundDelegationCode, string.Format(Errors.NotFoundDelegationMessage, delegationId));
+        }
+
+        return tDelegation;
     }
 }

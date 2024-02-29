@@ -14,8 +14,8 @@
 	CONSTRAINT [C_TDelegation_TContact_DelegatorId_FK] FOREIGN KEY ([DelegatorId]) REFERENCES actor.[TContact] ([ContactId]),
 	CONSTRAINT [C_TDelegation_TContact_DelegateeId_FK] FOREIGN KEY ([DelegateeId]) REFERENCES actor.[TContact] ([ContactId]),
     CONSTRAINT [CHK_Status] CHECK ([Status] = 'pending'
-                                        OR [Status] = 'enable'
-                                        OR [Status] = 'disable')
+                                        OR [Status] = 'enabled'
+                                        OR [Status] = 'disabled')
 )
 
 GO

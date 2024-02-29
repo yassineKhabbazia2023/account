@@ -19,10 +19,10 @@ SET @contactNexity2 = (SELECT ContactId FROM actor.TContact WHERE ContactGlobalU
 
 INSERT INTO account.TDelegation (AccountId, DelegatorId, DelegateeId, StartDate, EndDate, Status, Note, CreationDate)
 VALUES
-(@accountRothschild, @contactRothschild, @contactRenault, CAST ('2019-02-11' AS datetime2), CAST ('2019-03-01' AS datetime2), 2, 'Délégation spéciale', SYSDATETIME()),
-(@accountAsltom, @contactAlstom1, @contactAlstom2, CAST ('1999-08-09' AS datetime2), CAST ('2000-02-21' AS datetime2), 2, NULL, SYSDATETIME()),
-(@accountAsltom, @contactAlstom1, @contactRenault, CAST ('2024-01-01' AS datetime2), NULL, 1, 'Délégation long terme', SYSDATETIME()),
-(@accountImagotag, @contactImagotag2, @contactImagotag1, CAST ('2022-07-01' AS datetime2), CAST ('2022-09-01' AS datetime2), 2, 'Remplacement', SYSDATETIME()),
-(@accountImagotag, @contactImagotag2, @contactImagotag1, CAST ('2024-05-17' AS datetime2), CAST ('2025-01-31' AS datetime2), 0, 'Demande de délégation', SYSDATETIME()),
-(@accountFleury, @contactFleury, @contactAlstom2, CAST ('2023-11-29' AS datetime2), NULL, 0, 'Je voudrais donner les droits à partir du 29 nov 2023 pour une durée indéterminée', SYSDATETIME()),
-(@accountNexity, @contactNexity1, @contactNexity2, CAST ('2024-02-07' AS datetime2), CAST ('2024-04-01' AS datetime2), 1, 'En cours', SYSDATETIME());
+(@accountRothschild, @contactRothschild, @contactRenault, CAST ('2019-02-11' AS datetime2), CAST ('2019-03-01' AS datetime2), 'disabled', 'Délégation spéciale', SYSDATETIME()),
+(@accountAsltom, @contactAlstom1, @contactAlstom2, CAST ('1999-08-09' AS datetime2), CAST ('2000-02-21' AS datetime2), 'disabled', NULL, SYSDATETIME()),
+(@accountAsltom, @contactAlstom1, @contactRenault, CAST ('2024-01-01' AS datetime2), NULL, 'enabled', 'Délégation long terme', SYSDATETIME()),
+(@accountImagotag, @contactImagotag2, @contactImagotag1, CAST ('2022-07-01' AS datetime2), CAST ('2022-09-01' AS datetime2), 'disabled', 'Remplacement', SYSDATETIME()),
+(@accountImagotag, @contactImagotag2, @contactImagotag1, CAST ('2024-05-17' AS datetime2), CAST ('2025-01-31' AS datetime2), 'pending', 'Demande de délégation', SYSDATETIME()),
+(@accountFleury, @contactFleury, @contactAlstom2, CAST ('2023-11-29' AS datetime2), NULL, 'pending', 'Je voudrais donner les droits à partir du 29 nov 2023 pour une durée indéterminée', SYSDATETIME()),
+(@accountNexity, @contactNexity1, @contactNexity2, CAST ('2024-02-07' AS datetime2), CAST ('2024-04-01' AS datetime2), 'enabled', 'En cours', SYSDATETIME());

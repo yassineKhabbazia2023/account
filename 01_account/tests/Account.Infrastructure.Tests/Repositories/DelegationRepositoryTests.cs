@@ -3,11 +3,15 @@
 // </copyright>
 
 using AutoFixture;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using Moq;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -273,5 +277,53 @@ public class DelegationRepositoryTests
             Assert.Equal(delegation.Account!.AccountId, tDelegation.Account.AccountId);
             Assert.Equal(delegation.Delegator!.ContactId, tDelegation.DelegatorId);
         }
+    }
+
+    [Fact]
+    public async Task DeleteDelegationAsync_WithDelegationIdFoundInDatabase_ShouldUpdateDelegationStatusToDisabled()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var delegation = new TDelegation
+            {
+                AccountId = 1,
+                Status = "enabled"
+            };
+
+            context.TDelegation.Add(delegation);
+            await context.SaveChangesAsync();
+            var repository = new DelegationRepository(context);
+
+            await repository.DeleteDelegationAsync(1);
+
+            var result = await context.TDelegation.FirstOrDefaultAsync(d => d.DelegationId == 1);
+
+            Assert.NotNull(result);
+            Assert.Equal(Constants.DISABLEDDELEGATIONSTATUS, result.Status);
+        }
+    }
+
+    [Theory]
+    [InlineData(int.MinValue)]
+    [InlineData(0)]
+    public async Task DeleteDelegationAsync_WithNegativeOrNullId_ShouldThrowBadRequestException(int delegationId)
+    {
+        var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
+
+        var result = await Assert.ThrowsAsync<BadRequestException>(async () => await repository.DeleteDelegationAsync(delegationId));
+
+        Assert.Equal(Errors.BadRequestDeleteDelegationCode, result.Code);
+        Assert.Equal(Errors.BadRequestDeleteDelegationMessage, result.Message);
+    }
+
+    [Fact]
+    public async Task DeleteDelegationAsync_WithNotExistingDelegationId_ShouldThrowNotFoundException()
+    {
+        var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
+
+        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.DeleteDelegationAsync(1));
+
+        Assert.Equal(Errors.NotFoundDelegationCode, result.Code);
+        Assert.Equal(string.Format(Errors.NotFoundDelegationMessage, 1), result.Message);
     }
 }

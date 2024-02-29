@@ -7,5 +7,6 @@ namespace Pulse.Account.Core.Constants
     public static class Constants
     {
         public static readonly int RETRYTIMESPAN = 3000;
+        public static readonly string DISABLEDDELEGATIONSTATUS = "disabled";
     }
 }

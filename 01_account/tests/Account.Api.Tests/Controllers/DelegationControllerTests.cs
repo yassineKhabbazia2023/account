@@ -5,6 +5,8 @@
 using AutoFixture;
 using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
@@ -18,10 +20,12 @@ namespace Account.Api.Tests.Controllers;
 
 public class DelegationControllerTests
 {
+    private readonly Mock<IDelegationService> _service;
     private readonly Fixture _fixture;
 
     public DelegationControllerTests()
     {
+        _service = new Mock<IDelegationService>(MockBehavior.Strict);
         _fixture = new Fixture();
     }
 
@@ -32,9 +36,8 @@ public class DelegationControllerTests
             .With(p => p.StartDate, DateTime.UtcNow)
             .With(p => p.EndDate, DateTime.UtcNow.AddDays(1))
             .Create();
-        var service = new Mock<IDelegationService>(MockBehavior.Strict);
 
-        service.Setup(x => x.CreateDelegationAsync(createDelegation))
+        _service.Setup(x => x.CreateDelegationAsync(createDelegation))
             .Callback<CreateDelegationRequest>(request =>
             {
                 request.StartDate.Should().Be(createDelegation.StartDate);
@@ -46,12 +49,12 @@ public class DelegationControllerTests
             .ReturnsAsync(100)
             .Verifiable();
 
-        var controller = new DelegationController(service.Object);
+        var controller = new DelegationController(_service.Object);
         var actionResult = await controller.CreateDelegationAsync(createDelegation);
 
         actionResult.As<OkObjectResult>().StatusCode.Should().Be(200);
         actionResult.As<OkObjectResult>().Value.Should().Be(100);
-        service.VerifyAll();
+        _service.VerifyAll();
     }
 
     [Fact]
@@ -132,19 +135,18 @@ public class DelegationControllerTests
     {
         var contactId = 100;
         IReadOnlyCollection<Delegation> delegationlist = _fixture.Create<List<Delegation>>();
-        var service = new Mock<IDelegationService>(MockBehavior.Strict);
 
-        service.Setup(x => x.GetContactDelegationsAsync(It.IsAny<int>()))
+        _service.Setup(x => x.GetContactDelegationsAsync(It.IsAny<int>()))
             .Callback<int>(id => id.Should().Be(contactId))
             .ReturnsAsync(delegationlist)
             .Verifiable();
 
-        var controller = new DelegationController(service.Object);
+        var controller = new DelegationController(_service.Object);
         var actionResult = await controller.GetContactDelegationsAsync(contactId);
 
         actionResult.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
         actionResult.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(delegationlist);
-        service.VerifyAll();
+        _service.VerifyAll();
     }
 
     [Fact]
@@ -153,9 +155,8 @@ public class DelegationControllerTests
         var delegatorId = 100;
         var delegateeId = 200;
         IReadOnlyCollection<Delegation> delegationlist = _fixture.Create<List<Delegation>>();
-        var service = new Mock<IDelegationService>(MockBehavior.Strict);
 
-        service.Setup(x => x.GetDelegationsAsync(It.IsAny<int>(), It.IsAny<int>()))
+        _service.Setup(x => x.GetDelegationsAsync(It.IsAny<int>(), It.IsAny<int>()))
             .Callback<int, int>((sourceId, destinationId) =>
             {
                 sourceId.Should().Be(delegatorId);
@@ -164,11 +165,37 @@ public class DelegationControllerTests
             .ReturnsAsync(delegationlist)
             .Verifiable();
 
-        var controller = new DelegationController(service.Object);
+        var controller = new DelegationController(_service.Object);
         var actionResult = await controller.GetDelegationsAsync(delegatorId, delegateeId);
 
         actionResult.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
         actionResult.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(delegationlist);
-        service.VerifyAll();
+        _service.VerifyAll();
+    }
+
+    [Fact]
+    public async Task DeleteDelegationAsync_ShouldReturnOkResult()
+    {
+        _service.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
+
+        var controller = new DelegationController(_service.Object);
+
+        var result = await controller.DeleteDelegationAsync(It.IsAny<int>());
+
+        result.As<OkResult>().StatusCode.Should().Be(StatusCodes.Status200OK);
+    }
+
+    [Fact]
+    public async Task DeleteDelegationAsync_NonExistingId_ShouldReturnNotFoundException()
+    {
+        var exception = new NotFoundException(It.IsAny<string>(), It.IsAny<string>());
+        _service.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).ThrowsAsync(exception);
+
+        var controller = new DelegationController(_service.Object);
+
+        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await controller.DeleteDelegationAsync(It.IsAny<int>()));
+
+        result.Code.Should().Be(exception.Code);
+        result.Message.Should().Be(exception.Message);
     }
 }

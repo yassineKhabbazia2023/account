@@ -15,6 +15,8 @@ using AccountModel = Pulse.Account.Core.Models.Account;
 using AutoFixture;
 using Microsoft.AspNetCore.JsonPatch;
 using FluentAssertions;
+using Kpmg.ExceptionMiddleware.AdvancedException;
+using Pulse.Account.Core.Exceptions;
 
 namespace Account.Api.Tests.Controllers
 {
@@ -94,6 +96,17 @@ namespace Account.Api.Tests.Controllers
 
             // Assert
             Assert.Equal(200, result!.StatusCode);
+        }
+
+        [Fact]
+        public async Task UpdateAccountAsync_WithAccountPatchNull_ShouldThrowBadRequestException()
+        {
+            var controller = new AccountController(_accountService.Object);
+
+            var result = await Assert.ThrowsAsync<BadRequestException>(async () => await controller.UpdateAccountAsync(It.IsAny<int>(), null!));
+
+            Assert.Equal(Errors.BadRequestAccountPatchCode, result.Code);
+            Assert.Equal(Errors.BadRequestAccountPatchMessage, result.Message);
         }
 
         [Fact]
