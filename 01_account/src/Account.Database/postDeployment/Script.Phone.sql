@@ -1,14 +1,14 @@
 ﻿DECLARE @accountRothschild int, @accountRenault int, @accountAsltom int, @accountImagotag int, @accountFleury int, @accountChaussLouis int, @accountAbricotine int;
 
-SET @accountRothschild = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999006639');
-SET @accountRenault = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999002380');
-SET @accountAsltom = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999005090');
-SET @accountImagotag = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1000310871');
-SET @accountFleury = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1000613508');
-SET @accountChaussLouis = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999032583');
-SET @accountAbricotine = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999117725');
+SET @accountRothschild = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999006639');
+SET @accountRenault = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999002380');
+SET @accountAsltom = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999005090');
+SET @accountImagotag = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1000310871');
+SET @accountFleury = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1000613508');
+SET @accountChaussLouis = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999032583');
+SET @accountAbricotine = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999117725');
 
-INSERT INTO account.TPhone (AccountId, PhoneNumber, Type)
+INSERT INTO account.Phone (AccountId, PhoneNumber, Type)
 VALUES
 (@accountRothschild, '+41 44 384 70 75', 'billing'),
 (@accountRenault, '01 76 84 04 04', 'billing'),

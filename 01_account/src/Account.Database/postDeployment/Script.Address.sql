@@ -1,18 +1,18 @@
 ﻿DECLARE @accountRothschild int, @accountRenault int, @accountAsltom int, @accountSrp int, @accountImagotag int, @accountFleury int;
 DECLARE @accountChaussLouis int, @accountAbricotine int, @accountMogador int, @accountNexity int;
 
-SET @accountRothschild = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999006639');
-SET @accountRenault = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999002380');
-SET @accountAsltom = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999005090');
-SET @accountSrp = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999012408');
-SET @accountImagotag = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1000310871');
-SET @accountFleury = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1000613508');
-SET @accountChaussLouis = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999032583');
-SET @accountAbricotine = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999117725');
-SET @accountMogador = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999154806');
-SET @accountNexity = (SELECT AccountId FROM account.TAccount WHERE AccountNumber = '1999003568');
+SET @accountRothschild = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999006639');
+SET @accountRenault = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999002380');
+SET @accountAsltom = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999005090');
+SET @accountSrp = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999012408');
+SET @accountImagotag = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1000310871');
+SET @accountFleury = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1000613508');
+SET @accountChaussLouis = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999032583');
+SET @accountAbricotine = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999117725');
+SET @accountMogador = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999154806');
+SET @accountNexity = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999003568');
 
-INSERT INTO account.TAddress (AccountId, AddressLine1, AddressLine2, AddressLine3, ZipCode, City, State, Country, AddressType)
+INSERT INTO account.Address (AccountId, AddressLine1, AddressLine2, AddressLine3, ZipCode, City, State, Country, AddressType)
 VALUES 
 (@accountRothschild, '23 bis  avenue de Messine', NULL, NULL, '75008', 'Paris', NULL, 'France', 'delivery'),
 (@accountRothschild, '23 bis  avenue de Messine', NULL, NULL, '75008', 'Paris', NULL, 'France', 'billing'),

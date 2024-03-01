@@ -17,5 +17,5 @@ Post-Deployment Script Template
 :r .\postDeployment\Script.Address.sql
 :r .\postDeployment\Script.Phone.sql
 :r .\postDeployment\Script.Role.sql
-:r .\postDeployment\Script.DeploymentPlanning.sql
+:r .\postDeployment\Script.Deployment.sql
 :r .\postDeployment\Script.Delegation.sql

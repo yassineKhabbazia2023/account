@@ -1,6 +1,6 @@
-﻿IF NOT EXISTS (SELECT 1 FROM [account].[THub] WHERE [HubName] = 'Hub Aquitaine Nord')
+﻿IF NOT EXISTS (SELECT 1 FROM [account].[Hub] WHERE [HubName] = 'Hub Aquitaine Nord')
 BEGIN
-	INSERT INTO [account].[THub]([HubName]) VALUES
+	INSERT INTO [account].[Hub]([HubName]) VALUES
 	('Hub Aquitaine Nord'),
 	('Hub Languedoc-Roussillon'),
 	('Hub Tarn Aveyron'),

@@ -1,16 +1,16 @@
-﻿CREATE TABLE [account].[TDeploymentPlanning]
+﻿CREATE TABLE [account].[Deployment]
 (
 	[DeploymentId]			INT IDENTITY(1, 1)	NOT NULL,
 	[AccountId]				INT					NOT NULL,
 	[DeploymentDate]        DATETIME2           NOT NULL,
 	[Status]                INT	                NOT NULL,
-	CONSTRAINT [C_TDeploymentPlanning_PK] PRIMARY KEY CLUSTERED ([DeploymentId] ASC),
-	CONSTRAINT [C_TAccount_TDeployment_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[TAccount] ([AccountId])
+	CONSTRAINT [C_Deployment_PK] PRIMARY KEY CLUSTERED ([DeploymentId] ASC),
+	CONSTRAINT [C_Account_Deployment_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId])
 )
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_TDeploymentPlanning_AccountId]
-    ON  [account].[TDeploymentPlanning]([AccountId] ASC);
+CREATE NONCLUSTERED INDEX [IDX_Deployment_AccountId]
+    ON  [account].[Deployment]([AccountId] ASC);
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
@@ -18,7 +18,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TDeploymentPlanning',
+    @level1name = N'Deployment',
     @level2type = N'COLUMN',
     @level2name = N'DeploymentId'
 GO
@@ -27,7 +27,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TDeploymentPlanning',
+    @level1name = N'Deployment',
     @level2type = N'COLUMN',
     @level2name = N'AccountId'
 GO
@@ -36,7 +36,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TDeploymentPlanning',
+    @level1name = N'Deployment',
     @level2type = N'COLUMN',
     @level2name = N'DeploymentDate'
 GO
@@ -45,6 +45,6 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TDeploymentPlanning',
+    @level1name = N'Deployment',
     @level2type = N'COLUMN',
     @level2name = 'Status'

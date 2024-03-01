@@ -62,15 +62,15 @@
     <Folder Include="postDeployment" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="account\Tables\TAccount.sql" />
-    <Build Include="account\Tables\TAddress.sql" />
-    <Build Include="account\Tables\TNaf.sql" />
-    <Build Include="account\Tables\TDeploymentPlanning.sql" />
-    <Build Include="account\Tables\TPhone.sql" />
-    <Build Include="account\Tables\TRole.sql" />
-    <Build Include="account\Tables\TContact.sql" />
-    <Build Include="account\Tables\TDelegation.sql" />
-    <Build Include="account\Tables\THub.sql" />
+    <Build Include="account\Tables\Account.sql" />
+    <Build Include="account\Tables\Address.sql" />
+    <Build Include="account\Tables\Naf.sql" />
+    <Build Include="account\Tables\Deployment.sql" />
+    <Build Include="account\Tables\Phone.sql" />
+    <Build Include="account\Tables\Role.sql" />
+    <Build Include="account\Tables\Contact.sql" />
+    <Build Include="account\Tables\Delegation.sql" />
+    <Build Include="account\Tables\Hub.sql" />
     <Build Include="Security\Schemas\account.sql" />
   </ItemGroup>
   <ItemGroup>
@@ -85,7 +85,7 @@
     <None Include="postDeployment\Script.Contact.sql" />
     <None Include="postDeployment\Script.Phone.sql" />
     <None Include="postDeployment\Script.Role.sql" />
-    <None Include="postDeployment\Script.DeploymentPlanning.sql" />
+    <None Include="postDeployment\Script.Deployment.sql" />
     <None Include="postDeployment\Script.Delegation.sql" />
   </ItemGroup>
 </Project>

@@ -1,16 +1,16 @@
-﻿CREATE TABLE [account].[TPhone]
+﻿CREATE TABLE [account].[Phone]
 (
 	[PhoneId]			INT IDENTITY(1, 1)	NOT NULL,
     [AccountId]         INT                 NOT NULL,       
 	[PhoneNumber]       VARCHAR(20)			NOT NULL,
 	[Type]			    VARCHAR(25)         NULL,
-	CONSTRAINT [C_TPhone_PK] PRIMARY KEY CLUSTERED ([PhoneId] ASC),
-    CONSTRAINT [C_TAccount_TPhone_AccountId_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[TAccount] ([AccountId])
+	CONSTRAINT [C_Phone_PK] PRIMARY KEY CLUSTERED ([PhoneId] ASC),
+    CONSTRAINT [C_Account_Phone_AccountId_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId])
 )
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_TPhone_AccountId]
-    ON  [account].[TPhone]([AccountId] ASC)
+CREATE NONCLUSTERED INDEX [IDX_Phone_AccountId]
+    ON  [account].[Phone]([AccountId] ASC)
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
@@ -18,7 +18,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TPhone',
+    @level1name = N'Phone',
     @level2type = N'COLUMN',
     @level2name = 'PhoneId'
 GO
@@ -27,7 +27,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TPhone',
+    @level1name = N'Phone',
     @level2type = N'COLUMN',
     @level2name = 'PhoneNumber'
 GO
@@ -36,7 +36,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TPhone',
+    @level1name = N'Phone',
     @level2type = N'COLUMN',
     @level2name = 'Type'
 GO
@@ -45,6 +45,6 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TPhone',
+    @level1name = N'Phone',
     @level2type = N'COLUMN',
     @level2name = N'AccountId'

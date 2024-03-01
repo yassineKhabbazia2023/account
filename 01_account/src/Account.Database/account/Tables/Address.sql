@@ -1,4 +1,4 @@
-﻿CREATE TABLE [account].[TAddress] (
+﻿CREATE TABLE [account].[Address] (
     [AddressId]    INT            IDENTITY (1, 1) NOT NULL,
     [AccountId]    INT            NOT NULL,
     [AddressLine1] NVARCHAR (255) NULL,
@@ -9,15 +9,15 @@
     [State]        VARCHAR (50)   NULL,
     [Country]      VARCHAR (50)   NOT NULL,
     [AddressType]  VARCHAR (25)   NOT NULL,
-    CONSTRAINT [C_TAddress_PK] PRIMARY KEY CLUSTERED ([AddressId] ASC),
-    CONSTRAINT [C_TAccount_TAddress_AccountId_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[TAccount] ([AccountId])
+    CONSTRAINT [C_Address_PK] PRIMARY KEY CLUSTERED ([AddressId] ASC),
+    CONSTRAINT [C_Account_Address_AccountId_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId])
 );
 
 
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_TAddress_AccountId]
-    ON  [account].[TAddress]([AccountId] ASC)
+CREATE NONCLUSTERED INDEX [IDX_Address_AccountId]
+    ON  [account].[Address]([AccountId] ASC)
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
@@ -25,7 +25,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAddress',
+    @level1name = N'Address',
     @level2type = N'COLUMN',
     @level2name = N'AddressType'
 GO
@@ -34,7 +34,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAddress',
+    @level1name = N'Address',
     @level2type = N'COLUMN',
     @level2name = N'Country'
 GO
@@ -43,7 +43,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAddress',
+    @level1name = N'Address',
     @level2type = N'COLUMN',
     @level2name = N'ZipCode'
 GO
@@ -52,7 +52,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAddress',
+    @level1name = N'Address',
     @level2type = N'COLUMN',
     @level2name = N'State'
 GO
@@ -61,7 +61,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAddress',
+    @level1name = N'Address',
     @level2type = N'COLUMN',
     @level2name = N'City'
 GO
@@ -72,7 +72,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAddress',
+    @level1name = N'Address',
     @level2type = N'COLUMN',
     @level2name = N'AddressId'
 GO
@@ -81,6 +81,6 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAddress',
+    @level1name = N'Address',
     @level2type = N'COLUMN',
     @level2name = N'AccountId'

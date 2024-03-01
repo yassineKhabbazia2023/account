@@ -1,8 +1,8 @@
-﻿CREATE TABLE [account].[TNaf] (
+﻿CREATE TABLE [account].[Naf] (
     [NafId]    INT           IDENTITY (1, 1) NOT NULL,
     [NafCode]  VARCHAR (10)  NOT NULL,
     [NafLabel] VARCHAR (255) NULL,
-    CONSTRAINT [C_TNaf_PK] PRIMARY KEY CLUSTERED ([NafId] ASC)
+    CONSTRAINT [C_Naf_PK] PRIMARY KEY CLUSTERED ([NafId] ASC)
 );
 
 
@@ -13,7 +13,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TNaf',
+    @level1name = N'Naf',
     @level2type = N'COLUMN',
     @level2name = N'NafId'
 GO
@@ -22,7 +22,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TNaf',
+    @level1name = N'Naf',
     @level2type = N'COLUMN',
     @level2name = N'NafCode'
 GO

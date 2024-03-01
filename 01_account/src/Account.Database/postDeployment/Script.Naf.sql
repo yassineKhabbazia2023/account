@@ -1,6 +1,6 @@
-﻿IF NOT EXISTS (SELECT 1 FROM account.TNaf WHERE NafCode = '01.11Z')
+﻿IF NOT EXISTS (SELECT 1 FROM account.Naf WHERE NafCode = '01.11Z')
 BEGIN
-	INSERT INTO account.TNaf (NafCode, NafLabel) VALUES 
+	INSERT INTO account.Naf (NafCode, NafLabel) VALUES 
 	('01.11Z','Culture de céréales (à l''exception du riz), de légumineuses et de graines oléagineuses'),
 	('01.12Z','Culture du riz'),
 	('01.13Z','Culture de légumes, de melons, de racines et de tubercules'),

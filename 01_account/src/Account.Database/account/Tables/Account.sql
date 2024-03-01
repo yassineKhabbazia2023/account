@@ -1,4 +1,4 @@
-﻿CREATE TABLE [account].[TAccount] (
+﻿CREATE TABLE [account].[Account] (
     [AccountId]               INT              IDENTITY (1, 1) NOT NULL,
     [AccountGlobalUniqueId]   UNIQUEIDENTIFIER NOT NULL,
     [AccountNumber]           VARCHAR (100)    NOT NULL,
@@ -34,26 +34,26 @@
     [CreationDate]            DATETIME2 (7)    NOT NULL,
     [UpdatedDate]             DATETIME2 (7)    NULL,
     [IconName]                VARCHAR (50)     NULL,
-    CONSTRAINT [C_TAccount_PK] PRIMARY KEY CLUSTERED ([AccountId] ASC),
-    CONSTRAINT [C_TAccount_THub_HubId_FK] FOREIGN KEY ([HubId]) REFERENCES [account].[THub] ([HubId]),
-    CONSTRAINT [C_TAccount_TNafId_FK] FOREIGN KEY ([NafId]) REFERENCES [account].[TNaf] ([NafId]),
-    CONSTRAINT [UQ_TAccount_AccountGlobalUniqueId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC),
-    CONSTRAINT [UQ_TPhone_PhoneId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC)
+    CONSTRAINT [C_Account_PK] PRIMARY KEY CLUSTERED ([AccountId] ASC),
+    CONSTRAINT [C_Account_Hub_HubId_FK] FOREIGN KEY ([HubId]) REFERENCES [account].[Hub] ([HubId]),
+    CONSTRAINT [C_Account_NafId_FK] FOREIGN KEY ([NafId]) REFERENCES [account].[Naf] ([NafId]),
+    CONSTRAINT [UQ_Account_AccountGlobalUniqueId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC),
+    CONSTRAINT [UQ_Phone_PhoneId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC)
 );
 
 
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_TAccount_AccountGlobalUniqueId]
-    ON [account].[TAccount]([AccountGlobalUniqueId] ASC)
+CREATE NONCLUSTERED INDEX [IDX_Account_AccountGlobalUniqueId]
+    ON [account].[Account]([AccountGlobalUniqueId] ASC)
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_THub_HubId]
-    ON  [account].[TAccount]([HubId] ASC)
+CREATE NONCLUSTERED INDEX [IDX_Hub_HubId]
+    ON  [account].[Account]([HubId] ASC)
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_TNaf_NafId]
-    ON  [account].[TAccount]([NafId] ASC)
+CREATE NONCLUSTERED INDEX [IDX_Naf_NafId]
+    ON  [account].[Account]([NafId] ASC)
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
@@ -61,7 +61,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'ModifiedBy'
 GO
@@ -70,7 +70,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'CreatedBy'
 GO
@@ -79,7 +79,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'StaffSize'
 GO
@@ -88,7 +88,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'VATType'
 GO
@@ -97,7 +97,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = 'VATIntra'
 GO
@@ -106,7 +106,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'ActivityDescription'
 GO
@@ -115,7 +115,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'ActivityType'
 GO
@@ -124,7 +124,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'VAT'
 GO
@@ -133,7 +133,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'AccountId'
 GO
@@ -142,7 +142,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'CommercialName'
 GO
@@ -151,7 +151,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'LegalName'
 GO
@@ -160,7 +160,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = 'AccountType'
 GO
@@ -169,7 +169,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'TaxationSystem'
 GO
@@ -178,7 +178,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'Siret'
 GO
@@ -187,7 +187,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'ISIN'
 GO
@@ -196,7 +196,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = 'FiscalExerciseDuration'
 GO
@@ -205,7 +205,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = 'FiscalExerciseStartDate'
 GO
@@ -214,7 +214,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'AccountingMethod'
 GO
@@ -223,7 +223,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'Sector'
 GO
@@ -232,7 +232,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'SectorCode'
 GO
@@ -241,7 +241,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'SourceAccountNumber'
 GO
@@ -250,7 +250,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'IsActive'
 GO
@@ -261,7 +261,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'Email'
 GO
@@ -270,7 +270,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'LegalFormCode'
 GO
@@ -279,7 +279,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'LegalForm'
 GO
@@ -288,7 +288,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'StaffSizeRange'
 GO
@@ -297,7 +297,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'Turnover'
 GO
@@ -306,7 +306,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'AccountGlobalUniqueId'
 GO
@@ -315,7 +315,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'HubId'
 GO
@@ -324,7 +324,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'NafId'
 GO
@@ -333,7 +333,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'FiscalSystem'
 GO
@@ -342,7 +342,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'CreationDate'
 GO
@@ -351,6 +351,6 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TAccount',
+    @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'UpdatedDate'

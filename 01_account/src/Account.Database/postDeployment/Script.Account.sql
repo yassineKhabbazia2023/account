@@ -1,22 +1,22 @@
-﻿IF NOT EXISTS (SELECT 1 FROM account.TAccount WHERE AccountNumber = '1000588702')
+﻿IF NOT EXISTS (SELECT 1 FROM account.Account WHERE AccountNumber = '1000588702')
 BEGIN
 	DECLARE @hubParis int, @nafRothschild int, @nafRenault int, @nafAlstom int, @nafSrp int, @nafImagotag int, @hubVendee int, @hubAuvergne int, @nafChaussLouis int, @nafAbricotine int;
 	DECLARE @hubMidiPyrennees int, @nafMogador int;
 
-	SET @hubParis = (SELECT HubId FROM account.THub WHERE HubName = 'Hub Paris');
-	SET @nafRothschild = (SELECT NafId FROM account.TNaf WHERE NafCode = '70.10Z');
-	SET @nafRenault = (SELECT NafId FROM account.TNaf WHERE NafCode = '29.10Z');
-	SET @nafAlstom = (SELECT NafId FROM account.TNaf WHERE NafCode = '28.22Z');
-	SET @nafSrp = (SELECT NafId FROM account.TNaf WHERE NafCode = '64.20Z');
-	SET @nafImagotag = (SELECT NafId FROM account.TNaf WHERE NafCode = '26.20Z');
-	SET @hubVendee = (SELECT HubId FROM account.THub WHERE HubName = 'Hub Nantes Atlantique Vendée');
-	SET @hubAuvergne = (SELECT HubId FROM account.THub WHERE HubName = 'Hub Auvergne');
-	SET @nafChaussLouis = (SELECT NafId FROM account.TNaf WHERE NafCode = '47.72A');
-	SET @nafAbricotine = (SELECT NafId FROM account.TNaf WHERE NafCode = '01.24Z');
-	SET @hubMidiPyrennees = (SELECT HubId FROM account.THub WHERE HubName = 'Hub Toulouse Midi Pyrennées');
-	SET @nafMogador = (SELECT NafId FROM account.TNaf WHERE NafCode = '68.20B');
+	SET @hubParis = (SELECT HubId FROM account.Hub WHERE HubName = 'Hub Paris');
+	SET @nafRothschild = (SELECT NafId FROM account.Naf WHERE NafCode = '70.10Z');
+	SET @nafRenault = (SELECT NafId FROM account.Naf WHERE NafCode = '29.10Z');
+	SET @nafAlstom = (SELECT NafId FROM account.Naf WHERE NafCode = '28.22Z');
+	SET @nafSrp = (SELECT NafId FROM account.Naf WHERE NafCode = '64.20Z');
+	SET @nafImagotag = (SELECT NafId FROM account.Naf WHERE NafCode = '26.20Z');
+	SET @hubVendee = (SELECT HubId FROM account.Hub WHERE HubName = 'Hub Nantes Atlantique Vendée');
+	SET @hubAuvergne = (SELECT HubId FROM account.Hub WHERE HubName = 'Hub Auvergne');
+	SET @nafChaussLouis = (SELECT NafId FROM account.Naf WHERE NafCode = '47.72A');
+	SET @nafAbricotine = (SELECT NafId FROM account.Naf WHERE NafCode = '01.24Z');
+	SET @hubMidiPyrennees = (SELECT HubId FROM account.Hub WHERE HubName = 'Hub Toulouse Midi Pyrennées');
+	SET @nafMogador = (SELECT NafId FROM account.Naf WHERE NafCode = '68.20B');
 
-	INSERT INTO account.TAccount (AccountGlobalUniqueId, AccountNumber, LegalName, CommercialName, AccountType, Email, HubId, NafId, IsActive, SourceAccountNumber, SectorCode, Sector, StaffSizeRange, AccountingMethod, Turnover, LegalFormCode, LegalForm, FiscalSystem, FiscalExerciseStartDate, FiscalExerciseDuration, ISIN, Siret, TaxationSystem, ActivityDescription, ActivityType, VAT, VATIntra, VATType, StaffSize, CreatedBy, ModifiedBy, CreationDate, UpdatedDate, IconName)
+	INSERT INTO account.Account (AccountGlobalUniqueId, AccountNumber, LegalName, CommercialName, AccountType, Email, HubId, NafId, IsActive, SourceAccountNumber, SectorCode, Sector, StaffSizeRange, AccountingMethod, Turnover, LegalFormCode, LegalForm, FiscalSystem, FiscalExerciseStartDate, FiscalExerciseDuration, ISIN, Siret, TaxationSystem, ActivityDescription, ActivityType, VAT, VATIntra, VATType, StaffSize, CreatedBy, ModifiedBy, CreationDate, UpdatedDate, IconName)
 	VALUES
 	('D53B6907-4EF7-4958-B1D1-0C1F47F84831', '1999006639', 'Rothschild & Co S C A', 'Rothschild & Co S C A', 'client', 'pbrouard@rothschild.com', @hubParis, @nafRothschild, 1, '1999006639', '0019', NULL, 'De 20 à 49 salariés', 'Trésorerie', 154584848.00, 'SCA', 'Société en commandite par actions', NULL, CAST('2012-01-18' AS DATETIME2), 12, 'FR0000031684', '30251922800043', NULL, 'Activités des sièges sociaux', 'Activités des sièges sociaux', 'Réel normal - CA3 mensuelle', 'FR88302519228', 'Encaissement', 20, 'KPMGADMIN', NULL, CAST('2014-01-22' AS datetime2), NULL, 'kpmg-icon'),
 	('738952D3-BEB4-4CE7-812D-586776844EE5', '1999002380', 'Renault SAS', 'Renault SAS', 'client', 'jpvellutini@renault.fr', @hubParis, @nafRenault, 1, '1999002380', '0003', NULL, '10 000 salariés et plus', 'Trésorerie', 47949000000.00, 'SASU', 'Société par actions simplifiée à associé unique', NULL, CAST('2023-10-02' AS DATETIME2), 12, 'FR0000131906', '78012998704037', NULL, 'Construction de véhicules automobiles', 'Construction de véhicules automobiles', 'Réel normal - CA3 mensuelle', 'FR66780129987', 'Encaissement', 32264, 'KPMGADMIN', 'svccstdfppr', CAST('1994-05-13' AS datetime2), CAST('2019-01-22' AS datetime2), 'kpmg-icon'),

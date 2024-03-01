@@ -1,6 +1,6 @@
-﻿IF NOT EXISTS (SELECT 1 FROM actor.TContact WHERE ContactGlobalUniqueId = 'A88145B3-5D8E-46AC-93F7-EA3D52F51DCE')
+﻿IF NOT EXISTS (SELECT 1 FROM actor.Contact WHERE ContactGlobalUniqueId = 'A88145B3-5D8E-46AC-93F7-EA3D52F51DCE')
 BEGIN
-	INSERT INTO actor.TContact (ContactGlobalUniqueId, FirstName, LastName, ContactEmail, Type)
+	INSERT INTO actor.Contact (ContactGlobalUniqueId, FirstName, LastName, ContactEmail, Type)
 	VALUES
 	('A88145B3-5D8E-46AC-93F7-EA3D52F51DCE', 'Patrick', 'BROUARD', 'pbrouard@rothschild.com', 'client'),
 	('440A2298-E4FB-48D7-BB75-C6648F2BAC09', 'Jean-Paul', 'VELLUTINI', 'jvellutini@kpmg.fr', 'collaborator'),

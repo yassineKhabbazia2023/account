@@ -1,8 +1,8 @@
-﻿CREATE TABLE [account].[THub]
+﻿CREATE TABLE [account].[Hub]
 (
 	[HubId]          INT IDENTITY(1,1)	NOT NULL,
 	[HubName]        VARCHAR(150)       NOT NULL,
-	CONSTRAINT [C_THub_PK] PRIMARY KEY CLUSTERED ([HubId] ASC)
+	CONSTRAINT [C_Hub_PK] PRIMARY KEY CLUSTERED ([HubId] ASC)
 )
 
 GO
@@ -11,7 +11,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'THub',
+    @level1name = N'Hub',
     @level2type = N'COLUMN',
     @level2name = N'HubId'
 GO
@@ -20,6 +20,6 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'THub',
+    @level1name = N'Hub',
     @level2type = N'COLUMN',
     @level2name = N'HubName'

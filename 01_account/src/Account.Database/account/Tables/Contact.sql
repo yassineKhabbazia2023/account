@@ -1,4 +1,4 @@
-﻿CREATE TABLE [actor].[TContact]
+﻿CREATE TABLE [actor].[Contact]
 (
 	[ContactId]				INT IDENTITY(1, 1)	NOT NULL,
 	[ContactGlobalUniqueId]	UNIQUEIDENTIFIER	NOT NULL,
@@ -6,12 +6,12 @@
 	[LastName]				VARCHAR(50)			NOT NULL,
 	[ContactEmail]			VARCHAR(50)			NOT NULL,
 	[Type]                  VARCHAR(20)         NOT NULL, 
-    CONSTRAINT [C_TContact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC)	
+    CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC)	
 )
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_TContact_ContactGlobalUniqueId]
-    ON  [actor].[TContact]([ContactGlobalUniqueId] ASC);
+CREATE NONCLUSTERED INDEX [IDX_Contact_ContactGlobalUniqueId]
+    ON  [actor].[Contact]([ContactGlobalUniqueId] ASC);
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
@@ -19,7 +19,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'actor',
     @level1type = N'TABLE',
-    @level1name = N'TContact',
+    @level1name = N'Contact',
     @level2type = N'COLUMN',
     @level2name = N'ContactId'
 GO
@@ -28,7 +28,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'actor',
     @level1type = N'TABLE',
-    @level1name = N'TContact',
+    @level1name = N'Contact',
     @level2type = N'COLUMN',
     @level2name = N'ContactGlobalUniqueId'
 GO
@@ -37,7 +37,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'actor',
     @level1type = N'TABLE',
-    @level1name = N'TContact',
+    @level1name = N'Contact',
     @level2type = N'COLUMN',
     @level2name = N'FirstName'
 GO
@@ -46,7 +46,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'actor',
     @level1type = N'TABLE',
-    @level1name = N'TContact',
+    @level1name = N'Contact',
     @level2type = N'COLUMN',
     @level2name = N'LastName'
 GO
@@ -55,7 +55,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'actor',
     @level1type = N'TABLE',
-    @level1name = N'TContact',
+    @level1name = N'Contact',
     @level2type = N'COLUMN',
     @level2name = N'ContactEmail'
 GO
@@ -64,6 +64,6 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'actor',
     @level1type = N'TABLE',
-    @level1name = N'TContact',
+    @level1name = N'Contact',
     @level2type = N'COLUMN',
     @level2name = N'Type'

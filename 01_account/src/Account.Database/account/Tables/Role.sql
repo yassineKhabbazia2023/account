@@ -1,23 +1,23 @@
-﻿CREATE TABLE [account].[TRole]
+﻿CREATE TABLE [account].[Role]
 (
 	[RoleId]			INT IDENTITY(1, 1)	NOT NULL,
 	[AccountId]			INT					NOT NULL,
 	[ContactId]			INT					NOT NULL,
 	[IsFavorite]		BIT					NULL,
 	[IsSignatory]		BIT					NULL,
-	CONSTRAINT [C_TRole_PK] PRIMARY KEY CLUSTERED ([RoleId] ASC),
-	CONSTRAINT [C_TAccount_TRole_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[TAccount] ([AccountId]),
-	CONSTRAINT [C_TAccount_TContact_FK] FOREIGN KEY ([ContactId]) REFERENCES [actor].[TContact] ([ContactId]), 
-    CONSTRAINT [C_TRole_AccountId_ContactId] UNIQUE ([AccountId], [ContactId])
+	CONSTRAINT [C_Role_PK] PRIMARY KEY CLUSTERED ([RoleId] ASC),
+	CONSTRAINT [C_Account_Role_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId]),
+	CONSTRAINT [C_Account_Contact_FK] FOREIGN KEY ([ContactId]) REFERENCES [actor].[Contact] ([ContactId]), 
+    CONSTRAINT [C_Role_AccountId_ContactId] UNIQUE ([AccountId], [ContactId])
 )
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_TRole_AccountId]
-    ON [account].[TRole]([AccountId] ASC);
+CREATE NONCLUSTERED INDEX [IDX_Role_AccountId]
+    ON [account].[Role]([AccountId] ASC);
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_TRole_ContactId]
-    ON [account].[TRole]([ContactId] ASC);
+CREATE NONCLUSTERED INDEX [IDX_Role_ContactId]
+    ON [account].[Role]([ContactId] ASC);
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
@@ -25,7 +25,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TRole',
+    @level1name = N'Role',
     @level2type = N'COLUMN',
     @level2name = N'RoleId'
 GO
@@ -34,7 +34,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TRole',
+    @level1name = N'Role',
     @level2type = N'COLUMN',
     @level2name = N'AccountId'
 GO
@@ -43,7 +43,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TRole',
+    @level1name = N'Role',
     @level2type = N'COLUMN',
     @level2name = N'ContactId'
 GO
@@ -54,7 +54,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TRole',
+    @level1name = N'Role',
     @level2type = N'COLUMN',
     @level2name = N'IsFavorite'
 GO
@@ -63,7 +63,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
-    @level1name = N'TRole',
+    @level1name = N'Role',
     @level2type = N'COLUMN',
     @level2name = 'IsSignatory'
 GO
