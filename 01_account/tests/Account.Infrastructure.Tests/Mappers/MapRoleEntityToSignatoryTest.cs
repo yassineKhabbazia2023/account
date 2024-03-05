@@ -1,15 +1,19 @@
-﻿using AutoFixture;
+﻿// <copyright file="MapRoleEntityToSignatoryTest.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
+// </copyright>
+
+using AutoFixture;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 
 namespace Pulse.Account.Infrastructure.Tests.Mappers
 {
-    public class MapTRoleToSignatoryTest
+    public class MapRoleEntityToSignatoryTest
     {
         private readonly Fixture _fixture;
 
-        public MapTRoleToSignatoryTest()
+        public MapRoleEntityToSignatoryTest()
         {
             _fixture = new Fixture();
             _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
@@ -20,7 +24,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapToContact_NullSource_ReturnsNull()
         {
             // Arrange
-            TRole? role = null;
+            RoleEntity? role = null;
 
             // Act
             var result = role.MapToContact();
@@ -29,12 +33,11 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             Assert.Null(result);
         }
 
-
         [Fact]
         public void MapToContacts_EmptySource_ReturnsEmptyCollection()
         {
             // Arrange
-            List<TRole>? roles = new();
+            List<RoleEntity>? roles = new();
             List<Contact> expected = new();
 
             // Act
@@ -48,7 +51,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapToContacts_NotNulllSource_ReturnsMappedContact()
         {
             // Arrange
-            TRole? role = _fixture.Create<TRole?>();
+            RoleEntity? role = _fixture.Create<RoleEntity?>();
             var expected = new Contact
             {
                 ContactId = role!.ContactId,
@@ -68,7 +71,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapToContacts_NotEmptySource_ReturnsMappedContact()
         {
             // Arrange
-            List<TRole>? roles = _fixture.Create<List<TRole>?>();
+            List<RoleEntity>? roles = _fixture.Create<List<RoleEntity>?>();
             var expected = new List<Contact>
             {
                 new Contact()

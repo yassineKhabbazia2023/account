@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Pulse.Account.Infrastructure.Entities;
 
-public partial class THub
+public partial class HubEntity
 {
     /// <summary>
     /// L&apos;&apos;identifiant technique
@@ -17,5 +17,5 @@ public partial class THub
     /// </summary>
     public string HubName { get; set; }
 
-    public virtual ICollection<TAccount> TAccount { get; set; } = new List<TAccount>();
+    public virtual ICollection<AccountEntity> AccountEntity { get; set; } = new List<AccountEntity>();
 }

@@ -9,9 +9,9 @@ namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapRoleBusinessToRoleDb
     {
-        public static TRole MapRoleToRoleDb(this CreateRoleRequest role)
+        public static RoleEntity MapRoleToRoleDb(this CreateRoleRequest role)
         {
-            return role == null ? null : new TRole
+            return role == null ? null! : new RoleEntity
             {
                 AccountId = role.AccountId,
                 ContactId = role.ContactId,

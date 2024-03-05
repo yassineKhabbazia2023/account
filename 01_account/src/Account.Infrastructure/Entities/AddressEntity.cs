@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Pulse.Account.Infrastructure.Entities;
 
-public partial class TAddress
+public partial class AddressEntity
 {
     /// <summary>
     /// L&apos;&apos;identifiant technique
@@ -48,5 +48,5 @@ public partial class TAddress
     /// </summary>
     public string AddressType { get; set; }
 
-    public virtual TAccount Account { get; set; }
+    public virtual AccountEntity Account { get; set; }
 }

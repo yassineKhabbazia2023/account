@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Azure;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
@@ -12,7 +11,7 @@ namespace Pulse.Account.Infrastructure.Mappers
     public static class MapAccountDbToAccountModel
     {
         public static Paging<Core.Models.Account> MapToPaginAccounts(
-            this ICollection<TAccount> source,
+            this ICollection<AccountEntity> source,
             int contactId,
             int pageNumber,
             int totalRows,
@@ -28,20 +27,20 @@ namespace Pulse.Account.Infrastructure.Mappers
              };
         }
 
-        public static IEnumerable<Core.Models.Account> MapToAccounts(this ICollection<TAccount> source, int contactId)
+        public static IEnumerable<Core.Models.Account> MapToAccounts(this ICollection<AccountEntity> source, int contactId)
         {
             return source?.Select(a => a.MapToAccount(contactId) !) ?? Enumerable.Empty<Core.Models.Account>();
         }
 
-        public static Core.Models.Account? MapToAccount(this TAccount source, int contactId)
+        public static Core.Models.Account? MapToAccount(this AccountEntity source, int contactId)
         {
             if (source == null)
             {
                 return null;
             }
 
-            var signatory = source.TRole?.FirstOrDefault(r => r.IsSignatory == true);
-            var currentContact = source.TRole?.FirstOrDefault(r => r.ContactId == contactId);
+            var signatory = source.RoleEntity?.FirstOrDefault(r => r.IsSignatory == true);
+            var currentContact = source.RoleEntity?.FirstOrDefault(r => r.ContactId == contactId);
 
             return
                 new Core.Models.Account
@@ -56,7 +55,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 };
         }
 
-        public static AccountDetail? MapToAccountDetail(this TAccount source)
+        public static AccountDetail? MapToAccountDetail(this AccountEntity source)
         {
             return source == null ? null :
             new AccountDetail
@@ -78,7 +77,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static Contact? MapToContact(this TContact tContact)
+        private static Contact? MapToContact(this ContactEntity tContact)
         {
             return tContact == null ? null : new Contact
             {
@@ -88,10 +87,10 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static IEnumerable<Deployment>? MapToDeploymentPlanning(this TAccount tAccount)
+        private static IEnumerable<Deployment>? MapToDeploymentPlanning(this AccountEntity tAccount)
         {
-            return tAccount.TDeploymentPlanning == null ? Array.Empty<Deployment>() :
-                tAccount.TDeploymentPlanning.Select(deployment => new Deployment
+            return tAccount.DeploymentEntity == null ? Array.Empty<Deployment>() :
+                tAccount.DeploymentEntity.Select(deployment => new Deployment
                 {
                     DeploymentId = deployment.DeploymentId,
                     DeploymentDate = deployment.DeploymentDate,
@@ -99,10 +98,10 @@ namespace Pulse.Account.Infrastructure.Mappers
                 });
         }
 
-        private static IEnumerable<Phone>? MapToPhone(this TAccount tAccount)
+        private static IEnumerable<Phone>? MapToPhone(this AccountEntity tAccount)
         {
-            return tAccount.TPhone == null ? Array.Empty<Phone>() :
-                tAccount.TPhone.Select(phone => new Phone
+            return tAccount.PhoneEntity == null ? Array.Empty<Phone>() :
+                tAccount.PhoneEntity.Select(phone => new Phone
                 {
                     PhoneId = phone.PhoneId,
                     PhoneNumber = phone.PhoneNumber,
@@ -110,10 +109,10 @@ namespace Pulse.Account.Infrastructure.Mappers
                 });
         }
 
-        private static IEnumerable<Address>? MapToAddress(this TAccount tAccount)
+        private static IEnumerable<Address>? MapToAddress(this AccountEntity tAccount)
         {
-            return tAccount.TAddress == null ? Array.Empty<Address>() :
-                tAccount.TAddress.Select(address => new Address
+            return tAccount.AddressEntity == null ? Array.Empty<Address>() :
+                tAccount.AddressEntity.Select(address => new Address
                 {
                     AddressId = address.AddressId,
                     Country = address.Country,
@@ -127,7 +126,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 });
         }
 
-        private static Hub MapToHub(this TAccount tAccount)
+        private static Hub MapToHub(this AccountEntity tAccount)
         {
             return new Hub()
             {
@@ -136,17 +135,17 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static Vat MapToVat(this TAccount tAccount)
+        private static Vat MapToVat(this AccountEntity tAccount)
         {
             return new Vat()
             {
-                System = tAccount.VAT,
-                Intra = tAccount.VATIntra,
-                Type = tAccount.VATType,
+                System = tAccount.Vat,
+                Intra = tAccount.Vatintra,
+                Type = tAccount.Vattype,
             };
         }
 
-        private static Accounting MapToAccounting(this TAccount tAccount)
+        private static Accounting MapToAccounting(this AccountEntity tAccount)
         {
             return new Accounting
             {
@@ -160,12 +159,12 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static Legal MapToLegal(this TAccount tAccount)
+        private static Legal MapToLegal(this AccountEntity tAccount)
         {
             return new Legal
             {
                 LegalName = tAccount.LegalName,
-                Siren = tAccount.ISIN,
+                Siren = tAccount.Isin,
                 Siret = tAccount.Siret,
                 LegalForm = tAccount.LegalForm,
                 LegalFormCode = tAccount.LegalFormCode,
@@ -174,7 +173,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static List<Naf> MapToNaf(this TAccount tAccount)
+        private static List<Naf> MapToNaf(this AccountEntity tAccount)
         {
             if (tAccount.Naf == null)
             {
@@ -206,7 +205,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        public static void MapToUpdatedAccount(this TAccount existingAccount, AccountDetail accountDetail)
+        public static void MapToUpdatedAccount(this AccountEntity existingAccount, AccountDetail accountDetail)
         {
             if (accountDetail.Legal != null)
             {
@@ -225,8 +224,8 @@ namespace Pulse.Account.Infrastructure.Mappers
             }
 
             existingAccount.HubId = accountDetail.Hub?.HubId;
-            existingAccount.VAT = accountDetail.Vat?.System;
-            existingAccount.VATType = accountDetail.Vat?.Type;
+            existingAccount.Vat = accountDetail.Vat?.System;
+            existingAccount.Vattype = accountDetail.Vat?.Type;
         }
     }
 }

@@ -41,14 +41,14 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<TAccount>();
-            context.TAccount.Add(tAccount);
+            var tAccount = _fixture.Create<AccountEntity>();
+            context.AccountEntity.Add(tAccount);
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegator = _fixture.Create<TContact>();
-            var tDelegatee = _fixture.Create<TContact>();
-            context.TContact.AddRange(new List<TContact> { tDelegator, tDelegatee });
+            var tDelegator = _fixture.Create<ContactEntity>();
+            var tDelegatee = _fixture.Create<ContactEntity>();
+            context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
 
             // Try create a delegation
@@ -66,7 +66,7 @@ public class DelegationRepositoryTests
             await repository.CreateDelegationAsync(createDelegation);
 
             var createdDelegation = await context
-                .TDelegation
+                .DelegationEntity
                 .FirstOrDefaultAsync(d =>
                     d.Account.AccountId == tAccount.AccountId
                     &&
@@ -87,13 +87,13 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<TAccount>();
-            context.TAccount.Add(tAccount);
+            var tAccount = _fixture.Create<AccountEntity>();
+            context.AccountEntity.Add(tAccount);
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegatee = _fixture.Create<TContact>();
-            context.TContact.AddRange(new List<TContact> { tDelegatee });
+            var tDelegatee = _fixture.Create<ContactEntity>();
+            context.ContactEntity.AddRange(new List<ContactEntity> { tDelegatee });
             await context.SaveChangesAsync();
 
             // Try create a delegation
@@ -119,13 +119,13 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<TAccount>();
-            context.TAccount.Add(tAccount);
+            var tAccount = _fixture.Create<AccountEntity>();
+            context.AccountEntity.Add(tAccount);
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegator = _fixture.Create<TContact>();
-            context.TContact.AddRange(new List<TContact> { tDelegator });
+            var tDelegator = _fixture.Create<ContactEntity>();
+            context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator });
             await context.SaveChangesAsync();
 
             // Try create a delegation
@@ -151,9 +151,9 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Contacts
-            var tDelegator = _fixture.Create<TContact>();
-            var tDelegatee = _fixture.Create<TContact>();
-            context.TContact.AddRange(new List<TContact> { tDelegator, tDelegatee });
+            var tDelegator = _fixture.Create<ContactEntity>();
+            var tDelegatee = _fixture.Create<ContactEntity>();
+            context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
 
             // Try create a delegation
@@ -179,18 +179,18 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<TAccount>();
-            await context.TAccount.AddAsync(tAccount);
+            var tAccount = _fixture.Create<AccountEntity>();
+            await context.AccountEntity.AddAsync(tAccount);
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegator = _fixture.Create<TContact>();
-            var tDelegatee = _fixture.Create<TContact>();
-            await context.TContact.AddRangeAsync(new List<TContact> { tDelegator, tDelegatee });
+            var tDelegator = _fixture.Create<ContactEntity>();
+            var tDelegatee = _fixture.Create<ContactEntity>();
+            await context.ContactEntity.AddRangeAsync(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
 
             // Try create a delegation
-            var tDelegation = new TDelegation()
+            var tDelegation = new DelegationEntity()
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
@@ -200,7 +200,7 @@ public class DelegationRepositoryTests
                 Status = "pending",
                 Note = "Note",
             };
-            await context.TDelegation.AddAsync(tDelegation);
+            await context.DelegationEntity.AddAsync(tDelegation);
             await context.SaveChangesAsync();
 
             // Try get contact delegation
@@ -226,19 +226,19 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<TAccount>();
-            await context.TAccount.AddAsync(tAccount);
+            var tAccount = _fixture.Create<AccountEntity>();
+            await context.AccountEntity.AddAsync(tAccount);
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegator = _fixture.Create<TContact>();
-            var tDelegatee = _fixture.Create<TContact>();
-            var anotherDelegatee = _fixture.Create<TContact>();
-            await context.TContact.AddRangeAsync(new List<TContact> { tDelegator, tDelegatee, anotherDelegatee });
+            var tDelegator = _fixture.Create<ContactEntity>();
+            var tDelegatee = _fixture.Create<ContactEntity>();
+            var anotherDelegatee = _fixture.Create<ContactEntity>();
+            await context.ContactEntity.AddRangeAsync(new List<ContactEntity> { tDelegator, tDelegatee, anotherDelegatee });
             await context.SaveChangesAsync();
 
             // Try create a delegation
-            var tDelegation = new TDelegation()
+            var tDelegation = new DelegationEntity()
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
@@ -249,7 +249,7 @@ public class DelegationRepositoryTests
                 Note = "Note",
             };
 
-            var anothetTDelegation = new TDelegation()
+            var anothetDelegationEntity = new DelegationEntity()
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(15),
@@ -259,7 +259,7 @@ public class DelegationRepositoryTests
                 Status = "pending",
                 Note = "Note 2",
             };
-            await context.TDelegation.AddRangeAsync(new List<TDelegation> { tDelegation, anothetTDelegation });
+            await context.DelegationEntity.AddRangeAsync(new List<DelegationEntity> { tDelegation, anothetDelegationEntity });
             await context.SaveChangesAsync();
 
             // Try get contact delegation
@@ -284,19 +284,19 @@ public class DelegationRepositoryTests
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var delegation = new TDelegation
+            var delegation = new DelegationEntity
             {
                 AccountId = 1,
                 Status = "enabled"
             };
 
-            context.TDelegation.Add(delegation);
+            context.DelegationEntity.Add(delegation);
             await context.SaveChangesAsync();
             var repository = new DelegationRepository(context);
 
             await repository.DeleteDelegationAsync(1);
 
-            var result = await context.TDelegation.FirstOrDefaultAsync(d => d.DelegationId == 1);
+            var result = await context.DelegationEntity.FirstOrDefaultAsync(d => d.DelegationId == 1);
 
             Assert.NotNull(result);
             Assert.Equal(Constants.DISABLEDDELEGATIONSTATUS, result.Status);

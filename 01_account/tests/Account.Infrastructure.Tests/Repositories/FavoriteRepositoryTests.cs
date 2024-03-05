@@ -33,11 +33,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             using (var context = new AccountContext(_options))
             {
                 // Arrange
-                var accountsModel = _fixture.Create<List<TAccount>>();
-                accountsModel.ForEach(account => account.TRole.First().IsFavorite = true);
-                context.TAccount.AddRange(accountsModel);
+                var accountsModel = _fixture.Create<List<AccountEntity>>();
+                accountsModel.ForEach(account => account.RoleEntity.First().IsFavorite = true);
+                context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
-                var contactId = accountsModel.Select(account => account.TRole.Where(role => role.IsFavorite == true).Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
+                var contactId = accountsModel.Select(account => account.RoleEntity.Where(role => role.IsFavorite == true).Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
                 var favoriteRepository = new FavoriteRepository(context);
 
                 var expectedAccount = accountsModel.Select(entity => new AccountFavorite()
@@ -63,12 +63,12 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             using (var context = new AccountContext(_options))
             {
                 // Arrange
-                var accountsModel = _fixture.Create<List<TAccount>>();
-                accountsModel.ForEach(account => account.TRole.First().IsFavorite = true);
-                context.TAccount.AddRange(accountsModel);
+                var accountsModel = _fixture.Create<List<AccountEntity>>();
+                accountsModel.ForEach(account => account.RoleEntity.First().IsFavorite = true);
+                context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
 
-                var role = accountsModel.Select(account => account.TRole.Where(role => role.IsFavorite == true).Select(role => role).First()).First();
+                var role = accountsModel.Select(account => account.RoleEntity.Where(role => role.IsFavorite == true).Select(role => role).First()).First();
                 var favoriteRepository = new FavoriteRepository(context);
 
                 // Act

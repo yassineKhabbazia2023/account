@@ -1,0 +1,59 @@
+﻿[
+   {
+      "SchemaName": "account",
+      "Tables": [
+         {
+            "Columns": [ ],
+            "Name": "Account",
+            "NewName": "AccountEntity"
+         },
+         {
+            "Columns": [ ],
+            "Name": "Address",
+            "NewName": "AddressEntity"
+         },
+         {
+            "Columns": [ ],
+            "Name": "Delegation",
+            "NewName": "DelegationEntity"
+         },
+         {
+            "Columns": [ ],
+            "Name": "Deployment",
+            "NewName": "DeploymentEntity"
+         },
+         {
+            "Columns": [ ],
+            "Name": "Hub",
+            "NewName": "HubEntity"
+         },
+         {
+            "Columns": [ ],
+            "Name": "Naf",
+            "NewName": "NafEntity"
+         },
+         {
+            "Columns": [ ],
+            "Name": "Phone",
+            "NewName": "PhoneEntity"
+         },
+         {
+            "Columns": [ ],
+            "Name": "Role",
+            "NewName": "RoleEntity"
+         }
+      ],
+      "UseSchemaName": false
+   },
+   {
+      "SchemaName": "actor",
+      "Tables": [
+         {
+            "Columns": [ ],
+            "Name": "Contact",
+            "NewName": "ContactEntity"
+         }
+      ],
+      "UseSchemaName": false
+   }
+]

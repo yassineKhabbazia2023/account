@@ -14,41 +14,41 @@ public partial class AccountContext : DbContext
     {
     }
 
-    public virtual DbSet<TAccount> TAccount { get; set; }
+    public virtual DbSet<AccountEntity> AccountEntity { get; set; }
 
-    public virtual DbSet<TAddress> TAddress { get; set; }
+    public virtual DbSet<AddressEntity> AddressEntity { get; set; }
 
-    public virtual DbSet<TContact> TContact { get; set; }
+    public virtual DbSet<ContactEntity> ContactEntity { get; set; }
 
-    public virtual DbSet<TDelegation> TDelegation { get; set; }
+    public virtual DbSet<DelegationEntity> DelegationEntity { get; set; }
 
-    public virtual DbSet<TDeploymentPlanning> TDeploymentPlanning { get; set; }
+    public virtual DbSet<DeploymentEntity> DeploymentEntity { get; set; }
 
-    public virtual DbSet<THub> THub { get; set; }
+    public virtual DbSet<HubEntity> HubEntity { get; set; }
 
-    public virtual DbSet<TNaf> TNaf { get; set; }
+    public virtual DbSet<NafEntity> NafEntity { get; set; }
 
-    public virtual DbSet<TPhone> TPhone { get; set; }
+    public virtual DbSet<PhoneEntity> PhoneEntity { get; set; }
 
-    public virtual DbSet<TRole> TRole { get; set; }
+    public virtual DbSet<RoleEntity> RoleEntity { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<TAccount>(entity =>
+        modelBuilder.Entity<AccountEntity>(entity =>
         {
-            entity.HasKey(e => e.AccountId).HasName("C_TAccount_PK");
+            entity.HasKey(e => e.AccountId).HasName("C_Account_PK");
 
-            entity.ToTable("TAccount", "account");
+            entity.ToTable("Account", "account");
 
-            entity.HasIndex(e => e.AccountGlobalUniqueId, "IDX_TAccount_AccountGlobalUniqueId");
+            entity.HasIndex(e => e.AccountGlobalUniqueId, "IDX_Account_AccountGlobalUniqueId");
 
-            entity.HasIndex(e => e.HubId, "IDX_THub_HubId");
+            entity.HasIndex(e => e.HubId, "IDX_Hub_HubId");
 
-            entity.HasIndex(e => e.NafId, "IDX_TNaf_NafId");
+            entity.HasIndex(e => e.NafId, "IDX_Naf_NafId");
 
-            entity.HasIndex(e => e.AccountGlobalUniqueId, "UQ_TAccount_AccountGlobalUniqueId").IsUnique();
+            entity.HasIndex(e => e.AccountGlobalUniqueId, "UQ_Account_AccountGlobalUniqueId").IsUnique();
 
-            entity.HasIndex(e => e.AccountGlobalUniqueId, "UQ_TPhone_PhoneId").IsUnique();
+            entity.HasIndex(e => e.AccountGlobalUniqueId, "UQ_Phone_PhoneId").IsUnique();
 
             entity.Property(e => e.AccountId).HasComment("L''identifiant technique");
             entity.Property(e => e.AccountGlobalUniqueId).HasComment("L''identifiant global de l''entité");
@@ -92,14 +92,15 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("Le régime fiscale");
             entity.Property(e => e.HubId).HasComment("L''identifiant technique du Hub");
-            entity.Property(e => e.ISIN)
-                .HasMaxLength(150)
-                .IsUnicode(false)
-                .HasComment("Le ISIN");
             entity.Property(e => e.IconName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.IsActive).HasComment("L''entité est-elle activé");
+            entity.Property(e => e.Isin)
+                .HasMaxLength(150)
+                .IsUnicode(false)
+                .HasComment("Le ISIN")
+                .HasColumnName("ISIN");
             entity.Property(e => e.LegalForm)
                 .HasMaxLength(150)
                 .IsUnicode(false)
@@ -147,36 +148,39 @@ public partial class AccountContext : DbContext
                 .HasComment("Le chiffre d''affaires")
                 .HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedDate).HasComment("La date de la dernière modification");
-            entity.Property(e => e.VAT)
+            entity.Property(e => e.Vat)
                 .HasMaxLength(50)
                 .IsUnicode(false)
-                .HasComment("La TVA");
-            entity.Property(e => e.VATIntra)
+                .HasComment("La TVA")
+                .HasColumnName("VAT");
+            entity.Property(e => e.Vatintra)
                 .HasMaxLength(20)
                 .IsUnicode(false)
-                .HasComment("Le numéro de TVA intracommunautaire");
-            entity.Property(e => e.VATType)
+                .HasComment("Le numéro de TVA intracommunautaire")
+                .HasColumnName("VATIntra");
+            entity.Property(e => e.Vattype)
                 .HasMaxLength(20)
                 .IsUnicode(false)
-                .HasComment("Type de TVA");
+                .HasComment("Type de TVA")
+                .HasColumnName("VATType");
 
-            entity.HasOne(d => d.Hub).WithMany(p => p.TAccount)
+            entity.HasOne(d => d.Hub).WithMany(p => p.AccountEntity)
                 .HasForeignKey(d => d.HubId)
-                .HasConstraintName("C_TAccount_THub_HubId_FK");
+                .HasConstraintName("C_Account_Hub_HubId_FK");
 
-            entity.HasOne(d => d.Naf).WithMany(p => p.TAccount)
+            entity.HasOne(d => d.Naf).WithMany(p => p.AccountEntity)
                 .HasForeignKey(d => d.NafId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_TAccount_TNafId_FK");
+                .HasConstraintName("C_Account_NafId_FK");
         });
 
-        modelBuilder.Entity<TAddress>(entity =>
+        modelBuilder.Entity<AddressEntity>(entity =>
         {
-            entity.HasKey(e => e.AddressId).HasName("C_TAddress_PK");
+            entity.HasKey(e => e.AddressId).HasName("C_Address_PK");
 
-            entity.ToTable("TAddress", "account");
+            entity.ToTable("Address", "account");
 
-            entity.HasIndex(e => e.AccountId, "IDX_TAddress_AccountId");
+            entity.HasIndex(e => e.AccountId, "IDX_Address_AccountId");
 
             entity.Property(e => e.AddressId).HasComment("L''identifiant technique");
             entity.Property(e => e.AccountId).HasComment("L''identifiant de l''entité");
@@ -208,19 +212,19 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("Le code postal");
 
-            entity.HasOne(d => d.Account).WithMany(p => p.TAddress)
+            entity.HasOne(d => d.Account).WithMany(p => p.AddressEntity)
                 .HasForeignKey(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_TAccount_TAddress_AccountId_FK");
+                .HasConstraintName("C_Account_Address_AccountId_FK");
         });
 
-        modelBuilder.Entity<TContact>(entity =>
+        modelBuilder.Entity<ContactEntity>(entity =>
         {
-            entity.HasKey(e => e.ContactId).HasName("C_TContact_PK");
+            entity.HasKey(e => e.ContactId).HasName("C_Contact_PK");
 
-            entity.ToTable("TContact", "actor");
+            entity.ToTable("Contact", "actor");
 
-            entity.HasIndex(e => e.ContactGlobalUniqueId, "IDX_TContact_ContactGlobalUniqueId");
+            entity.HasIndex(e => e.ContactGlobalUniqueId, "IDX_Contact_ContactGlobalUniqueId");
 
             entity.Property(e => e.ContactId).HasComment("L''identifiant technique");
             entity.Property(e => e.ContactEmail)
@@ -246,17 +250,17 @@ public partial class AccountContext : DbContext
                 .HasComment("Le type de contact");
         });
 
-        modelBuilder.Entity<TDelegation>(entity =>
+        modelBuilder.Entity<DelegationEntity>(entity =>
         {
-            entity.HasKey(e => e.DelegationId).HasName("C_TDelegation_PK");
+            entity.HasKey(e => e.DelegationId).HasName("C_Delegation_PK");
 
-            entity.ToTable("TDelegation", "account");
+            entity.ToTable("Delegation", "account");
 
-            entity.HasIndex(e => e.AccountId, "IDX_TDelegation_AccountId");
+            entity.HasIndex(e => e.AccountId, "IDX_Delegation_AccountId");
 
-            entity.HasIndex(e => e.DelegateeId, "IDX_TDelegation_DelegateeId");
+            entity.HasIndex(e => e.DelegateeId, "IDX_Delegation_DelegateeId");
 
-            entity.HasIndex(e => e.DelegatorId, "IDX_TDelegation_DelegatorId");
+            entity.HasIndex(e => e.DelegatorId, "IDX_Delegation_DelegatorId");
 
             entity.Property(e => e.DelegationId).HasComment("L''identifiant technique");
             entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
@@ -275,46 +279,46 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("La délégation est-elle active ou non");
 
-            entity.HasOne(d => d.Account).WithMany(p => p.TDelegation)
+            entity.HasOne(d => d.Account).WithMany(p => p.DelegationEntity)
                 .HasForeignKey(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_TDelegation_TAccount_FK");
+                .HasConstraintName("C_Delegation_Account_FK");
 
-            entity.HasOne(d => d.Delegatee).WithMany(p => p.TDelegationDelegatee)
+            entity.HasOne(d => d.Delegatee).WithMany(p => p.DelegationEntityDelegatee)
                 .HasForeignKey(d => d.DelegateeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_TDelegation_TContact_DelegateeId_FK");
+                .HasConstraintName("C_Delegation_Contact_DelegateeId_FK");
 
-            entity.HasOne(d => d.Delegator).WithMany(p => p.TDelegationDelegator)
+            entity.HasOne(d => d.Delegator).WithMany(p => p.DelegationEntityDelegator)
                 .HasForeignKey(d => d.DelegatorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_TDelegation_TContact_DelegatorId_FK");
+                .HasConstraintName("C_Delegation_Contact_DelegatorId_FK");
         });
 
-        modelBuilder.Entity<TDeploymentPlanning>(entity =>
+        modelBuilder.Entity<DeploymentEntity>(entity =>
         {
-            entity.HasKey(e => e.DeploymentId).HasName("C_TDeploymentPlanning_PK");
+            entity.HasKey(e => e.DeploymentId).HasName("C_Deployment_PK");
 
-            entity.ToTable("TDeploymentPlanning", "account");
+            entity.ToTable("Deployment", "account");
 
-            entity.HasIndex(e => e.AccountId, "IDX_TDeploymentPlanning_AccountId");
+            entity.HasIndex(e => e.AccountId, "IDX_Deployment_AccountId");
 
             entity.Property(e => e.DeploymentId).HasComment("L''identifiant technique");
             entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
             entity.Property(e => e.DeploymentDate).HasComment("La date à laquelle le déploiement a eu lieu ");
             entity.Property(e => e.Status).HasComment("Le statut du déploiement");
 
-            entity.HasOne(d => d.Account).WithMany(p => p.TDeploymentPlanning)
+            entity.HasOne(d => d.Account).WithMany(p => p.DeploymentEntity)
                 .HasForeignKey(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_TAccount_TDeployment_FK");
+                .HasConstraintName("C_Account_Deployment_FK");
         });
 
-        modelBuilder.Entity<THub>(entity =>
+        modelBuilder.Entity<HubEntity>(entity =>
         {
-            entity.HasKey(e => e.HubId).HasName("C_THub_PK");
+            entity.HasKey(e => e.HubId).HasName("C_Hub_PK");
 
-            entity.ToTable("THub", "account");
+            entity.ToTable("Hub", "account");
 
             entity.Property(e => e.HubId).HasComment("L''identifiant technique");
             entity.Property(e => e.HubName)
@@ -324,11 +328,11 @@ public partial class AccountContext : DbContext
                 .HasComment("Le nom du Hub");
         });
 
-        modelBuilder.Entity<TNaf>(entity =>
+        modelBuilder.Entity<NafEntity>(entity =>
         {
-            entity.HasKey(e => e.NafId).HasName("C_TNaf_PK");
+            entity.HasKey(e => e.NafId).HasName("C_Naf_PK");
 
-            entity.ToTable("TNaf", "account");
+            entity.ToTable("Naf", "account");
 
             entity.Property(e => e.NafId).HasComment("L''identifiant technique");
             entity.Property(e => e.NafCode)
@@ -341,19 +345,19 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<TPhone>(entity =>
+        modelBuilder.Entity<PhoneEntity>(entity =>
         {
-            entity.HasKey(e => e.PhoneId).HasName("C_TPhone_PK");
+            entity.HasKey(e => e.PhoneId).HasName("C_Phone_PK");
 
-            entity.ToTable("TPhone", "account");
+            entity.ToTable("Phone", "account");
 
-            entity.HasIndex(e => e.AccountId, "IDX_TPhone_AccountId");
+            entity.HasIndex(e => e.AccountId, "IDX_Phone_AccountId");
 
             entity.Property(e => e.PhoneId).HasComment("L''identifiant technique");
             entity.Property(e => e.AccountId).HasComment("L''identifiant techique de l''entité");
             entity.Property(e => e.PhoneNumber)
                 .IsRequired()
-                .HasMaxLength(15)
+                .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasComment("Le numéro de téléphone");
             entity.Property(e => e.Type)
@@ -361,23 +365,23 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("Le type du numéro de téléphone");
 
-            entity.HasOne(d => d.Account).WithMany(p => p.TPhone)
+            entity.HasOne(d => d.Account).WithMany(p => p.PhoneEntity)
                 .HasForeignKey(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_TAccount_TPhone_AccountId_FK");
+                .HasConstraintName("C_Account_Phone_AccountId_FK");
         });
 
-        modelBuilder.Entity<TRole>(entity =>
+        modelBuilder.Entity<RoleEntity>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("C_TRole_PK");
+            entity.HasKey(e => e.RoleId).HasName("C_Role_PK");
 
-            entity.ToTable("TRole", "account");
+            entity.ToTable("Role", "account");
 
-            entity.HasIndex(e => new { e.AccountId, e.ContactId }, "C_TRole_AccountId_ContactId").IsUnique();
+            entity.HasIndex(e => new { e.AccountId, e.ContactId }, "C_Role_AccountId_ContactId").IsUnique();
 
-            entity.HasIndex(e => e.AccountId, "IDX_TRole_AccountId");
+            entity.HasIndex(e => e.AccountId, "IDX_Role_AccountId");
 
-            entity.HasIndex(e => e.ContactId, "IDX_TRole_ContactId");
+            entity.HasIndex(e => e.ContactId, "IDX_Role_ContactId");
 
             entity.Property(e => e.RoleId).HasComment("L''identifiant technique");
             entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
@@ -385,15 +389,15 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.IsFavorite).HasComment("Le rôle est-il considéré comme un favori ou mis en avant comme tel");
             entity.Property(e => e.IsSignatory).HasComment("Le signataire");
 
-            entity.HasOne(d => d.Account).WithMany(p => p.TRole)
+            entity.HasOne(d => d.Account).WithMany(p => p.RoleEntity)
                 .HasForeignKey(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_TAccount_TRole_FK");
+                .HasConstraintName("C_Account_Role_FK");
 
-            entity.HasOne(d => d.Contact).WithMany(p => p.TRole)
+            entity.HasOne(d => d.Contact).WithMany(p => p.RoleEntity)
                 .HasForeignKey(d => d.ContactId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_TAccount_TContact_FK");
+                .HasConstraintName("C_Account_Contact_FK");
         });
 
         OnModelCreatingPartial(modelBuilder);

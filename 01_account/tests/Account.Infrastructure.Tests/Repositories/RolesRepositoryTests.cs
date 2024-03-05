@@ -40,15 +40,15 @@ public class RolesRepositoryTests
         // Arrange
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var accountsEntity = _fixture.Create<List<TAccount>>();
-            context.TAccount.AddRange(accountsEntity);
+            var accountsEntity = _fixture.Create<List<AccountEntity>>();
+            context.AccountEntity.AddRange(accountsEntity);
             context.SaveChanges();
 
             var rolesRepository = new RoleRepository(context);
-            var contactId = accountsEntity.First().TRole.First().ContactId;
+            var contactId = accountsEntity.First().RoleEntity.First().ContactId;
 
             var accountObjects = accountsEntity
-                                    .SelectMany(item => item.TRole)
+                                    .SelectMany(item => item.RoleEntity)
                                     .Where(x => x.ContactId == contactId)
                                     .Select(x => x.Account.MapToAccount(contactId));
 
@@ -76,12 +76,12 @@ public class RolesRepositoryTests
         // Arrange
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var accountsMock = _fixture.Create<List<TAccount>>();
-            context.TAccount.AddRange(accountsMock);
+            var accountsMock = _fixture.Create<List<AccountEntity>>();
+            context.AccountEntity.AddRange(accountsMock);
             context.SaveChanges();
 
             var rolesRepository = new RoleRepository(context);
-            var data = accountsMock.First().TRole.Where(r => r.IsSignatory!.Value).ToList();
+            var data = accountsMock.First().RoleEntity.Where(r => r.IsSignatory!.Value).ToList();
             var resultExpected = new List<Contact>();
             resultExpected.AddRange(data.MapToContacts());
 
@@ -120,7 +120,7 @@ public class RolesRepositoryTests
 
         using var accountContext = new AccountContext(_dbContextOptions);
 
-        accountContext.TAccount.Add(new TAccount
+        accountContext.AccountEntity.Add(new AccountEntity
         {
             AccountId = accountId,
             AccountNumber = "00001114455",
@@ -129,7 +129,7 @@ public class RolesRepositoryTests
             LegalName = "Pulse",
             SourceAccountNumber = "IBS",
         });
-        accountContext.TContact.Add(new TContact
+        accountContext.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
             ContactEmail = "Contact-mail@kpmg.fr",
@@ -146,7 +146,7 @@ public class RolesRepositoryTests
         await rolesRepository.CreateRoleAsync(roleRequest);
 
         // Assert
-        Assert.Single(accountContext.TRole);
+        Assert.Single(accountContext.RoleEntity);
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public class RolesRepositoryTests
         };
 
         using var accountContext = new AccountContext(_dbContextOptions);
-        accountContext.TContact.Add(new TContact
+        accountContext.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
             ContactEmail = "Contact-mail@kpmg.fr",
@@ -201,7 +201,7 @@ public class RolesRepositoryTests
 
         using var accountContext = new AccountContext(_dbContextOptions);
 
-        accountContext.TAccount.Add(new TAccount
+        accountContext.AccountEntity.Add(new AccountEntity
         {
             AccountId = accountId,
             AccountNumber = "00001114455",
@@ -229,16 +229,16 @@ public class RolesRepositoryTests
         // Arrange
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var roleMock = _fixture.Create<TRole>();
+            var roleMock = _fixture.Create<RoleEntity>();
             roleMock.IsSignatory = true;
-            context.TRole.Add(roleMock);
+            context.RoleEntity.Add(roleMock);
             context.SaveChanges();
 
             var rolesRepository = new RoleRepository(context);
 
             // Act
             await rolesRepository.UpdateRoleSignatoryAsync(roleMock.AccountId, roleMock.ContactId, false);
-            var roleObjects = context.TRole
+            var roleObjects = context.RoleEntity
                                     .Where(x => x.ContactId == roleMock.ContactId && x.AccountId == roleMock.AccountId)
                                     .Select(x => x);
             var role = await roleObjects.FirstOrDefaultAsync();

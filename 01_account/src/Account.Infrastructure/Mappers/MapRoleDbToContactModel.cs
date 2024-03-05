@@ -9,12 +9,12 @@ namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapRoleDbToContactModel
     {
-        public static IEnumerable<Contact> MapToContacts(this ICollection<TRole> source)
+        public static IEnumerable<Contact> MapToContacts(this ICollection<RoleEntity> source)
         {
             return source?.Select(s => s.MapToContact() !) ?? Enumerable.Empty<Contact>();
         }
 
-        public static Contact? MapToContact(this TRole? source)
+        public static Contact? MapToContact(this RoleEntity? source)
         {
             return source == null ? null : new Contact
             {

@@ -26,7 +26,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         {
             using (var context = new AccountContext(_options))
             {
-                var expected = new List<TDeploymentPlanning>
+                var expected = new List<DeploymentEntity>
                 {
                     new()
                     {
@@ -49,7 +49,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                         Status = 0,
                     }
                 };
-                var roles = new List<TRole>
+                var roles = new List<RoleEntity>
                 {
                     new()
                     {
@@ -68,8 +68,8 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     }
                 };
                 var repository = new StatisticsRepository(context);
-                context.TDeploymentPlanning.AddRange(expected);
-                context.TRole.AddRange(roles);
+                context.DeploymentEntity.AddRange(expected);
+                context.RoleEntity.AddRange(roles);
                 await context.SaveChangesAsync();
 
                 var result = await repository.GetStatisticsAsync(1);

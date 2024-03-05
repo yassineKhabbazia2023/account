@@ -34,11 +34,11 @@ public class MapRoleBusinessToRoleDbTests
     }
 
     [Fact]
-    public void MapTContactToSignatory_CaseSuccess()
+    public void MapContactEntityToSignatory_CaseSuccess()
     {
         // Arrange
         CreateRoleRequest? role = _fixture.Create<CreateRoleRequest?>();
-        var expected = new TRole()
+        var expected = new RoleEntity()
         {
             ContactId = role!.ContactId,
             AccountId = role!.AccountId,

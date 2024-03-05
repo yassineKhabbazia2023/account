@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Entities;
 
@@ -10,12 +9,12 @@ namespace Pulse.Account.Infrastructure.Mappers;
 
 public static class MapDelegationDbToDelegationModel
 {
-    public static IReadOnlyCollection<Delegation> ToDelegations(this ICollection<TDelegation> source)
+    public static IReadOnlyCollection<Delegation> ToDelegations(this ICollection<DelegationEntity> source)
     {
         return source?.Select(d => d.ToDelegation() !).ToList() ?? new List<Delegation>();
     }
 
-    public static Delegation? ToDelegation(this TDelegation source)
+    public static Delegation? ToDelegation(this DelegationEntity source)
     {
         return source == null ? null :
             new Delegation
@@ -32,7 +31,7 @@ public static class MapDelegationDbToDelegationModel
             };
     }
 
-    public static Core.Models.Account? ToAccount(this TAccount source)
+    public static Core.Models.Account? ToAccount(this AccountEntity source)
     {
         return source == null ? null :
              new Core.Models.Account
@@ -40,11 +39,11 @@ public static class MapDelegationDbToDelegationModel
                  AccountId = source.AccountId,
                  AccountNumber = source.AccountNumber,
                  LegalName = source.LegalName,
-                 Address = source.TAddress.ToAddress(),
+                 Address = source.AddressEntity.ToAddress(),
              };
     }
 
-    public static Contact? ToContact(this TContact source)
+    public static Contact? ToContact(this ContactEntity source)
     {
         return source == null ? null :
             new Contact
@@ -58,12 +57,12 @@ public static class MapDelegationDbToDelegationModel
             };
     }
 
-    public static ICollection<Address> ToAddress(this ICollection<TAddress> source)
+    public static ICollection<Address> ToAddress(this ICollection<AddressEntity> source)
     {
         return source?.Select(d => d.ToAddress() !).ToList() ?? new List<Address>();
     }
 
-    private static Address? ToAddress(this TAddress source)
+    private static Address? ToAddress(this AddressEntity source)
     {
         return source == null ? null :
             new Address

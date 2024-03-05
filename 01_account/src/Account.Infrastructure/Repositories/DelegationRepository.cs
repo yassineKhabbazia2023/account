@@ -41,7 +41,7 @@ public class DelegationRepository : IDelegationRepository
             throw new BadRequestException(Errors.CreateDelegationCode, Errors.CreateDelegationMessage);
         }
 
-        var tDelegation = new TDelegation
+        var tDelegation = new DelegationEntity
         {
             CreationDate = DateTime.UtcNow,
             StartDate = delegation.StartDate!.Value,
@@ -56,7 +56,7 @@ public class DelegationRepository : IDelegationRepository
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            await _accountContext.TDelegation.AddAsync(tDelegation);
+            await _accountContext.DelegationEntity.AddAsync(tDelegation);
             result = await _accountContext.SaveChangesAsync();
         });
 
@@ -65,12 +65,12 @@ public class DelegationRepository : IDelegationRepository
 
     public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(int delegateeId)
     {
-        var delegationList = new List<TDelegation>();
+        var delegationList = new List<DelegationEntity>();
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
             delegationList = await _accountContext
-                                        .TDelegation
+                                        .DelegationEntity
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
@@ -83,12 +83,12 @@ public class DelegationRepository : IDelegationRepository
 
     public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId)
     {
-        var delegations = new List<TDelegation>();
+        var delegations = new List<DelegationEntity>();
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
             delegations = await _accountContext
-                                        .TDelegation
+                                        .DelegationEntity
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
@@ -113,18 +113,18 @@ public class DelegationRepository : IDelegationRepository
         await _retryPolicy.ExecuteAsync(async () =>
         {
             tDelegation.Status = Constants.DISABLEDDELEGATIONSTATUS;
-            _accountContext.TDelegation.Update(tDelegation);
+            _accountContext.DelegationEntity.Update(tDelegation);
             await _accountContext.SaveChangesAsync();
         });
     }
 
-    private async Task<TContact> GetContactAsync(int contactId)
+    private async Task<ContactEntity> GetContactAsync(int contactId)
     {
-        var tContact = new TContact();
+        var tContact = new ContactEntity();
         await _retryPolicy.ExecuteAsync(async () =>
         {
             tContact = await _accountContext
-                                        .TContact
+                                        .ContactEntity
                                         .FirstOrDefaultAsync(d => d.ContactId == contactId);
         });
 
@@ -136,13 +136,13 @@ public class DelegationRepository : IDelegationRepository
         return tContact;
     }
 
-    private async Task<TAccount> GetAccountAsync(int accountId)
+    private async Task<AccountEntity> GetAccountAsync(int accountId)
     {
-        var tAccount = new TAccount();
+        var tAccount = new AccountEntity();
         await _retryPolicy.ExecuteAsync(async () =>
         {
             tAccount = await _accountContext
-                                        .TAccount
+                                        .AccountEntity
                                         .FirstOrDefaultAsync(d => d.AccountId == accountId);
         });
 
@@ -154,13 +154,13 @@ public class DelegationRepository : IDelegationRepository
         return tAccount;
     }
 
-    private async Task<TDelegation> GetDelegationAsync(int delegationId)
+    private async Task<DelegationEntity> GetDelegationAsync(int delegationId)
     {
-        TDelegation? tDelegation = null;
+        DelegationEntity? tDelegation = null;
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            tDelegation = await _accountContext.TDelegation.FirstOrDefaultAsync(d => d.DelegationId == delegationId);
+            tDelegation = await _accountContext.DelegationEntity.FirstOrDefaultAsync(d => d.DelegationId == delegationId);
         });
 
         if (tDelegation == null)

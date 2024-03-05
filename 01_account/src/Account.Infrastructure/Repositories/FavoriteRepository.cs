@@ -37,7 +37,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             {
                 var entities = GetAccountQueryByContactId(contactId);
                 var accountFavorite = await entities
-                    .Where(entity => entity.TRole.Any(role => role.IsFavorite == true))
+                    .Where(entity => entity.RoleEntity.Any(role => role.IsFavorite == true))
                     .Select(entity => new AccountFavorite()
                     {
                         AccountId = entity.AccountId,
@@ -53,7 +53,7 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             await _retryPolicy.ExecuteAsync(async () =>
             {
-                var existingRole = from role in _accountContext.TRole
+                var existingRole = from role in _accountContext.RoleEntity
                                    where role.AccountId.Equals(accountId) && role.ContactId.Equals(contactId)
                                        select role;
 
@@ -61,21 +61,21 @@ namespace Pulse.Account.Infrastructure.Repositories
                 if (existingRoleItem != null)
                 {
                     existingRoleItem.IsFavorite = isFavorite;
-                    _accountContext.TRole.Update(existingRoleItem);
+                    _accountContext.RoleEntity.Update(existingRoleItem);
                     await _accountContext.SaveChangesAsync();
                 }
             }).ConfigureAwait(false);
         }
 
-        private IQueryable<TAccount> GetAccountQueryByContactId(int contactId)
+        private IQueryable<AccountEntity> GetAccountQueryByContactId(int contactId)
         {
-            return _accountContext.TAccount
+            return _accountContext.AccountEntity
                             .AsNoTracking()
-                            .Include(x => x.TRole)
+                            .Include(x => x.RoleEntity)
                             .ThenInclude(r => r.Contact)
-                            .Include(a => a.TAddress)
-                            .Include(x => x.TDeploymentPlanning)
-                            .Where(a => a.TRole.Any(r => r.ContactId == contactId))
+                            .Include(a => a.AddressEntity)
+                            .Include(x => x.DeploymentEntity)
+                            .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
                             .OrderBy(a => a.LegalName);
         }
     }

@@ -31,12 +31,12 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapToAccount_ShouldReturnAccountModel()
         {
             // Arrange
-            var tAccountFixture = _fixture.Create<TAccount>();
+            var tAccountFixture = _fixture.Create<AccountEntity>();
             var expectedAccount = new Core.Models.Account();
             expectedAccount.LegalName = tAccountFixture.LegalName;
             expectedAccount.AccountId = tAccountFixture.AccountId;
             expectedAccount.AccountNumber = tAccountFixture.AccountNumber;
-            expectedAccount.Address = tAccountFixture.TAddress.Select(address => new Address()
+            expectedAccount.Address = tAccountFixture.AddressEntity.Select(address => new Address()
             {
                 AddressId = address.AddressId,
                 AddressType = address.AddressType,
@@ -73,13 +73,13 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapToAccountDetail_ShouldReturnAccountDetail()
         {
             // Arrange
-            var tAccountFixture = _fixture.Create<TAccount>();
+            var tAccountFixture = _fixture.Create<AccountEntity>();
             var expectedAccount = new AccountDetail();
             expectedAccount.Legal = new Legal();
             expectedAccount.Legal.LegalName = tAccountFixture.LegalName;
             expectedAccount.AccountId = tAccountFixture.AccountId;
             expectedAccount.AccountNumber = tAccountFixture.AccountNumber;
-            expectedAccount.Address = tAccountFixture.TAddress.Select(address => new Address()
+            expectedAccount.Address = tAccountFixture.AddressEntity.Select(address => new Address()
             {
                 AddressId = address.AddressId,
                 AddressType = address.AddressType,
@@ -115,7 +115,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [Fact]
         public void MapHubEntitiesToHubs_ShouldReturnHubs()
         {
-            var expected = _fixture.CreateMany<THub>();
+            var expected = _fixture.CreateMany<HubEntity>();
 
             var result = MapperReferentialDbToBusiness.MapHubEntitiesToHubs(expected);
 
@@ -135,7 +135,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [Fact]
         public void MapHubEntityToHub_ShouldReturnHub()
         {
-            var expected = _fixture.Create<THub>();
+            var expected = _fixture.Create<HubEntity>();
 
             var result = MapperReferentialDbToBusiness.MapHubEntityToHub(expected);
 
@@ -155,7 +155,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [Fact]
         public void MapToPagingNaf_ShouldReturnPagingNaf()
         {
-            var expectedSource = _fixture.CreateMany<TNaf>();
+            var expectedSource = _fixture.CreateMany<NafEntity>();
             var expectedpageNumber = 1;
             var expectedTotalRows = 1;
             var expectedTotalPageCalcul = 1f;
@@ -181,7 +181,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [Fact]
         public void MapNafEntitiesToNafs_ShouldReturnNafs()
         {
-            var expected = _fixture.CreateMany<TNaf>();
+            var expected = _fixture.CreateMany<NafEntity>();
 
             var result = MapperReferentialDbToBusiness.MapNafEntitiesToNafs(expected);
 
@@ -201,7 +201,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [Fact]
         public void MapNafEntityToNaf_ShouldReturnNaf()
         {
-            var expected = _fixture.Create<TNaf>();
+            var expected = _fixture.Create<NafEntity>();
 
             var result = MapperReferentialDbToBusiness.MapNafEntityToNaf(expected);
 

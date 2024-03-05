@@ -5,27 +5,27 @@ using System.Collections.Generic;
 
 namespace Pulse.Account.Infrastructure.Entities;
 
-public partial class TDeploymentPlanning
+public partial class PhoneEntity
 {
     /// <summary>
     /// L&apos;&apos;identifiant technique
     /// </summary>
-    public int DeploymentId { get; set; }
+    public int PhoneId { get; set; }
 
     /// <summary>
-    /// L&apos;&apos;identifiant technique de l&apos;&apos;entité
+    /// L&apos;&apos;identifiant techique de l&apos;&apos;entité
     /// </summary>
     public int AccountId { get; set; }
 
     /// <summary>
-    /// La date à laquelle le déploiement a eu lieu 
+    /// Le numéro de téléphone
     /// </summary>
-    public DateTime DeploymentDate { get; set; }
+    public string PhoneNumber { get; set; }
 
     /// <summary>
-    /// Le statut du déploiement
+    /// Le type du numéro de téléphone
     /// </summary>
-    public int Status { get; set; }
+    public string Type { get; set; }
 
-    public virtual TAccount Account { get; set; }
+    public virtual AccountEntity Account { get; set; }
 }

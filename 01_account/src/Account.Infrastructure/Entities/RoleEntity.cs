@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Pulse.Account.Infrastructure.Entities;
 
-public partial class TRole
+public partial class RoleEntity
 {
     /// <summary>
     /// L&apos;&apos;identifiant technique
@@ -32,7 +32,7 @@ public partial class TRole
     /// </summary>
     public bool? IsSignatory { get; set; }
 
-    public virtual TAccount Account { get; set; }
+    public virtual AccountEntity Account { get; set; }
 
-    public virtual TContact Contact { get; set; }
+    public virtual ContactEntity Contact { get; set; }
 }

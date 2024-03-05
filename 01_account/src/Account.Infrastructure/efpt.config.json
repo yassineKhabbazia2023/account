@@ -16,46 +16,46 @@
    "T4TemplatePath": null,
    "Tables": [
       {
-         "Name": "[account].[TAccount]",
+         "Name": "[account].[Account]",
          "ObjectType": 0
       },
       {
-         "Name": "[account].[TAddress]",
+         "Name": "[account].[Address]",
          "ObjectType": 0
       },
       {
-         "Name": "[account].[TDelegation]",
+         "Name": "[account].[Delegation]",
          "ObjectType": 0
       },
       {
-         "Name": "[account].[TDeploymentPlanning]",
+         "Name": "[account].[Deployment]",
          "ObjectType": 0
       },
       {
-         "Name": "[account].[THub]",
+         "Name": "[account].[Hub]",
          "ObjectType": 0
       },
       {
-         "Name": "[account].[TNaf]",
+         "Name": "[account].[Naf]",
          "ObjectType": 0
       },
       {
-         "Name": "[account].[TPhone]",
+         "Name": "[account].[Phone]",
          "ObjectType": 0
       },
       {
-         "Name": "[account].[TRole]",
+         "Name": "[account].[Role]",
          "ObjectType": 0
       },
       {
-         "Name": "[actor].[TContact]",
+         "Name": "[actor].[Contact]",
          "ObjectType": 0
       }
    ],
    "UiHint": "..\\Account.Database\\Account.Database.sqlproj",
    "UncountableWords": null,
    "UseBoolPropertiesWithoutDefaultSql": false,
-   "UseDatabaseNames": true,
+   "UseDatabaseNames": false,
    "UseDateOnlyTimeOnly": false,
    "UseDbContextSplitting": false,
    "UseDecimalDataAnnotationForSprocResult": true,

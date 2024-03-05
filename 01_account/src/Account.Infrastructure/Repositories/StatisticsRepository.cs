@@ -34,8 +34,8 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                var entities = _accountContext.TDeploymentPlanning
-                    .Join(_accountContext.TRole,
+                var entities = _accountContext.DeploymentEntity
+                    .Join(_accountContext.RoleEntity,
                         deployment => deployment.AccountId,
                         role => role.AccountId,
                         (deployment, role) => new { deployment, role })

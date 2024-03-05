@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Pulse.Account.Infrastructure.Entities;
 
-public partial class TContact
+public partial class ContactEntity
 {
     /// <summary>
     /// L&apos;&apos;identifiant technique
@@ -37,9 +37,9 @@ public partial class TContact
     /// </summary>
     public string Type { get; set; }
 
-    public virtual ICollection<TDelegation> TDelegationDelegatee { get; set; } = new List<TDelegation>();
+    public virtual ICollection<DelegationEntity> DelegationEntityDelegatee { get; set; } = new List<DelegationEntity>();
 
-    public virtual ICollection<TDelegation> TDelegationDelegator { get; set; } = new List<TDelegation>();
+    public virtual ICollection<DelegationEntity> DelegationEntityDelegator { get; set; } = new List<DelegationEntity>();
 
-    public virtual ICollection<TRole> TRole { get; set; } = new List<TRole>();
+    public virtual ICollection<RoleEntity> RoleEntity { get; set; } = new List<RoleEntity>();
 }

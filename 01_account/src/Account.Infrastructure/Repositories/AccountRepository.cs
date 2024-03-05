@@ -3,7 +3,6 @@
 // </copyright>
 
 using System.Data;
-using System.Net;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -42,14 +41,14 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                IQueryable<TAccount> query = GetAccountQueryByContactId(contactId);
+                IQueryable<AccountEntity> query = GetAccountQueryByContactId(contactId);
 
                 if (!string.IsNullOrWhiteSpace(search))
                 {
                     query = from n in query
                             where n.LegalName.Contains(search)
                                   || n.SourceAccountNumber.Contains(search)
-                                  || n.TRole.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search)
+                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search)
                                                       || role.Contact.LastName.Contains(search)
                                                       || role.Contact.ContactEmail.Contains(search)))
                             select n;
@@ -74,7 +73,7 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                var account = await _accountContext.TAccount
+                var account = await _accountContext.AccountEntity
                        .AsNoTracking()
                        .FirstOrDefaultAsync(a => a.AccountId == accountId);
 
@@ -91,15 +90,15 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                var account = await _accountContext.TAccount
+                var account = await _accountContext.AccountEntity
                        .AsNoTracking()
-                       .Include(x => x.TRole)
+                       .Include(x => x.RoleEntity)
                        .ThenInclude(r => r.Contact)
-                       .Include(a => a.TAddress)
-                       .Include(x => x.TDeploymentPlanning)
+                       .Include(a => a.AddressEntity)
+                       .Include(x => x.DeploymentEntity)
                        .Include(x => x.Hub)
                        .Include(x => x.Naf)
-                       .Include(x => x.TPhone)
+                       .Include(x => x.PhoneEntity)
                        .FirstOrDefaultAsync(a => a.AccountId == accountId);
 
                 if (account == null)
@@ -115,9 +114,9 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             await _retryPolicy.ExecuteAsync(async () =>
             {
-                var existingAccount = await _accountContext.TAccount.SingleAsync(x => x.AccountId == accountId);
+                var existingAccount = await _accountContext.AccountEntity.SingleAsync(x => x.AccountId == accountId);
                 existingAccount.MapToUpdatedAccount(accountDetail);
-                _accountContext.TAccount.Update(existingAccount);
+                _accountContext.AccountEntity.Update(existingAccount);
                 await _accountContext.SaveChangesAsync();
             }).ConfigureAwait(false);
         }
@@ -126,7 +125,7 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                var result = await _accountContext.TRole
+                var result = await _accountContext.RoleEntity
                     .AsNoTracking()
                     .Include(x => x.Contact)
                     .Where(x => x.AccountId == accountId)
@@ -136,15 +135,15 @@ namespace Pulse.Account.Infrastructure.Repositories
             }).ConfigureAwait(false);
         }
 
-        private IQueryable<TAccount> GetAccountQueryByContactId(int contactId)
+        private IQueryable<AccountEntity> GetAccountQueryByContactId(int contactId)
         {
-            return _accountContext.TAccount
+            return _accountContext.AccountEntity
                             .AsNoTracking()
-                            .Include(x => x.TRole)
+                            .Include(x => x.RoleEntity)
                             .ThenInclude(r => r.Contact)
-                            .Include(a => a.TAddress)
-                            .Include(x => x.TDeploymentPlanning)
-                            .Where(a => a.TRole.Any(r => r.ContactId == contactId))
+                            .Include(a => a.AddressEntity)
+                            .Include(x => x.DeploymentEntity)
+                            .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
                             .OrderBy(a => a.LegalName);
         }
     }

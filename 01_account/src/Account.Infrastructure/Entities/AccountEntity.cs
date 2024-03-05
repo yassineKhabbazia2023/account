@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Pulse.Account.Infrastructure.Entities;
 
-public partial class TAccount
+public partial class AccountEntity
 {
     /// <summary>
     /// L&apos;&apos;identifiant technique
@@ -112,7 +112,7 @@ public partial class TAccount
     /// <summary>
     /// Le ISIN
     /// </summary>
-    public string ISIN { get; set; }
+    public string Isin { get; set; }
 
     /// <summary>
     /// Le Siret
@@ -137,17 +137,17 @@ public partial class TAccount
     /// <summary>
     /// La TVA
     /// </summary>
-    public string VAT { get; set; }
+    public string Vat { get; set; }
 
     /// <summary>
     /// Le numéro de TVA intracommunautaire
     /// </summary>
-    public string VATIntra { get; set; }
+    public string Vatintra { get; set; }
 
     /// <summary>
     /// Type de TVA
     /// </summary>
-    public string VATType { get; set; }
+    public string Vattype { get; set; }
 
     /// <summary>
     /// Le nombre d&apos;&apos;employés de l&apos;&apos;entité
@@ -176,17 +176,17 @@ public partial class TAccount
 
     public string IconName { get; set; }
 
-    public virtual THub Hub { get; set; }
+    public virtual ICollection<AddressEntity> AddressEntity { get; set; } = new List<AddressEntity>();
 
-    public virtual TNaf Naf { get; set; }
+    public virtual ICollection<DelegationEntity> DelegationEntity { get; set; } = new List<DelegationEntity>();
 
-    public virtual ICollection<TAddress> TAddress { get; set; } = new List<TAddress>();
+    public virtual ICollection<DeploymentEntity> DeploymentEntity { get; set; } = new List<DeploymentEntity>();
 
-    public virtual ICollection<TDelegation> TDelegation { get; set; } = new List<TDelegation>();
+    public virtual HubEntity Hub { get; set; }
 
-    public virtual ICollection<TDeploymentPlanning> TDeploymentPlanning { get; set; } = new List<TDeploymentPlanning>();
+    public virtual NafEntity Naf { get; set; }
 
-    public virtual ICollection<TPhone> TPhone { get; set; } = new List<TPhone>();
+    public virtual ICollection<PhoneEntity> PhoneEntity { get; set; } = new List<PhoneEntity>();
 
-    public virtual ICollection<TRole> TRole { get; set; } = new List<TRole>();
+    public virtual ICollection<RoleEntity> RoleEntity { get; set; } = new List<RoleEntity>();
 }

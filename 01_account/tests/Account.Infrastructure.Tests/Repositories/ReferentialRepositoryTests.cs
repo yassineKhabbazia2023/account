@@ -30,7 +30,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         {
             using (var context = new AccountContext(_options))
             {
-                var tHubs = _fixture.CreateMany<THub>();
+                var tHubs = _fixture.CreateMany<HubEntity>();
                 context.AddRange(tHubs);
                 await context.SaveChangesAsync();
 
@@ -62,7 +62,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         {
             using (var context = new AccountContext(_options))
             {
-                var tNafs = _fixture.CreateMany<TNaf>();
+                var tNafs = _fixture.CreateMany<NafEntity>();
                 context.AddRange(tNafs);
                 await context.SaveChangesAsync();
 

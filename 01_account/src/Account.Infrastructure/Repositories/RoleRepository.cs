@@ -3,7 +3,6 @@
 // </copyright>
 
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
-using System.Net;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;
@@ -41,13 +40,13 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            IQueryable<TAccount> query = _accountContext.TAccount
+            IQueryable<AccountEntity> query = _accountContext.AccountEntity
                                                         .AsNoTracking()
-                                                        .Include(x => x.TRole)
+                                                        .Include(x => x.RoleEntity)
                                                         .ThenInclude(r => r.Contact)
-                                                        .Include(a => a.TAddress)
-                                                        .Include(x => x.TDeploymentPlanning)
-                                                        .Where(a => a.TRole.Any(r => r.ContactId == contactId))
+                                                        .Include(a => a.AddressEntity)
+                                                        .Include(x => x.DeploymentEntity)
+                                                        .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
                                                         .OrderBy(x => x.LegalName);
 
             var totalRows = await query.CountAsync();
@@ -72,12 +71,12 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            if (!_accountContext.TAccount.Any(x => x.AccountId == accountId))
+            if (!_accountContext.AccountEntity.Any(x => x.AccountId == accountId))
             {
                 throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
             }
 
-            var result = await _accountContext.TRole
+            var result = await _accountContext.RoleEntity
                 .AsNoTracking()
                 .Include(x => x.Contact)
                 .Where(x => x.AccountId == accountId && x.IsSignatory!.Value)
@@ -91,17 +90,17 @@ public class RoleRepository : IRoleRepository
     {
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            if (!_accountContext.TAccount.Any(x => x.AccountId == role.AccountId))
+            if (!_accountContext.AccountEntity.Any(x => x.AccountId == role.AccountId))
             {
                 throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, role.AccountId));
             }
 
-            if (!_accountContext.TContact.Any(x => x.ContactId == role.ContactId))
+            if (!_accountContext.ContactEntity.Any(x => x.ContactId == role.ContactId))
             {
                 throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
             }
 
-            _accountContext.TRole.Add(role.MapRoleToRoleDb());
+            _accountContext.RoleEntity.Add(role.MapRoleToRoleDb());
             await _accountContext.SaveChangesAsync();
         }).ConfigureAwait(false);
     }
@@ -110,7 +109,7 @@ public class RoleRepository : IRoleRepository
     {
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            var roles = from r in _accountContext.TRole
+            var roles = from r in _accountContext.RoleEntity
                                where r.AccountId.Equals(accountId) && r.ContactId.Equals(contactId)
                                select r;
 
@@ -123,7 +122,7 @@ public class RoleRepository : IRoleRepository
             if (role.IsSignatory != isSignatory)
             {
                 role.IsSignatory = isSignatory;
-                _accountContext.TRole.Update(role);
+                _accountContext.RoleEntity.Update(role);
                 await _accountContext.SaveChangesAsync();
             }
         }).ConfigureAwait(false);

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Pulse.Account.Infrastructure.Entities;
 
-public partial class TDelegation
+public partial class DelegationEntity
 {
     /// <summary>
     /// L&apos;&apos;identifiant technique
@@ -52,9 +52,9 @@ public partial class TDelegation
     /// </summary>
     public DateTime CreationDate { get; set; }
 
-    public virtual TAccount Account { get; set; }
+    public virtual AccountEntity Account { get; set; }
 
-    public virtual TContact Delegatee { get; set; }
+    public virtual ContactEntity Delegatee { get; set; }
 
-    public virtual TContact Delegator { get; set; }
+    public virtual ContactEntity Delegator { get; set; }
 }

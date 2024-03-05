@@ -36,7 +36,7 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                var hubs = await _accountContext.THub.AsNoTracking().ToListAsync();
+                var hubs = await _accountContext.HubEntity.AsNoTracking().ToListAsync();
 
                 return hubs.MapHubEntitiesToHubs();
             }).ConfigureAwait(false);
@@ -46,7 +46,7 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                IQueryable<TNaf?> query = GetNafsWithCriteria(search);
+                IQueryable<NafEntity?> query = GetNafsWithCriteria(search);
 
                 var totalRows = await query.CountAsync();
 
@@ -61,9 +61,9 @@ namespace Pulse.Account.Infrastructure.Repositories
             }).ConfigureAwait(false);
         }
 
-        private IQueryable<TNaf?> GetNafsWithCriteria(string search)
+        private IQueryable<NafEntity?> GetNafsWithCriteria(string search)
         {
-            return _accountContext.TNaf.AsNoTracking()
+            return _accountContext.NafEntity.AsNoTracking()
                 .Where(n => n.NafCode.Contains(search ?? string.Empty));
         }
     }

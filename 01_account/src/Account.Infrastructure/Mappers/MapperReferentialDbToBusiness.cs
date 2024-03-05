@@ -10,12 +10,12 @@ namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapperReferentialDbToBusiness
     {
-        public static IEnumerable<Hub?> MapHubEntitiesToHubs(this IEnumerable<THub> source)
+        public static IEnumerable<Hub?> MapHubEntitiesToHubs(this IEnumerable<HubEntity> source)
         {
             return source?.Select(s => s.MapHubEntityToHub()) ?? Enumerable.Empty<Hub>();
         }
 
-        public static Hub? MapHubEntityToHub(this THub source)
+        public static Hub? MapHubEntityToHub(this HubEntity source)
         {
             return source == null ? null :
                 new Hub
@@ -25,7 +25,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 };
         }
 
-        public static Paging<Naf> MapToPagingNaf(this IEnumerable<TNaf?> source, int pageNumber, int totalRows, float totalPageCalcul)
+        public static Paging<Naf> MapToPagingNaf(this IEnumerable<NafEntity?> source, int pageNumber, int totalRows, float totalPageCalcul)
         {
             return new Paging<Naf>
             {
@@ -36,12 +36,12 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        public static IEnumerable<Naf> MapNafEntitiesToNafs(this IEnumerable<TNaf?> source)
+        public static IEnumerable<Naf> MapNafEntitiesToNafs(this IEnumerable<NafEntity?> source)
         {
             return source?.Select(s => s.MapNafEntityToNaf() !) ?? Enumerable.Empty<Naf>();
         }
 
-        public static Naf? MapNafEntityToNaf(this TNaf source)
+        public static Naf? MapNafEntityToNaf(this NafEntity source)
         {
             return (source == null) ? null :
                 new Naf

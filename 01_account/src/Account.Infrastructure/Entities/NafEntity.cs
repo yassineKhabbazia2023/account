@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Pulse.Account.Infrastructure.Entities;
 
-public partial class TNaf
+public partial class NafEntity
 {
     /// <summary>
     /// L&apos;&apos;identifiant technique
@@ -19,5 +19,5 @@ public partial class TNaf
 
     public string NafLabel { get; set; }
 
-    public virtual ICollection<TAccount> TAccount { get; set; } = new List<TAccount>();
+    public virtual ICollection<AccountEntity> AccountEntity { get; set; } = new List<AccountEntity>();
 }

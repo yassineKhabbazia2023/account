@@ -5,9 +5,7 @@
 using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using Newtonsoft.Json;
-using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
@@ -39,11 +37,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             using (var context = new AccountContext(_dbContextOptions))
             {
                 // Arrange
-                var accountsModel = _fixture.Create<List<TAccount>>();
-                context.TAccount.AddRange(accountsModel);
+                var accountsModel = _fixture.Create<List<AccountEntity>>();
+                context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
                 var accountRepository = new AccountRepository(context);
-                var contactId = accountsModel.Select(account => account.TRole.Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
+                var contactId = accountsModel.Select(account => account.RoleEntity.Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
                 var accountObject = accountsModel.Select(item => item.MapToAccount(contactId)) ?? Enumerable.Empty<AccountModel>();
                 Paging<AccountModel> accountPaging = new Paging<AccountModel>()
                 {
@@ -95,10 +93,10 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             using (var context = new AccountContext(_dbContextOptions))
             {
                 // Arrange
-                var accountsModel = _fixture.Create<List<TAccount>>();
+                var accountsModel = _fixture.Create<List<AccountEntity>>();
                 var accountFirst = accountsModel[0];
                 var accountDetail = accountFirst?.MapToAccountDetail();
-                context.TAccount.AddRange(accountsModel);
+                context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
                 var accountRepository = new AccountRepository(context);
 
@@ -136,10 +134,10 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             using (var context = new AccountContext(_dbContextOptions))
             {
                 // Arrange
-                var accountsModel = _fixture.Create<List<TAccount>>();
+                var accountsModel = _fixture.Create<List<AccountEntity>>();
                 var accountFirst = accountsModel[0];
                 var accountDetail = accountFirst?.MapToAccountDetail();
-                context.TAccount.AddRange(accountsModel);
+                context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
                 var accountRepository = new AccountRepository(context);
 
@@ -177,7 +175,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             using (var context = new AccountContext(_dbContextOptions))
             {
                 // Arrange
-                var accountsModel = _fixture.Create<List<TAccount>>();
+                var accountsModel = _fixture.Create<List<AccountEntity>>();
                 var accountFirst = accountsModel[0];
                 var accountDetail = accountFirst?.MapToAccountDetail();
                 if (accountDetail?.Accounting != null)
@@ -185,7 +183,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     accountDetail.Accounting.TaxationSystem = "Impot sur le revenu";
                 }
 
-                context.TAccount.AddRange(accountsModel);
+                context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
                 var accountRepository = new AccountRepository(context);
 
@@ -193,7 +191,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 await accountRepository.UpdateAccountAsync(accountDetail!.AccountId, accountDetail!);
 
                 // Assert
-                var updatedAccont = await context.TAccount.SingleAsync(a => a.AccountId == accountDetail.AccountId);
+                var updatedAccont = await context.AccountEntity.SingleAsync(a => a.AccountId == accountDetail.AccountId);
                 Assert.Equal(accountDetail?.AccountNumber, updatedAccont!.AccountNumber);
                 Assert.Equal(accountDetail?.AccountId, updatedAccont.AccountId);
                 Assert.Equal(accountDetail?.Accounting?.TaxationSystem, updatedAccont.TaxationSystem);
@@ -207,12 +205,12 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         {
             // Arrange
             using var context = new AccountContext(_dbContextOptions);
-            var accountsMock = _fixture.Create<List<TAccount>>();
-            context.TAccount.AddRange(accountsMock);
+            var accountsMock = _fixture.Create<List<AccountEntity>>();
+            context.AccountEntity.AddRange(accountsMock);
             context.SaveChanges();
 
             var accountRepository = new AccountRepository(context);
-            var data = accountsMock.First().TRole.ToList();
+            var data = accountsMock.First().RoleEntity.ToList();
             var resultExpected = new List<Contact>();
             resultExpected.AddRange(data.MapToContacts());
 
