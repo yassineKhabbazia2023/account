@@ -89,4 +89,19 @@ public class DelegationController : ControllerBase
 
         return Ok();
     }
+
+    /// <summary>
+    /// Récupérer l'historique des delegations d'une entité morale.
+    /// </summary>
+    /// <param name="accountId">L'identifiant de l'identité morale.</param>
+    /// <returns>Liste de délégations.</returns>
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Delegation>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyCollection<Delegation>>> GetAccountDelegationsHistoryAsync([FromQuery] int accountId)
+    {
+        var delegations = await _delegationService.GetAccountDelegationsHistoryAsync(accountId);
+        return Ok(delegations!);
+    }
 }

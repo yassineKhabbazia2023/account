@@ -66,31 +66,33 @@ namespace Pulse.Account.Infrastructure.Repositories
                     pageNumber,
                     totalItems,
                     totalPages);
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task<AccountDetail?> GetAccountAsync(int accountId)
         {
-            return await _retryPolicy.ExecuteAsync(async () =>
+            AccountEntity? account = null;
+            await _retryPolicy.ExecuteAsync(async () =>
             {
-                var account = await _accountContext.AccountEntity
+                account = await _accountContext.AccountEntity
                        .AsNoTracking()
                        .FirstOrDefaultAsync(a => a.AccountId == accountId);
+            });
 
-                if (account == null)
-                {
-                    throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
-                }
+            if (account == null)
+            {
+                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+            }
 
-                return account.MapToAccountDetail();
-            }).ConfigureAwait(false);
+            return account.MapToAccountDetail();
         }
 
         public async Task<AccountDetail?> GetAccountDetailAsync(int accountId)
         {
-            return await _retryPolicy.ExecuteAsync(async () =>
+            AccountEntity? account = null;
+            await _retryPolicy.ExecuteAsync(async () =>
             {
-                var account = await _accountContext.AccountEntity
+                account = await _accountContext.AccountEntity
                        .AsNoTracking()
                        .Include(x => x.RoleEntity)
                        .ThenInclude(r => r.Contact)
@@ -100,14 +102,14 @@ namespace Pulse.Account.Infrastructure.Repositories
                        .Include(x => x.Naf)
                        .Include(x => x.PhoneEntity)
                        .FirstOrDefaultAsync(a => a.AccountId == accountId);
+            });
 
-                if (account == null)
-                {
-                    throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
-                }
+            if (account == null)
+            {
+                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+            }
 
-                return account.MapToAccountDetail();
-            }).ConfigureAwait(false);
+            return account.MapToAccountDetail();
         }
 
         public async Task UpdateAccountAsync(int accountId, AccountDetail accountDetail)
@@ -118,7 +120,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 existingAccount.MapToUpdatedAccount(accountDetail);
                 _accountContext.AccountEntity.Update(existingAccount);
                 await _accountContext.SaveChangesAsync();
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId)
@@ -132,7 +134,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                     .ToListAsync();
 
                 return result.MapToContacts();
-            }).ConfigureAwait(false);
+            });
         }
 
         private IQueryable<AccountEntity> GetAccountQueryByContactId(int contactId)

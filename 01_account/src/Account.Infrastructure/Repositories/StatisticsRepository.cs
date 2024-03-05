@@ -46,7 +46,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 var countByStatus = await entities.ToDictionaryAsync(x => x.Status, x => x.Count);
 
                 return MapAccountDbToAccountModel.MapToStatistics(countByStatus);
-            }).ConfigureAwait(false);
+            });
         }
     }
 }

@@ -3,6 +3,7 @@
 // </copyright>
 
 using Kpmg.ExceptionMiddleware.AdvancedException;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -48,5 +49,15 @@ public class DelegationService : IDelegationService
     public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId)
     {
         return await _delegationRepository.GetDelegationsAsync(delegatorId, delegateeId);
+    }
+
+    public async Task<IReadOnlyCollection<Delegation>> GetAccountDelegationsHistoryAsync(int accountId)
+    {
+        if (!await _delegationRepository.DoesAccountExistAsync(accountId))
+        {
+            throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
+        }
+
+        return await _delegationRepository.GetAccountDelegationsHistoryAsync(accountId);
     }
 }

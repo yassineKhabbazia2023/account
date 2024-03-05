@@ -60,7 +60,7 @@ public class DelegationRepository : IDelegationRepository
             result = await _accountContext.SaveChangesAsync();
         });
 
-        return result;
+        return tDelegation.DelegationId;
     }
 
     public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(int delegateeId)
@@ -118,6 +118,36 @@ public class DelegationRepository : IDelegationRepository
         });
     }
 
+    public async Task<IReadOnlyCollection<Delegation>> GetAccountDelegationsHistoryAsync(int accountId)
+    {
+        var delegations = new List<DelegationEntity>();
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            delegations = await _accountContext
+                                        .DelegationEntity
+                                        .Where(d => d.AccountId == accountId)
+                                        .Include(d => d.Account)
+                                        .Include(d => d.Delegator)
+                                        .Include(d => d.Delegatee)
+                                        .ToListAsync();
+        });
+
+        return delegations.ToDelegations();
+    }
+
+    public async Task<bool> DoesAccountExistAsync(int accountId)
+    {
+        var validAccount = false;
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            validAccount = await _accountContext
+                                        .AccountEntity
+                                        .AnyAsync(d => d.AccountId == accountId);
+        });
+
+        return validAccount;
+    }
+
     private async Task<ContactEntity> GetContactAsync(int contactId)
     {
         var tContact = new ContactEntity();
@@ -146,7 +176,7 @@ public class DelegationRepository : IDelegationRepository
                                         .FirstOrDefaultAsync(d => d.AccountId == accountId);
         });
 
-        if(tAccount is null)
+        if (tAccount is null)
         {
             throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
         }

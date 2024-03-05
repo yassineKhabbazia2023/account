@@ -30,7 +30,7 @@ public class DelegationControllerTests
     }
 
     [Fact]
-    public async Task CreateDelegationAsync_When_Request_IsValide_Should_Create_Delegation()
+    public async Task CreateDelegationAsync_WhenRequestIsValid_ShouldCreateDelegation()
     {
         var createDelegation = _fixture.Build<CreateDelegationRequest>()
             .With(p => p.StartDate, DateTime.UtcNow)
@@ -58,7 +58,7 @@ public class DelegationControllerTests
     }
 
     [Fact]
-    public async Task CreateDelegationAsync_EndDateNull_ReturnOk()
+    public async Task CreateDelegationAsync_WhenEndDateIsNull_ShouldCreateDelegation()
     {
         var createDelegation = _fixture.Build<CreateDelegationRequest>()
             .With(p => p.StartDate, DateTime.UtcNow)
@@ -87,7 +87,7 @@ public class DelegationControllerTests
     }
 
     [Fact]
-    public void CreateDelegationAsync_InvalidEndDate_ThrowsException()
+    public void CreateDelegationAsync_WhenEndDateIsInvalid_ShouldThrowException()
     {
         // Arrange
         var createDelegation = _fixture.Build<CreateDelegationRequest>()
@@ -109,7 +109,7 @@ public class DelegationControllerTests
     }
 
     [Fact]
-    public void CreateDelegationAsync_InvalidStartDate_ThrowsException()
+    public void CreateDelegationAsync_WhenStartDateIsInvalid_ShouldThrowException()
     {
         // Arrange
         var createDelegation = _fixture.Build<CreateDelegationRequest>()
@@ -131,7 +131,7 @@ public class DelegationControllerTests
     }
 
     [Fact]
-    public async Task GetContactDelegationsAsync_Should_Return_ContactDelegations()
+    public async Task GetContactDelegationsAsync_WhenContactIdIsValid_ShouldReturnContactDelegations()
     {
         var contactId = 100;
         IReadOnlyCollection<Delegation> delegationlist = _fixture.Create<List<Delegation>>();
@@ -150,7 +150,7 @@ public class DelegationControllerTests
     }
 
     [Fact]
-    public async Task GetDelegationsAsync_Should_Return_Delegations()
+    public async Task GetDelegationsAsync_WhenRequestIsValid_ShouldReturnDelegations()
     {
         var delegatorId = 100;
         var delegateeId = 200;
@@ -174,7 +174,7 @@ public class DelegationControllerTests
     }
 
     [Fact]
-    public async Task DeleteDelegationAsync_ShouldReturnOkResult()
+    public async Task DeleteDelegationAsync_WenDelegationIdIsValid_ShouldDeleteDelegation()
     {
         _service.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
 
@@ -186,7 +186,7 @@ public class DelegationControllerTests
     }
 
     [Fact]
-    public async Task DeleteDelegationAsync_NonExistingId_ShouldReturnNotFoundException()
+    public async Task DeleteDelegationAsync_WhenDelegationIdIsInvalid_ShouldThrowException()
     {
         var exception = new NotFoundException(It.IsAny<string>(), It.IsAny<string>());
         _service.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).ThrowsAsync(exception);
@@ -197,5 +197,32 @@ public class DelegationControllerTests
 
         result.Code.Should().Be(exception.Code);
         result.Message.Should().Be(exception.Message);
+    }
+
+    [Fact]
+    public async Task GetAccountDelegationsHistoryAsync_WhenAccountIdIsValid_ShouldReturnAccountDelegationsHistory()
+    {
+        // Arrange
+        var accountId = 100;
+        IReadOnlyCollection<Delegation> delegations = _fixture.Create<List<Delegation>>();
+        var service = new Mock<IDelegationService>(MockBehavior.Strict);
+
+        service.Setup(x => x.GetAccountDelegationsHistoryAsync(It.IsAny<int>()))
+            .Callback<int>((id) =>
+            {
+                id.Should().Be(accountId);
+            })
+            .ReturnsAsync(delegations)
+            .Verifiable();
+
+        var controller = new DelegationController(service.Object);
+
+        // Act
+        var actionResult = await controller.GetAccountDelegationsHistoryAsync(accountId);
+
+        // Assert
+        actionResult.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
+        actionResult.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(delegations);
+        service.VerifyAll();
     }
 }

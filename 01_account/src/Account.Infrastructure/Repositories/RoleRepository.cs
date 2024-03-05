@@ -64,7 +64,7 @@ public class RoleRepository : IRoleRepository
                   totalRows,
                   totalPages);
 
-        }).ConfigureAwait(false);
+        });
     }
 
     public async Task<IEnumerable<Contact>> GetSignatoryAsync(int accountId)
@@ -83,7 +83,7 @@ public class RoleRepository : IRoleRepository
                 .ToListAsync();
 
             return result.MapToContacts();
-        }).ConfigureAwait(false);
+        });
     }
 
     public async Task CreateRoleAsync(CreateRoleRequest role)
@@ -102,7 +102,7 @@ public class RoleRepository : IRoleRepository
 
             _accountContext.RoleEntity.Add(role.MapRoleToRoleDb());
             await _accountContext.SaveChangesAsync();
-        }).ConfigureAwait(false);
+        });
     }
 
     public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
@@ -125,6 +125,6 @@ public class RoleRepository : IRoleRepository
                 _accountContext.RoleEntity.Update(role);
                 await _accountContext.SaveChangesAsync();
             }
-        }).ConfigureAwait(false);
+        });
     }
 }

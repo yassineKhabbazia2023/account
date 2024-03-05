@@ -16,4 +16,6 @@ public interface IDelegationService
     Task<int> CreateDelegationAsync(CreateDelegationRequest delegation);
 
     Task DeleteDelegationAsync(int delegationId);
+
+    Task<IReadOnlyCollection<Delegation>> GetAccountDelegationsHistoryAsync(int accountId);
 }

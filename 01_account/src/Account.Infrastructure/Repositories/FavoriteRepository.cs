@@ -46,7 +46,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                     }).ToListAsync();
 
                 return accountFavorite;
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task UpdateAccountFavoriteAsync(int accountId, int contactId, bool isFavorite)
@@ -64,7 +64,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                     _accountContext.RoleEntity.Update(existingRoleItem);
                     await _accountContext.SaveChangesAsync();
                 }
-            }).ConfigureAwait(false);
+            });
         }
 
         private IQueryable<AccountEntity> GetAccountQueryByContactId(int contactId)

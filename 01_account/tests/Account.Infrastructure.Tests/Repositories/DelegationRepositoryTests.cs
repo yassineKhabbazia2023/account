@@ -3,6 +3,7 @@
 // </copyright>
 
 using AutoFixture;
+using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,6 +16,7 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
@@ -36,7 +38,7 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task CreateDelegationAsync_When_Request_IsValide_Should_Create_Delegation()
+    public async Task CreateDelegationAsync_WhenRequestIsValid_ShouldCreateDelegation()
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
@@ -82,7 +84,7 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task CreateDelegationAsync_When_Delegator_NotExists__Should_ThrowException()
+    public async Task CreateDelegationAsync_WhenDelegatorDoesNotExist_ShouldThrowException()
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
@@ -114,7 +116,7 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task CreateDelegationAsync_When_Delegatee_NotExists__Should_ThrowException()
+    public async Task CreateDelegationAsync_WhenDelegateeNotExists_ShouldThrowException()
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
@@ -146,7 +148,7 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task CreateDelegationAsync_When_Account_NotExists__Should_ThrowException()
+    public async Task CreateDelegationAsync_WhenAccountNotExists_ShouldThrowException()
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
@@ -174,7 +176,7 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task GetContactDelegationsAsync_Should_Return_ContactDelegations()
+    public async Task GetContactDelegationsAsync_WhenContactIdIsValid_ShouldReturnContactDelegations()
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
@@ -221,7 +223,7 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task GetDelegationsAsync_Should_Return_Delegations()
+    public async Task GetDelegationsAsync_WhenRequestIsValid_ShouldReturnDelegations()
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
@@ -280,7 +282,7 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task DeleteDelegationAsync_WithDelegationIdFoundInDatabase_ShouldUpdateDelegationStatusToDisabled()
+    public async Task DeleteDelegationAsync_WhenDelegationIdIsValid_ShouldDeleteDelegation()
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
@@ -306,7 +308,7 @@ public class DelegationRepositoryTests
     [Theory]
     [InlineData(int.MinValue)]
     [InlineData(0)]
-    public async Task DeleteDelegationAsync_WithNegativeOrNullId_ShouldThrowBadRequestException(int delegationId)
+    public async Task DeleteDelegationAsync_WhenDelegationIdIsNegativeOrNull_ShouldThrowBadRequestException(int delegationId)
     {
         var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
 
@@ -317,7 +319,7 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task DeleteDelegationAsync_WithNotExistingDelegationId_ShouldThrowNotFoundException()
+    public async Task DeleteDelegationAsync_WhenDelegationIdIsInvalid_ShouldThrowNotFoundException()
     {
         var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
 
@@ -325,5 +327,85 @@ public class DelegationRepositoryTests
 
         Assert.Equal(Errors.NotFoundDelegationCode, result.Code);
         Assert.Equal(string.Format(Errors.NotFoundDelegationMessage, 1), result.Message);
+    }
+
+    [Fact]
+    public async Task GetAccountDelegationsHistoryAsync_WhenAccountIdIsValid_ShouldReturnDelegations()
+    {
+        // Arrange
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Create Account
+            var accountId = 18;
+            var tAccount = new AccountEntity
+            {
+                AccountId = accountId,
+                AccountNumber = "00001114455",
+                CreatedBy = "UnitTest@kpmg.fr",
+                Email = "account-mail@kpmg.fr",
+                LegalName = "Pulse",
+                SourceAccountNumber = "IBS",
+            };
+            context.AccountEntity.Add(tAccount);
+            await context.SaveChangesAsync();
+
+            var expectedDelegationsResult = new List<Delegation>();
+
+            var delegationStatus = new List<string> { "pending", "enabled", "disabled" };
+            for (var i = 1; i <= 10; i++)
+            {
+                var delegatorId = i * 10;
+                var delegateeId = i * 110;
+                context.ContactEntity.Add(new ContactEntity
+                {
+                    ContactId = delegatorId,
+                    ContactEmail = $"Contact-mail-{delegatorId}@kpmg.fr",
+                    FirstName = $"Contact-FN-{delegatorId}",
+                    LastName = $"Contact-LT-{delegatorId}",
+                    Type = "Customer",
+                });
+
+                context.ContactEntity.Add(new ContactEntity
+                {
+                    ContactId = delegateeId,
+                    ContactEmail = $"Contact-mail-{delegateeId}@kpmg.fr",
+                    FirstName = $"Contact-FN-{delegateeId}",
+                    LastName = $"Contact-LT-{delegateeId}",
+                    Type = "Customer",
+                });
+
+                await context.SaveChangesAsync();
+
+                Random random = new Random();
+                int randomStatusindex = random.Next(delegationStatus.Count);
+
+                // Try create a delegation
+                var tDelegation = new DelegationEntity
+                {
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddMonths(i),
+                    AccountId = accountId,
+                    DelegatorId = delegatorId,
+                    DelegateeId = delegateeId,
+                    Status = delegationStatus[randomStatusindex],
+                    Note = $"Note de {delegatorId}",
+                };
+
+                await context.DelegationEntity.AddRangeAsync(tDelegation);
+
+                expectedDelegationsResult.Add(tDelegation.ToDelegation() !);
+            }
+
+            await context.SaveChangesAsync();
+
+            var repository = new DelegationRepository(context);
+
+            // Act
+            var delegationList = await repository.GetAccountDelegationsHistoryAsync(accountId);
+
+            // Assert
+            Assert.Equal(10, delegationList.Count);
+            delegationList.Should().BeEquivalentTo(expectedDelegationsResult);
+        }
     }
 }

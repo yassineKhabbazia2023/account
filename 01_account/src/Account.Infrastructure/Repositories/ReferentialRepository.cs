@@ -39,7 +39,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 var hubs = await _accountContext.HubEntity.AsNoTracking().ToListAsync();
 
                 return hubs.MapHubEntitiesToHubs();
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task<Paging<Naf>> GetNafsAsync(string? search, int pageNumber, int pageSize)
@@ -58,7 +58,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 var nafs = await query.ToListAsync();
 
                 return nafs.MapToPagingNaf(pageNumber, totalRows, totalPages);
-            }).ConfigureAwait(false);
+            });
         }
 
         private IQueryable<NafEntity?> GetNafsWithCriteria(string search)
