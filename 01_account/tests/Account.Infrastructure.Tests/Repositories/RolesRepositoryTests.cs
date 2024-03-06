@@ -136,6 +136,9 @@ public class RolesRepositoryTests
             FirstName = "Contact-FN",
             LastName = "Contact-LT",
             Type = "Customer",
+            Status = "Declared",
+            PersonaName = "Collaborateur ESC",
+            CreationDate = DateTime.Now,
         });
 
         await accountContext.SaveChangesAsync();
@@ -171,6 +174,9 @@ public class RolesRepositoryTests
             FirstName = "Contact-FN",
             LastName = "Contact-LT",
             Type = "Customer",
+            Status = "Declared",
+            PersonaName = "Collaborateur ESC",
+            CreationDate = DateTime.Now,
         });
 
         await accountContext.SaveChangesAsync();
