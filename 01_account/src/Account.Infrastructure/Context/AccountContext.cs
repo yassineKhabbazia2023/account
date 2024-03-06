@@ -233,6 +233,7 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("l''adresse mail du contact");
             entity.Property(e => e.ContactGlobalUniqueId).HasComment("L''identifiant global du contact");
+            entity.Property(e => e.CreationDate).HasComment("La date de création de l''utilisateur");
             entity.Property(e => e.FirstName)
                 .IsRequired()
                 .HasMaxLength(50)
@@ -243,6 +244,17 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasComment("Le nom du contact");
+            entity.Property(e => e.PersonaName)
+                .IsRequired()
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasComment("Le nom du persona");
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValueSql("'Declared'")
+                .HasComment("Le statut de contact");
             entity.Property(e => e.Type)
                 .IsRequired()
                 .HasMaxLength(20)

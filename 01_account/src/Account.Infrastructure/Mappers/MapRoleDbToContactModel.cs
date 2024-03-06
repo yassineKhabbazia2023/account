@@ -22,6 +22,9 @@ namespace Pulse.Account.Infrastructure.Mappers
                 FirstName = source.Contact.FirstName,
                 LastName = source.Contact.LastName,
                 ContactEmail = source.Contact.ContactEmail,
+                Status = source.Contact.Status,
+                PersonaName = source.Contact.PersonaName,
+                CreationDate = source.Contact.CreationDate,
             };
         }
     }

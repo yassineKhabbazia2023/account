@@ -20,4 +20,10 @@ public class Contact
     public required string ContactEmail { get; set; }
 
     public string? Type { get; set; }
+
+    public string? Status { get; set; }
+
+    public string? PersonaName { get; set; }
+
+    public DateTime? CreationDate { get; set; }
 }

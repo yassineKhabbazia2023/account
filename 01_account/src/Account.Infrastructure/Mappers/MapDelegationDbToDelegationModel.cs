@@ -54,6 +54,9 @@ public static class MapDelegationDbToDelegationModel
                 FirstName = source.FirstName,
                 LastName = source.LastName,
                 Type = source.Type,
+                Status = source.Status,
+                PersonaName = source.PersonaName,
+                CreationDate = source.CreationDate,
             };
     }
 

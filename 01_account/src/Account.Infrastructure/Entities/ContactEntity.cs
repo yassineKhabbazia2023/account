@@ -37,6 +37,21 @@ public partial class ContactEntity
     /// </summary>
     public string Type { get; set; }
 
+    /// <summary>
+    /// Le statut de contact
+    /// </summary>
+    public string Status { get; set; }
+
+    /// <summary>
+    /// Le nom du persona
+    /// </summary>
+    public string PersonaName { get; set; }
+
+    /// <summary>
+    /// La date de création de l&apos;&apos;utilisateur
+    /// </summary>
+    public DateTime CreationDate { get; set; }
+
     public virtual ICollection<DelegationEntity> DelegationEntityDelegatee { get; set; } = new List<DelegationEntity>();
 
     public virtual ICollection<DelegationEntity> DelegationEntityDelegator { get; set; } = new List<DelegationEntity>();

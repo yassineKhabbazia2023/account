@@ -58,6 +58,9 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 ContactEmail = role.Contact.ContactEmail,
                 FirstName = role.Contact.FirstName,
                 LastName = role.Contact.LastName,
+                Status = role.Contact.Status,
+                PersonaName = role.Contact.PersonaName,
+                CreationDate = role.Contact.CreationDate,
             };
 
             // Act
@@ -80,6 +83,9 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                     ContactEmail = roles!.First().Contact.ContactEmail,
                     FirstName = roles!.First().Contact.FirstName,
                     LastName = roles!.First().Contact.LastName,
+                    Status = roles!.First().Contact.Status,
+                    PersonaName = roles!.First().Contact.PersonaName,
+                    CreationDate = roles!.First().Contact.CreationDate,
                 }
             };
 

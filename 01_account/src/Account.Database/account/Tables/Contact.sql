@@ -6,7 +6,11 @@
 	[LastName]				VARCHAR(50)			NOT NULL,
 	[ContactEmail]			VARCHAR(50)			NOT NULL,
 	[Type]                  VARCHAR(20)         NOT NULL, 
-    CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC)	
+	[Status]                VARCHAR(20)         NOT NULL    DEFAULT 'Declared', 
+	[PersonaName]           VARCHAR(50)         NOT NULL, 
+	[CreationDate]          DATETIME2           NOT NULL, 
+    CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC),
+    CONSTRAINT [CHK_Status] CHECK ([Status]= 'Connected' OR [Status]= 'Declared' OR [Status]= 'Invited')
 )
 
 GO
@@ -67,3 +71,30 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'Contact',
     @level2type = N'COLUMN',
     @level2name = N'Type'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Le statut de contact',
+    @level0type = N'SCHEMA',
+    @level0name = N'actor',
+    @level1type = N'TABLE',
+    @level1name = N'Contact',
+    @level2type = N'COLUMN',
+    @level2name = N'Status'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Le nom du persona',
+    @level0type = N'SCHEMA',
+    @level0name = N'actor',
+    @level1type = N'TABLE',
+    @level1name = N'Contact',
+    @level2type = N'COLUMN',
+    @level2name = N'PersonaName'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'La date de création de l''utilisateur',
+    @level0type = N'SCHEMA',
+    @level0name = N'actor',
+    @level1type = N'TABLE',
+    @level1name = N'Contact',
+    @level2type = N'COLUMN',
+    @level2name = N'CreationDate'
