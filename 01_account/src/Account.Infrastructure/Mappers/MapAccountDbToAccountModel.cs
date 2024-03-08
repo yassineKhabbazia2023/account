@@ -190,18 +190,19 @@ namespace Pulse.Account.Infrastructure.Mappers
             return new List<Naf> { naf };
         }
 
-        public static Statistics MapToStatistics(Dictionary<int, int> countByStatus)
+        public static Statistics MapToStatistics(Dictionary<int, int> countByAccountStatus, Dictionary<string, int> countByContactStatus)
         {
-            if (countByStatus == null || countByStatus.Count == 0)
-            {
-                return new Statistics();
-            }
+            countByAccountStatus = countByAccountStatus == null || countByAccountStatus.Count == 0 ? new Dictionary<int, int>() : countByAccountStatus;
+            countByContactStatus = countByContactStatus == null || countByContactStatus.Count == 0 ? new Dictionary<string, int>() : countByContactStatus;
 
             return new Statistics
             {
-                AccountToDeploy = countByStatus.TryGetValue(0, out var toDeploy) ? toDeploy : 0,
-                AccountInProgress = countByStatus.TryGetValue(1, out var inProgress) ? inProgress : 0,
-                AccountConnected = countByStatus.TryGetValue(2, out var connected) ? connected : 0
+                AccountToDeploy = countByAccountStatus.TryGetValue(0, out var toDeploy) ? toDeploy : 0,
+                AccountInProgress = countByAccountStatus.TryGetValue(1, out var inProgress) ? inProgress : 0,
+                AccountConnected = countByAccountStatus.TryGetValue(2, out var connected) ? connected : 0,
+                ContactConnected = countByContactStatus.TryGetValue("Connected", out var contactConnected) ? contactConnected : 0,
+                ContactDeclared = countByContactStatus.TryGetValue("Declared", out var contactDeclared) ? contactDeclared : 0,
+                ContactInvited = countByContactStatus.TryGetValue("Invited", out var contactInvited) ? contactInvited : 0
             };
         }
 

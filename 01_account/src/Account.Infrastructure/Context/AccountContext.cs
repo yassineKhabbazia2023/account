@@ -243,6 +243,11 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasComment("Le nom du contact");
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasComment("Le statut de contact");
             entity.Property(e => e.Type)
                 .IsRequired()
                 .HasMaxLength(20)

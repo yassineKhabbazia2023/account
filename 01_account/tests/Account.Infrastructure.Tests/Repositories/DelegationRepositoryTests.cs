@@ -363,6 +363,7 @@ public class DelegationRepositoryTests
                     FirstName = $"Contact-FN-{delegatorId}",
                     LastName = $"Contact-LT-{delegatorId}",
                     Type = "Customer",
+                    Status = "Declared"
                 });
 
                 context.ContactEntity.Add(new ContactEntity
@@ -372,6 +373,7 @@ public class DelegationRepositoryTests
                     FirstName = $"Contact-FN-{delegateeId}",
                     LastName = $"Contact-LT-{delegateeId}",
                     Type = "Customer",
+                    Status = "Declared"
                 });
 
                 await context.SaveChangesAsync();

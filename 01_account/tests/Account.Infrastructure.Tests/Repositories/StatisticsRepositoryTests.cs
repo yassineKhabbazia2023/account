@@ -36,17 +36,12 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     new()
                     {
                         AccountId = 2,
-                        Status = 1
-                    },
-                    new()
-                    {
-                        AccountId = 1,
-                        Status = 2
+                        Status = 0
                     },
                     new()
                     {
                         AccountId = 3,
-                        Status = 0,
+                        Status = 2,
                     }
                 };
                 var roles = new List<RoleEntity>
@@ -58,7 +53,12 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     },
                     new()
                     {
-                        ContactId = 1,
+                        ContactId = 2,
+                        AccountId = 1
+                    },
+                    new()
+                    {
+                        ContactId = 2,
                         AccountId = 2
                     },
                     new()
@@ -67,17 +67,42 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                         AccountId = 3
                     }
                 };
+                var contacts = new List<ContactEntity>
+                {
+                    new()
+                    {
+                        ContactId = 1,
+                        Status = "Declared",
+                        ContactEmail = "email1@abc.com",
+                        FirstName = "fname1",
+                        LastName = "lname1",
+                        Type = "Collaborators"
+                    },
+                    new()
+                    {
+                        ContactId = 2,
+                        Status = "Connected",
+                        ContactEmail = "email2@abc.com",
+                        FirstName = "fname2",
+                        LastName = "lname2",
+                        Type = "Client"
+                    }
+                };
                 var repository = new StatisticsRepository(context);
                 context.DeploymentEntity.AddRange(expected);
                 context.RoleEntity.AddRange(roles);
+                context.ContactEntity.AddRange(contacts);
                 await context.SaveChangesAsync();
 
-                var result = await repository.GetStatisticsAsync(1);
+                var result = await repository.GetStatisticsAsync(2);
 
                 Assert.NotNull(result);
-                Assert.Equal(0, result.AccountToDeploy);
+                Assert.Equal(1, result.AccountToDeploy);
                 Assert.Equal(1, result.AccountConnected);
-                Assert.Equal(2, result.AccountInProgress);
+                Assert.Equal(1, result.AccountInProgress);
+                Assert.Equal(0, result.ContactInvited);
+                Assert.Equal(0, result.ContactDeclared);
+                Assert.Equal(1, result.ContactConnected);
             }
         }
     }
