@@ -1,18 +1,4 @@
-﻿DECLARE @accountRothschild int, @accountRenault int, @accountAsltom int, @accountSrp int, @accountImagotag int, @accountFleury int, @accountChaussLouis int, @accountAbricotine int;
-DECLARE @accountMogador int, @accountNexity int;
-
-SET @accountRothschild = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999006639');
-SET @accountRenault = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999002380');
-SET @accountAsltom = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999005090');
-SET @accountSrp = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999012408');
-SET @accountImagotag = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1000310871');
-SET @accountFleury = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1000613508');
-SET @accountChaussLouis = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999032583');
-SET @accountAbricotine = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999117725');
-SET @accountMogador = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999154806');
-SET @accountNexity = (SELECT AccountId FROM account.Account WHERE AccountNumber = '1999003568');
-
-INSERT INTO account.Deployment (AccountId, DeploymentDate, Status)
+﻿INSERT INTO account.Deployment (AccountId, DeploymentDate, Status)
 VALUES
 (@accountRothschild, CAST ('2014-01-22' AS datetime2), 2),
 (@accountRenault, CAST ('2001-02-01' AS datetime2), 2),
