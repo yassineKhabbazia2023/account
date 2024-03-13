@@ -50,7 +50,7 @@ public static class MapDelegationDbToDelegationModel
             {
                 ContactId = source.ContactId,
                 GlobalContactId = source.ContactGlobalUniqueId,
-                ContactEmail = source.ContactEmail,
+                Email = source.Email,
                 FirstName = source.FirstName,
                 LastName = source.LastName,
                 Type = source.Type,

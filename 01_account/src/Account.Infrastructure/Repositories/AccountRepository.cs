@@ -50,7 +50,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                                   || n.SourceAccountNumber.Contains(search)
                                   || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search)
                                                       || role.Contact.LastName.Contains(search)
-                                                      || role.Contact.ContactEmail.Contains(search)))
+                                                      || role.Contact.Email.Contains(search)))
                             select n;
                 }
 

@@ -227,13 +227,13 @@ public partial class AccountContext : DbContext
             entity.HasIndex(e => e.ContactGlobalUniqueId, "IDX_Contact_ContactGlobalUniqueId");
 
             entity.Property(e => e.ContactId).HasComment("L''identifiant technique");
-            entity.Property(e => e.ContactEmail)
+            entity.Property(e => e.ContactGlobalUniqueId).HasComment("L''identifiant global du contact");
+            entity.Property(e => e.CreationDate).HasComment("La date de création du contact");
+            entity.Property(e => e.Email)
                 .IsRequired()
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasComment("l''adresse mail du contact");
-            entity.Property(e => e.ContactGlobalUniqueId).HasComment("L''identifiant global du contact");
-            entity.Property(e => e.CreationDate).HasComment("La date de création de l''utilisateur");
             entity.Property(e => e.FirstName)
                 .IsRequired()
                 .HasMaxLength(50)
@@ -253,7 +253,6 @@ public partial class AccountContext : DbContext
                 .IsRequired()
                 .HasMaxLength(20)
                 .IsUnicode(false)
-                .HasDefaultValueSql("'Declared'")
                 .HasComment("Le statut de contact");
             entity.Property(e => e.Type)
                 .IsRequired()

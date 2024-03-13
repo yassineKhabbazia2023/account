@@ -4,9 +4,9 @@
 	[ContactGlobalUniqueId]	UNIQUEIDENTIFIER	NOT NULL,
 	[FirstName]				VARCHAR(50)			NOT NULL,
 	[LastName]				VARCHAR(50)			NOT NULL,
-	[ContactEmail]			VARCHAR(50)			NOT NULL,
+	[Email]     			VARCHAR(50)			NOT NULL,
 	[Type]                  VARCHAR(20)         NOT NULL, 
-	[Status]                VARCHAR(20)         NOT NULL    DEFAULT 'Declared', 
+	[Status]                VARCHAR(20)         NOT NULL, 
 	[PersonaName]           VARCHAR(50)         NOT NULL, 
 	[CreationDate]          DATETIME2           NOT NULL, 
     CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC),
@@ -61,7 +61,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1type = N'TABLE',
     @level1name = N'Contact',
     @level2type = N'COLUMN',
-    @level2name = N'ContactEmail'
+    @level2name = N'Email'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'Le type de contact',
@@ -91,7 +91,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level2name = N'PersonaName'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'La date de création de l''utilisateur',
+    @value = N'La date de création du contact',
     @level0type = N'SCHEMA',
     @level0name = N'actor',
     @level1type = N'TABLE',

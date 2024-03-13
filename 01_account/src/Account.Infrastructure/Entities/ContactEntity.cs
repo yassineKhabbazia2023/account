@@ -30,7 +30,7 @@ public partial class ContactEntity
     /// <summary>
     /// l&apos;&apos;adresse mail du contact
     /// </summary>
-    public string ContactEmail { get; set; }
+    public string Email { get; set; }
 
     /// <summary>
     /// Le type de contact
@@ -48,7 +48,7 @@ public partial class ContactEntity
     public string PersonaName { get; set; }
 
     /// <summary>
-    /// La date de création de l&apos;&apos;utilisateur
+    /// La date de création du contact
     /// </summary>
     public DateTime CreationDate { get; set; }
 
