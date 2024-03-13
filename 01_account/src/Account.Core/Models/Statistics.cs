@@ -11,5 +11,11 @@ namespace Pulse.Account.Core.Models
         public int AccountInProgress { get; set; }
 
         public int AccountConnected { get; set; }
+
+        public int ContactDeclared { get; set; }
+
+        public int ContactInvited { get; set; }
+
+        public int ContactConnected { get; set; }
     }
 }

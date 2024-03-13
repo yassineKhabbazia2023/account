@@ -3,13 +3,14 @@
 // </copyright>
 
 using Microsoft.Data.SqlClient;
-using Polly.Retry;
+using Microsoft.EntityFrameworkCore;
 using Polly;
+using Polly.Retry;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
-using Pulse.Account.Core.Constants;
-using Microsoft.EntityFrameworkCore;
+using Pulse.Account.Infrastructure.Enum;
 using Pulse.Account.Infrastructure.Mappers;
 
 namespace Pulse.Account.Infrastructure.Repositories
@@ -34,7 +35,16 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                var entities = _accountContext.DeploymentEntity
+                var accountStats = await GetAccountStatistics(contactId);
+                var contactStats = await GetContactStatistics(contactId);
+
+                return MapAccountDbToAccountModel.MapToStatistics(accountStats!, contactStats!);
+            });
+        }
+
+        private async Task<Dictionary<int, int>?> GetAccountStatistics(int contactId)
+        {
+            var entities = _accountContext.DeploymentEntity
                     .Join(_accountContext.RoleEntity,
                         deployment => deployment.AccountId,
                         role => role.AccountId,
@@ -43,10 +53,33 @@ namespace Pulse.Account.Infrastructure.Repositories
                     .GroupBy(x => x.deployment.Status)
                     .Select(s => new { Status = s.Key, Count = s.Select(d => d.deployment.Status).Count() });
 
-                var countByStatus = await entities.ToDictionaryAsync(x => x.Status, x => x.Count);
+            return await entities.ToDictionaryAsync(x => x
+            .Status, x => x.Count);
+        }
 
-                return MapAccountDbToAccountModel.MapToStatistics(countByStatus);
-            });
+        private async Task<Dictionary<string, int>?> GetContactStatistics(int contactId)
+        {
+            var accountIds = _accountContext.RoleEntity
+                .Where(r => r.ContactId == contactId)
+                .Select(r => r.AccountId);
+
+            var contactIds = accountIds
+                .Join(_accountContext.RoleEntity,
+                    ids => ids,
+                    role => role.AccountId,
+                    (ids, role) => role)
+                .Select(r => r.ContactId).Distinct();
+
+            var contactStatusStatistics = contactIds
+                .Join(_accountContext.ContactEntity,
+                    ids => ids,
+                    contact => contact.ContactId,
+                    (role, contact) => contact)
+                .Where(contact => contact.Type == ContactType.Client.ToString())
+                .GroupBy(x => x.Status)
+                .Select(s => new { Status = s.Key, Count = s.Select(d => d.Status).Count() });
+
+            return await contactStatusStatistics.ToDictionaryAsync(x => x.Status, x => x.Count);
         }
     }
 }

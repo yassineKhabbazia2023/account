@@ -10,6 +10,7 @@
 	[PersonaName]           VARCHAR(50)         NOT NULL, 
 	[CreationDate]          DATETIME2           NOT NULL, 
     CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC),
+    CONSTRAINT [CHK_Type] CHECK ([Type]= 'Client' OR [Type]= 'Collaborator'),
     CONSTRAINT [CHK_Status] CHECK ([Status]= 'Connected' OR [Status]= 'Declared' OR [Status]= 'Invited')
 )
 
