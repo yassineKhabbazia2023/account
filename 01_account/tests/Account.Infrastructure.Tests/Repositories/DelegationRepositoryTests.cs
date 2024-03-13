@@ -359,21 +359,25 @@ public class DelegationRepositoryTests
                 context.ContactEntity.Add(new ContactEntity
                 {
                     ContactId = delegatorId,
-                    ContactEmail = $"Contact-mail-{delegatorId}@kpmg.fr",
+                    Email = $"Contact-mail-{delegatorId}@kpmg.fr",
                     FirstName = $"Contact-FN-{delegatorId}",
                     LastName = $"Contact-LT-{delegatorId}",
                     Type = "Customer",
-                    Status = "Declared"
+                    Status = "Declared",
+                    PersonaName = "Collaborateur ESC",
+                    CreationDate = DateTime.UtcNow,
                 });
 
                 context.ContactEntity.Add(new ContactEntity
                 {
                     ContactId = delegateeId,
-                    ContactEmail = $"Contact-mail-{delegateeId}@kpmg.fr",
+                    Email = $"Contact-mail-{delegateeId}@kpmg.fr",
                     FirstName = $"Contact-FN-{delegateeId}",
                     LastName = $"Contact-LT-{delegateeId}",
                     Type = "Customer",
-                    Status = "Declared"
+                    Status = "Declared",
+                    PersonaName = "Collaborateur ESC",
+                    CreationDate = DateTime.UtcNow,
                 });
 
                 await context.SaveChangesAsync();

@@ -13,7 +13,7 @@
       "signatory": {
         "firstName": "Benjamin",
         "lastName": "Wacquet",
-        "contactEmail": "benjamin.wacquet@outlook.com",
+        "email": "benjamin.wacquet@outlook.com",
         "phoneNumber": "0627856430"
       },
       "deployment": [
@@ -35,7 +35,7 @@
       "signatory": {
         "firstName": "Cadio",
         "lastName": "Mika�l",
-        "contactEmail": "contact@cajam.com",
+        "email": "contact@cajam.com",
         "phoneNumber": "0627856431"
       },
       "deployment": [
@@ -57,7 +57,7 @@
       "signatory": {
         "firstName": "Vassel",
         "lastName": "Laura",
-        "contactEmail": "laurav50@hotmail.fr",
+        "email": "laurav50@hotmail.fr",
         "phoneNumber": "0627856432"
       },
       "deployment": [
@@ -79,7 +79,7 @@
       "signatory": {
         "firstName": "Sonnet",
         "lastName": "Val�rie",
-        "contactEmail": "2cgestionvsonnet@orange.fr",
+        "email": "2cgestionvsonnet@orange.fr",
         "phoneNumber": "0627856433"
       },
       "deployment": [

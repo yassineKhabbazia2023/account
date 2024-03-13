@@ -30,7 +30,7 @@ public partial class ContactEntity
     /// <summary>
     /// l&apos;&apos;adresse mail du contact
     /// </summary>
-    public string ContactEmail { get; set; }
+    public string Email { get; set; }
 
     /// <summary>
     /// Le type de contact
@@ -41,6 +41,16 @@ public partial class ContactEntity
     /// Le statut de contact
     /// </summary>
     public string Status { get; set; }
+
+    /// <summary>
+    /// Le nom du persona
+    /// </summary>
+    public string PersonaName { get; set; }
+
+    /// <summary>
+    /// La date de création du contact
+    /// </summary>
+    public DateTime CreationDate { get; set; }
 
     public virtual ICollection<DelegationEntity> DelegationEntityDelegatee { get; set; } = new List<DelegationEntity>();
 

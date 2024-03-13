@@ -73,19 +73,23 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     {
                         ContactId = 1,
                         Status = "Declared",
-                        ContactEmail = "email1@abc.com",
+                        Email = "email1@abc.com",
                         FirstName = "fname1",
                         LastName = "lname1",
-                        Type = "Collaborators"
+                        Type = "Collaborators",
+                        PersonaName = "Persona1",
+                        CreationDate = DateTime.UtcNow
                     },
                     new()
                     {
                         ContactId = 2,
                         Status = "Connected",
-                        ContactEmail = "email2@abc.com",
+                        Email = "email2@abc.com",
                         FirstName = "fname2",
                         LastName = "lname2",
-                        Type = "Client"
+                        Type = "Client",
+                        PersonaName = "Persona1",
+                        CreationDate = DateTime.UtcNow
                     }
                 };
                 var repository = new StatisticsRepository(context);

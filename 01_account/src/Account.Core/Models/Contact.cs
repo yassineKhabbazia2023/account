@@ -17,7 +17,13 @@ public class Contact
 
     public required string LastName { get; set; }
 
-    public required string ContactEmail { get; set; }
+    public required string Email { get; set; }
 
     public string? Type { get; set; }
+
+    public string? Status { get; set; }
+
+    public string? PersonaName { get; set; }
+
+    public DateTime? CreationDate { get; set; }
 }

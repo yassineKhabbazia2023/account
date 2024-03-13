@@ -81,7 +81,7 @@ namespace Pulse.Account.Infrastructure.Mappers
         {
             return tContact == null ? null : new Contact
             {
-                ContactEmail = tContact.ContactEmail,
+                Email = tContact.Email,
                 FirstName = tContact.FirstName,
                 LastName = tContact.LastName
             };

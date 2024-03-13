@@ -132,11 +132,13 @@ public class RolesRepositoryTests
         accountContext.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
-            ContactEmail = "Contact-mail@kpmg.fr",
+            Email = "Contact-mail@kpmg.fr",
             FirstName = "Contact-FN",
             LastName = "Contact-LT",
             Type = "Customer",
-            Status = "Declared"
+            Status = "Declared",
+            PersonaName = "Collaborateur ESC",
+            CreationDate = DateTime.UtcNow,
         });
 
         await accountContext.SaveChangesAsync();
@@ -168,11 +170,13 @@ public class RolesRepositoryTests
         accountContext.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
-            ContactEmail = "Contact-mail@kpmg.fr",
+            Email = "Contact-mail@kpmg.fr",
             FirstName = "Contact-FN",
             LastName = "Contact-LT",
             Type = "Customer",
-            Status = "Declared"
+            Status = "Declared",
+            PersonaName = "Collaborateur ESC",
+            CreationDate = DateTime.UtcNow,
         });
 
         await accountContext.SaveChangesAsync();

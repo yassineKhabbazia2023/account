@@ -55,9 +55,12 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             var expected = new Contact
             {
                 ContactId = role!.ContactId,
-                ContactEmail = role.Contact.ContactEmail,
+                Email = role.Contact.Email,
                 FirstName = role.Contact.FirstName,
                 LastName = role.Contact.LastName,
+                Status = role.Contact.Status,
+                PersonaName = role.Contact.PersonaName,
+                CreationDate = role.Contact.CreationDate,
             };
 
             // Act
@@ -77,9 +80,12 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 new Contact()
                 {
                     ContactId = roles!.First().ContactId,
-                    ContactEmail = roles!.First().Contact.ContactEmail,
+                    Email = roles!.First().Contact.Email,
                     FirstName = roles!.First().Contact.FirstName,
                     LastName = roles!.First().Contact.LastName,
+                    Status = roles!.First().Contact.Status,
+                    PersonaName = roles!.First().Contact.PersonaName,
+                    CreationDate = roles!.First().Contact.CreationDate,
                 }
             };
 
