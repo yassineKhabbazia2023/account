@@ -3,6 +3,7 @@
 // </copyright>
 
 using System.Text.Json;
+using AutoFixture;
 using Moq;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -13,23 +14,21 @@ namespace Pulse.Account.Core.Tests.Services
     public class FavoriteServiceTests
     {
         private Mock<IFavoriteRepository> _favoriteRepository;
-        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
+        private readonly Fixture _fixture;
 
         public FavoriteServiceTests()
         {
             _favoriteRepository = new Mock<IFavoriteRepository>(MockBehavior.Strict);
+            _fixture = new Fixture();
+            _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
+            _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         }
 
         [Fact]
         public async Task Should_GetAccountFavoriteList_ReturnsOkResultAsync()
         {
-            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountFavoriteMocked.json");
-            var accountFavoriteList = JsonSerializer.Deserialize<List<AccountFavorite>>(accountMocked, _jsonOptions) ?? new List<AccountFavorite>();
-            _favoriteRepository.Setup(repository => repository.GetAccountFavoritesByContactIdAsync(It.IsAny<int>())).ReturnsAsync(accountFavoriteList);
+            var listAccountFavoriteMocked = _fixture.Create<List<AccountFavorite>>();
+            _favoriteRepository.Setup(repository => repository.GetAccountFavoritesByContactIdAsync(It.IsAny<int>())).ReturnsAsync(listAccountFavoriteMocked);
 
             var accountService = new FavoriteService(_favoriteRepository.Object);
 
@@ -37,7 +36,7 @@ namespace Pulse.Account.Core.Tests.Services
             var accountsFavorite = await accountService.GetAccountFavoritesByContactIdAsync(contactId: 1);
 
             // Assert
-            Assert.Equal(accountFavoriteList, accountsFavorite);
+            Assert.Equal(listAccountFavoriteMocked, accountsFavorite);
         }
 
         [Fact]

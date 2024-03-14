@@ -4,6 +4,7 @@
 
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Enum;
 
 namespace Pulse.Account.Infrastructure.Mappers;
 
@@ -60,9 +61,10 @@ public static class MapDelegationDbToDelegationModel
             };
     }
 
-    public static ICollection<Address> ToAddress(this ICollection<AddressEntity> source)
+    public static Address ToAddress(this ICollection<AddressEntity> source)
     {
-        return source?.Select(d => d.ToAddress() !).ToList() ?? new List<Address>();
+        var addressEntity = source?.FirstOrDefault(s => s.AddressType == AddressType.Delivery.ToString());
+        return ToAddress(addressEntity!) !;
     }
 
     private static Address? ToAddress(this AddressEntity source)

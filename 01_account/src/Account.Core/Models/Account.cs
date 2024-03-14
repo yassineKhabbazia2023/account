@@ -2,14 +2,13 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.ComponentModel.DataAnnotations;
-using System.Security.Principal;
-
 namespace Pulse.Account.Core.Models
 {
     public class Account
     {
         public int AccountId { get; set; }
+
+        public Guid AccountGlobalUniqueId { get; set; }
 
         public string? AccountNumber { get; set; }
 
@@ -17,7 +16,7 @@ namespace Pulse.Account.Core.Models
 
         public bool? IsFavorite { get; set; }
 
-        public IEnumerable<Address>? Address { get; set; }
+        public Address? Address { get; set; }
 
         public Contact? Signatory { get; set; }
 

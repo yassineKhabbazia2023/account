@@ -5,6 +5,7 @@
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Enum;
 
 namespace Pulse.Account.Infrastructure.Mappers
 {
@@ -46,10 +47,11 @@ namespace Pulse.Account.Infrastructure.Mappers
                 new Core.Models.Account
                 {
                     AccountId = source.AccountId,
+                    AccountGlobalUniqueId = source.AccountGlobalUniqueId,
                     AccountNumber = source.AccountNumber,
                     LegalName = source.LegalName,
                     IsFavorite = currentContact?.IsFavorite,
-                    Address = source.MapToAddress(),
+                    Address = source.MapToAddressDelivery(),
                     Signatory = signatory?.Contact.MapToContact(),
                     Deployment = source.MapToDeploymentPlanning(),
                 };
@@ -81,6 +83,8 @@ namespace Pulse.Account.Infrastructure.Mappers
         {
             return tContact == null ? null : new Contact
             {
+                ContactId = tContact.ContactId,
+                GlobalContactId = tContact.ContactGlobalUniqueId,
                 Email = tContact.Email,
                 FirstName = tContact.FirstName,
                 LastName = tContact.LastName
@@ -107,6 +111,29 @@ namespace Pulse.Account.Infrastructure.Mappers
                     PhoneNumber = phone.PhoneNumber,
                     Type = phone.Type,
                 });
+        }
+
+        private static Address MapToAddressDelivery(this AccountEntity tAccount)
+        {
+            if (tAccount == null)
+            {
+                return new Address();
+            }
+
+            var address = tAccount.AddressEntity.FirstOrDefault(address => address.AddressType == AddressType.Delivery.ToString());
+
+            return address == null ? new Address() : new Address
+            {
+                AddressId = address!.AddressId,
+                Country = address.Country,
+                City = address.City,
+                State = address.State,
+                AddressLine1 = address.AddressLine1,
+                AddressLine2 = address.AddressLine2,
+                AddressLine3 = address.AddressLine3,
+                ZipCode = address.ZipCode,
+                AddressType = address.AddressType
+            };
         }
 
         private static IEnumerable<Address>? MapToAddress(this AccountEntity tAccount)

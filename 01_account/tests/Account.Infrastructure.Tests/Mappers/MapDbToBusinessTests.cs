@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Enum;
 using Pulse.Account.Infrastructure.Mappers;
 
 namespace Pulse.Account.Infrastructure.Tests.Mappers
@@ -31,7 +32,10 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapToAccount_ShouldReturnAccountModel()
         {
             // Arrange
-            var tAccountFixture = _fixture.Create<AccountEntity>();
+            var addressEntity = _fixture.Build<AddressEntity>().With(a => a.AddressType, AddressType.Delivery.ToString()).Create();
+            var addressList = new List<AddressEntity>();
+            addressList!.Add(addressEntity);
+            var tAccountFixture = _fixture.Build<AccountEntity>().With(a => a.AddressEntity, addressList).Create();
             var expectedAccount = new Core.Models.Account();
             expectedAccount.LegalName = tAccountFixture.LegalName;
             expectedAccount.AccountId = tAccountFixture.AccountId;
@@ -47,14 +51,14 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 AddressLine2 = address.AddressLine2,
                 AddressLine3 = address.AddressLine3,
                 ZipCode = address.ZipCode
-            });
+            }).First();
 
             // Act
             var accountModel = MapAccountDbToAccountModel.MapToAccount(tAccountFixture, 0);
 
             // Assert
             var accountAddressExpect = JsonConvert.SerializeObject(expectedAccount.Address);
-            var accountAddressReceived = JsonConvert.SerializeObject(accountModel.Address);
+            var accountAddressReceived = JsonConvert.SerializeObject(accountModel!.Address);
             Assert.Equal(accountAddressExpect, accountAddressReceived);
             Assert.Equal(expectedAccount.LegalName, accountModel.LegalName);
             Assert.Equal(expectedAccount.AccountNumber, accountModel.AccountNumber);

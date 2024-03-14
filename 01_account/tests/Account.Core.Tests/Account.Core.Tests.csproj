@@ -10,30 +10,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="MockedResponses\AccountDetailMocked.json" />
-	  <None Remove="MockedResponses\AccountFavoriteMocked.json" />
-	  <None Remove="MockedResponses\AccountListMocked.json" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Content Include="MockedResponses\AccountDetailMocked.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </Content>
-	  <Content Include="MockedResponses\AccountFavoriteMocked.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </Content>
-	  <Content Include="MockedResponses\AccountListMocked.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </Content>
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="AutoFixture" Version="4.18.0" />
 		<PackageReference Include="FluentAssertions" Version="6.12.0" />
 		<PackageReference Include="Kpmg.ExceptionMiddleware" Version="1.47.0" />

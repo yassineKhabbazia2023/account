@@ -10,6 +10,7 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Enum;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
 using AccountModel = Pulse.Account.Core.Models.Account;
@@ -38,6 +39,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             {
                 // Arrange
                 var accountsModel = _fixture.Create<List<AccountEntity>>();
+                accountsModel.First().AddressEntity.First().AddressType = AddressType.Delivery.ToString();
                 context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
                 var accountRepository = new AccountRepository(context);

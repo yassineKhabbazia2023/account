@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Net;
 using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
@@ -10,12 +9,12 @@ using Kpmg.ExceptionMiddleware.AdvancedException;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
-using AccountModel = Pulse.Account.Core.Models.Account;
+using Pulse.Account.Infrastructure.Entities;
 
 namespace Account.Api.Tests.Controllers
 {
@@ -27,14 +26,20 @@ namespace Account.Api.Tests.Controllers
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
+        private Fixture _fixture;
+
+        public RolesControllerTests()
+        {
+            _fixture = new Fixture();
+        }
+
         [Fact]
         public async Task GetContactRoles_Should_ReturnsOkResultAsync()
         {
             // Arrange
-            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountListMocked.json");
-            var accountList = JsonSerializer.Deserialize<Paging<AccountModel>>(accountMocked, _jsonOptions) ?? new Paging<AccountModel>();
+            var accountMocked = _fixture.Create<Paging<Pulse.Account.Core.Models.Account>>();
             var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
-            rolesService.Setup(service => service.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(accountList);
+            rolesService.Setup(service => service.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(accountMocked);
 
             var rolesController = new RolesController(rolesService.Object);
 
@@ -43,7 +48,7 @@ namespace Account.Api.Tests.Controllers
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
-            Assert.Equal(accountList, resultAccounts?.Value);
+            Assert.Equal(accountMocked, resultAccounts?.Value);
         }
 
         [Fact]

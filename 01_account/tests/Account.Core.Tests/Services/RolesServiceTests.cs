@@ -20,18 +20,12 @@ namespace Pulse.Account.Core.Tests.Services;
 
 public class RolesServiceTests
 {
-    private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-    };
-
     [Fact]
     public async Task GetContactRolesAsync_Should_ReturnsOkResultAsync()
     {
         // Arrange
-        string accountMocked = File.ReadAllText(@"./MockedResponses/AccountListMocked.json");
-        var accountList = JsonSerializer.Deserialize<Paging<AccountModel>>(accountMocked, _jsonOptions) ?? new Paging<AccountModel>();
+        var fixture = new Fixture();
+        var accountList = fixture.Create<Paging<AccountModel>>();
         var rolesRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         rolesRepository.Setup(repository => repository.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(accountList);
 

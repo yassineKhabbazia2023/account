@@ -3,110 +3,147 @@
 // </copyright>
 
 using System.Text.Json;
-using Pulse.Account.API;
-using Pulse.Account.API.Controllers;
-using Pulse.Account.Core.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Moq;
-using Pulse.Account.Core.Interfaces;
-using Pulse.Account.Core.Models.Utils;
-using AccountModel = Pulse.Account.Core.Models.Account;
 using AutoFixture;
-using Microsoft.AspNetCore.JsonPatch;
 using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using Pulse.Account.API;
+using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Services;
+using Pulse.Account.Infrastructure.Context;
+using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Mappers;
+using Pulse.Account.Infrastructure.Repositories;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Account.Api.Tests.Controllers
 {
     public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
-        private readonly Mock<IAccountService> _accountService;
+        private readonly Fixture _fixture;
+        private readonly DbContextOptions<AccountContext> _dbContextOptions;
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
+        private AccountController _accountController;
+        private AccountContext _context;
+
         public AccountControllerTests()
         {
-            _accountService = new Mock<IAccountService>(MockBehavior.Strict);
+            _fixture = new Fixture();
+            _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
+            _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            _dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            _context = InitContext();
+            var accountRepository = new AccountRepository(_context);
+            var accountService = new AccountService(accountRepository);
+            _accountController = new AccountController(accountService);
+        }
+
+        ~AccountControllerTests()
+        {
+            _context.Dispose();
+        }
+
+        private AccountContext InitContext()
+        {
+            var context = new AccountContext(_dbContextOptions);
+            var accountsModel = _fixture.Create<List<AccountEntity>>();
+            var contactsModel = _fixture.Create<List<ContactEntity>>();
+
+            context.AccountEntity.AddRange(accountsModel);
+            context.ContactEntity.AddRange(contactsModel);
+            context.SaveChanges();
+            return context;
         }
 
         [Fact]
         public async Task Should_GetAccountList_ReturnsOkResultAsync()
         {
             // Arrange
-            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountListMocked.json");
-            var accountList = JsonSerializer.Deserialize<Paging<AccountModel>>(accountMocked, _jsonOptions) ?? new Paging<AccountModel>();
-            _accountService.Setup(service => service.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(accountList);
-
-            var accountController = new AccountController(_accountService.Object);
+            var account = _context.AccountEntity.First();
+            var contact = _context.ContactEntity.First();
+            var role = _fixture.Build<RoleEntity>()
+                .With(r => r.Account, account)
+                .With(r => r.AccountId, account.AccountId)
+                .With(r => r.Contact, contact)
+                .With(r => r.ContactId, contact.ContactId)
+                .Create();
+            _context.RoleEntity.Add(role);
+            _context.SaveChanges();
 
             // Act
-            var accounts = await accountController.GetAccountsAsync(search: string.Empty, contactId: 123, pageNumber: 1, pageSize: 4);
+            var accounts = await _accountController.GetAccountsAsync(search: string.Empty, contactId: contact.ContactId, pageNumber: 1, pageSize: 4);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
-            Assert.Equal(accountList, resultAccounts?.Value);
+            Assert.Equal(account.AccountId, resultAccounts!.Value.As<Paging<AccountModel>>().Items!.First().AccountId);
         }
 
         [Fact]
         public async Task Should_GetAccountDetail_ReturnsOkResultAsync()
         {
             // Arrange
-            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
-            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
-            _accountService.Setup(service => service.GetAccountDetailAsync(It.IsAny<int>())).ReturnsAsync(accountDetail);
-
-            var accountController = new AccountController(_accountService.Object);
+            var accountMocked = _context.AccountEntity.First();
 
             // Act
-            var accounts = await accountController.GetAccountDetailAsync(1);
-            var resultAccounts = accounts?.Result as OkObjectResult;
+            var account = await _accountController.GetAccountDetailAsync(accountMocked.AccountId);
+            var resultAccounts = account?.Result as OkObjectResult;
 
             // Assert
-            Assert.Equal(accountDetail, resultAccounts?.Value);
+            Assert.Equivalent(MapAccountDbToAccountModel.MapToAccountDetail(accountMocked), resultAccounts!.Value.As<AccountDetail>());
         }
 
         [Fact]
         public async Task Should_UpdateAccount_ReturnsOkResultAsync()
         {
             // Arrange
-            string accountMocked = File.ReadAllText(@"./MockedResponses/AccountDetailMocked.json");
-
-            var accountDetail = JsonSerializer.Deserialize<AccountDetail>(accountMocked, _jsonOptions) ?? new AccountDetail();
-            _accountService.Setup(service => service.GetAccountAsync(It.IsAny<int>())).ReturnsAsync(accountDetail);
-            _accountService.Setup(service => service.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>()))
-                .Callback<int, AccountDetail>((id, account) =>
-                {
-                    id.Should().Be(accountDetail.AccountId);
-                })
-                .Returns(Task.CompletedTask);
+            var accountId = _context.AccountEntity.First().AccountId;
+            var newHub = _fixture.Create<HubEntity>();
+            _context.HubEntity.Add(newHub);
+            _context.SaveChanges();
 
             var jsonPatch = new JsonPatchDocument<AccountDetail>();
-            jsonPatch.Replace(a => a.Hub, accountDetail.Hub);
-            jsonPatch.Replace(a => a.Accounting, accountDetail.Accounting);
-            jsonPatch.Replace(a => a.Legal!.StaffSizeRange, accountDetail.Legal?.StaffSizeRange);
-            var accountController = new AccountController(_accountService.Object);
+            jsonPatch.Replace(a => a.Hub, new Hub() { HubId = newHub.HubId, HubName = newHub.HubName });
 
             // Act
-            var result = await accountController.UpdateAccountAsync(accountId: accountDetail.AccountId, jsonPatch) as OkResult;
+            var result = await _accountController.UpdateAccountAsync(accountId, jsonPatch) as OkResult;
+            var accountDetail = await _accountController.GetAccountDetailAsync(accountId);
+            var accountDetailResult = accountDetail.Result as OkObjectResult;
 
             // Assert
             Assert.Equal(200, result!.StatusCode);
+            Assert.Equal(newHub.HubId, accountDetailResult!.Value.As<AccountDetail>().Hub!.HubId);
+            Assert.Equal(newHub.HubName, accountDetailResult!.Value.As<AccountDetail>().Hub!.HubName);
         }
 
         [Fact]
         public async Task UpdateAccountAsync_WithAccountPatchNull_ShouldThrowBadRequestException()
         {
-            var controller = new AccountController(_accountService.Object);
+            using (var context = InitContext())
+            {
+                // Arrange
 
-            var result = await Assert.ThrowsAsync<BadRequestException>(async () => await controller.UpdateAccountAsync(It.IsAny<int>(), null!));
+                // Act
+                var result = await Assert.ThrowsAsync<BadRequestException>(async () => await _accountController.UpdateAccountAsync(It.IsAny<int>(), null!));
 
-            Assert.Equal(Errors.BadRequestAccountPatchCode, result.Code);
-            Assert.Equal(Errors.BadRequestAccountPatchMessage, result.Message);
+                // Assert
+                Assert.Equal(Errors.BadRequestAccountPatchCode, result.Code);
+                Assert.Equal(Errors.BadRequestAccountPatchMessage, result.Message);
+            }
         }
 
         [Fact]
@@ -114,8 +151,7 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var accountId = 6000;
-            var fixture = new Fixture();
-            var expected = fixture.Create<List<Contact>>();
+            var expected = _fixture.Create<List<Contact>>();
 
             var accountService = new Mock<IAccountService>(MockBehavior.Strict);
             accountService.Setup(service => service.GetContactsAccountAsync(It.IsAny<int>()))
