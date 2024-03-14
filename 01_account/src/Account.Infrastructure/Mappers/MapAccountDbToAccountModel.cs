@@ -120,7 +120,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 return new Address();
             }
 
-            var address = tAccount.AddressEntity.FirstOrDefault(address => address.AddressType == AddressType.Delivery.ToString());
+            var address = tAccount.AddressEntity.FirstOrDefault(address => address.AddressType == AddressType.delivery.ToString());
 
             return address == null ? new Address() : new Address
             {

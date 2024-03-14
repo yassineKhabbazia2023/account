@@ -32,7 +32,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapToAccount_ShouldReturnAccountModel()
         {
             // Arrange
-            var addressEntity = _fixture.Build<AddressEntity>().With(a => a.AddressType, AddressType.Delivery.ToString()).Create();
+            var addressEntity = _fixture.Build<AddressEntity>().With(a => a.AddressType, AddressType.delivery.ToString()).Create();
             var addressList = new List<AddressEntity>();
             addressList!.Add(addressEntity);
             var tAccountFixture = _fixture.Build<AccountEntity>().With(a => a.AddressEntity, addressList).Create();

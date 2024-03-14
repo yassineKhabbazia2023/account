@@ -75,7 +75,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                     ids => ids,
                     contact => contact.ContactId,
                     (role, contact) => contact)
-                .Where(contact => contact.Type == ContactType.Client.ToString())
+                .Where(contact => contact.Type == ContactType.client.ToString())
                 .GroupBy(x => x.Status)
                 .Select(s => new { Status = s.Key, Count = s.Select(d => d.Status).Count() });
 

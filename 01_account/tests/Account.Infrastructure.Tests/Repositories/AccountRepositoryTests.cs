@@ -39,7 +39,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             {
                 // Arrange
                 var accountsModel = _fixture.Create<List<AccountEntity>>();
-                accountsModel.First().AddressEntity.First().AddressType = AddressType.Delivery.ToString();
+                accountsModel.First().AddressEntity.First().AddressType = AddressType.delivery.ToString();
                 context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
                 var accountRepository = new AccountRepository(context);

@@ -6,7 +6,7 @@ namespace Pulse.Account.Infrastructure.Enum
 {
     public enum AddressType
     {
-        Delivery,
-        Billing
+        delivery,
+        billing
     }
 }

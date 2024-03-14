@@ -63,7 +63,7 @@ public static class MapDelegationDbToDelegationModel
 
     public static Address ToAddress(this ICollection<AddressEntity> source)
     {
-        var addressEntity = source?.FirstOrDefault(s => s.AddressType == AddressType.Delivery.ToString());
+        var addressEntity = source?.FirstOrDefault(s => s.AddressType == AddressType.delivery.ToString());
         return ToAddress(addressEntity!) !;
     }
 

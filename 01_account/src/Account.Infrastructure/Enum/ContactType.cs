@@ -2,7 +2,7 @@
 {
     public enum ContactType
     {
-        Client,
-        Collaborator
+        client,
+        collaborator
     }
 }
