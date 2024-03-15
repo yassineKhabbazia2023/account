@@ -72,6 +72,8 @@
     <Build Include="account\Tables\Delegation.sql" />
     <Build Include="account\Tables\Hub.sql" />
     <Build Include="Security\Schemas\account.sql" />
+    <Build Include="account\Tables\DelegationDetail.sql" />
+    <None Include="postDeployment\Script.DelegationDetail.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Account.Database.refactorlog" />

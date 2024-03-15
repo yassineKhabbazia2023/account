@@ -5,6 +5,7 @@
 	[ContactId]			INT					NOT NULL,
 	[IsFavorite]		BIT					NULL,
 	[IsSignatory]		BIT					NULL,
+    [IsDelegation]      BIT                 NULL,
 	CONSTRAINT [C_Role_PK] PRIMARY KEY CLUSTERED ([RoleId] ASC),
 	CONSTRAINT [C_Account_Role_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId]),
 	CONSTRAINT [C_Account_Contact_FK] FOREIGN KEY ([ContactId]) REFERENCES [actor].[Contact] ([ContactId]), 
@@ -66,4 +67,13 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'Role',
     @level2type = N'COLUMN',
     @level2name = 'IsSignatory'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Indique, dans les cas où c''est possible, si le role est lié à une délégation',
+    @level0type = N'SCHEMA',
+    @level0name = N'account',
+    @level1type = N'TABLE',
+    @level1name = N'Role',
+    @level2type = N'COLUMN',
+    @level2name = 'IsDelegation'
 GO

@@ -56,7 +56,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level2name = N'LastName'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'l''adresse mail du contact',
+    @value = N'L''adresse mail du contact',
     @level0type = N'SCHEMA',
     @level0name = N'actor',
     @level1type = N'TABLE',

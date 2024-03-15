@@ -19,3 +19,4 @@ Post-Deployment Script Template
 :r .\postDeployment\Script.Role.sql
 :r .\postDeployment\Script.Deployment.sql
 :r .\postDeployment\Script.Delegation.sql
+:r .\postDeployment\Script.DelegationDetail.sql
