@@ -37,6 +37,6 @@ namespace Pulse.Account.Core.Models
 
         public Hub? Hub { get; set; }
 
-        public IEnumerable<Deployment>? DeploymentPlanning { get; set; }
+        public Deployment? Deployment { get; set; }
     }
 }

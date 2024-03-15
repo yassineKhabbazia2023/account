@@ -53,7 +53,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                     IsFavorite = currentContact?.IsFavorite,
                     Address = source.MapToAddressDelivery(),
                     Signatory = signatory?.Contact.MapToContact(),
-                    Deployment = source.MapToDeploymentPlanning(),
+                    Deployment = source.MapToDeployment(),
                 };
         }
 
@@ -75,7 +75,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 Address = source.MapToAddress(),
                 Phone = source.MapToPhone(),
                 Hub = source.MapToHub(),
-                DeploymentPlanning = source.MapToDeploymentPlanning()
+                Deployment = source.MapToDeployment()
             };
         }
 
@@ -91,15 +91,20 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static IEnumerable<Deployment>? MapToDeploymentPlanning(this AccountEntity tAccount)
+        private static Deployment? MapToDeployment(this AccountEntity tAccount)
         {
-            return tAccount.DeploymentEntity == null ? Array.Empty<Deployment>() :
-                tAccount.DeploymentEntity.Select(deployment => new Deployment
-                {
-                    DeploymentId = deployment.DeploymentId,
-                    DeploymentDate = deployment.DeploymentDate,
-                    Status = deployment.Status,
-                });
+            if (tAccount.DeploymentEntity == null)
+            {
+                return new Deployment();
+            }
+
+            var deploiment = tAccount.DeploymentEntity.Select(deployment => new Deployment
+            {
+                DeploymentId = deployment.DeploymentId,
+                DeploymentDate = deployment.DeploymentDate,
+                Status = deployment.Status,
+            }).FirstOrDefault();
+            return deploiment ?? new Deployment();
         }
 
         private static IEnumerable<Phone>? MapToPhone(this AccountEntity tAccount)
