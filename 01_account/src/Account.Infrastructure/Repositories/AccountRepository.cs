@@ -9,13 +9,14 @@ using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
+using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Core.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
@@ -123,15 +124,22 @@ namespace Pulse.Account.Infrastructure.Repositories
             });
         }
 
-        public async Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId)
+        public async Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId, ContactType? type)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                var result = await _accountContext.RoleEntity
-                    .AsNoTracking()
-                    .Include(x => x.Contact)
-                    .Where(x => x.AccountId == accountId)
-                    .ToListAsync();
+                IQueryable<RoleEntity> query =
+                    _accountContext.RoleEntity
+                        .AsNoTracking()
+                        .Include(x => x.Contact)
+                        .Where(x => x.AccountId == accountId);
+
+                if (type != null && System.Enum.IsDefined(typeof(ContactType), type))
+                {
+                    query = query.Where(x => x.Contact.Type.Equals(type.ToString()));
+                }
+
+                var result = await query.ToListAsync();
 
                 return result.MapToContacts();
             });

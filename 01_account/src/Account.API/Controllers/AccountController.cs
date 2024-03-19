@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
@@ -88,14 +89,15 @@ namespace Pulse.Account.API.Controllers
         /// Récupérer la liste des contacts d'une entité morale.
         /// </summary>
         /// <param name="accountId">Identifiant de l'entité morale.</param>
+        /// <param name="type">Th contact type.</param>
         /// <returns>La liste des contacts.</returns>
-        [HttpGet("/{accountId}/contacts")]
+        [HttpGet("{accountId}/contacts")]
         [ProducesResponseType(typeof(IEnumerable<Contact>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<IEnumerable<Contact>>> GetContactsAccountAsync(int accountId)
+        public async Task<ActionResult<IEnumerable<Contact>>> GetContactsAccountAsync(int accountId, ContactType? type)
         {
-            var result = await _accountService.GetContactsAccountAsync(accountId);
+            var result = await _accountService.GetContactsAccountAsync(accountId, type);
             return Ok(result);
         }
     }

@@ -16,6 +16,7 @@ using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Services;
 using Pulse.Account.Infrastructure.Context;
@@ -154,12 +155,12 @@ namespace Account.Api.Tests.Controllers
             var expected = _fixture.Create<List<Contact>>();
 
             var accountService = new Mock<IAccountService>(MockBehavior.Strict);
-            accountService.Setup(service => service.GetContactsAccountAsync(It.IsAny<int>()))
+            accountService.Setup(service => service.GetContactsAccountAsync(It.IsAny<int>(), It.IsAny<ContactType?>()))
                 .ReturnsAsync(expected);
             var accountController = new AccountController(accountService.Object);
 
             // Act
-            var result = await accountController.GetContactsAccountAsync(accountId);
+            var result = await accountController.GetContactsAccountAsync(accountId, null!);
 
             // Assert
             Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);

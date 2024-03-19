@@ -3,9 +3,9 @@
 // </copyright>
 
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Infrastructure.Enum;
 
 namespace Pulse.Account.Infrastructure.Mappers
 {
@@ -79,7 +79,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             };
         }
 
-        private static Contact? MapToContact(this ContactEntity tContact)
+        public static Contact? MapToContact(this ContactEntity tContact)
         {
             return tContact == null ? null : new Contact
             {
@@ -87,7 +87,10 @@ namespace Pulse.Account.Infrastructure.Mappers
                 GlobalContactId = tContact.ContactGlobalUniqueId,
                 Email = tContact.Email,
                 FirstName = tContact.FirstName,
-                LastName = tContact.LastName
+                LastName = tContact.LastName,
+                Status = tContact.Status,
+                PersonaName = tContact.PersonaName,
+                CreationDate = tContact.CreationDate,
             };
         }
 

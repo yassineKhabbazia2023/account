@@ -8,6 +8,7 @@ using FluentAssertions;
 using Moq;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
@@ -120,14 +121,14 @@ namespace Pulse.Account.Core.Tests.Services
             var expected = fixture.Create<List<Contact>>();
 
             var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
-            accountRepository.Setup(repo => repo.GetContactsAccountAsync(It.IsAny<int>()))
-                .Callback<int>(id => id.Should().Be(accountId))
+            accountRepository.Setup(repo => repo.GetContactsAccountAsync(It.IsAny<int>(), It.IsAny<ContactType?>()))
+                .Callback<int, ContactType?>((id, type) => id.Should().Be(accountId))
                 .ReturnsAsync(expected);
 
             var accountService = new AccountService(accountRepository.Object);
 
             // Act
-            var result = await accountService.GetContactsAccountAsync(accountId);
+            var result = await accountService.GetContactsAccountAsync(accountId, null!);
 
             // Assert
             Assert.Equal(expected, result);

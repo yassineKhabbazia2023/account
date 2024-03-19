@@ -7,12 +7,13 @@ using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Infrastructure.Enum;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
+using Pulse.Account.Infrastructure.Tests.Helpers;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories
@@ -54,7 +55,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
 
                 // Act
-                var search = accountObject.First() !.LegalName;
+                var search = accountObject.First()!.LegalName;
                 var accounts = await accountRepository.GetAccountsAsync(search: search, pageNumber: 1, pageSize: 4, contactId);
 
                 // Assert
@@ -74,7 +75,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var accountPaging = new Paging<AccountModel>()
                 {
                     CurrentPage = 1,
-                    Items = Enumerable.Empty<AccountModel>() !,
+                    Items = Enumerable.Empty<AccountModel>()!,
                     TotalItems = 0,
                     TotalPage = 1
                 };
@@ -202,22 +203,52 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             }
         }
 
-        [Fact]
-        public async Task GetContactsAccountAsync_Should_Return_ContactsAccount()
+        [Theory]
+        [InlineData(null)]
+        [InlineData(ContactType.collaborator)]
+        [InlineData(ContactType.customer)]
+        public async Task GetContactsAccountAsync_WhenAccountIdIsValid_ShouldReturnContactsAccount(ContactType? type)
         {
             // Arrange
             using var context = new AccountContext(_dbContextOptions);
-            var accountsMock = _fixture.Create<List<AccountEntity>>();
-            context.AccountEntity.AddRange(accountsMock);
-            context.SaveChanges();
+
+            _fixture.Customizations.Add(new ContactEntityTypeSpecimenBuilder());
+            var resultExpected = new List<Contact>();
+
+            var accountMock = _fixture.Build<AccountEntity>()
+                                           .Without(a => a.DelegationEntity)
+                                           .Without(a => a.RoleEntity)
+                                           .Create();
+
+            for (int i = 0; i < 20; i++)
+            {
+                var contactMock = _fixture.Build<ContactEntity>()
+                                           .Without(c => c.DelegationEntityDelegatee)
+                                           .Without(c => c.DelegationEntityDelegator)
+                                           .Without(c => c.RoleEntity)
+                                           .Without(c => c.ContactGlobalUniqueId)
+                                           .Create();
+
+                var roleMock = _fixture.Build<RoleEntity>()
+                                       .With(e => e.ContactId, contactMock.ContactId)
+                                       .With(e => e.Contact, contactMock)
+                                       .With(e => e.AccountId, accountMock.AccountId)
+                                       .With(e => e.Account, accountMock)
+                                       .Create();
+
+                context.RoleEntity.Add(roleMock);
+                context.SaveChanges();
+
+                if (type == null || contactMock.Type == type.ToString())
+                {
+                    resultExpected.Add(contactMock.MapToContact() !);
+                }
+            }
 
             var accountRepository = new AccountRepository(context);
-            var data = accountsMock.First().RoleEntity.ToList();
-            var resultExpected = new List<Contact>();
-            resultExpected.AddRange(data.MapToContacts());
 
             // Act
-            var roles = await accountRepository.GetContactsAccountAsync(data.First().AccountId);
+            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, type);
 
             // Assert
             Assert.Equivalent(resultExpected, roles);
