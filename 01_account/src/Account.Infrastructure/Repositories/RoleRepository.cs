@@ -141,7 +141,8 @@ public class RoleRepository : IRoleRepository
                                 && r.IsSignatory == true)
                             .FirstOrDefault();
 
-            if (signataire == null) // this contact is the only signataire of this account
+            // this contact is the only signataire of this account
+            if (signataire == null)
             {
                 throw new BadRequestException(Errors.CannotDeleteSignatoryCode, Errors.CannotDeleteSignatoryMessage);
             }
@@ -156,7 +157,6 @@ public class RoleRepository : IRoleRepository
 
             _accountContext.Remove(role);
             await _accountContext.SaveChangesAsync();
-
         });
     }
 }

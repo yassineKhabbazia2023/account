@@ -356,7 +356,7 @@ public class RolesRepositoryTests
         }
     }
 
-    private async Task InitRoleMockData(AccountContext context, AccountEntity accountMock, IEnumerable<ContactEntity> contactMock)
+    private static async Task InitRoleMockData(AccountContext context, AccountEntity accountMock, IEnumerable<ContactEntity> contactMock)
     {
         context.AccountEntity.Add(accountMock);
         context.ContactEntity.AddRange(contactMock);
