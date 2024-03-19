@@ -17,6 +17,7 @@ using Pulse.Account.Core.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Exceptions;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -124,6 +125,40 @@ public class RoleRepository : IRoleRepository
                 role.IsSignatory = isSignatory;
                 _accountContext.RoleEntity.Update(role);
                 await _accountContext.SaveChangesAsync();
+            }
+        });
+    }
+
+    public async Task DeleteRoleAsync(int accountId, int contactId)
+    {
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            // Theory an account will have at least 1 signataire
+            // Verfiy if this account has another signataire beside this contact
+            var signataire = _accountContext.RoleEntity
+                            .Where(r => r.AccountId == accountId
+                                && r.ContactId != contactId
+                                && r.IsSignatory == true)
+                            .FirstOrDefault();
+
+            if (signataire == null) // this contact is the only signataire of this account
+            {
+                throw new BadRequestException(Errors.CannotDeleteSignatoryCode, Errors.CannotDeleteSignatoryMessage);
+            }
+            else
+            {
+                var role = _accountContext.RoleEntity
+                            .Where(r => r.AccountId == accountId && r.ContactId == contactId)
+                            .FirstOrDefault();
+                if (role == null)
+                {
+                    throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
+                }
+                else
+                {
+                    _accountContext.Remove(role);
+                    await _accountContext.SaveChangesAsync();
+                }
             }
         });
     }

@@ -15,6 +15,7 @@ using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
 using FluentAssertions;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 
 namespace Pulse.Account.Core.Tests.Services;
 
@@ -116,5 +117,53 @@ public class RolesServiceTests
 
         // Assert
         roleRepository.VerifyAll();
+    }
+
+    [Fact]
+    public async Task DeleteRoleAsync_ShouldDeleteRole()
+    {
+        // Arrange
+        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        roleRepository.Setup(repo => repo.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .Returns(Task.CompletedTask);
+        var roleService = new RolesService(roleRepository.Object);
+
+        // Act
+        await roleService.DeleteRoleAsync(1, 1);
+
+        // Assert
+        roleRepository.VerifyAll();
+    }
+
+    [Fact]
+    public async Task DeleteRoleAsync_ShouldThrow_NotFoundException()
+    {
+        // Arrange
+        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        roleRepository.Setup(repo => repo.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .ThrowsAsync(new NotFoundException(Errors.NotFoundRoleCode, Errors.NotFoundRoleMessage));
+        var roleService = new RolesService(roleRepository.Object);
+
+        // Act
+        Task DeleteRole() => roleService.DeleteRoleAsync(1, 1);
+
+        // Assert
+        await Assert.ThrowsAsync<NotFoundException>(DeleteRole);
+    }
+
+    [Fact]
+    public async Task DeleteRoleAsync_ShouldThrow_BadRequestException()
+    {
+        // Arrange
+        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        roleRepository.Setup(repo => repo.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .Throws(new BadRequestException(Errors.CannotDeleteSignatoryCode, Errors.CannotDeleteSignatoryMessage));
+        var roleService = new RolesService(roleRepository.Object);
+
+        // Act
+        Task DeleteRole() => roleService.DeleteRoleAsync(1, 1);
+
+        // Assert
+        await Assert.ThrowsAsync<BadRequestException>(DeleteRole);
     }
 }

@@ -6,6 +6,7 @@ using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
@@ -129,6 +130,54 @@ namespace Account.Api.Tests.Controllers
             // Assert
             result.StatusCode.Should().Be(200);
             rolesService.Verify(x => x.UpdateRoleSignatoryAsync(1, 1, true), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteRoleAsync_ShouldDeleteRole()
+        {
+            // Arrange
+            var roleService = new Mock<IRolesService>();
+            roleService.Setup(service => service.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .Returns(Task.CompletedTask);
+            var roleController = new RolesController(roleService.Object);
+
+            // Act
+            var result = await roleController.DeleteRoleAsync(1, 1) as StatusCodeResult;
+
+            // Assert
+            result!.StatusCode.Should().Be(200);
+        }
+
+        [Fact]
+        public async Task DeleteRoleAsync_ShouldThrowNotFoundException()
+        {
+            // Arrange
+            var roleService = new Mock<IRolesService>();
+            roleService.Setup(service => service.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .Throws(new NotFoundException(Errors.NotFoundRoleCode, Errors.NotFoundRoleMessage));
+            var roleController = new RolesController(roleService.Object);
+
+            // Act
+            Task DeleteRole() => roleController!.DeleteRoleAsync(1, 1);
+
+            // Assert
+            await Assert.ThrowsAsync<NotFoundException>(DeleteRole);
+        }
+
+        [Fact]
+        public async Task DeleteRoleAsync_ShouldThrowBadRequestException()
+        {
+            // Arrange
+            var roleService = new Mock<IRolesService>();
+            roleService.Setup(service => service.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .Throws(new BadRequestException(Errors.CannotDeleteSignatoryCode, Errors.CannotDeleteSignatoryMessage));
+            var roleController = new RolesController(roleService.Object);
+
+            // Act
+            Task DeleteRole() => roleController!.DeleteRoleAsync(1, 1);
+
+            // Assert
+            await Assert.ThrowsAsync<BadRequestException>(DeleteRole);
         }
     }
 }

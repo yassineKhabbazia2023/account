@@ -35,5 +35,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string BadRequestAccountPatchCode = "ACC010";
         public static readonly string BadRequestAccountPatchMessage = "Impossible de mettre à jour l'entité morale : les informations fournies dans la requête sont incorrectes.";
+
+        public static readonly string CannotDeleteSignatoryCode = "ACC011";
+        public static readonly string CannotDeleteSignatoryMessage = "Impossibe de supprimer un role: C'est le seul signataire. On ne peut pas le supprimer.";
     }
 }

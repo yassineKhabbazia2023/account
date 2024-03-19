@@ -95,4 +95,14 @@ public class RolesController : ControllerBase
         await _rolesService.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
         return Ok();
     }
+
+    [HttpDelete]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> DeleteRoleAsync([Required] int accountId, [Required] int contactId)
+    {
+        await _rolesService.DeleteRoleAsync(accountId, contactId);
+        return Ok();
+    }
 }
