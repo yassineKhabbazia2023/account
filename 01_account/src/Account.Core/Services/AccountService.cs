@@ -5,6 +5,7 @@
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 
 namespace Pulse.Account.Core.Services
@@ -40,9 +41,9 @@ namespace Pulse.Account.Core.Services
             await _accountRepository.UpdateAccountAsync(accountId, accountDetail);
         }
 
-        public async Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId)
+        public async Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId, ContactType? type)
         {
-            return await _accountRepository.GetContactsAccountAsync(accountId);
+            return await _accountRepository.GetContactsAccountAsync(accountId, type);
         }
     }
 }

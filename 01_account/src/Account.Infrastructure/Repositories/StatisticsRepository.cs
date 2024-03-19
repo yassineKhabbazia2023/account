@@ -9,8 +9,8 @@ using Polly.Retry;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Infrastructure.Context;
-using Pulse.Account.Infrastructure.Enum;
 using Pulse.Account.Infrastructure.Mappers;
 
 namespace Pulse.Account.Infrastructure.Repositories
@@ -75,7 +75,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                     ids => ids,
                     contact => contact.ContactId,
                     (role, contact) => contact)
-                .Where(contact => contact.Type == ContactType.client.ToString())
+                .Where(contact => contact.Type == ContactType.customer.ToString())
                 .GroupBy(x => x.Status)
                 .Select(s => new { Status = s.Key, Count = s.Select(d => d.Status).Count() });
 

@@ -35,14 +35,14 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                var entities = GetAccountQueryByContactId(contactId);
-                var accountFavorite = await entities
-                    .Where(entity => entity.RoleEntity.Any(role => role.IsFavorite == true))
+                var accountFavorite = await _accountContext.RoleEntity
+                    .Include(role => role.Account)
+                    .Where(role => role.ContactId == contactId && role.IsFavorite == true)
                     .Select(entity => new AccountFavorite()
                     {
                         AccountId = entity.AccountId,
-                        LegalName = entity.LegalName,
-                        IconName = entity.IconName
+                        LegalName = entity.Account.LegalName,
+                        IconName = entity.Account.IconName
                     }).ToListAsync();
 
                 return accountFavorite;

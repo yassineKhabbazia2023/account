@@ -42,6 +42,7 @@ namespace Pulse.Account.API.Configuration
                 var xmlFile = $"{Assembly.GetAssembly(typeof(Program)) !.GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 swaggerGenOptions.IncludeXmlComments(xmlPath);
+                swaggerGenOptions.UseInlineDefinitionsForEnums();
             });
         }
 

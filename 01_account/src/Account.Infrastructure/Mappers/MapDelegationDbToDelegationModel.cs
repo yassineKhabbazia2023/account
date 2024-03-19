@@ -3,8 +3,8 @@
 // </copyright>
 
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Infrastructure.Enum;
 
 namespace Pulse.Account.Infrastructure.Mappers;
 

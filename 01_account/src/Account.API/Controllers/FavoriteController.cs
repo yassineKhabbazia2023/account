@@ -43,11 +43,11 @@ namespace Pulse.Account.API.Controllers
         /// <param name="contactId">ID du contact.</param>
         /// <param name="isFavorite">True si le l'entité morale fait parti des favoris, false sinon.</param>
         /// <returns>OK si la mise à jour s'est bien déroulée.</returns>
-        [HttpPatch("favorites/{accountId}")]
+        [HttpPatch("favorites")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> SetFavoriteAsync(int accountId, [Required] int contactId, [Required] bool isFavorite)
+        public async Task<ActionResult> SetFavoriteAsync([Required] int accountId, [Required] int contactId, [Required] bool isFavorite)
         {
             await _favoriteService.SetFavoriteAsync(accountId, contactId, isFavorite);
 

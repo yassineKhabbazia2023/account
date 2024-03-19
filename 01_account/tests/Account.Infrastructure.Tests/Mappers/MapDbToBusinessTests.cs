@@ -6,9 +6,9 @@ using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Infrastructure.Enum;
 using Pulse.Account.Infrastructure.Mappers;
 
 namespace Pulse.Account.Infrastructure.Tests.Mappers
