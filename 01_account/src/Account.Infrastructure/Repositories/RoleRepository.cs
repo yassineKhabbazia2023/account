@@ -17,6 +17,7 @@ using Pulse.Account.Core.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Exceptions;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -110,8 +111,8 @@ public class RoleRepository : IRoleRepository
         await _retryPolicy.ExecuteAsync(async () =>
         {
             var roles = from r in _accountContext.RoleEntity
-                               where r.AccountId.Equals(accountId) && r.ContactId.Equals(contactId)
-                               select r;
+                        where r.AccountId.Equals(accountId) && r.ContactId.Equals(contactId)
+                        select r;
 
             var role = await roles.FirstOrDefaultAsync();
             if (role == null)
@@ -125,6 +126,37 @@ public class RoleRepository : IRoleRepository
                 _accountContext.RoleEntity.Update(role);
                 await _accountContext.SaveChangesAsync();
             }
+        });
+    }
+
+    public async Task DeleteRoleAsync(int accountId, int contactId)
+    {
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            // Theory an account will have at least 1 signataire
+            // Verfiy if this account has another signataire beside this contact
+            var signataire = _accountContext.RoleEntity
+                            .Where(r => r.AccountId == accountId
+                                && r.ContactId != contactId
+                                && r.IsSignatory == true)
+                            .FirstOrDefault();
+
+            // this contact is the only signataire of this account
+            if (signataire == null)
+            {
+                throw new BadRequestException(Errors.CannotDeleteSignatoryCode, Errors.CannotDeleteSignatoryMessage);
+            }
+
+            var role = _accountContext.RoleEntity
+                        .Where(r => r.AccountId == accountId && r.ContactId == contactId)
+                        .FirstOrDefault();
+            if (role == null)
+            {
+                throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
+            }
+
+            _accountContext.Remove(role);
+            await _accountContext.SaveChangesAsync();
         });
     }
 }

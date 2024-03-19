@@ -40,4 +40,9 @@ public class RolesService : IRolesService
     {
         await _rolesRepository.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
     }
+
+    public async Task DeleteRoleAsync(int accountId, int contactId)
+    {
+        await _rolesRepository.DeleteRoleAsync(accountId, contactId);
+    }
 }
