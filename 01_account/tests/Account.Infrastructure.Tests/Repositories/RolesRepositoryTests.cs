@@ -11,6 +11,7 @@ using Moq;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
@@ -283,13 +284,14 @@ public class RolesRepositoryTests
             await InitRoleMockData(context, accountMock, contactMock);
             var accountRepository = new AccountRepository(context);
             var roleRepository = new RoleRepository(context);
-            var rolesBefore = await accountRepository.GetContactsAccountAsync(accountMock.AccountId);
+            var rolesBefore = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, It.IsAny<ContactType>());
+            ;
 
             // Act
             await roleRepository.DeleteRoleAsync(accountMock.AccountId, contactMock.First().ContactId);
 
             // Assert
-            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId);
+            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, It.IsAny<ContactType>());
             Assert.Equal(rolesBefore.Count() - 1, roles.Count());
         }
     }
@@ -305,13 +307,13 @@ public class RolesRepositoryTests
             await InitRoleMockData(context, accountMock, contactMock);
             var accountRepository = new AccountRepository(context);
             var roleRepository = new RoleRepository(context);
-            var rolesBefore = await accountRepository.GetContactsAccountAsync(accountMock.AccountId);
+            var rolesBefore = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, It.IsAny<ContactType>());
 
             // Act
             await roleRepository.DeleteRoleAsync(accountMock.AccountId, contactMock.First().ContactId);
 
             // Assert
-            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId);
+            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, It.IsAny<ContactType>());
             Assert.Equal(rolesBefore.Count() - 1, roles.Count());
         }
     }
