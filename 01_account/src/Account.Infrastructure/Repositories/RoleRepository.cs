@@ -111,8 +111,8 @@ public class RoleRepository : IRoleRepository
         await _retryPolicy.ExecuteAsync(async () =>
         {
             var roles = from r in _accountContext.RoleEntity
-                               where r.AccountId.Equals(accountId) && r.ContactId.Equals(contactId)
-                               select r;
+                        where r.AccountId.Equals(accountId) && r.ContactId.Equals(contactId)
+                        select r;
 
             var role = await roles.FirstOrDefaultAsync();
             if (role == null)
@@ -145,21 +145,18 @@ public class RoleRepository : IRoleRepository
             {
                 throw new BadRequestException(Errors.CannotDeleteSignatoryCode, Errors.CannotDeleteSignatoryMessage);
             }
-            else
+
+            var role = _accountContext.RoleEntity
+                        .Where(r => r.AccountId == accountId && r.ContactId == contactId)
+                        .FirstOrDefault();
+            if (role == null)
             {
-                var role = _accountContext.RoleEntity
-                            .Where(r => r.AccountId == accountId && r.ContactId == contactId)
-                            .FirstOrDefault();
-                if (role == null)
-                {
-                    throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
-                }
-                else
-                {
-                    _accountContext.Remove(role);
-                    await _accountContext.SaveChangesAsync();
-                }
+                throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
             }
+
+            _accountContext.Remove(role);
+            await _accountContext.SaveChangesAsync();
+
         });
     }
 }
