@@ -285,7 +285,6 @@ public class RolesRepositoryTests
             var accountRepository = new AccountRepository(context);
             var roleRepository = new RoleRepository(context);
             var rolesBefore = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, It.IsAny<ContactType>());
-            ;
 
             // Act
             await roleRepository.DeleteRoleAsync(accountMock.AccountId, contactMock.First().ContactId);
