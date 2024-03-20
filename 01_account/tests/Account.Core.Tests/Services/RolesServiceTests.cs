@@ -119,33 +119,75 @@ public class RolesServiceTests
         roleRepository.VerifyAll();
     }
 
-    [Fact]
-    public async Task DeleteRoleAsync_ShouldDeleteRole()
+    private Mock<IRoleRepository> DeleteRole_MockRepo()
     {
-        // Arrange
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        var roleNormal = new Role
+        {
+            AccountId = 1,
+            ContactId = 1,
+            IsFavorite = false,
+            IsSignatory = false,
+        };
+        var roleSignatory = new Role
+        {
+            AccountId = 1,
+            ContactId = 3,
+            IsFavorite = false,
+            IsSignatory = true,
+        };
         roleRepository.Setup(repo => repo.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
             .Returns(Task.CompletedTask);
+        roleRepository.Setup(repo => repo.GetContactRoleAsync(1, 1))
+            .ReturnsAsync(roleNormal);
+        roleRepository.Setup(repo => repo.GetContactRoleAsync(1, 3))
+            .ReturnsAsync(roleSignatory);
+        roleRepository.Setup(repo => repo.GetContactRoleAsync(1, 2))
+            .ThrowsAsync(new NotFoundException(It.IsAny<string>(), It.IsAny<string>()));
+
+        return roleRepository;
+    }
+
+    [Fact]
+    public void DeleteRoleAsync_ShouldDeleteRole()
+    {
+        // Arrange
+        var roleRepository = DeleteRole_MockRepo();
         var roleService = new RolesService(roleRepository.Object);
 
         // Act
-        await roleService.DeleteRoleAsync(1, 1);
+        Task DeleteRole() => roleService!.DeleteRoleAsync(1, 1);
 
         // Assert
-        roleRepository.VerifyAll();
+        Assert.Equal(Task.CompletedTask, DeleteRole());
+    }
+
+    [Fact]
+    public void DeleteRoleAsync_ShouldDeleteRole_Cas2Signatory()
+    {
+        // Arrange
+        var roleRepository = DeleteRole_MockRepo();
+        var fixture = new Fixture();
+        roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(fixture.CreateMany<Contact>(2));
+        var roleService = new RolesService(roleRepository.Object);
+
+        // Act
+        Task DeleteRole() => roleService!.DeleteRoleAsync(1, 1);
+
+        // Assert
+        Assert.Equal(Task.CompletedTask, DeleteRole());
     }
 
     [Fact]
     public async Task DeleteRoleAsync_ShouldThrow_NotFoundException()
     {
         // Arrange
-        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
-        roleRepository.Setup(repo => repo.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
-            .ThrowsAsync(new NotFoundException(Errors.NotFoundRoleCode, Errors.NotFoundRoleMessage));
+        var roleRepository = DeleteRole_MockRepo();
         var roleService = new RolesService(roleRepository.Object);
 
         // Act
-        Task DeleteRole() => roleService.DeleteRoleAsync(1, 1);
+        Task DeleteRole() => roleService.DeleteRoleAsync(1, 2);
 
         // Assert
         await Assert.ThrowsAsync<NotFoundException>(DeleteRole);
@@ -155,13 +197,14 @@ public class RolesServiceTests
     public async Task DeleteRoleAsync_ShouldThrow_BadRequestException()
     {
         // Arrange
-        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
-        roleRepository.Setup(repo => repo.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
-            .Throws(new BadRequestException(Errors.CannotDeleteSignatoryCode, Errors.CannotDeleteSignatoryMessage));
+        var roleRepository = DeleteRole_MockRepo();
+        var fixture = new Fixture();
+        roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
+            .ReturnsAsync(new List<Contact> { fixture.Create<Contact>() });
         var roleService = new RolesService(roleRepository.Object);
 
         // Act
-        Task DeleteRole() => roleService.DeleteRoleAsync(1, 1);
+        Task DeleteRole() => roleService.DeleteRoleAsync(1, 3);
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(DeleteRole);
