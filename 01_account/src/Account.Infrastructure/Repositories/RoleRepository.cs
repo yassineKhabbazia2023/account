@@ -133,6 +133,14 @@ public class RoleRepository : IRoleRepository
     {
         await _retryPolicy.ExecuteAsync(async () =>
         {
+            var role = _accountContext.RoleEntity
+                        .Where(r => r.AccountId == accountId && r.ContactId == contactId)
+                        .FirstOrDefault();
+            if (role == null)
+            {
+                throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
+            }
+
             // Theory an account will have at least 1 signataire
             // Verfiy if this account has another signataire beside this contact
             var signataire = _accountContext.RoleEntity
@@ -145,14 +153,6 @@ public class RoleRepository : IRoleRepository
             if (signataire == null)
             {
                 throw new BadRequestException(Errors.CannotDeleteSignatoryCode, Errors.CannotDeleteSignatoryMessage);
-            }
-
-            var role = _accountContext.RoleEntity
-                        .Where(r => r.AccountId == accountId && r.ContactId == contactId)
-                        .FirstOrDefault();
-            if (role == null)
-            {
-                throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
             }
 
             _accountContext.Remove(role);

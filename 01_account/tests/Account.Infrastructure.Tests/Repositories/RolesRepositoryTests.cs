@@ -342,11 +342,40 @@ public class RolesRepositoryTests
         // Arrange
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var accountMock = _fixture.Create<AccountEntity>();
-            var contactMock = _fixture.CreateMany<ContactEntity>(2);
+            var accountMock = new AccountEntity
+            {
+                AccountId = 1,
+                AccountNumber = "12",
+                CreatedBy = "admin@kpmg.fr",
+                Email = "admin@kpmg.fr",
+                LegalName = "testAccount",
+                SourceAccountNumber = "12"
+            };
+            var contactMock = new List<ContactEntity>
+            {
+                new ContactEntity
+                {
+                    ContactId = 1,
+                    Email = "test@kpmg.fr",
+                    FirstName = "fname1",
+                    LastName = "lname1",
+                    PersonaName = "personaName",
+                    Status = "Declared",
+                    Type = "Customer"
+                },
+                new ContactEntity
+                {
+                    ContactId = 2,
+                    Email = "test@kpmg.fr",
+                    FirstName = "fname1",
+                    LastName = "lname1",
+                    PersonaName = "personaName",
+                    Status = "Declared",
+                    Type = "Customer"
+
+                }
+            };
             await InitRoleMockData(context, accountMock, contactMock);
-            context.RoleEntity.RemoveRange(context.RoleEntity.AsEnumerable());
-            context.SaveChanges();
             var roleRepository = new RoleRepository(context);
 
             // Act
