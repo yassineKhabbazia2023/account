@@ -119,7 +119,7 @@ public class RolesServiceTests
         roleRepository.VerifyAll();
     }
 
-    private Mock<IRoleRepository> DeleteRole_MockRepo()
+    private static Mock<IRoleRepository> DeleteRole_MockRepo()
     {
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         var roleNormal = new Role
