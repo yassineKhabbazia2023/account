@@ -1,31 +1,22 @@
 ﻿CREATE TABLE [account].[Delegation]
 (
 	[DelegationId]          INT IDENTITY(1,1)	NOT NULL,
-	[AccountId]				INT 				NOT NULL,
 	[DelegatorId]		    INT 				NOT NULL,
-	[DelegateeId]	        INT 				NOT NULL,
+    [DelegateeId]			INT                 NOT NULL,
 	[StartDate]				DATETIME2			NOT NULL,
 	[EndDate]				DATETIME2			NULL,
 	[Status]				VARCHAR(10)         NOT NULL,
     [Note]                  VARCHAR(255)        NULL,
 	[CreationDate]			DATETIME2			NOT NULL, 
 	CONSTRAINT [C_Delegation_PK] PRIMARY KEY CLUSTERED ([DelegationId] ASC),
-	CONSTRAINT [C_Delegation_Account_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId]),
 	CONSTRAINT [C_Delegation_Contact_DelegatorId_FK] FOREIGN KEY ([DelegatorId]) REFERENCES actor.[Contact] ([ContactId]),
-	CONSTRAINT [C_Delegation_Contact_DelegateeId_FK] FOREIGN KEY ([DelegateeId]) REFERENCES actor.[Contact] ([ContactId]),
-    CONSTRAINT [CHK_Status] CHECK ([Status] = 'pending'
-                                        OR [Status] = 'enabled'
-                                        OR [Status] = 'disabled')
+    CONSTRAINT [C_DelegationDetail_Contact_FK] FOREIGN KEY ([DelegateeId]) REFERENCES [actor].[Contact] ([ContactId]),
+    CONSTRAINT [CHK_Status] CHECK ([Status] = 'pending' OR [Status] = 'enabled' OR [Status] = 'disabled')
 )
-
-GO
-CREATE NONCLUSTERED INDEX [IDX_Delegation_AccountId]
-    ON  [account].[Delegation]([AccountId] ASC)
 
 GO
 CREATE NONCLUSTERED INDEX [IDX_Delegation_DelegatorId]
     ON  [account].[Delegation]([DelegatorId] ASC)
-
 GO
 CREATE NONCLUSTERED INDEX [IDX_Delegation_DelegateeId]
     ON  [account].[Delegation]([DelegateeId] ASC)
@@ -38,15 +29,6 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'Delegation',
     @level2type = N'COLUMN',
     @level2name = N'DelegationId'
-GO
-EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'L''identifiant technique de l''entité',
-    @level0type = N'SCHEMA',
-    @level0name = N'account',
-    @level1type = N'TABLE',
-    @level1name = N'Delegation',
-    @level2type = N'COLUMN',
-    @level2name = N'AccountId'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'La délégation est-elle active ou non',
@@ -94,7 +76,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level2name = N'DelegatorId'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'Le délégataire',
+    @value = N'L''identifiant du délégataire',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
@@ -110,3 +92,4 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'Delegation',
     @level2type = N'COLUMN',
     @level2name = N'Note'
+GO

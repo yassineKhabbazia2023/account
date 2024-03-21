@@ -15,18 +15,18 @@ SET @contactAbricotine = (SELECT ContactId FROM actor.Contact WHERE ContactGloba
 SET @contactNexity = (SELECT ContactId FROM actor.Contact WHERE ContactGlobalUniqueId = '24B47B42-8A1E-45E1-A976-6AE844778A97');
 
 
-INSERT INTO account.Role (AccountId, ContactId, IsFavorite, IsSignatory)
+INSERT INTO account.Role (AccountId, ContactId, IsFavorite, IsSignatory, IsDelegation)
 VALUES
-(@accountRothschild, @contactRothschild, 1, 1),
-(@accountRenault, @contactRenault, 1, 1),
-(@accountAsltom, @contactAlstom1, 1, 1),
-(@accountAsltom, @contactAlstom2, 0, 0),
-(@accountSrp, @contactSrp, 0, 1),
-(@accountImagotag, @contactImagotag1, 1, 0),
-(@accountImagotag, @contactImagotag2, 0, 1),
-(@accountFleury, @contactFleury, 1, 1),
-(@accountChaussLouis, @contactChaussLouis, 1, 1),
-(@accountAbricotine, @contactAbricotine, 1, 1),
-(@accountAbricotine, @contactAlstom2, 0, 0),
-(@accountMogador, @contactImagotag1, 0, 1),
-(@accountNexity, @contactNexity, 1, 1);
+(@accountRothschild, @contactRothschild, 1, 1, NULL),
+(@accountRenault, @contactRenault, 1, 1, NULL),
+(@accountAsltom, @contactAlstom1, 1, 1, 0),
+(@accountAsltom, @contactAlstom2, 0, 0, 1),
+(@accountSrp, @contactSrp, 0, 1, NULL),
+(@accountImagotag, @contactImagotag1, 1, 0, NULL),
+(@accountImagotag, @contactImagotag2, 0, 1, 1),
+(@accountFleury, @contactFleury, 1, 1, NULL),
+(@accountChaussLouis, @contactChaussLouis, 1, 1, 0),
+(@accountAbricotine, @contactAbricotine, 1, 1, 1),
+(@accountAbricotine, @contactAlstom2, 0, 0, 0),
+(@accountMogador, @contactImagotag1, 0, 1, 0),
+(@accountNexity, @contactNexity, 1, 1, NULL);

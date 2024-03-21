@@ -8,12 +8,12 @@ SET @delegImagotag2 = (SELECT DelegationId FROM account.Delegation WHERE Delegat
 SET @delegFleury = (SELECT DelegationId FROM account.Delegation WHERE DelegatorId = @contactFleury);
 SET @delegNexity = (SELECT DelegationId FROM account.Delegation WHERE DelegatorId = @contactNexity);
 
-INSERT INTO account.DelegationDetail(DelegationId, AccountId, DelegateeId)
+INSERT INTO account.DelegationDetail(DelegationId, AccountId)
 VALUES
-(@delegRotschild, @accountRothschild, @contactRenault),
-(@delegAlstom1, @accountAsltom, @contactAlstom2),
-(@delegAlstom2, @accountAsltom, @contactRenault),
-(@delegImagotag1, @accountImagotag, @contactImagotag1),
-(@delegImagotag2, @accountImagotag, @contactImagotag1),
-(@delegFleury, @accountFleury, @contactAlstom2),
-(@delegNexity, @accountNexity, @contactNexity2);
+(@delegRotschild, @accountRothschild),
+(@delegAlstom1, @accountAsltom),
+(@delegAlstom2, @accountAsltom),
+(@delegImagotag1, @accountImagotag),
+(@delegImagotag2, @accountImagotag),
+(@delegFleury, @accountFleury),
+(@delegNexity, @accountNexity);

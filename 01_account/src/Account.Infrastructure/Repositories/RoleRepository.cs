@@ -34,7 +34,7 @@ public class RoleRepository : IRoleRepository
                 .Handle<SqlException>()
                 .WaitAndRetryAsync(
                     retryCount: 1,
-                    sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(Constants.RETRYTIMESPAN));
+                    sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN));
     }
 
     public async Task<Paging<Core.Models.Account>> GetContactRolesAsync(int contactId, int pageNumber, int pageSize)

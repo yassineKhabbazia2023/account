@@ -6,13 +6,10 @@ using AutoFixture;
 using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using Moq;
-using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -57,29 +54,34 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var createDelegation = new CreateDelegationRequest()
             {
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddMonths(5),
-                AccountId = tAccount.AccountId,
-                Status = "pending",
                 DelegatorId = tDelegator.ContactId,
-                DelegateeId = tDelegatee.ContactId,
+                DelegationDetails = new List<DelegationDetails>
+                {
+                    new()
+                    {
+                        DelegateeId = tDelegatee.ContactId,
+                        StartDate = DateTime.UtcNow,
+                        EndDate = DateTime.UtcNow.AddMonths(5),
+                        Status = "pending",
+                    },
+                },
+                AccountIds = new List<int> { tAccount.AccountId }
             };
 
             await repository.CreateDelegationAsync(createDelegation);
 
             var createdDelegation = await context
                 .DelegationEntity
-                .FirstOrDefaultAsync(d =>
-                    d.Account.AccountId == tAccount.AccountId
-                    &&
-                    d.DelegatorId == tDelegator.ContactId
-                    &&
-                    d.DelegateeId == tDelegatee.ContactId);
+                .FirstOrDefaultAsync(d => d.DelegatorId == tDelegator.ContactId
+                && d.DelegateeId == tDelegatee.ContactId
+                && d.Account.FirstOrDefault(a => a.AccountId == tAccount.AccountId) != null);
 
             Assert.NotNull(createdDelegation);
-            Assert.Equal(createDelegation.StartDate, createdDelegation.StartDate);
-            Assert.Equal(createDelegation.EndDate, createdDelegation.EndDate);
-            Assert.Equal(createDelegation.Status, createdDelegation.Status);
+            Assert.Equal(createDelegation.DelegationDetails.FirstOrDefault() !.StartDate, createdDelegation.StartDate);
+            Assert.Equal(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate, createdDelegation.EndDate);
+            Assert.Equal(createDelegation.DelegationDetails.FirstOrDefault() !.Status, createdDelegation.Status);
+            Assert.Equal(createDelegation.DelegationDetails.FirstOrDefault() !.DelegateeId, createdDelegation.DelegateeId);
+            Assert.Equal(createDelegation.AccountIds.FirstOrDefault(), createdDelegation.Account.FirstOrDefault() !.AccountId);
         }
     }
 
@@ -102,12 +104,18 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var createDelegation = new CreateDelegationRequest()
             {
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddMonths(5),
-                AccountId = tAccount.AccountId,
-                Status = "pending",
-                DelegateeId = tDelegatee.ContactId,
                 DelegatorId = 0,
+                DelegationDetails = new List<DelegationDetails>
+                {
+                    new()
+                    {
+                        DelegateeId = tDelegatee.ContactId,
+                        StartDate = DateTime.UtcNow,
+                        EndDate = DateTime.UtcNow.AddMonths(5),
+                        Status = "pending",
+                    }
+                },
+                AccountIds = new List<int> { tAccount.AccountId }
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
@@ -134,12 +142,18 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var createDelegation = new CreateDelegationRequest()
             {
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddMonths(5),
-                AccountId = tAccount.AccountId,
-                Status = "pending",
                 DelegatorId = tDelegator.ContactId,
-                DelegateeId = 0,
+                DelegationDetails = new List<DelegationDetails>
+                {
+                    new()
+                    {
+                        DelegateeId = 0,
+                        StartDate = DateTime.UtcNow,
+                        EndDate = DateTime.UtcNow.AddMonths(5),
+                        Status = "pending",
+                    }
+                },
+                AccountIds = new List<int> { tAccount.AccountId },
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
@@ -162,16 +176,22 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var createDelegation = new CreateDelegationRequest()
             {
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddMonths(5),
-                AccountId = 3,
-                Status = "pending",
                 DelegatorId = tDelegator.ContactId,
-                DelegateeId = tDelegatee.ContactId,
+                DelegationDetails = new List<DelegationDetails>
+                {
+                    new()
+                    {
+                        DelegateeId = tDelegatee.ContactId,
+                        StartDate = DateTime.UtcNow,
+                        EndDate = DateTime.UtcNow.AddMonths(5),
+                        Status = "pending",
+                    }
+                },
+                AccountIds = new List<int> { 3 }
             };
 
             var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
-            Assert.Equal(string.Format(Errors.NotFoundAccountMessage, createDelegation.AccountId), result.Message);
+            Assert.Equal(string.Format(Errors.NotFoundAccountMessage, createDelegation.AccountIds.FirstOrDefault()), result.Message);
         }
     }
 
@@ -192,32 +212,35 @@ public class DelegationRepositoryTests
             await context.SaveChangesAsync();
 
             // Try create a delegation
-            var tDelegation = new DelegationEntity()
+            var tDelegation = new DelegationEntity
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
-                AccountId = tAccount.AccountId,
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
                 Status = "pending",
                 Note = "Note",
+                Account = new List<AccountEntity>
+                {
+                    tAccount
+                }
             };
             await context.DelegationEntity.AddAsync(tDelegation);
             await context.SaveChangesAsync();
 
             // Try get contact delegation
             var repository = new DelegationRepository(context);
-            var conactDelegations = await repository.GetContactDelegationsAsync(tDelegatee.ContactId);
+            var contactDelegations = await repository.GetContactDelegationsAsync(tDelegatee.ContactId);
 
-            Assert.Equal(1, conactDelegations.Count);
-            var contactDelegation = conactDelegations.FirstOrDefault();
+            Assert.Equal(1, contactDelegations.Count);
+            var contactDelegation = contactDelegations.FirstOrDefault();
             Assert.NotNull(contactDelegation);
             Assert.Equal(contactDelegation.StartDate, tDelegation.StartDate);
             Assert.Equal(contactDelegation.EndDate, tDelegation.EndDate);
             Assert.Equal(contactDelegation.Status, tDelegation.Status);
             Assert.Equal(contactDelegation.Note, tDelegation.Note);
             Assert.Equal(contactDelegation.CreationDate, tDelegation.CreationDate);
-            Assert.Equal(contactDelegation.Account!.AccountId, tDelegation.Account.AccountId);
+            Assert.Equal(contactDelegation.Accounts!.Count(), tDelegation.Account.Count);
             Assert.Equal(contactDelegation.Delegator!.ContactId, tDelegation.DelegatorId);
         }
     }
@@ -244,22 +267,28 @@ public class DelegationRepositoryTests
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(5),
-                AccountId = tAccount.AccountId,
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
                 Status = "pending",
                 Note = "Note",
+                Account = new List<AccountEntity>
+                {
+                    tAccount
+                }
             };
 
             var anothetDelegationEntity = new DelegationEntity()
             {
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddMonths(15),
-                AccountId = tAccount.AccountId,
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = anotherDelegatee.ContactId,
                 Status = "pending",
                 Note = "Note 2",
+                Account = new List<AccountEntity>
+                {
+                    tAccount
+                }
             };
             await context.DelegationEntity.AddRangeAsync(new List<DelegationEntity> { tDelegation, anothetDelegationEntity });
             await context.SaveChangesAsync();
@@ -276,7 +305,7 @@ public class DelegationRepositoryTests
             Assert.Equal(delegation.Status, tDelegation.Status);
             Assert.Equal(delegation.Note, tDelegation.Note);
             Assert.Equal(delegation.CreationDate, tDelegation.CreationDate);
-            Assert.Equal(delegation.Account!.AccountId, tDelegation.Account.AccountId);
+            Assert.Equal(delegation.Accounts!.Count(), tDelegation.Account.Count);
             Assert.Equal(delegation.Delegator!.ContactId, tDelegation.DelegatorId);
         }
     }
@@ -288,7 +317,6 @@ public class DelegationRepositoryTests
         {
             var delegation = new DelegationEntity
             {
-                AccountId = 1,
                 Status = "enabled"
             };
 
@@ -301,7 +329,7 @@ public class DelegationRepositoryTests
             var result = await context.DelegationEntity.FirstOrDefaultAsync(d => d.DelegationId == 1);
 
             Assert.NotNull(result);
-            Assert.Equal(Constants.DISABLEDDELEGATIONSTATUS, result.Status);
+            Assert.Equal(DelegationStatus.Disabled.ToString().ToLower(), result.Status);
         }
     }
 
@@ -390,11 +418,14 @@ public class DelegationRepositoryTests
                 {
                     StartDate = DateTime.UtcNow,
                     EndDate = DateTime.UtcNow.AddMonths(i),
-                    AccountId = accountId,
                     DelegatorId = delegatorId,
                     DelegateeId = delegateeId,
                     Status = delegationStatus[randomStatusindex],
                     Note = $"Note de {delegatorId}",
+                    Account = new List<AccountEntity>
+                    {
+                        tAccount
+                    }
                 };
 
                 await context.DelegationEntity.AddRangeAsync(tDelegation);

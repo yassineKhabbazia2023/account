@@ -26,10 +26,15 @@ public static class MapDelegationDbToDelegationModel
                 EndDate = source.EndDate,
                 Status = source.Status,
                 Note = source.Note,
-                Account = source.Account?.ToAccount(),
+                Accounts = source.Account.ToAccounts(),
                 Delegatee = source.Delegatee?.ToContact(),
                 Delegator = source.Delegator?.ToContact(),
             };
+    }
+
+    public static IEnumerable<Core.Models.Account> ToAccounts(this IEnumerable<AccountEntity> source)
+    {
+        return source?.Select(a => a.ToAccount()) ?? Enumerable.Empty<Core.Models.Account>();
     }
 
     public static Core.Models.Account? ToAccount(this AccountEntity source)
@@ -40,7 +45,6 @@ public static class MapDelegationDbToDelegationModel
                  AccountId = source.AccountId,
                  AccountNumber = source.AccountNumber,
                  LegalName = source.LegalName,
-                 Address = source.AddressEntity.ToAddress(),
              };
     }
 
@@ -54,31 +58,6 @@ public static class MapDelegationDbToDelegationModel
                 Email = source.Email,
                 FirstName = source.FirstName,
                 LastName = source.LastName,
-                Type = source.Type,
-                Status = source.Status,
-                PersonaName = source.PersonaName,
-                CreationDate = source.CreationDate,
-            };
-    }
-
-    public static Address ToAddress(this ICollection<AddressEntity> source)
-    {
-        var addressEntity = source?.FirstOrDefault(s => s.AddressType == AddressType.delivery.ToString());
-        return ToAddress(addressEntity!) !;
-    }
-
-    private static Address? ToAddress(this AddressEntity source)
-    {
-        return source == null ? null :
-            new Address
-            {
-                AddressId = source.AddressId,
-                AddressLine1 = source.AddressLine1,
-                ZipCode = source.ZipCode,
-                City = source.City,
-                State = source.State,
-                Country = source.Country,
-                AddressType = source.AddressType,
             };
     }
 }

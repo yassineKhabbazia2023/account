@@ -3,7 +3,6 @@
 // </copyright>
 
 using System.Text.Json.Serialization;
-using Pulse.Account.Core.Constants;
 
 namespace Pulse.Account.Core.Models;
 
@@ -22,7 +21,7 @@ public class Delegation
 
     public DateTime CreationDate { get; set; }
 
-    public Account? Account { get; set; }
+    public IEnumerable<Account> Accounts { get; set; } = Enumerable.Empty<Account>();
 
     public Contact? Delegatee { get; set; }
 

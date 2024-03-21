@@ -13,17 +13,12 @@ public partial class DelegationEntity
     public int DelegationId { get; set; }
 
     /// <summary>
-    /// L&apos;&apos;identifiant technique de l&apos;&apos;entité
-    /// </summary>
-    public int AccountId { get; set; }
-
-    /// <summary>
     /// Le délégateur 
     /// </summary>
     public int DelegatorId { get; set; }
 
     /// <summary>
-    /// Le délégataire
+    /// L&apos;&apos;identifiant du délégataire
     /// </summary>
     public int DelegateeId { get; set; }
 
@@ -52,9 +47,9 @@ public partial class DelegationEntity
     /// </summary>
     public DateTime CreationDate { get; set; }
 
-    public virtual AccountEntity Account { get; set; }
-
     public virtual ContactEntity Delegatee { get; set; }
 
     public virtual ContactEntity Delegator { get; set; }
+
+    public virtual ICollection<AccountEntity> Account { get; set; } = new List<AccountEntity>();
 }

@@ -178,8 +178,6 @@ public partial class AccountEntity
 
     public virtual ICollection<AddressEntity> AddressEntity { get; set; } = new List<AddressEntity>();
 
-    public virtual ICollection<DelegationEntity> DelegationEntity { get; set; } = new List<DelegationEntity>();
-
     public virtual ICollection<DeploymentEntity> DeploymentEntity { get; set; } = new List<DeploymentEntity>();
 
     public virtual HubEntity Hub { get; set; }
@@ -189,4 +187,6 @@ public partial class AccountEntity
     public virtual ICollection<PhoneEntity> PhoneEntity { get; set; } = new List<PhoneEntity>();
 
     public virtual ICollection<RoleEntity> RoleEntity { get; set; } = new List<RoleEntity>();
+
+    public virtual ICollection<DelegationEntity> Delegation { get; set; } = new List<DelegationEntity>();
 }

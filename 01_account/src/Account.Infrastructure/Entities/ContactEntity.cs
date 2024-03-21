@@ -28,7 +28,7 @@ public partial class ContactEntity
     public string LastName { get; set; }
 
     /// <summary>
-    /// l&apos;&apos;adresse mail du contact
+    /// L&apos;&apos;adresse mail du contact
     /// </summary>
     public string Email { get; set; }
 

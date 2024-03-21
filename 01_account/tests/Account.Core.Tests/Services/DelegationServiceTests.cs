@@ -29,19 +29,20 @@ public class DelegationServiceTest
     [Fact]
     public async Task CreateDelegationAsync_WhenRequestIsValid_ShouldCreateDelegation()
     {
-        var createDelegation = _fixture.Build<CreateDelegationRequest>()
+        var details = _fixture.Build<DelegationDetails>()
             .With(p => p.StartDate, DateTime.UtcNow)
             .With(p => p.EndDate, DateTime.UtcNow.AddDays(1))
+            .CreateMany(1);
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
+            .With(p => p.DelegationDetails, details)
             .Create();
 
         _repository.Setup(x => x.CreateDelegationAsync(createDelegation))
             .Callback<CreateDelegationRequest>(request =>
             {
-                request.StartDate.Should().Be(createDelegation.StartDate);
-                request.EndDate.Should().Be(createDelegation.EndDate);
-                request.AccountId.Should().Be(createDelegation.AccountId);
+                request.DelegationDetails.FirstOrDefault() !.StartDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.StartDate);
+                request.DelegationDetails.FirstOrDefault() !.EndDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate);
                 request.DelegatorId.Should().Be(createDelegation.DelegatorId);
-                request.DelegateeId.Should().Be(createDelegation.DelegateeId);
             })
             .ReturnsAsync(100)
             .Verifiable();
@@ -57,9 +58,12 @@ public class DelegationServiceTest
     public void CreateDelegationAsync_WhenEndDateIsInvalid_ShouldThrowException()
     {
         // Arrange
-        var createDelegation = _fixture.Build<CreateDelegationRequest>()
+        var details = _fixture.Build<DelegationDetails>()
             .With(p => p.StartDate, DateTime.UtcNow)
             .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
+            .CreateMany(1);
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
+            .With(p => p.DelegationDetails, details)
             .Create();
         var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
         var service = new DelegationService(repository.Object);
@@ -72,44 +76,24 @@ public class DelegationServiceTest
         Assert.Equal(Errors.DelegationEndDateInvalidMessage, exception.Result.Message);
         Assert.Equal(Errors.DelegationEndDateInvalidCode, exception.Result.Code);
     }
-
-    [Fact]
-    public void CreateDelegationAsync_WhenStartDateIsInvalid_ShouldThrowException()
-    {
-        // Arrange
-        var createDelegation = _fixture.Build<CreateDelegationRequest>()
-            .Without(p => p.StartDate)
-            .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
-            .Create();
-        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
-        var service = new DelegationService(repository.Object);
-
-        // Act
-        var act = async () => await service.CreateDelegationAsync(createDelegation);
-
-        // Assert
-        var exception = Assert.ThrowsAsync<BadRequestException>(act);
-        Assert.Equal(Errors.DelegationStartDateInvalidMessage, exception.Result.Message);
-        Assert.Equal(Errors.DelegationStartDateInvalidCode, exception.Result.Code);
-    }
-
     [Fact]
     public async Task CreateDelegationAsync_WhenEndDateIsNull_ShouldReturnCreateDelegation()
     {
         // Arrange
-        var createDelegation = _fixture.Build<CreateDelegationRequest>()
+        var details = _fixture.Build<DelegationDetails>()
             .With(p => p.StartDate, DateTime.UtcNow)
             .Without(p => p.EndDate)
+            .CreateMany(1);
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
+            .With(p => p.DelegationDetails, details)
             .Create();
         var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
         repository.Setup(x => x.CreateDelegationAsync(createDelegation))
         .Callback<CreateDelegationRequest>(request =>
         {
-            request.StartDate.Should().Be(createDelegation.StartDate);
-            request.EndDate.Should().Be(createDelegation.EndDate);
-            request.AccountId.Should().Be(createDelegation.AccountId);
+            request.DelegationDetails.FirstOrDefault() !.StartDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.StartDate);
+            request.DelegationDetails.FirstOrDefault() !.EndDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate);
             request.DelegatorId.Should().Be(createDelegation.DelegatorId);
-            request.DelegateeId.Should().Be(createDelegation.DelegateeId);
         })
         .ReturnsAsync(100)
         .Verifiable();

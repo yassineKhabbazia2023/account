@@ -1,22 +1,43 @@
-﻿using Pulse.Account.Core.Requests;
+﻿// <copyright file="Validation.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
+// </copyright>
+
+using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Enum;
 
 namespace Pulse.Account.Core.Extensions
 {
     public static class Validation
     {
-        public static bool ValidateStartDateDelegation(CreateDelegationRequest delegation)
+        public static void SetStartDateAndStatus(this IEnumerable<DelegationDetails> details)
         {
-            return delegation?.StartDate != null;
-        }
-
-        public static bool ValidateEndDateDelegation(CreateDelegationRequest delegation)
-        {
-            if (delegation?.EndDate == null)
+            if (details?.Any() != true)
             {
-                return true;
+                return;
             }
 
-            return delegation?.EndDate > delegation?.StartDate;
+            foreach (var detail in details)
+            {
+                if (detail.StartDate == null || detail.StartDate <= DateTime.UtcNow)
+                {
+                    detail.StartDate = DateTime.UtcNow;
+                    detail.Status = DelegationStatus.Enabled.ToString().ToLower();
+                }
+                else
+                {
+                    detail.Status = DelegationStatus.Pending.ToString().ToLower();
+                }
+            }
+        }
+
+        public static bool ValidateEndDateDelegation(IEnumerable<DelegationDetails> details)
+        {
+            if (details?.Any() != true)
+            {
+                return false;
+            }
+
+            return details.All(detail => detail.EndDate == null || detail.EndDate > detail.StartDate);
         }
     }
 }

@@ -216,7 +216,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             var resultExpected = new List<Contact>();
 
             var accountMock = _fixture.Build<AccountEntity>()
-                                           .Without(a => a.DelegationEntity)
+                                           .Without(a => a.Delegation)
                                            .Without(a => a.RoleEntity)
                                            .Create();
 

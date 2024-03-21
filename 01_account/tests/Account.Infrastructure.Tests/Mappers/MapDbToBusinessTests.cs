@@ -3,11 +3,9 @@
 // </copyright>
 
 using AutoFixture;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Enum;
-using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 
@@ -16,16 +14,12 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
     public class MapDbToBusinessTests
     {
         private readonly Fixture _fixture;
-        private readonly DbContextOptions<AccountContext> _options;
 
         public MapDbToBusinessTests()
         {
             _fixture = new Fixture();
             _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-            _options = new DbContextOptionsBuilder<AccountContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
         }
 
         [Fact]

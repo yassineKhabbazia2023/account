@@ -2,16 +2,16 @@
 (
 	[ContactId]				INT IDENTITY(1, 1)	NOT NULL,
 	[ContactGlobalUniqueId]	UNIQUEIDENTIFIER	NOT NULL,
-	[FirstName]				VARCHAR(50)			NOT NULL,
-	[LastName]				VARCHAR(50)			NOT NULL,
-	[Email]     			VARCHAR(50)			NOT NULL,
+	[FirstName]				VARCHAR(250)		NOT NULL,
+	[LastName]				VARCHAR(250)		NOT NULL,
+	[Email]     			VARCHAR(250)		NOT NULL,
 	[Type]                  VARCHAR(20)         NOT NULL, 
 	[Status]                VARCHAR(20)         NOT NULL, 
 	[PersonaName]           VARCHAR(50)         NOT NULL, 
 	[CreationDate]          DATETIME2           NOT NULL, 
     CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC),
-    CONSTRAINT [CHK_Type] CHECK ([Type]= 'Client' OR [Type]= 'Collaborator'),
-    CONSTRAINT [CHK_Status] CHECK ([Status]= 'Connected' OR [Status]= 'Declared' OR [Status]= 'Invited')
+    CONSTRAINT [CHK_Type] CHECK ([Type]= 'customer' OR [Type]= 'collaborator'),
+    CONSTRAINT [CHK_Status] CHECK ([Status]= 'connected' OR [Status]= 'declared' OR [Status]= 'invited')
 )
 
 GO

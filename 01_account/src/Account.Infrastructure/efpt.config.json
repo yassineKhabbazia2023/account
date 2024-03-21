@@ -28,6 +28,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[account].[DelegationDetail]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[account].[Deployment]",
          "ObjectType": 0
       },

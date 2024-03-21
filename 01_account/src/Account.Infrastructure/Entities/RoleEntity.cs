@@ -32,6 +32,11 @@ public partial class RoleEntity
     /// </summary>
     public bool? IsSignatory { get; set; }
 
+    /// <summary>
+    /// Indique, dans les cas où c&apos;&apos;est possible, si le role est lié à une délégation
+    /// </summary>
+    public bool? IsDelegation { get; set; }
+
     public virtual AccountEntity Account { get; set; }
 
     public virtual ContactEntity Contact { get; set; }

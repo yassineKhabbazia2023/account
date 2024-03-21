@@ -231,17 +231,17 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.CreationDate).HasComment("La date de création du contact");
             entity.Property(e => e.Email)
                 .IsRequired()
-                .HasMaxLength(50)
+                .HasMaxLength(250)
                 .IsUnicode(false)
-                .HasComment("l''adresse mail du contact");
+                .HasComment("L''adresse mail du contact");
             entity.Property(e => e.FirstName)
                 .IsRequired()
-                .HasMaxLength(50)
+                .HasMaxLength(250)
                 .IsUnicode(false)
                 .HasComment("Le prénom du contact");
             entity.Property(e => e.LastName)
                 .IsRequired()
-                .HasMaxLength(50)
+                .HasMaxLength(250)
                 .IsUnicode(false)
                 .HasComment("Le nom du contact");
             entity.Property(e => e.PersonaName)
@@ -267,16 +267,13 @@ public partial class AccountContext : DbContext
 
             entity.ToTable("Delegation", "account");
 
-            entity.HasIndex(e => e.AccountId, "IDX_Delegation_AccountId");
-
             entity.HasIndex(e => e.DelegateeId, "IDX_Delegation_DelegateeId");
 
             entity.HasIndex(e => e.DelegatorId, "IDX_Delegation_DelegatorId");
 
             entity.Property(e => e.DelegationId).HasComment("L''identifiant technique");
-            entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
             entity.Property(e => e.CreationDate).HasComment("La date de création de la délégation");
-            entity.Property(e => e.DelegateeId).HasComment("Le délégataire");
+            entity.Property(e => e.DelegateeId).HasComment("L''identifiant du délégataire");
             entity.Property(e => e.DelegatorId).HasComment("Le délégateur ");
             entity.Property(e => e.EndDate).HasComment("La date effective de la fin de la délégation");
             entity.Property(e => e.Note)
@@ -290,20 +287,35 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("La délégation est-elle active ou non");
 
-            entity.HasOne(d => d.Account).WithMany(p => p.DelegationEntity)
-                .HasForeignKey(d => d.AccountId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_Delegation_Account_FK");
-
             entity.HasOne(d => d.Delegatee).WithMany(p => p.DelegationEntityDelegatee)
                 .HasForeignKey(d => d.DelegateeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_Delegation_Contact_DelegateeId_FK");
+                .HasConstraintName("C_DelegationDetail_Contact_FK");
 
             entity.HasOne(d => d.Delegator).WithMany(p => p.DelegationEntityDelegator)
                 .HasForeignKey(d => d.DelegatorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("C_Delegation_Contact_DelegatorId_FK");
+
+            entity.HasMany(d => d.Account).WithMany(p => p.Delegation)
+                .UsingEntity<Dictionary<string, object>>(
+                    "DelegationDetailEntity",
+                    r => r.HasOne<AccountEntity>().WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("C_DelegationDetail_Account_FK"),
+                    l => l.HasOne<DelegationEntity>().WithMany()
+                        .HasForeignKey("DelegationId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("C_DelegationDetail_Delegation_FK"),
+                    j =>
+                    {
+                        j.HasKey("DelegationId", "AccountId").HasName("C_DelegationDetail_PK");
+                        j.ToTable("DelegationDetail", "account");
+                        j.HasIndex(new[] { "AccountId" }, "IDX_DelegationDetail_AccountId");
+                        j.IndexerProperty<int>("DelegationId").HasComment("L''identifiant technique de la délégation");
+                        j.IndexerProperty<int>("AccountId").HasComment("L''identifiant technique de l''entité");
+                    });
         });
 
         modelBuilder.Entity<DeploymentEntity>(entity =>
@@ -397,6 +409,7 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.RoleId).HasComment("L''identifiant technique");
             entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
             entity.Property(e => e.ContactId).HasComment("L''identifiant technique du contact");
+            entity.Property(e => e.IsDelegation).HasComment("Indique, dans les cas où c''est possible, si le role est lié à une délégation");
             entity.Property(e => e.IsFavorite).HasComment("Le rôle est-il considéré comme un favori ou mis en avant comme tel");
             entity.Property(e => e.IsSignatory).HasComment("Le signataire");
 
