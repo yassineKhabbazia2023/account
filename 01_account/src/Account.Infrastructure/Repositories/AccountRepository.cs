@@ -150,7 +150,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             return await _retryPolicy.ExecuteAsync(async () =>
             {
                 IQueryable<int> accountIds = GetAccountQueryByContactId(contactId).Select(account => account.AccountId);
-                if (accountIds == null)
+                if (accountIds == null || accountIds.Count() == 0)
                 {
                     throw new NotFoundException(Errors.NotFoundRoleContactCode, string.Format(Errors.NotFoundRoleContactMessage, contactId));
                 }
