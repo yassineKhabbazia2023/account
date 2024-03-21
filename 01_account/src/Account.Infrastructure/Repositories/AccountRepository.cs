@@ -145,6 +145,26 @@ namespace Pulse.Account.Infrastructure.Repositories
             });
         }
 
+        public async Task<IEnumerable<Contact>> GetContactsAccountByAdminAsync(int contactId)
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                IQueryable<int> accountIds = GetAccountQueryByContactId(contactId).Select(account => account.AccountId);
+                if (accountIds?.Any() != true)
+                {
+                    throw new NotFoundException(Errors.NotFoundRoleContactCode, string.Format(Errors.NotFoundRoleContactMessage, contactId));
+                }
+
+                var result = await _accountContext.RoleEntity
+                        .AsNoTracking()
+                        .Include(x => x.Contact)
+                        .Where(x => accountIds.Contains(x.AccountId))
+                        .ToListAsync();
+
+                return result.MapToContacts().DistinctBy(x => x.ContactId);
+            });
+        }
+
         private IQueryable<AccountEntity> GetAccountQueryByContactId(int contactId)
         {
             return _accountContext.AccountEntity

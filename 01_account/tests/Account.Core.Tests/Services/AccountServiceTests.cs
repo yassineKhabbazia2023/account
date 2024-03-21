@@ -5,7 +5,9 @@
 using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Moq;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Enum;
@@ -132,6 +134,51 @@ namespace Pulse.Account.Core.Tests.Services
 
             // Assert
             Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public async Task GetContactsAccountByAdminAsync_WhenValidContactId_ShouldReturnsContacts()
+        {
+            // Arrange
+            var contactId = 6000;
+            var fixture = new Fixture();
+            var expected = fixture.Create<List<Contact>>();
+
+            var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
+            accountRepository.Setup(repo => repo.GetContactsAccountByAdminAsync(It.IsAny<int>()))
+                .Callback<int>((id) => id.Should().Be(contactId))
+                .ReturnsAsync(expected);
+
+            var accountService = new AccountService(accountRepository.Object);
+
+            // Act
+            var result = await accountService.GetContactsAccountByAdminAsync(contactId);
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public async Task GetContactsAccountByAdminAsync_WhenInvalidContactId_ShouldThrows_NotFoundException()
+        {
+            // Arrange
+            var contactId = 6000;
+            var fixture = new Fixture();
+            var expected = fixture.Create<List<Contact>>();
+
+            var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
+            accountRepository.Setup(repo => repo.GetContactsAccountByAdminAsync(It.IsAny<int>()))
+                .Throws(new NotFoundException(Errors.NotFoundRoleContactCode, Errors.NotFoundRoleContactMessage));
+
+            var accountService = new AccountService(accountRepository.Object);
+
+            // Act
+            var result = async () => await accountService.GetContactsAccountByAdminAsync(contactId);
+
+            // Assert
+            var exception = await Assert.ThrowsAsync<NotFoundException>(result);
+            Assert.Equal(Errors.NotFoundRoleContactCode, exception.Code);
+            Assert.Equal(Errors.NotFoundRoleContactMessage, exception.Message);
         }
     }
 }
