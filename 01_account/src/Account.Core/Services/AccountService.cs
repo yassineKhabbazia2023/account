@@ -45,5 +45,10 @@ namespace Pulse.Account.Core.Services
         {
             return await _accountRepository.GetContactsAccountAsync(accountId, type);
         }
+
+        public async Task<IEnumerable<Contact>> GetContactsAccountByAdminAsync(int contactId)
+        {
+            return await _accountRepository.GetContactsAccountByAdminAsync(contactId);
+        }
     }
 }

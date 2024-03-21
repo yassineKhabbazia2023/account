@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Linq;
 using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
@@ -252,6 +253,51 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
             // Assert
             Assert.Equivalent(resultExpected, roles);
+        }
+
+        [Fact]
+        public async Task GetContactsAccountByAdminAsync_ShouldReturnsContacts()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var resultExpected = new List<Contact>();
+                var accountsMock = _fixture.Create<List<AccountEntity>>();
+                var contactAdmin = _fixture.Build<ContactEntity>()
+                                           .Without(c => c.DelegationEntityDelegatee)
+                                           .Without(c => c.DelegationEntityDelegator)
+                                           .Without(c => c.RoleEntity)
+                                           .Without(c => c.ContactGlobalUniqueId)
+                                           .Create();
+
+                context.AccountEntity.AddRange(accountsMock);
+                context.SaveChanges();
+
+                for (int i = 0; i < accountsMock.Count; i++)
+                {
+                    var roleMock = new RoleEntity()
+                    {
+                        ContactId = contactAdmin.ContactId,
+                        Contact = contactAdmin,
+                        AccountId = accountsMock[i].AccountId,
+                        Account = accountsMock[i]
+                    };
+
+                    context.RoleEntity.Add(roleMock);
+                    context.SaveChanges();
+
+                    resultExpected.AddRange(accountsMock[i].RoleEntity.Select(x => x.Contact.ToContact() !));
+                }
+
+                var accountRepository = new AccountRepository(context);
+
+                // Act
+                var contactByAdmin = await accountRepository.GetContactsAccountByAdminAsync(contactAdmin.ContactId);
+                var expected = resultExpected.Select(x => x.ContactId).Distinct();
+
+                // Assert
+                Assert.Equivalent(expected, contactByAdmin.Select(x => x.ContactId));
+            }
         }
     }
 }

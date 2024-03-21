@@ -100,5 +100,20 @@ namespace Pulse.Account.API.Controllers
             var result = await _accountService.GetContactsAccountAsync(accountId, type);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Récupérer la liste des contacts rattachés aux entités d'un contact admin.
+        /// </summary>
+        /// <param name="contactId">Identifiant du contact connecté.</param>
+        /// <returns>La liste des contacts rattachés aux entités d'un contact admin.</returns>
+        [HttpGet("contacts/{contactId}")]
+        [ProducesResponseType(typeof(IEnumerable<Contact>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IEnumerable<Contact>>> GetContactsAccountByAdminAsync(int contactId)
+        {
+            var result = await _accountService.GetContactsAccountByAdminAsync(contactId);
+            return Ok(result);
+        }
     }
 }

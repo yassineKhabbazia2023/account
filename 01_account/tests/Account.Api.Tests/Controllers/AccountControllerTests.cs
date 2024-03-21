@@ -6,6 +6,7 @@ using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -164,6 +165,44 @@ namespace Account.Api.Tests.Controllers
 
             // Assert
             Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);
+        }
+
+        [Fact]
+        public async Task GetContactsAccountByAdminAsync_Should_Returns_Contacts_Account()
+        {
+            // Arrange
+            var contactId = 6000;
+            var expected = _fixture.Create<List<Contact>>();
+
+            var accountService = new Mock<IAccountService>(MockBehavior.Strict);
+            accountService.Setup(service => service.GetContactsAccountByAdminAsync(It.IsAny<int>()))
+                .ReturnsAsync(expected);
+            var accountController = new AccountController(accountService.Object);
+
+            // Act
+            var result = await accountController.GetContactsAccountByAdminAsync(contactId);
+
+            // Assert
+            Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);
+        }
+
+        [Fact]
+        public async Task GetContactsAccountByAdminAsync_Should_Throw_NotFoundException()
+        {
+            // Arrange
+            var contactId = 6000;
+            var accountService = new Mock<IAccountService>(MockBehavior.Strict);
+            accountService.Setup(service => service.GetContactsAccountByAdminAsync(It.IsAny<int>()))
+                .Throws(new NotFoundException(Errors.NotFoundRoleContactCode, Errors.NotFoundRoleContactMessage));
+            var accountController = new AccountController(accountService.Object);
+
+            // Act
+            var result = async () => await accountController.GetContactsAccountByAdminAsync(contactId);
+
+            // Assert
+            var exception = await Assert.ThrowsAsync<NotFoundException>(result);
+            Assert.Equal(Errors.NotFoundRoleContactCode, exception.Code);
+            Assert.Equal(Errors.NotFoundRoleContactMessage, exception.Message);
         }
     }
 }
