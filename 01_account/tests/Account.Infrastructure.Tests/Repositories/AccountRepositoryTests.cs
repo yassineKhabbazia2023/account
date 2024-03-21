@@ -299,5 +299,27 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 Assert.Equivalent(expected, contactByAdmin.Select(x => x.ContactId));
             }
         }
+
+        [Fact]
+        public async Task GetContactsAccountByAdminAsync_ShouldThrow_NotFoundException()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var resultExpected = new List<Contact>();
+                var accountsMock = _fixture.Create<List<AccountEntity>>();
+
+                context.AccountEntity.AddRange(accountsMock);
+                context.SaveChanges();
+
+                var accountRepository = new AccountRepository(context);
+
+                // Act
+                Task ContactAdmin() => accountRepository.GetContactsAccountByAdminAsync(123);
+
+                // Assert
+                await Assert.ThrowsAsync<NotFoundException>(ContactAdmin);
+            }
+        }
     }
 }

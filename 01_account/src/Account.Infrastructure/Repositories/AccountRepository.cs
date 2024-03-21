@@ -150,17 +150,16 @@ namespace Pulse.Account.Infrastructure.Repositories
             return await _retryPolicy.ExecuteAsync(async () =>
             {
                 IQueryable<int> accountIds = GetAccountQueryByContactId(contactId).Select(account => account.AccountId);
-                if (accountIds == null || accountIds.Count() == 0)
+                if (accountIds?.Any() != true)
                 {
                     throw new NotFoundException(Errors.NotFoundRoleContactCode, string.Format(Errors.NotFoundRoleContactMessage, contactId));
                 }
 
-                IQueryable<RoleEntity> query = _accountContext.RoleEntity
+                var result = await _accountContext.RoleEntity
                         .AsNoTracking()
                         .Include(x => x.Contact)
-                        .Where(x => accountIds.Contains(x.AccountId));
-
-                var result = await query.ToListAsync();
+                        .Where(x => accountIds.Contains(x.AccountId))
+                        .ToListAsync();
 
                 return result.MapToContacts().DistinctBy(x => x.ContactId);
             });
