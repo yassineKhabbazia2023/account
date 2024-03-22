@@ -19,4 +19,6 @@ public interface IRoleRepository
     Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory);
 
     Task DeleteRoleAsync(int accountId, int contactId);
+
+    Task<Role> GetContactRoleAsync(int accountId, int contactId);
 }

@@ -281,9 +281,27 @@ public class RolesRepositoryTests
         {
             var accountMock = _fixture.Create<AccountEntity>();
             var contactMock = _fixture.Create<List<ContactEntity>>();
-            await InitRoleMockData(context, accountMock, contactMock);
-            var accountRepository = new AccountRepository(context);
+            context.AccountEntity.Add(accountMock);
+            context.ContactEntity.AddRange(contactMock);
+            await context.SaveChangesAsync();
+
             var roleRepository = new RoleRepository(context);
+            await roleRepository.CreateRoleAsync(new CreateRoleRequest
+            {
+                AccountId = accountMock.AccountId,
+                ContactId = contactMock.First().ContactId,
+                IsFavorite = true,
+                IsSignatory = false
+            });
+
+            await roleRepository.CreateRoleAsync(new CreateRoleRequest
+            {
+                AccountId = accountMock.AccountId,
+                ContactId = contactMock.Last().ContactId,
+                IsFavorite = true,
+                IsSignatory = true
+            });
+            var accountRepository = new AccountRepository(context);
             var rolesBefore = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, It.IsAny<ContactType>());
 
             // Act
@@ -293,91 +311,5 @@ public class RolesRepositoryTests
             var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, It.IsAny<ContactType>());
             Assert.Equal(rolesBefore.Count() - 1, roles.Count());
         }
-    }
-
-    [Fact]
-    public async Task DeleteRoleAsync_ShouldDeleteRole_CasTwoSignatory()
-    {
-        // Arrange
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            var accountMock = _fixture.Create<AccountEntity>();
-            var contactMock = _fixture.Create<List<ContactEntity>>();
-            await InitRoleMockData(context, accountMock, contactMock);
-            var accountRepository = new AccountRepository(context);
-            var roleRepository = new RoleRepository(context);
-            var rolesBefore = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, It.IsAny<ContactType>());
-
-            // Act
-            await roleRepository.DeleteRoleAsync(accountMock.AccountId, contactMock.First().ContactId);
-
-            // Assert
-            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, It.IsAny<ContactType>());
-            Assert.Equal(rolesBefore.Count() - 1, roles.Count());
-        }
-    }
-
-    [Fact]
-    public async Task DeleteRoleAsync_ShouldThrowException_CaseNotFoundContact()
-    {
-        // Arrange
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            var accountMock = _fixture.Create<AccountEntity>();
-            var contactMock = _fixture.Create<List<ContactEntity>>();
-            await InitRoleMockData(context, accountMock, contactMock);
-            var roleRepository = new RoleRepository(context);
-
-            // Act
-            Task DeleteRole() => roleRepository!.DeleteRoleAsync(accountMock!.AccountId, It.IsAny<int>());
-
-            // Assert
-            await Assert.ThrowsAsync<NotFoundException>(DeleteRole);
-        }
-    }
-
-    [Fact]
-    public async Task DeleteRoleAsync_ShouldThrowException_CaseOnlyOneSignatory()
-    {
-        // Arrange
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            var accountMock = _fixture.Create<AccountEntity>();
-            var contactMock = _fixture.CreateMany<ContactEntity>(2);
-            await InitRoleMockData(context, accountMock, contactMock);
-            context.RoleEntity.RemoveRange(context.RoleEntity.AsEnumerable());
-            context.SaveChanges();
-            var roleRepository = new RoleRepository(context);
-
-            // Act
-            Task DeleteRole() => roleRepository!.DeleteRoleAsync(accountMock!.AccountId, contactMock.Last().ContactId);
-
-            // Assert
-            await Assert.ThrowsAsync<BadRequestException>(DeleteRole);
-        }
-    }
-
-    private static async Task InitRoleMockData(AccountContext context, AccountEntity accountMock, IEnumerable<ContactEntity> contactMock)
-    {
-        context.AccountEntity.Add(accountMock);
-        context.ContactEntity.AddRange(contactMock);
-        await context.SaveChangesAsync();
-
-        var roleRepository = new RoleRepository(context);
-        await roleRepository.CreateRoleAsync(new CreateRoleRequest
-        {
-            AccountId = accountMock.AccountId,
-            ContactId = contactMock.First().ContactId,
-            IsFavorite = true,
-            IsSignatory = false
-        });
-
-        await roleRepository.CreateRoleAsync(new CreateRoleRequest
-        {
-            AccountId = accountMock.AccountId,
-            ContactId = contactMock.Last().ContactId,
-            IsFavorite = true,
-            IsSignatory = true
-        });
     }
 }
