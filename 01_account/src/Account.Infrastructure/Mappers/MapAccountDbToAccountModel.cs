@@ -28,6 +28,22 @@ namespace Pulse.Account.Infrastructure.Mappers
              };
         }
 
+        public static Paging<Contact> MapToPagingContact(
+            this IEnumerable<Contact> source,
+            int pageNumber,
+            int totalRows,
+            float totalPageCalcul)
+        {
+            return
+             new Paging<Contact>()
+             {
+                 Items = source,
+                 CurrentPage = pageNumber,
+                 TotalItems = totalRows,
+                 TotalPage = (int)Math.Ceiling(totalPageCalcul)
+             };
+        }
+
         public static IEnumerable<Core.Models.Account> MapToAccounts(this ICollection<AccountEntity> source, int contactId)
         {
             return source?.Select(a => a.MapToAccount(contactId) !) ?? Enumerable.Empty<Core.Models.Account>();
