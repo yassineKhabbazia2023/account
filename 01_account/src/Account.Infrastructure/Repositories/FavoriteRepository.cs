@@ -3,11 +3,13 @@
 // </copyright>
 
 using System.Data;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
@@ -58,25 +60,15 @@ namespace Pulse.Account.Infrastructure.Repositories
                                        select role;
 
                 var existingRoleItem = await existingRole.FirstOrDefaultAsync();
-                if (existingRoleItem != null)
+                if (existingRoleItem == null)
                 {
-                    existingRoleItem.IsFavorite = isFavorite;
-                    _accountContext.RoleEntity.Update(existingRoleItem);
-                    await _accountContext.SaveChangesAsync();
+                    throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
                 }
-            });
-        }
 
-        private IQueryable<AccountEntity> GetAccountQueryByContactId(int contactId)
-        {
-            return _accountContext.AccountEntity
-                            .AsNoTracking()
-                            .Include(x => x.RoleEntity)
-                            .ThenInclude(r => r.Contact)
-                            .Include(a => a.AddressEntity)
-                            .Include(x => x.DeploymentEntity)
-                            .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
-                            .OrderBy(a => a.LegalName);
+                existingRoleItem.IsFavorite = isFavorite;
+                _accountContext.RoleEntity.Update(existingRoleItem);
+                await _accountContext.SaveChangesAsync();
+            });
         }
     }
 }
