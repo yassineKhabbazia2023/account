@@ -4,7 +4,10 @@
 
 using System.Text.Json;
 using AutoFixture;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Microsoft.Identity.Client;
 using Moq;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Services;
@@ -51,6 +54,24 @@ namespace Pulse.Account.Core.Tests.Services
 
             // Assert
             _favoriteRepository.Verify(x => x.UpdateAccountFavoriteAsync(1, 1, true), Times.Once);
+        }
+
+        [Fact]
+        public async Task SetAccountFavoriteAsync_Should_Throw_NotFoundException()
+        {
+            _favoriteRepository
+                .Setup(repository => repository.UpdateAccountFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
+                .Throws(new NotFoundException(Errors.NotFoundRoleCode, Errors.NotFoundRoleMessage));
+
+            var favoriteService = new FavoriteService(_favoriteRepository.Object);
+
+            // Act
+            var result = async () => await favoriteService.SetFavoriteAsync(123, 123, true);
+
+            // Assert
+            var exception = await Assert.ThrowsAsync<NotFoundException>(result);
+            Assert.Equal(Errors.NotFoundRoleCode, exception.Code);
+            Assert.Equal(Errors.NotFoundRoleMessage, exception.Message);
         }
     }
 }

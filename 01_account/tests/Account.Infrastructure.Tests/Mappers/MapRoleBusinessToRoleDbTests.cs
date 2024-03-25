@@ -44,6 +44,7 @@ public class MapRoleBusinessToRoleDbTests
             AccountId = role!.AccountId,
             IsFavorite = role!.IsFavorite,
             IsSignatory = role!.IsSignatory,
+            IsDelegation = role!.IsDelegation,
         };
 
         // Act

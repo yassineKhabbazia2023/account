@@ -78,5 +78,19 @@ namespace Account.Api.Tests.Controllers
             result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
             result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(expected);
         }
+
+        [Fact]
+        public void GetAccountReferentialInformation_ShouldReturnAccountReferenceInformation()
+        {
+            var expectedResult = new AccountReferentialInformation();
+            _service.Setup(x => x.GetAccountReferentialInformation()).Returns(expectedResult).Verifiable();
+
+            var referentialController = new ReferentialController(_service.Object);
+
+            var result = referentialController.GetAccountReferentialInformation();
+
+            result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
+            result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(expectedResult);
+        }
     }
 }

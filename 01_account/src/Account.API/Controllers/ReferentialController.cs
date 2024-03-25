@@ -48,5 +48,19 @@ namespace Pulse.Account.API.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Récupère les données de référence concernant les entités morales.
+        /// </summary>
+        /// <returns>les information de reference des entités morales.</returns>
+        [HttpGet("AccountReferentialInformation")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountReferentialInformation))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<AccountReferentialInformation> GetAccountReferentialInformation()
+        {
+            var result = _referentialService.GetAccountReferentialInformation();
+
+            return Ok(result);
+        }
     }
 }

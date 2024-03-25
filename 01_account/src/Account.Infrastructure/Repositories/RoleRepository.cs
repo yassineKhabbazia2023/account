@@ -8,16 +8,15 @@ using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
+using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Core.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
-using Pulse.Account.Core.Requests;
-using Pulse.Account.Core.Exceptions;
-using Kpmg.ExceptionMiddleware.AdvancedException;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -64,7 +63,6 @@ public class RoleRepository : IRoleRepository
                   pageNumber,
                   totalRows,
                   totalPages);
-
         });
     }
 
@@ -84,6 +82,17 @@ public class RoleRepository : IRoleRepository
                 .ToListAsync();
 
             return result.MapToContacts();
+        });
+    }
+
+    public async Task<Role> GetContactRoleAsync(int accountId, int contactId)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var role = await _accountContext.RoleEntity
+                .FirstOrDefaultAsync(r => r.AccountId == accountId && r.ContactId == contactId);
+
+            return role!.MapToRole();
         });
     }
 
@@ -133,29 +142,10 @@ public class RoleRepository : IRoleRepository
     {
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            // Theory an account will have at least 1 signataire
-            // Verfiy if this account has another signataire beside this contact
-            var signataire = _accountContext.RoleEntity
-                            .Where(r => r.AccountId == accountId
-                                && r.ContactId != contactId
-                                && r.IsSignatory == true)
-                            .FirstOrDefault();
-
-            // this contact is the only signataire of this account
-            if (signataire == null)
-            {
-                throw new BadRequestException(Errors.CannotDeleteSignatoryCode, Errors.CannotDeleteSignatoryMessage);
-            }
-
             var role = _accountContext.RoleEntity
-                        .Where(r => r.AccountId == accountId && r.ContactId == contactId)
-                        .FirstOrDefault();
-            if (role == null)
-            {
-                throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
-            }
+                .FirstOrDefault(r => r.AccountId == accountId && r.ContactId == contactId);
 
-            _accountContext.Remove(role);
+            _accountContext.Remove(role!);
             await _accountContext.SaveChangesAsync();
         });
     }

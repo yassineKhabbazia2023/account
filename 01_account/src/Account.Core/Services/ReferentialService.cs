@@ -30,5 +30,10 @@ namespace Pulse.Account.Core.Services
 
             return await _referentialRepository.GetNafsAsync(search, pageNumber, pageSize);
         }
+
+        public AccountReferentialInformation GetAccountReferentialInformation()
+        {
+            return new AccountReferentialInformation();
+        }
     }
 }

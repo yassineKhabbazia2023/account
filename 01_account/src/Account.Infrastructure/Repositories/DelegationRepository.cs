@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Data;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.AspNetCore.Http;
@@ -34,35 +35,31 @@ public class DelegationRepository : IDelegationRepository
                 sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(3000));
     }
 
-    public async Task<int> CreateDelegationAsync(CreateDelegationRequest delegation)
+    public async Task<int> CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles)
     {
-        var delegationEntities = new List<DelegationEntity>();
-        var delegator = await GetContactAsync(delegation.DelegatorId);
+        var contactsToCheck = delegation.DelegationDetails.Select(d => d.DelegateeId).ToList();
+        contactsToCheck.Add(delegation.DelegatorId);
 
-        foreach (var detail in delegation.DelegationDetails)
+        if (!(await CheckExistingContactsAsync(contactsToCheck))?.Any() == false)
         {
-            var delegationEntity = new DelegationEntity
-            {
-                CreationDate = DateTime.UtcNow,
-                Delegator = delegator,
-                Delegatee = await GetContactAsync(detail.DelegateeId),
-                StartDate = detail.StartDate!.Value,
-                EndDate = detail.EndDate,
-                Status = detail.Status,
-                Note = detail.Note,
-                Account = new List<AccountEntity>()
-            };
-
-            foreach (var accountId in delegation.AccountIds)
-            {
-                delegationEntity.Account.Add(await GetAccountAsync(accountId));
-            }
-
-            delegationEntities.Add(delegationEntity);
+            throw new NotFoundException(Errors.NotFoundContactsCode, Errors.NotFoundContactsMessage);
         }
+
+        if (!(await CheckExistingAccountsAsync(delegation.AccountIds))?.Any() == false)
+        {
+            throw new NotFoundException(Errors.NotFoundAccountsCode, Errors.NotFoundAccountsMessage);
+        }
+
+        var accounts = await GetAccountsAsync(delegation.AccountIds);
+        var delegationEntities = delegation.MapDelegationRequestToDelegationsDb(accounts.ToList());
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
+            if (roles.Any())
+            {
+                await _accountContext.RoleEntity.AddRangeAsync(roles.MapRolesToRoleDb());
+            }
+
             await _accountContext.DelegationEntity.AddRangeAsync(delegationEntities);
             await _accountContext.SaveChangesAsync();
         });
@@ -142,48 +139,47 @@ public class DelegationRepository : IDelegationRepository
         var validAccount = false;
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            validAccount = await _accountContext
-                                        .AccountEntity
-                                        .AnyAsync(d => d.AccountId == accountId);
+            validAccount = await _accountContext.AccountEntity.AnyAsync(d => d.AccountId == accountId);
         });
 
         return validAccount;
     }
 
-    private async Task<ContactEntity> GetContactAsync(int contactId)
+    private async Task<IEnumerable<int>> CheckExistingContactsAsync(IEnumerable<int> contactIds)
     {
-        var tContact = new ContactEntity();
+        var missingIds = new List<int>();
+
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            tContact = await _accountContext
-                                        .ContactEntity
-                                        .FirstOrDefaultAsync(d => d.ContactId == contactId);
+            var dbIds = await _accountContext.ContactEntity.Select(c => c.ContactId).ToListAsync();
+            missingIds = contactIds.Except(dbIds).ToList();
         });
 
-        if (tContact is null)
-        {
-            throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
-        }
-
-        return tContact;
+        return missingIds;
     }
 
-    private async Task<AccountEntity> GetAccountAsync(int accountId)
+    private async Task<IEnumerable<AccountEntity>> GetAccountsAsync(IEnumerable<int> accountIds)
     {
-        var tAccount = new AccountEntity();
+        var accountEntities = new List<AccountEntity>();
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            tAccount = await _accountContext
-                                        .AccountEntity
-                                        .FirstOrDefaultAsync(d => d.AccountId == accountId);
+            accountEntities = await _accountContext.AccountEntity.Where(a => accountIds.Contains(a.AccountId)).ToListAsync();
         });
 
-        if (tAccount is null)
-        {
-            throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
-        }
+        return accountEntities;
+    }
 
-        return tAccount;
+    private async Task<IEnumerable<int>> CheckExistingAccountsAsync(IEnumerable<int> accountIds)
+    {
+        var missingIds = new List<int>();
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var dbIds = await _accountContext.AccountEntity.Select(a => a.AccountId).ToListAsync();
+            missingIds = accountIds.Except(dbIds).ToList();
+        });
+
+        return missingIds;
     }
 
     private async Task<DelegationEntity> GetDelegationAsync(int delegationId)

@@ -128,7 +128,7 @@ namespace Account.Api.Tests.Controllers
             var result = actionResult as StatusCodeResult;
 
             // Assert
-            result.StatusCode.Should().Be(200);
+            result!.StatusCode.Should().Be(200);
             rolesService.Verify(x => x.UpdateRoleSignatoryAsync(1, 1, true), Times.Once);
         }
 

@@ -20,6 +20,6 @@ namespace Pulse.Account.Core.Interfaces
 
         Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId, ContactType? type);
 
-        Task<IEnumerable<Contact>> GetContactsAccountByAdminAsync(int contactId);
+        Task<Paging<Contact>> GetContactsAccountByAdminAsync(string? search, int contactId, int pageNumber, int pageSize);
     }
 }

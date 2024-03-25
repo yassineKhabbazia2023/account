@@ -39,7 +39,13 @@ namespace Pulse.Account.Core.Exceptions
         public static readonly string CannotDeleteSignatoryCode = "ACC011";
         public static readonly string CannotDeleteSignatoryMessage = "Impossibe de supprimer le role: C'est le seul signataire.";
 
-        public static readonly string NotFoundRoleContactCode = "ACC0012";
+        public static readonly string NotFoundAccountsCode = "ACC012";
+        public static readonly string NotFoundAccountsMessage = "Une des entités est introuvable";
+
+        public static readonly string NotFoundContactsCode = "ACC013";
+        public static readonly string NotFoundContactsMessage = "Un des contacts est introuvable";
+
+        public static readonly string NotFoundRoleContactCode = "ACC0014";
         public static readonly string NotFoundRoleContactMessage = "Le contact avec l'identifiant {0} n'a aucun role";
     }
 }

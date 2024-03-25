@@ -37,8 +37,8 @@ public class DelegationServiceTest
             .With(p => p.DelegationDetails, details)
             .Create();
 
-        _repository.Setup(x => x.CreateDelegationAsync(createDelegation))
-            .Callback<CreateDelegationRequest>(request =>
+        _repository.Setup(x => x.CreateDelegationAsync(createDelegation, It.IsAny<IEnumerable<CreateRoleRequest>>()))
+            .Callback<CreateDelegationRequest, IEnumerable<CreateRoleRequest>>((request, roles) =>
             {
                 request.DelegationDetails.FirstOrDefault() !.StartDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.StartDate);
                 request.DelegationDetails.FirstOrDefault() !.EndDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate);
@@ -52,6 +52,20 @@ public class DelegationServiceTest
 
         delegationId.Should().Be(100);
         _repository.VerifyAll();
+    }
+
+    [Fact]
+    public void CreateDelegationAsync_WithNullRequest_ShouldThrowBadRequestException()
+    {
+        var service = new DelegationService(null!);
+
+        // Act
+        var act = async () => await service.CreateDelegationAsync(null!);
+
+        // Assert
+        var exception = Assert.ThrowsAsync<BadRequestException>(act);
+        Assert.Equal(Errors.CreateDelegationMessage, exception.Result.Message);
+        Assert.Equal(Errors.CreateDelegationCode, exception.Result.Code);
     }
 
     [Fact]
@@ -76,6 +90,7 @@ public class DelegationServiceTest
         Assert.Equal(Errors.DelegationEndDateInvalidMessage, exception.Result.Message);
         Assert.Equal(Errors.DelegationEndDateInvalidCode, exception.Result.Code);
     }
+
     [Fact]
     public async Task CreateDelegationAsync_WhenEndDateIsNull_ShouldReturnCreateDelegation()
     {
@@ -88,8 +103,8 @@ public class DelegationServiceTest
             .With(p => p.DelegationDetails, details)
             .Create();
         var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
-        repository.Setup(x => x.CreateDelegationAsync(createDelegation))
-        .Callback<CreateDelegationRequest>(request =>
+        repository.Setup(x => x.CreateDelegationAsync(createDelegation, It.IsAny<IEnumerable<CreateRoleRequest>>()))
+        .Callback<CreateDelegationRequest, IEnumerable<CreateRoleRequest>>((request, roles) =>
         {
             request.DelegationDetails.FirstOrDefault() !.StartDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.StartDate);
             request.DelegationDetails.FirstOrDefault() !.EndDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate);
@@ -166,9 +181,8 @@ public class DelegationServiceTest
         // Arrange
         var accountId = 100;
         IReadOnlyCollection<Delegation> delegationlist = _fixture.Create<List<Delegation>>();
-        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
 
-        repository.Setup(x => x.DoesAccountExistAsync(It.IsAny<int>()))
+        _repository.Setup(x => x.DoesAccountExistAsync(It.IsAny<int>()))
           .Callback<int>((id) =>
           {
               id.Should().Be(accountId);
@@ -176,7 +190,7 @@ public class DelegationServiceTest
           .ReturnsAsync(true)
           .Verifiable();
 
-        repository.Setup(x => x.GetAccountDelegationsHistoryAsync(It.IsAny<int>()))
+        _repository.Setup(x => x.GetAccountDelegationsHistoryAsync(It.IsAny<int>()))
             .Callback<int>((id) =>
             {
                 id.Should().Be(accountId);
@@ -184,7 +198,7 @@ public class DelegationServiceTest
             .ReturnsAsync(delegationlist)
             .Verifiable();
 
-        var service = new DelegationService(repository.Object);
+        var service = new DelegationService(_repository.Object);
 
         // Act
         var delegationsHistory = await service.GetAccountDelegationsHistoryAsync(accountId);
@@ -192,7 +206,7 @@ public class DelegationServiceTest
         // Assert
         delegationsHistory.Should().NotBeNull();
         delegationsHistory.Should().BeEquivalentTo(delegationlist);
-        repository.VerifyAll();
+        _repository.VerifyAll();
     }
 
     [Fact]
@@ -200,9 +214,8 @@ public class DelegationServiceTest
     {
         // Arrange
         var accountId = 100;
-        var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
 
-        repository.Setup(x => x.DoesAccountExistAsync(It.IsAny<int>()))
+        _repository.Setup(x => x.DoesAccountExistAsync(It.IsAny<int>()))
             .Callback<int>((id) =>
             {
                 id.Should().Be(accountId);
@@ -210,7 +223,7 @@ public class DelegationServiceTest
             .ReturnsAsync(false)
             .Verifiable();
 
-        var service = new DelegationService(repository.Object);
+        var service = new DelegationService(_repository.Object);
 
         // Act
         var act = async () => await service.GetAccountDelegationsHistoryAsync(accountId);
@@ -219,5 +232,61 @@ public class DelegationServiceTest
         var exception = Assert.ThrowsAsync<NotFoundException>(act);
         Assert.Equal(Errors.NotFoundAccountCode, exception.Result.Code);
         Assert.Equal(string.Format(Errors.NotFoundAccountMessage, accountId), exception.Result.Message);
-        }
+    }
+
+    [Fact]
+    public void CreateRoleRequests_ShouldCreateRoleRequestList()
+    {
+        var details = _fixture.Build<DelegationDetails>()
+            .With(x => x.IsRoleToCreate, true)
+            .CreateMany(1);
+        var accounts = new List<int> { 1 };
+        var expected = _fixture.Build<CreateDelegationRequest>()
+            .With(x => x.DelegationDetails, details)
+            .With(x => x.AccountIds, accounts)
+            .Create();
+
+        var result = DelegationService.CreateRoleRequests(expected);
+        result.Should().NotBeNull();
+        result.Should().HaveCount(1);
+
+        var resultItem = result.First();
+        resultItem.AccountId.Should().Be(expected.AccountIds.First());
+        resultItem.ContactId.Should().Be(expected.DelegationDetails.First().DelegateeId);
+        resultItem.IsFavorite.Should().BeFalse();
+        resultItem.IsSignatory.Should().BeFalse();
+        resultItem.IsDelegation.Should().BeTrue();
+    }
+
+    [Theory]
+    [MemberData(nameof(DelegationRequestData))]
+    public void CreateRoleRequestsWithNullOrEmtpyDelegationDetail_ShouldReturnEmptyList(CreateDelegationRequest delegation)
+    {
+        var result = DelegationService.CreateRoleRequests(delegation);
+
+        result.Should().NotBeNull();
+        result.Should().BeEmpty();
+    }
+
+    public static IEnumerable<object[]> DelegationRequestData => new List<object[]>
+        {
+            new object[] { null! },
+            new object[]
+            {
+                new CreateDelegationRequest
+                {
+                    DelegatorId = 0,
+                    DelegationDetails = null!,
+                    AccountIds = null!,
+                }
+            },
+            new object[] {
+                new CreateDelegationRequest
+                {
+                    DelegatorId = 0,
+                    DelegationDetails = Enumerable.Empty<DelegationDetails>(),
+                    AccountIds = null!,
+                }
+            },
+        };
 }

@@ -142,17 +142,16 @@ namespace Pulse.Account.Core.Tests.Services
             // Arrange
             var contactId = 6000;
             var fixture = new Fixture();
-            var expected = fixture.Create<List<Contact>>();
+            var expected = fixture.Create<Paging<Contact>>();
 
             var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
-            accountRepository.Setup(repo => repo.GetContactsAccountByAdminAsync(It.IsAny<int>()))
-                .Callback<int>((id) => id.Should().Be(contactId))
+            accountRepository.Setup(repo => repo.GetContactsAccountByAdminAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .ReturnsAsync(expected);
 
             var accountService = new AccountService(accountRepository.Object);
 
             // Act
-            var result = await accountService.GetContactsAccountByAdminAsync(contactId);
+            var result = await accountService.GetContactsAccountByAdminAsync(string.Empty, contactId, 1, 999);
 
             // Assert
             Assert.Equal(expected, result);
@@ -164,16 +163,16 @@ namespace Pulse.Account.Core.Tests.Services
             // Arrange
             var contactId = 6000;
             var fixture = new Fixture();
-            var expected = fixture.Create<List<Contact>>();
+            var expected = fixture.Create<Paging<Contact>>();
 
             var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
-            accountRepository.Setup(repo => repo.GetContactsAccountByAdminAsync(It.IsAny<int>()))
+            accountRepository.Setup(repo => repo.GetContactsAccountByAdminAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Throws(new NotFoundException(Errors.NotFoundRoleContactCode, Errors.NotFoundRoleContactMessage));
 
             var accountService = new AccountService(accountRepository.Object);
 
             // Act
-            var result = async () => await accountService.GetContactsAccountByAdminAsync(contactId);
+            var result = async () => await accountService.GetContactsAccountByAdminAsync(string.Empty, contactId, 1, 999);
 
             // Assert
             var exception = await Assert.ThrowsAsync<NotFoundException>(result);

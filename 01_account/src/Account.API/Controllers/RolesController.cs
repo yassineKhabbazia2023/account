@@ -96,6 +96,12 @@ public class RolesController : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Supprimer le role d'un contact dans une entité morale.
+    /// </summary>
+    /// <param name="accountId">Identifiant de l'entitié morale.</param>
+    /// <param name="contactId">Identifiant de l'utilisateur.</param>
+    /// <returns>http 200.</returns>
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]

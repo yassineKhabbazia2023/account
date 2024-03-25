@@ -6,7 +6,7 @@ namespace Pulse.Account.Core.Extensions
 {
     public static class Pagination
     {
-        public static int GetTotalPages(int totalItems, int pageSize)
+        public static float GetTotalPages(float totalItems, float pageSize)
         {
             if (totalItems != 0)
             {

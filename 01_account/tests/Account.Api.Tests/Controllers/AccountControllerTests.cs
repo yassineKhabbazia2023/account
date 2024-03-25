@@ -172,15 +172,15 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var contactId = 6000;
-            var expected = _fixture.Create<List<Contact>>();
+            var expected = _fixture.Create<Paging<Contact>>();
 
             var accountService = new Mock<IAccountService>(MockBehavior.Strict);
-            accountService.Setup(service => service.GetContactsAccountByAdminAsync(It.IsAny<int>()))
+            accountService.Setup(service => service.GetContactsAccountByAdminAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .ReturnsAsync(expected);
             var accountController = new AccountController(accountService.Object);
 
             // Act
-            var result = await accountController.GetContactsAccountByAdminAsync(contactId);
+            var result = await accountController.GetContactsAccountByAdminAsync(string.Empty, contactId, 1, 999);
 
             // Assert
             Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);
@@ -192,12 +192,12 @@ namespace Account.Api.Tests.Controllers
             // Arrange
             var contactId = 6000;
             var accountService = new Mock<IAccountService>(MockBehavior.Strict);
-            accountService.Setup(service => service.GetContactsAccountByAdminAsync(It.IsAny<int>()))
+            accountService.Setup(service => service.GetContactsAccountByAdminAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Throws(new NotFoundException(Errors.NotFoundRoleContactCode, Errors.NotFoundRoleContactMessage));
             var accountController = new AccountController(accountService.Object);
 
             // Act
-            var result = async () => await accountController.GetContactsAccountByAdminAsync(contactId);
+            var result = async () => await accountController.GetContactsAccountByAdminAsync(string.Empty, contactId, 1, 999);
 
             // Assert
             var exception = await Assert.ThrowsAsync<NotFoundException>(result);
