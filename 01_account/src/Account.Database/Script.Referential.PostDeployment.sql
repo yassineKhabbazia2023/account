@@ -13,6 +13,7 @@ Post-Deployment Script Template
 :r .\postDeployment\Hub.Refential.sql
 :r .\postDeployment\Script.Naf.sql
 :r .\postDeployment\Script.Account.sql
+:r .\postDeployment\Script.600Accounts.sql
 :r .\postDeployment\Script.Contact.sql
 :r .\postDeployment\Script.Address.sql
 :r .\postDeployment\Script.Phone.sql
