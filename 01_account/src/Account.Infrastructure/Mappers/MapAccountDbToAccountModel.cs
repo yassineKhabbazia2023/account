@@ -246,6 +246,11 @@ namespace Pulse.Account.Infrastructure.Mappers
             countByAccountStatus = countByAccountStatus == null || countByAccountStatus.Count == 0 ? new Dictionary<int, int>() : countByAccountStatus;
             countByContactStatus = countByContactStatus == null || countByContactStatus.Count == 0 ? new Dictionary<string, int>() : countByContactStatus;
 
+            return InitStatistic(countByAccountStatus, countByContactStatus);
+        }
+
+        public static Statistics InitStatistic(Dictionary<int, int> countByAccountStatus, Dictionary<string, int> countByContactStatus)
+        {
             return new Statistics
             {
                 AccountToDeploy = countByAccountStatus.TryGetValue(0, out var toDeploy) ? toDeploy : 0,
