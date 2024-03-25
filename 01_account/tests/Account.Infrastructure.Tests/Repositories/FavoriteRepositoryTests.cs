@@ -9,6 +9,7 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
 using Pulse.Account.Core.Models;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories
 {
@@ -77,6 +78,27 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 // Assert
                 Assert.Empty(accountFavorite);
+            }
+        }
+
+        [Fact]
+        public async Task UpdateAccountFavoriteAsync_Should_Throw_NotFoundException()
+        {
+            using (var context = new AccountContext(_options))
+            {
+                // Arrange
+                var accountsMock = _fixture.Create<List<AccountEntity>>();
+
+                context.AccountEntity.AddRange(accountsMock);
+                context.SaveChanges();
+
+                var favoriteRepository = new FavoriteRepository(context);
+
+                // Act
+                Task UpdateFavorite() => favoriteRepository.UpdateAccountFavoriteAsync(123, 123, false);
+
+                // Assert
+                await Assert.ThrowsAsync<NotFoundException>(UpdateFavorite);
             }
         }
     }
