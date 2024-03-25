@@ -3,6 +3,8 @@
 // </copyright>
 
 using AutoFixture;
+using FluentAssertions;
+using FluentAssertions.Common;
 using Moq;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -48,6 +50,18 @@ namespace Pulse.Account.Core.Tests.Services
 
             Assert.NotNull(result);
             Assert.Equal(nafs, result);
+        }
+
+        [Fact]
+        public void GetAccountReferentialInformation_ShouldReturnAccountReferenceInformation()
+        {
+            var expectedResult = new AccountReferentialInformation();
+
+            var service = new ReferentialService(_repositoryMock.Object);
+
+            var result = service.GetAccountReferentialInformation();
+
+            result.Should().BeEquivalentTo(expectedResult);
         }
     }
 }
