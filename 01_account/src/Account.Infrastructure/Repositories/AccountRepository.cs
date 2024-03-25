@@ -6,6 +6,7 @@ using System.Data;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
@@ -145,7 +146,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             });
         }
 
-        public async Task<Paging<Contact>> GetContactsAccountByAdminAsync(int contactId, int pageNumber, int pageSize)
+        public async Task<Paging<Contact>> GetContactsAccountByAdminAsync(string? search, int contactId, int pageNumber, int pageSize)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
@@ -162,6 +163,14 @@ namespace Pulse.Account.Infrastructure.Repositories
                         .ToListAsync();
 
                 var resultContact = result.DistinctBy(x => x.ContactId);
+
+                if (!search.IsNullOrEmpty())
+                {
+                    resultContact = resultContact.Where(role => role.Contact.Email.Contains(search!, StringComparison.OrdinalIgnoreCase)
+                                                                || role.Contact.FirstName.Contains(search!, StringComparison.OrdinalIgnoreCase)
+                                                                || role.Contact.LastName.Contains(search!, StringComparison.OrdinalIgnoreCase)
+                                                                || role.Contact.PersonaName.Contains(search!, StringComparison.OrdinalIgnoreCase));
+                }
 
                 var totalItems = resultContact.Count();
                 var totalPages = Pagination.GetTotalPages(totalItems, pageSize);

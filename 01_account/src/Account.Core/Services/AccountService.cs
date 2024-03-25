@@ -46,11 +46,11 @@ namespace Pulse.Account.Core.Services
             return await _accountRepository.GetContactsAccountAsync(accountId, type);
         }
 
-        public async Task<Paging<Contact>> GetContactsAccountByAdminAsync(int contactId, int pageNumber, int pageSize)
+        public async Task<Paging<Contact>> GetContactsAccountByAdminAsync(string? search, int contactId, int pageNumber, int pageSize)
         {
             pageNumber = Pagination.GetValidPageNumber(pageNumber);
             pageSize = Pagination.GetValidPageSize(pageSize);
-            return await _accountRepository.GetContactsAccountByAdminAsync(contactId, pageNumber, pageSize);
+            return await _accountRepository.GetContactsAccountByAdminAsync(search, contactId, pageNumber, pageSize);
         }
     }
 }
