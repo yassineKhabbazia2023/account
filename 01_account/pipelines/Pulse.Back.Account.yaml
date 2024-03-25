@@ -18,7 +18,7 @@ resources:
     - repository: Pulse
       name: 'Constellation/ConstellationDevOps'
       type: git
-      ref: 'refs/heads/Release/v3.0'
+      ref: 'refs/heads/Release/v3.0beta'
 
 extends:
   template: pipelines\templates\platform.back.api.yaml@Pulse
