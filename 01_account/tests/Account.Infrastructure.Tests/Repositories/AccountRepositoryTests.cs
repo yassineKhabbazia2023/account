@@ -292,11 +292,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var accountRepository = new AccountRepository(context);
 
                 // Act
-                var contactByAdmin = await accountRepository.GetContactsAccountByAdminAsync(contactAdmin.ContactId);
+                var contactByAdmin = await accountRepository.GetContactsAccountByAdminAsync(contactAdmin.ContactId, 1, 999);
                 var expected = resultExpected.Select(x => x.ContactId).Distinct();
 
                 // Assert
-                Assert.Equivalent(expected, contactByAdmin.Select(x => x.ContactId));
+                Assert.Equivalent(expected, contactByAdmin.Items?.Select(x => x.ContactId));
             }
         }
 
@@ -315,7 +315,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var accountRepository = new AccountRepository(context);
 
                 // Act
-                Task ContactAdmin() => accountRepository.GetContactsAccountByAdminAsync(123);
+                Task ContactAdmin() => accountRepository.GetContactsAccountByAdminAsync(123, 1, 999);
 
                 // Assert
                 await Assert.ThrowsAsync<NotFoundException>(ContactAdmin);

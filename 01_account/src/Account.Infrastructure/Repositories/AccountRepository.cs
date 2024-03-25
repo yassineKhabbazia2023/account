@@ -145,7 +145,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             });
         }
 
-        public async Task<IEnumerable<Contact>> GetContactsAccountByAdminAsync(int contactId)
+        public async Task<Paging<Contact>> GetContactsAccountByAdminAsync(int contactId, int pageNumber, int pageSize)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
@@ -161,7 +161,18 @@ namespace Pulse.Account.Infrastructure.Repositories
                         .Where(x => accountIds.Contains(x.AccountId))
                         .ToListAsync();
 
-                return result.MapToContacts().DistinctBy(x => x.ContactId);
+                var resultContact = result.DistinctBy(x => x.ContactId);
+
+                var totalItems = resultContact.Count();
+                var totalPages = Pagination.GetTotalPages(totalItems, pageSize);
+
+                resultContact = resultContact.Skip((pageNumber - 1) * pageSize);
+                resultContact = resultContact.Take(pageSize);
+
+                return resultContact
+                        .ToList()
+                        .MapToContacts()
+                        .MapToPagingContact(pageNumber, totalItems, totalPages);
             });
         }
 
