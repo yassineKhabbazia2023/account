@@ -13,5 +13,7 @@ namespace Pulse.Account.Core.Requests
         public bool? IsSignatory { get; set; }
 
         public bool? IsFavorite { get; set; }
+
+        public bool? IsDelegation { get; set; }
     }
 }

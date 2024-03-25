@@ -28,14 +28,16 @@ public class DelegationService : IDelegationService
             throw new BadRequestException(Errors.CreateDelegationCode, Errors.CreateDelegationMessage);
         }
 
-        delegation.DelegationDetails.SetStartDateAndStatus();
+        delegation.DelegationDetails.SetDelegationInformation();
 
-        if (!Validation.ValidateEndDateDelegation(delegation.DelegationDetails))
+        if (!DelegationValidation.ValidateEndDateDelegation(delegation.DelegationDetails))
         {
             throw new BadRequestException(Errors.DelegationEndDateInvalidCode, Errors.DelegationEndDateInvalidMessage);
         }
 
-        return await _delegationRepository.CreateDelegationAsync(delegation);
+        var roles = CreateRoleRequests(delegation);
+
+        return await _delegationRepository.CreateDelegationAsync(delegation, roles);
     }
 
     public async Task DeleteDelegationAsync(int delegationId)
@@ -61,5 +63,35 @@ public class DelegationService : IDelegationService
         }
 
         return await _delegationRepository.GetAccountDelegationsHistoryAsync(accountId);
+    }
+
+    public static IEnumerable<CreateRoleRequest> CreateRoleRequests(CreateDelegationRequest delegationRequest)
+    {
+        if (delegationRequest?.DelegationDetails?.Any() != true)
+        {
+            return Enumerable.Empty<CreateRoleRequest>();
+        }
+
+        var roleRequests = new List<CreateRoleRequest>();
+
+        foreach (var detail in delegationRequest.DelegationDetails)
+        {
+            if (detail.IsRoleToCreate)
+            {
+                foreach (var accountId in delegationRequest.AccountIds)
+                {
+                    roleRequests.Add(new CreateRoleRequest
+                    {
+                        AccountId = accountId,
+                        ContactId = detail.DelegateeId,
+                        IsFavorite = false,
+                        IsSignatory = false,
+                        IsDelegation = true
+                    });
+                }
+            }
+        }
+
+        return roleRequests;
     }
 }

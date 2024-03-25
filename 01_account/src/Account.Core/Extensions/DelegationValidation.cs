@@ -1,4 +1,4 @@
-﻿// <copyright file="Validation.cs" company="Pulse">
+﻿// <copyright file="DelegationValidation.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -7,9 +7,9 @@ using Pulse.Account.Core.Models.Enum;
 
 namespace Pulse.Account.Core.Extensions
 {
-    public static class Validation
+    public static class DelegationValidation
     {
-        public static void SetStartDateAndStatus(this IEnumerable<DelegationDetails> details)
+        public static void SetDelegationInformation(this IEnumerable<DelegationDetails> details)
         {
             if (details?.Any() != true)
             {
@@ -18,10 +18,11 @@ namespace Pulse.Account.Core.Extensions
 
             foreach (var detail in details)
             {
-                if (detail.StartDate == null || detail.StartDate <= DateTime.UtcNow)
+                if (detail.StartDate == null || detail.StartDate.Value.Date <= DateTime.UtcNow.Date)
                 {
                     detail.StartDate = DateTime.UtcNow;
                     detail.Status = DelegationStatus.Enabled.ToString().ToLower();
+                    detail.IsRoleToCreate = true;
                 }
                 else
                 {
@@ -37,7 +38,7 @@ namespace Pulse.Account.Core.Extensions
                 return false;
             }
 
-            return details.All(detail => detail.EndDate == null || detail.EndDate > detail.StartDate);
+            return details.All(detail => detail.EndDate == null || detail.EndDate.Value.Date > detail.StartDate!.Value.Date);
         }
     }
 }

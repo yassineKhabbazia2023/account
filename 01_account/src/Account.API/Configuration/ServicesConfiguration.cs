@@ -50,12 +50,12 @@ namespace Pulse.Account.API.Configuration
         public static void RegisterApplicationInsights(this IServiceCollection services, IConfiguration configuration)
         {
             ArgumentNullException.ThrowIfNull(configuration);
-            var applicationInsightsConexionString = configuration["AccountApplicationInsightConnectionString"];
+            var applicationInsightsConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
 
-            ArgumentNullException.ThrowIfNullOrEmpty(applicationInsightsConexionString);
+            ArgumentNullException.ThrowIfNullOrEmpty(applicationInsightsConnectionString);
             services.AddApplicationInsightsTelemetry(options =>
             {
-                options.ConnectionString = applicationInsightsConexionString;
+                options.ConnectionString = applicationInsightsConnectionString;
             });
         }
 

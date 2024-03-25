@@ -10,6 +10,11 @@ namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapRoleBusinessToRoleDb
     {
+        public static IEnumerable<RoleEntity> MapRolesToRoleDb(this IEnumerable<CreateRoleRequest> role)
+        {
+            return role.Select(r => r.MapRoleToRoleDb()).ToList() ?? Enumerable.Empty<RoleEntity>();
+        }
+
         public static RoleEntity MapRoleToRoleDb(this CreateRoleRequest role)
         {
             return role == null ? null! : new RoleEntity
@@ -17,7 +22,8 @@ namespace Pulse.Account.Infrastructure.Mappers
                 AccountId = role.AccountId,
                 ContactId = role.ContactId,
                 IsFavorite = role.IsFavorite,
-                IsSignatory = role.IsSignatory
+                IsSignatory = role.IsSignatory,
+                IsDelegation = role.IsDelegation,
             };
         }
 

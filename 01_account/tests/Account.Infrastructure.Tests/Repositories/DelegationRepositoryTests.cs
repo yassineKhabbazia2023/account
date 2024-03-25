@@ -7,7 +7,9 @@ using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Requests;
@@ -35,7 +37,7 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task CreateDelegationAsync_WhenRequestIsValid_ShouldCreateDelegation()
+    public async Task CreateDelegationAsync_WhenRequestIsValid_ShouldCreateDelegationAndRole()
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
@@ -61,14 +63,25 @@ public class DelegationRepositoryTests
                     {
                         DelegateeId = tDelegatee.ContactId,
                         StartDate = DateTime.UtcNow,
-                        EndDate = DateTime.UtcNow.AddMonths(5),
-                        Status = "pending",
+                        Status = "enabled",
+                        IsRoleToCreate = true
                     },
                 },
                 AccountIds = new List<int> { tAccount.AccountId }
             };
+            var roles = new List<CreateRoleRequest>
+            {
+                new()
+                {
+                    AccountId = tAccount.AccountId,
+                    ContactId = tDelegatee.ContactId,
+                    IsFavorite = false,
+                    IsSignatory = false,
+                    IsDelegation = true,
+                }
+            };
 
-            await repository.CreateDelegationAsync(createDelegation);
+            await repository.CreateDelegationAsync(createDelegation, roles);
 
             var createdDelegation = await context
                 .DelegationEntity
@@ -77,11 +90,10 @@ public class DelegationRepositoryTests
                 && d.Account.FirstOrDefault(a => a.AccountId == tAccount.AccountId) != null);
 
             Assert.NotNull(createdDelegation);
-            Assert.Equal(createDelegation.DelegationDetails.FirstOrDefault() !.StartDate, createdDelegation.StartDate);
-            Assert.Equal(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate, createdDelegation.EndDate);
-            Assert.Equal(createDelegation.DelegationDetails.FirstOrDefault() !.Status, createdDelegation.Status);
-            Assert.Equal(createDelegation.DelegationDetails.FirstOrDefault() !.DelegateeId, createdDelegation.DelegateeId);
-            Assert.Equal(createDelegation.AccountIds.FirstOrDefault(), createdDelegation.Account.FirstOrDefault() !.AccountId);
+
+            var createdRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == tDelegatee.ContactId);
+            Assert.NotNull(createdRole);
+            Assert.True(createdRole.IsDelegation);
         }
     }
 
@@ -118,8 +130,9 @@ public class DelegationRepositoryTests
                 AccountIds = new List<int> { tAccount.AccountId }
             };
 
-            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
-            Assert.Equal($@"Le contact avec l'identifiant {0} est introuvable", result.Message);
+            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation, null!));
+            Assert.Equal(Errors.NotFoundContactsCode, result.Code);
+            Assert.Equal(Errors.NotFoundContactsMessage, result.Message);
         }
     }
 
@@ -156,8 +169,9 @@ public class DelegationRepositoryTests
                 AccountIds = new List<int> { tAccount.AccountId },
             };
 
-            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
-            Assert.Equal($@"Le contact avec l'identifiant {0} est introuvable", result.Message);
+            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation, null!));
+            Assert.Equal(Errors.NotFoundContactsCode, result.Code);
+            Assert.Equal(Errors.NotFoundContactsMessage, result.Message);
         }
     }
 
@@ -190,8 +204,9 @@ public class DelegationRepositoryTests
                 AccountIds = new List<int> { 3 }
             };
 
-            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation));
-            Assert.Equal(string.Format(Errors.NotFoundAccountMessage, createDelegation.AccountIds.FirstOrDefault()), result.Message);
+            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation, null!));
+            Assert.Equal(Errors.NotFoundAccountsCode, result.Code);
+            Assert.Equal(Errors.NotFoundAccountsMessage, result.Message);
         }
     }
 

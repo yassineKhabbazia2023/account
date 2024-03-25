@@ -22,14 +22,15 @@ namespace Pulse.Account.Core.Tests.Extensions
                 }
             };
 
-            details.SetStartDateAndStatus();
+            details.SetDelegationInformation();
 
             Assert.Equal(DelegationStatus.Pending.ToString().ToLower(), details.FirstOrDefault() !.Status);
+            Assert.False(details.FirstOrDefault() !.IsRoleToCreate);
         }
 
         [Theory]
         [MemberData(nameof(StartDateData))]
-        public void SetStartDateAndStatusWithStartDateNullOrBeforeNow_ShouldSetStatusToEnabledAndStartDateToNow(DateTime? startDate)
+        public void SetStartDateAndStatusWithStartDateNullOrBeforeNow_ShouldSetStatusToEnabledAndStartDateToNowAndIsRoleToCreateToTrue(DateTime? startDate)
         {
             var details = new List<DelegationDetails>
             {
@@ -40,10 +41,11 @@ namespace Pulse.Account.Core.Tests.Extensions
                 }
             };
 
-            details.SetStartDateAndStatus();
+            details.SetDelegationInformation();
 
             Assert.Equal(DelegationStatus.Enabled.ToString().ToLower(), details.FirstOrDefault() !.Status);
             Assert.Equal(DateTime.Now.Date, details.FirstOrDefault() !.StartDate!.Value.Date);
+            Assert.True(details.FirstOrDefault() !.IsRoleToCreate);
         }
 
         [Theory]
@@ -60,7 +62,7 @@ namespace Pulse.Account.Core.Tests.Extensions
                 }
             };
 
-            var result = Validation.ValidateEndDateDelegation(details);
+            var result = DelegationValidation.ValidateEndDateDelegation(details);
 
             Assert.True(result);
         }
@@ -78,7 +80,7 @@ namespace Pulse.Account.Core.Tests.Extensions
                 }
             };
 
-            var result = Validation.ValidateEndDateDelegation(details);
+            var result = DelegationValidation.ValidateEndDateDelegation(details);
 
             Assert.False(result);
         }
@@ -87,7 +89,7 @@ namespace Pulse.Account.Core.Tests.Extensions
         [MemberData(nameof(DelegDetailsData))]
         public void ValidateEndDateDelegationWithNullOrEmptySource_ShouldReturnFalse(IEnumerable<DelegationDetails> details)
         {
-            var result = Validation.ValidateEndDateDelegation(details);
+            var result = DelegationValidation.ValidateEndDateDelegation(details);
 
             Assert.False(result);
         }

@@ -18,5 +18,8 @@ namespace Pulse.Account.Core.Models
         public DateTime? EndDate { get; set; }
 
         public string? Note { get; set; }
+
+        [JsonIgnore]
+        public bool IsRoleToCreate { get; set; } = false;
     }
 }
