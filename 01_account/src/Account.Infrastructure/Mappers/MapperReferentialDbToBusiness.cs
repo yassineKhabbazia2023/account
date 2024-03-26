@@ -25,14 +25,14 @@ namespace Pulse.Account.Infrastructure.Mappers
                 };
         }
 
-        public static Paging<Naf> MapToPagingNaf(this IEnumerable<NafEntity?> source, int pageNumber, int totalRows, float totalPageCalcul)
+        public static Paging<Naf> MapToPagingNaf(this IEnumerable<NafEntity?> source, int pageNumber, int totalRows, int totalPageCalcul)
         {
             return new Paging<Naf>
             {
                 Items = source?.MapNafEntitiesToNafs() ?? Enumerable.Empty<Naf>(),
                 CurrentPage = pageNumber,
                 TotalItems = totalRows,
-                TotalPage = (int)Math.Ceiling(totalPageCalcul)
+                TotalPage = totalPageCalcul
             };
         }
 

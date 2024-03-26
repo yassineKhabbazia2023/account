@@ -156,7 +156,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             var expectedSource = _fixture.CreateMany<NafEntity>();
             var expectedpageNumber = 1;
             var expectedTotalRows = 1;
-            var expectedTotalPageCalcul = 1f;
+            var expectedTotalPageCalcul = 1;
 
             var result = MapperReferentialDbToBusiness.MapToPagingNaf(expectedSource, expectedpageNumber, expectedTotalRows, expectedTotalPageCalcul);
 
@@ -170,7 +170,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [Fact]
         public void MapToPagingNaf_WithNullSource_ShouldReturnEmptyItemList()
         {
-            var result = MapperReferentialDbToBusiness.MapToPagingNaf(null!, 1, 1, 1f);
+            var result = MapperReferentialDbToBusiness.MapToPagingNaf(null!, 1, 1, 1);
 
             Assert.NotNull(result);
             Assert.Empty(result.Items);

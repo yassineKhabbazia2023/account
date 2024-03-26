@@ -9,6 +9,7 @@ namespace Pulse.Account.Core.Tests.Extensions
         [InlineData(10, 10, 1)]
         [InlineData(5, 10, 1)]
         [InlineData(0, 10, 0)]
+        [InlineData(30, 25, 2)]
         public void GetTotalPages_Valid_ReturnsExpected(int totalItems, int pageSize, int expectedPages)
         {
             // Arrange & Act
