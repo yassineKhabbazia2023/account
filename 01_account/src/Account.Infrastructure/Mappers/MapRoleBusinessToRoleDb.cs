@@ -12,7 +12,7 @@ namespace Pulse.Account.Infrastructure.Mappers
     {
         public static IEnumerable<RoleEntity> MapRolesToRoleDb(this IEnumerable<CreateRoleRequest> role)
         {
-            return role.Select(r => r.MapRoleToRoleDb()).ToList() ?? Enumerable.Empty<RoleEntity>();
+            return role?.Select(r => r.MapRoleToRoleDb()) ?? Enumerable.Empty<RoleEntity>();
         }
 
         public static RoleEntity MapRoleToRoleDb(this CreateRoleRequest role)
