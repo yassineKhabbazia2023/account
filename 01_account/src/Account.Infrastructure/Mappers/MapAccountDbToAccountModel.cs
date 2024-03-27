@@ -16,7 +16,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             int contactId,
             int pageNumber,
             int totalRows,
-            float totalPageCalcul)
+            int totalPageCalcul)
         {
             return
              new Paging<Core.Models.Account>()
@@ -24,7 +24,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                  Items = source.MapToAccounts(contactId),
                  CurrentPage = pageNumber,
                  TotalItems = totalRows,
-                 TotalPage = (int)Math.Ceiling(totalPageCalcul)
+                 TotalPage = totalPageCalcul
              };
         }
 
@@ -32,7 +32,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             this IEnumerable<Contact> source,
             int pageNumber,
             int totalRows,
-            float totalPageCalcul)
+            int totalPageCalcul)
         {
             return
              new Paging<Contact>()
@@ -40,7 +40,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                  Items = source,
                  CurrentPage = pageNumber,
                  TotalItems = totalRows,
-                 TotalPage = (int)Math.Ceiling(totalPageCalcul)
+                 TotalPage = totalPageCalcul
              };
         }
 
@@ -253,12 +253,12 @@ namespace Pulse.Account.Infrastructure.Mappers
         {
             return new Statistics
             {
-                AccountToDeploy = countByAccountStatus.TryGetValue(0, out var toDeploy) ? toDeploy : 0,
-                AccountInProgress = countByAccountStatus.TryGetValue(1, out var inProgress) ? inProgress : 0,
-                AccountConnected = countByAccountStatus.TryGetValue(2, out var connected) ? connected : 0,
-                ContactConnected = countByContactStatus.TryGetValue("Connected", out var contactConnected) ? contactConnected : 0,
-                ContactDeclared = countByContactStatus.TryGetValue("Declared", out var contactDeclared) ? contactDeclared : 0,
-                ContactInvited = countByContactStatus.TryGetValue("Invited", out var contactInvited) ? contactInvited : 0
+                AccountToDeploy = countByAccountStatus?.TryGetValue(0, out var toDeploy) == true ? toDeploy : 0,
+                AccountInProgress = countByAccountStatus?.TryGetValue(1, out var inProgress) == true ? inProgress : 0,
+                AccountConnected = countByAccountStatus?.TryGetValue(2, out var connected) == true ? connected : 0,
+                ContactConnected = countByContactStatus?.TryGetValue("Connected", out var contactConnected) == true ? contactConnected : 0,
+                ContactDeclared = countByContactStatus?.TryGetValue("Declared", out var contactDeclared) == true ? contactDeclared : 0,
+                ContactInvited = countByContactStatus?.TryGetValue("Invited", out var contactInvited) == true ? contactInvited : 0
             };
         }
 

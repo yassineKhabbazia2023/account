@@ -18,7 +18,7 @@ resources:
     - repository: Pulse
       name: 'Constellation/ConstellationDevOps'
       type: git
-      ref: 'refs/heads/Release/v3.0beta'
+      ref: 'refs/heads/Release/v2.0'
 
 extends:
   template: pipelines\templates\platform.back.api.yaml@Pulse
@@ -30,8 +30,7 @@ extends:
     resource:
       id: '01'
       name: account
-      path: 01_account/src/Account.API/Account.API.csproj
-      tests: 01_account/tests/**/*.csproj
+      path: 01_account\src\Account.API\Account.API.csproj
+      tests: 01_account\tests\**\*.csproj
       type: webApp
     dotnetcore: 8.x
-    
