@@ -60,6 +60,7 @@
     <Folder Include="account" />
     <Folder Include="account\Tables" />
     <Folder Include="postDeployment" />
+    <Folder Include="ScriptRec" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="account\Tables\Account.sql" />
@@ -73,8 +74,8 @@
     <Build Include="account\Tables\Hub.sql" />
     <Build Include="Security\Schemas\account.sql" />
     <Build Include="account\Tables\DelegationDetail.sql" />
-    <None Include="postDeployment\Script.DelegationDetail.sql" />
-    <None Include="postDeployment\Script.600Accounts.sql" />
+    <None Include="scriptRec\Script.600Accounts.sql" />
+    <None Include="scriptRec\Script.600Address.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Account.Database.refactorlog" />
