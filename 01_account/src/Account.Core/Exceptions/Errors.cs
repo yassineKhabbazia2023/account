@@ -45,7 +45,7 @@ namespace Pulse.Account.Core.Exceptions
         public static readonly string NotFoundContactsCode = "ACC013";
         public static readonly string NotFoundContactsMessage = "Un des contacts est introuvable";
 
-        public static readonly string NotFoundRoleContactCode = "ACC0014";
+        public static readonly string NotFoundRoleContactCode = "ACC014";
         public static readonly string NotFoundRoleContactMessage = "Le contact avec l'identifiant {0} n'a aucun role";
     }
 }

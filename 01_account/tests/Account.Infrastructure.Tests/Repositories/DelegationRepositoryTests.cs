@@ -4,12 +4,10 @@
 
 using AutoFixture;
 using FluentAssertions;
-using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Pulse.Account.Core.Exceptions;
-using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Requests;
@@ -326,39 +324,105 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task DeleteDelegationAsync_WhenDelegationIdIsValid_ShouldDeleteDelegation()
+    public async Task DeleteDelegationAsync_WhenDelegationIdIsValidAndStartDateInFuture_ShouldDeleteDelegationButNotRole()
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
+            var account = _fixture.Create<AccountEntity>();
+            context.AccountEntity.Add(account);
+            await context.SaveChangesAsync();
+
+            var contact = _fixture.Create<ContactEntity>();
+            context.ContactEntity.Add(contact);
+            await context.SaveChangesAsync();
+
             var delegation = new DelegationEntity
             {
-                Status = "enabled"
+                Delegatee = contact,
+                StartDate = DateTime.MaxValue,
+                Status = "enabled",
+                Account = new List<AccountEntity> { account }
             };
 
             context.DelegationEntity.Add(delegation);
             await context.SaveChangesAsync();
+
+            var role = new RoleEntity
+            {
+                Account = account,
+                Contact = contact,
+                IsDelegation = true,
+            };
+            context.RoleEntity.Add(role);
+            await context.SaveChangesAsync();
+
             var repository = new DelegationRepository(context);
 
-            await repository.DeleteDelegationAsync(1);
+            await repository.DeleteDelegationAsync(delegation.DelegationId);
 
-            var result = await context.DelegationEntity.FirstOrDefaultAsync(d => d.DelegationId == 1);
+            var result = await context.DelegationEntity.FirstOrDefaultAsync(d => d.DelegationId == delegation.DelegationId);
 
             Assert.NotNull(result);
             Assert.Equal(DelegationStatus.Disabled.ToString().ToLower(), result.Status);
+
+            var resultRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == account.AccountId && r.ContactId == contact.ContactId);
+            Assert.NotNull(resultRole);
         }
     }
 
-    [Theory]
-    [InlineData(int.MinValue)]
-    [InlineData(0)]
-    public async Task DeleteDelegationAsync_WhenDelegationIdIsNegativeOrNull_ShouldThrowBadRequestException(int delegationId)
+    [Fact]
+    public async Task DeleteDelegationAsync_WhenDelegationIdIsValidAndRoleIsDelegation_ShouldDeleteDelegationAndRole()
     {
-        var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var accounts = _fixture.CreateMany<AccountEntity>(2);
+            context.AccountEntity.AddRange(accounts);
+            await context.SaveChangesAsync();
 
-        var result = await Assert.ThrowsAsync<BadRequestException>(async () => await repository.DeleteDelegationAsync(delegationId));
+            var contact = _fixture.Create<ContactEntity>();
+            context.ContactEntity.Add(contact);
+            await context.SaveChangesAsync();
 
-        Assert.Equal(Errors.BadRequestDeleteDelegationCode, result.Code);
-        Assert.Equal(Errors.BadRequestDeleteDelegationMessage, result.Message);
+            var delegation = new DelegationEntity
+            {
+                Delegatee = contact,
+                StartDate = DateTime.UtcNow,
+                Status = "enabled",
+                Account = accounts.ToList()
+            };
+            context.DelegationEntity.Add(delegation);
+            await context.SaveChangesAsync();
+
+            var roleIsDelegation = new RoleEntity
+            {
+                Account = accounts.First(),
+                Contact = contact,
+                IsDelegation = true,
+            };
+            var roleIsNotDelegation = new RoleEntity
+            {
+                Account = accounts.ElementAt(1),
+                Contact = contact,
+                IsDelegation = false,
+            };
+            context.RoleEntity.Add(roleIsDelegation);
+            context.RoleEntity.Add(roleIsNotDelegation);
+            await context.SaveChangesAsync();
+
+            var repository = new DelegationRepository(context);
+
+            await repository.DeleteDelegationAsync(delegation.DelegationId);
+            var resultDelegation = await context.DelegationEntity.FirstOrDefaultAsync(d => d.DelegationId == delegation.DelegationId);
+
+            Assert.NotNull(resultDelegation);
+            Assert.Equal(DelegationStatus.Disabled.ToString().ToLower(), resultDelegation.Status);
+
+            var resultRoleDeleted = await context.RoleEntity.FirstOrDefaultAsync(r => r.RoleId == roleIsDelegation.RoleId);
+            Assert.Null(resultRoleDeleted);
+
+            var resultRoleNotDeleted = await context.RoleEntity.FirstOrDefaultAsync(r => r.RoleId == roleIsNotDelegation.RoleId);
+            Assert.NotNull(resultRoleNotDeleted);
+        }
     }
 
     [Fact]

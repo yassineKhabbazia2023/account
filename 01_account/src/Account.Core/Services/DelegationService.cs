@@ -42,6 +42,11 @@ public class DelegationService : IDelegationService
 
     public async Task DeleteDelegationAsync(int delegationId)
     {
+        if (delegationId <= 0)
+        {
+            throw new BadRequestException(Errors.BadRequestDeleteDelegationCode, Errors.BadRequestDeleteDelegationMessage);
+        }
+
         await _delegationRepository.DeleteDelegationAsync(delegationId);
     }
 

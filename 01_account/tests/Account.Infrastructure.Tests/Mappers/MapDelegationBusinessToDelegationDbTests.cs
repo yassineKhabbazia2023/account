@@ -76,7 +76,8 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                     AccountIds = null!,
                 }
             },
-            new object[] {
+            new object[]
+            {
                 new CreateDelegationRequest
                 {
                     DelegatorId = 0,

@@ -170,9 +170,22 @@ public class DelegationServiceTest
         _repository.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
 
         var service = new DelegationService(_repository.Object);
-        await service.DeleteDelegationAsync(It.IsAny<int>());
+        await service.DeleteDelegationAsync(1);
 
         _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>()), Times.Once);
+    }
+
+    [Theory]
+    [InlineData(int.MinValue)]
+    [InlineData(0)]
+    public async Task DeleteDelegationAsync_WhenDelegationIdIsNegativeOrNull_ShouldThrowBadRequestException(int delegationId)
+    {
+        var service = new DelegationService(null!);
+
+        var result = await Assert.ThrowsAsync<BadRequestException>(async () => await service.DeleteDelegationAsync(delegationId));
+
+        Assert.Equal(Errors.BadRequestDeleteDelegationCode, result.Code);
+        Assert.Equal(Errors.BadRequestDeleteDelegationMessage, result.Message);
     }
 
     [Fact]
@@ -280,7 +293,8 @@ public class DelegationServiceTest
                     AccountIds = null!,
                 }
             },
-            new object[] {
+            new object[]
+            {
                 new CreateDelegationRequest
                 {
                     DelegatorId = 0,

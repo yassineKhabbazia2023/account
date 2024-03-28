@@ -3,7 +3,6 @@
 // </copyright>
 
 using System.Data;
-using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
@@ -103,17 +102,23 @@ public class DelegationRepository : IDelegationRepository
 
     public async Task DeleteDelegationAsync(int delegationId)
     {
-        if (delegationId <= 0)
-        {
-            throw new BadRequestException(Errors.BadRequestDeleteDelegationCode, Errors.BadRequestDeleteDelegationMessage);
-        }
-
-        var tDelegation = await GetDelegationAsync(delegationId);
+        var delegationEntity = await GetDelegationAsync(delegationId);
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            tDelegation.Status = DelegationStatus.Disabled.ToString().ToLower();
-            _accountContext.DelegationEntity.Update(tDelegation);
+            delegationEntity.Status = DelegationStatus.Disabled.ToString().ToLower();
+            _accountContext.DelegationEntity.Update(delegationEntity);
+
+            if (delegationEntity.StartDate.Date <= DateTime.UtcNow.Date)
+            {
+                var roleEntities = await GetRoleForDelegationAsync(delegationEntity.Account.Select(a => a.AccountId), delegationEntity.DelegateeId);
+
+                if (roleEntities.Any())
+                {
+                    _accountContext.RoleEntity.RemoveRange(roleEntities);
+                }
+            }
+
             await _accountContext.SaveChangesAsync();
         });
     }
@@ -188,7 +193,9 @@ public class DelegationRepository : IDelegationRepository
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            tDelegation = await _accountContext.DelegationEntity.FirstOrDefaultAsync(d => d.DelegationId == delegationId);
+            tDelegation = await _accountContext.DelegationEntity
+                .Include(d => d.Account)
+                .FirstOrDefaultAsync(d => d.DelegationId == delegationId);
         });
 
         if (tDelegation == null)
@@ -197,5 +204,19 @@ public class DelegationRepository : IDelegationRepository
         }
 
         return tDelegation;
+    }
+
+    private async Task<IEnumerable<RoleEntity>> GetRoleForDelegationAsync(IEnumerable<int> accountIds, int contactId)
+    {
+        var roles = Enumerable.Empty<RoleEntity>();
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            roles = await _accountContext.RoleEntity
+                .Where(r => accountIds.Contains(r.AccountId) && r.ContactId == contactId && r.IsDelegation == true)
+                .ToListAsync();
+        });
+
+        return roles;
     }
 }
