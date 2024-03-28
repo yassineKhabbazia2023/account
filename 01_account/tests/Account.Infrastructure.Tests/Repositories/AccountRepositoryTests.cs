@@ -7,6 +7,7 @@ using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
@@ -35,7 +36,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAccountList_Should_ReturnsOkResultAsync()
+        public async Task GetAccountListSearch_Should_ReturnsOkResultAsync()
         {
             using (var context = new AccountContext(_dbContextOptions))
             {
@@ -44,6 +45,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 accountsModel.First().AddressEntity.First().AddressType = AddressType.delivery.ToString();
                 context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
+
                 var accountRepository = new AccountRepository(context);
                 var contactId = accountsModel.Select(account => account.RoleEntity.Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
                 var accountObject = accountsModel.Select(item => item.MapToAccount(contactId)) ?? Enumerable.Empty<AccountModel>();
@@ -63,6 +65,71 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
                 var accountReceived = JsonConvert.SerializeObject(accounts.Items?.FirstOrDefault());
                 Assert.Contains(accountReceived, accountExpect);
+            }
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+
+        public async Task GetAccountList_Should_ReturnsOkResultAsync(int pageSize)
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var contactId = 123;
+                var resultExpected = new List<AccountModel>();
+                var contactMock = _fixture.Build<ContactEntity>()
+                                               .Without(c => c.DelegationEntityDelegatee)
+                                               .Without(c => c.DelegationEntityDelegator)
+                                               .Without(c => c.RoleEntity)
+                                               .Without(c => c.ContactGlobalUniqueId)
+                                               .With(c => c.ContactId, contactId)
+                                               .Create();
+
+                for (int i = 0; i < 3; i++)
+                {
+                    var accountMock = _fixture.Build<AccountEntity>()
+                                                   .Without(a => a.Delegation)
+                                                   .Without(a => a.RoleEntity)
+                                                   .Without(a => a.DeploymentEntity)
+                                                   .Create();
+
+                    var roleMock = _fixture.Build<RoleEntity>()
+                                           .With(e => e.ContactId, contactMock.ContactId)
+                                           .With(e => e.Contact, contactMock)
+                                           .With(e => e.AccountId, accountMock.AccountId)
+                                           .With(e => e.Account, accountMock)
+                                           .Create();
+
+                    accountMock.RoleEntity.Add(roleMock);
+
+                    context.AccountEntity.Add(accountMock);
+                    context.SaveChanges();
+
+                    resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId) !);
+                }
+
+                var accountRepository = new AccountRepository(context);
+
+                Paging<AccountModel> accountPaging = new Paging<AccountModel>()
+                {
+                    CurrentPage = 1,
+                    Items = resultExpected!,
+                    TotalItems = resultExpected.Count,
+                    TotalPage = Pagination.GetTotalPages(resultExpected.Count, pageSize)
+                };
+
+                // Act
+                var accounts = await accountRepository.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize, contactId);
+
+                // Assert
+                var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
+                var accountReceived = JsonConvert.SerializeObject(accounts.Items?.FirstOrDefault());
+                Assert.Contains(accountReceived, accountExpect);
+                Assert.Equal(accountPaging.TotalPage, accounts.TotalPage);
+                Assert.Equal(accountPaging.TotalItems, accounts.TotalItems);
+                Assert.Equal(accountPaging.CurrentPage, accounts.CurrentPage);
             }
         }
 

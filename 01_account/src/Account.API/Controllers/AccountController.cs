@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.Model;
 using Microsoft.AspNetCore.JsonPatch;
@@ -38,7 +39,7 @@ namespace Pulse.Account.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<AccountModel>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync(string? search, int pageNumber, int pageSize, int contactId)
+        public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync(string? search, int pageNumber, int pageSize, [Required] int contactId)
         {
             var result = await _accountService.GetAccountsAsync(search, pageNumber, pageSize, contactId);
 

@@ -56,11 +56,11 @@ namespace Pulse.Account.Infrastructure.Repositories
                             select n;
                 }
 
-                query = query.Skip((pageNumber - 1) * pageSize);
-                query = query.Take(pageSize);
-
                 var totalItems = await query.CountAsync();
                 var totalPages = Pagination.GetTotalPages(totalItems, pageSize);
+
+                query = query.Skip((pageNumber - 1) * pageSize);
+                query = query.Take(pageSize);
 
                 return MapAccountDbToAccountModel.MapToPaginAccounts(
                     await query.ToListAsync(),
