@@ -3,10 +3,8 @@
 // </copyright>
 
 using AutoFixture;
-using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Moq;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Exceptions;

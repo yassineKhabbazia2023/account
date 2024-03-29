@@ -1,19 +1,15 @@
-﻿// <copyright file="Role.cs" company="Pulse">
+﻿// <copyright file="RoleDeletedDataEvent.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-namespace Pulse.Account.Core.Models
+namespace Pulse.Account.Core.Broker.Events.DataEvents
 {
-    public class Role
+    public class RoleDeletedDataEvent
     {
         public int RoleId { get; set; }
 
         public int AccountId { get; set; }
 
         public int ContactId { get; set; }
-
-        public bool? IsSignatory { get; set; }
-
-        public bool? IsFavorite { get; set; }
     }
 }

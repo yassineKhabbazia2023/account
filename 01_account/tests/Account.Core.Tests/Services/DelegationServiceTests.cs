@@ -8,6 +8,7 @@ using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Pulse.Account.Core.Broker.Events;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -143,12 +144,20 @@ public class DelegationServiceTest
     [Fact]
     public async Task DeleteDelegationAsync_WhenDelegationIdIsValid_ShouldDeleteDelegation()
     {
-        _repository.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
+        var roleToDelete = new Role
+        {
+            RoleId = 1,
+            AccountId = 1,
+            ContactId = 1,
+        };
 
-        var service = new DelegationService(_repository.Object, null!, null!);
+        _repository.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).ReturnsAsync(new List<Role> { roleToDelete });
+
+        var service = new DelegationService(_repository.Object, _publisher.Object, _logger.Object);
         await service.DeleteDelegationAsync(1);
 
         _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>()), Times.Once);
+        _publisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Once);
     }
 
     [Theory]
@@ -156,12 +165,14 @@ public class DelegationServiceTest
     [InlineData(0)]
     public async Task DeleteDelegationAsync_WhenDelegationIdIsNegativeOrNull_ShouldThrowBadRequestException(int delegationId)
     {
-        var service = new DelegationService(null!, null!, null!);
+        var service = new DelegationService(null!, _publisher.Object, null!);
 
         var result = await Assert.ThrowsAsync<BadRequestException>(async () => await service.DeleteDelegationAsync(delegationId));
 
         Assert.Equal(Errors.BadRequestDeleteDelegationCode, result.Code);
         Assert.Equal(Errors.BadRequestDeleteDelegationMessage, result.Message);
+
+        _publisher.Verify(p => p.PublishAsync(It.IsAny<BaseEvent>()), Times.Never);
     }
 
     [Fact]

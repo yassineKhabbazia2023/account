@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Data;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Extensions.Logging;
@@ -46,22 +45,8 @@ public class RolesService : IRolesService
     {
         var roleId = await _rolesRepository.CreateRoleAsync(role);
         ArgumentNullException.ThrowIfNullOrWhiteSpace(roleId.ToString());
-        _logger.LogInformation("RoleService: Start send create role event. Id : {roleId}", roleId);
-        await _servicePublisher.PublishAsync(new RoleCreatedEvent
-        {
-            EventIdentifier = $"RoleId = '{roleId}'",
-            DataEvent = new RoleCreatedDataEvent
-            {
-                RoleId = roleId,
-                AccountId = role.AccountId,
-                ContactId = role.ContactId,
-                IsDelegation = role.IsDelegation,
-                IsFavorite = role.IsFavorite,
-                IsSignatory = role.IsSignatory
-            },
-            Sender = "AccountAPI - CreateRole"
-        });
-        _logger.LogInformation("RoleService: End send create role event. Id : {roleId}", roleId);
+
+        await SendRoleCreatedEvent(roleId, role);
     }
 
     public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
@@ -69,20 +54,8 @@ public class RolesService : IRolesService
         var roleId = await _rolesRepository.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
 
         ArgumentNullException.ThrowIfNullOrWhiteSpace(roleId.ToString());
-        _logger.LogInformation("RoleService: Start send update role event. Id : {roleId}", roleId);
-        await _servicePublisher.PublishAsync(new RoleUpdatedEvent
-        {
-            EventIdentifier = $"RoleId = '{roleId}'",
-            DataEvent = new RoleUpdatedDataEvent
-            {
-                RoleId = roleId,
-                AccountId = accountId,
-                ContactId = contactId,
-                IsSignatory = isSignatory
-            },
-            Sender = "AccountAPI - UpdateRole"
-        });
-        _logger.LogInformation("RoleService: End send update role event. Id : {roleId}", roleId);
+
+        await SendRoleUpdatedEvent(roleId, accountId, contactId, isSignatory);
     }
 
     public async Task DeleteRoleAsync(int accountId, int contactId)
@@ -103,6 +76,67 @@ public class RolesService : IRolesService
             }
         }
 
-        await _rolesRepository.DeleteRoleAsync(accountId, contactId);
+        var roleId = await _rolesRepository.DeleteRoleAsync(accountId, contactId);
+
+        await SendRoleDeletedEvent(roleId, accountId, contactId);
+    }
+
+    private async Task SendRoleCreatedEvent(int roleId, CreateRoleRequest role)
+    {
+        _logger.LogInformation("RoleService: Start send create role event. Id : {roleId}", roleId);
+
+        await _servicePublisher.PublishAsync(new RoleCreatedEvent
+        {
+            EventIdentifier = $"RoleId = '{roleId}'",
+            DataEvent = new RoleCreatedDataEvent
+            {
+                RoleId = roleId,
+                AccountId = role.AccountId,
+                ContactId = role.ContactId,
+                IsDelegation = role.IsDelegation,
+                IsFavorite = role.IsFavorite,
+                IsSignatory = role.IsSignatory
+            },
+            Sender = "AccountAPI - CreateRole"
+        });
+
+        _logger.LogInformation("RoleService: End send create role event. Id : {roleId}", roleId);
+    }
+
+    private async Task SendRoleUpdatedEvent(int roleId, int accountId, int contactId, bool isSignatory)
+    {
+        _logger.LogInformation("RoleService: Start send update role event. Id : {roleId}", roleId);
+        await _servicePublisher.PublishAsync(new RoleUpdatedEvent
+        {
+            EventIdentifier = $"RoleId = '{roleId}'",
+            DataEvent = new RoleUpdatedDataEvent
+            {
+                RoleId = roleId,
+                AccountId = accountId,
+                ContactId = contactId,
+                IsSignatory = isSignatory
+            },
+            Sender = "AccountAPI - UpdateRole"
+        });
+        _logger.LogInformation("RoleService: End send update role event. Id : {roleId}", roleId);
+    }
+
+    private async Task SendRoleDeletedEvent(int roleId, int accountId, int contactId)
+    {
+        _logger.LogInformation("RoleService: Start send delete role event. Id : {roleId}", roleId);
+
+        await _servicePublisher.PublishAsync(new RoleDeletedEvent
+        {
+            EventIdentifier = $"RoleId = '{roleId}'",
+            DataEvent = new RoleDeletedDataEvent
+            {
+                RoleId = roleId,
+                AccountId = accountId,
+                ContactId = contactId,
+            },
+            Sender = "AccountAPI - DeleteRole"
+        });
+
+        _logger.LogInformation("RoleService: End send delete role event. Id : {roleId}", roleId);
     }
 }

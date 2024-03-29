@@ -61,6 +61,7 @@ namespace Pulse.Account.API.Configuration
             {
                 opt.Register(typeof(RoleCreatedEvent).Name, "RoleCreatedTopic");
                 opt.Register(typeof(RoleUpdatedEvent).Name, "RoleUpdatedTopic");
+                opt.Register(typeof(RoleDeletedEvent).Name, "RoleDeletedTopic");
             });
         }
 

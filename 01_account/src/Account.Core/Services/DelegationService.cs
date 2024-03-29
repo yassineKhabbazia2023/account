@@ -65,7 +65,12 @@ public class DelegationService : IDelegationService
             throw new BadRequestException(Errors.BadRequestDeleteDelegationCode, Errors.BadRequestDeleteDelegationMessage);
         }
 
-        await _delegationRepository.DeleteDelegationAsync(delegationId);
+        var rolesToDelete = await _delegationRepository.DeleteDelegationAsync(delegationId);
+
+        foreach (var role in rolesToDelete)
+        {
+            await SendRoleDeletedEvent(role);
+        }
     }
 
     public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(int delegateeId)
@@ -138,5 +143,26 @@ public class DelegationService : IDelegationService
         });
 
         _logger.LogInformation("DelegationService: End send create role event. Id : {roleId}", roleId);
+    }
+
+    private async Task SendRoleDeletedEvent(Role role)
+    {
+        var roleId = role.RoleId;
+
+        _logger.LogInformation("DelegationService: Start send delete role event. Id : {roleId}", roleId);
+
+        await _servicePublisher.PublishAsync(new RoleDeletedEvent
+        {
+            EventIdentifier = $"RoleId = '{roleId}'",
+            DataEvent = new RoleDeletedDataEvent
+            {
+                RoleId = roleId,
+                AccountId = role.AccountId,
+                ContactId = role.ContactId,
+            },
+            Sender = "AccountAPI - DeleteRole"
+        });
+
+        _logger.LogInformation("DelegationService: End send delete role event. Id : {roleId}", roleId);
     }
 }

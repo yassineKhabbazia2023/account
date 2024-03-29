@@ -142,8 +142,10 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task DeleteRoleAsync(int accountId, int contactId)
+    public async Task<int> DeleteRoleAsync(int accountId, int contactId)
     {
+        var role = new RoleEntity();
+
         await _retryPolicy.ExecuteAsync(async () =>
         {
             var role = _accountContext.RoleEntity
@@ -152,5 +154,7 @@ public class RoleRepository : IRoleRepository
             _accountContext.Remove(role!);
             await _accountContext.SaveChangesAsync();
         });
+
+        return role!.RoleId;
     }
 }

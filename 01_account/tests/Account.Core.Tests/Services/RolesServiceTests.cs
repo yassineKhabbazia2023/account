@@ -108,6 +108,7 @@ public class RolesServiceTests
 
         // Assert
         roleRepository.VerifyAll();
+        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Once);
     }
 
     [Fact]
@@ -125,6 +126,7 @@ public class RolesServiceTests
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(Roles);
+        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Never);
     }
 
     [Fact]
@@ -179,7 +181,7 @@ public class RolesServiceTests
             IsSignatory = true,
         };
         roleRepository.Setup(repo => repo.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(1);
         roleRepository.Setup(repo => repo.GetContactRoleAsync(1, 1))
             .ReturnsAsync(roleNormal);
         roleRepository.Setup(repo => repo.GetContactRoleAsync(1, 3))
@@ -202,6 +204,7 @@ public class RolesServiceTests
 
         // Assert
         Assert.Equal(Task.CompletedTask, DeleteRole());
+        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Once);
     }
 
     [Fact]
@@ -219,6 +222,7 @@ public class RolesServiceTests
 
         // Assert
         Assert.Equal(Task.CompletedTask, DeleteRole());
+        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Once);
     }
 
     [Fact]
@@ -233,6 +237,7 @@ public class RolesServiceTests
 
         // Assert
         await Assert.ThrowsAsync<NotFoundException>(DeleteRole);
+        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Never);
     }
 
     [Fact]
@@ -250,5 +255,6 @@ public class RolesServiceTests
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(DeleteRole);
+        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Never);
     }
 }

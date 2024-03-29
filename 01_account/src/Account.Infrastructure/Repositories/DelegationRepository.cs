@@ -101,9 +101,10 @@ public class DelegationRepository : IDelegationRepository
         return delegations.ToDelegations();
     }
 
-    public async Task DeleteDelegationAsync(int delegationId)
+    public async Task<IEnumerable<Role>> DeleteDelegationAsync(int delegationId)
     {
         var delegationEntity = await GetDelegationAsync(delegationId);
+        var roles = Enumerable.Empty<Role>();
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -116,12 +117,15 @@ public class DelegationRepository : IDelegationRepository
 
                 if (roleEntities.Any())
                 {
+                    roles = roleEntities.MapToRoles();
                     _accountContext.RoleEntity.RemoveRange(roleEntities);
                 }
             }
 
             await _accountContext.SaveChangesAsync();
         });
+
+        return roles;
     }
 
     public async Task<IReadOnlyCollection<Delegation>> GetAccountDelegationsHistoryAsync(int accountId)

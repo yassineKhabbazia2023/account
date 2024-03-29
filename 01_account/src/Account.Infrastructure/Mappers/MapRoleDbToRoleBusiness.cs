@@ -13,11 +13,17 @@ namespace Pulse.Account.Infrastructure.Mappers
         {
             return role == null ? null! : new Role
             {
+                RoleId = role.RoleId,
                 AccountId = role.AccountId,
                 ContactId = role.ContactId,
                 IsFavorite = role.IsFavorite,
                 IsSignatory = role.IsSignatory
             };
+        }
+
+        public static IEnumerable<Role> MapToRoles(this IEnumerable<RoleEntity> roleEntities)
+        {
+            return roleEntities?.Select(r => r.MapToRole()) ?? Enumerable.Empty<Role>();
         }
     }
 }
