@@ -7,6 +7,7 @@ using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Pulse.Account.Core.Broker.Events;
+using Pulse.Account.Core.Broker.Events.DataEvents;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -121,10 +122,10 @@ public class DelegationService : IDelegationService
     {
         _logger.LogInformation("DelegationService: Start send create role event. Id : {roleId}", roleId);
 
-        await _servicePublisher.PublishAsync(new CreatedRoleEvent
+        await _servicePublisher.PublishAsync(new RoleCreatedEvent
         {
             EventIdentifier = $"RoleId = '{roleId}'",
-            DataEvent = new CreatedRoleDataEvent
+            DataEvent = new RoleCreatedDataEvent
             {
                 RoleId = roleId,
                 AccountId = role.AccountId,

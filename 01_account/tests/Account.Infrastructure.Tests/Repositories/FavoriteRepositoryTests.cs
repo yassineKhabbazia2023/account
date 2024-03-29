@@ -44,6 +44,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var expectedAccount = accountsModel.Select(entity => new AccountFavorite()
                 {
                     AccountId = entity.AccountId,
+                    AccountNumber = entity.AccountNumber,
                     LegalName = entity.LegalName,
                     IconName = entity.IconName
                 });

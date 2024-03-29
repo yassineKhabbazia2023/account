@@ -43,6 +43,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                     .Select(entity => new AccountFavorite()
                     {
                         AccountId = entity.AccountId,
+                        AccountNumber = entity.Account.AccountNumber,
                         LegalName = entity.Account.LegalName,
                         IconName = entity.Account.IconName
                     }).ToListAsync();

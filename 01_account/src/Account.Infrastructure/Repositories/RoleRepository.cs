@@ -115,12 +115,11 @@ public class RoleRepository : IRoleRepository
             await _accountContext.SaveChangesAsync();
             return roleDb.RoleId;
         });
-
     }
 
-    public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
+    public async Task<int> UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
     {
-        await _retryPolicy.ExecuteAsync(async () =>
+        return await _retryPolicy.ExecuteAsync(async () =>
         {
             var roles = from r in _accountContext.RoleEntity
                         where r.AccountId.Equals(accountId) && r.ContactId.Equals(contactId)
@@ -138,6 +137,8 @@ public class RoleRepository : IRoleRepository
                 _accountContext.RoleEntity.Update(role);
                 await _accountContext.SaveChangesAsync();
             }
+
+            return role.RoleId;
         });
     }
 

@@ -8,6 +8,7 @@ using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Pulse.Account.Core.Broker.Events;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -73,7 +74,8 @@ public class RolesServiceTests
     public async Task CreateRole_Should_ReturnsCreatedResultAsync()
     {
         // Arrange
-        var roleParam = new CreateRoleRequest()
+        var newRoleId = 56;
+        var createRoleRequest = new CreateRoleRequest()
         {
             AccountId = 6,
             ContactId = 6,
@@ -83,11 +85,26 @@ public class RolesServiceTests
 
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
-            .ReturnsAsync(It.IsAny<int>());
+            .ReturnsAsync(newRoleId)
+            .Verifiable();
+
+        _servicePublisher!.Setup(x => x.PublishAsync(It.IsAny<BaseEvent>()))
+         .Callback<BaseEvent>(@event =>
+         {
+             var roleCreatedEvent = @event as RoleCreatedEvent;
+             roleCreatedEvent.Should().NotBeNull();
+             roleCreatedEvent!.DataEvent!.RoleId.Should().Be(newRoleId);
+             roleCreatedEvent!.DataEvent!.ContactId.Should().Be(createRoleRequest.ContactId);
+             roleCreatedEvent!.DataEvent!.AccountId.Should().Be(createRoleRequest.AccountId);
+             roleCreatedEvent!.DataEvent!.IsSignatory.Should().Be(createRoleRequest.IsSignatory);
+         })
+         .Returns(Task.CompletedTask)
+         .Verifiable();
+
         var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
 
         // Act
-        await roleService.CreateRoleAsync(roleParam);
+        await roleService.CreateRoleAsync(createRoleRequest);
 
         // Assert
         roleRepository.VerifyAll();
@@ -114,13 +131,31 @@ public class RolesServiceTests
     public async Task UpdateRole_Should_ReturnsOkResultAsync()
     {
         // Arrange
+        int roleId = 101;
+        int accountId = 10;
+        int contactId = 25;
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.UpdateRoleSignatoryAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
-            .Returns(Task.CompletedTask);
+            .ReturnsAsync(roleId)
+            .Verifiable();
+
+        _servicePublisher!.Setup(x => x.PublishAsync(It.IsAny<BaseEvent>()))
+          .Callback<BaseEvent>(@event =>
+          {
+              var roleUpdatedEvent = @event as RoleUpdatedEvent;
+              roleUpdatedEvent.Should().NotBeNull();
+              roleUpdatedEvent!.DataEvent!.RoleId.Should().Be(roleId);
+              roleUpdatedEvent!.DataEvent!.ContactId.Should().Be(contactId);
+              roleUpdatedEvent!.DataEvent!.AccountId.Should().Be(accountId);
+              roleUpdatedEvent!.DataEvent!.IsSignatory.Should().Be(true);
+          })
+          .Returns(Task.CompletedTask)
+          .Verifiable();
+
         var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
 
         // Act
-        await roleService.UpdateRoleSignatoryAsync(1, 1, true);
+        await roleService.UpdateRoleSignatoryAsync(accountId, contactId, true);
 
         // Assert
         roleRepository.VerifyAll();

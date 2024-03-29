@@ -2,10 +2,12 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Data;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Extensions.Logging;
 using Pulse.Account.Core.Broker.Events;
+using Pulse.Account.Core.Broker.Events.DataEvents;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -45,10 +47,10 @@ public class RolesService : IRolesService
         var roleId = await _rolesRepository.CreateRoleAsync(role);
         ArgumentNullException.ThrowIfNullOrWhiteSpace(roleId.ToString());
         _logger.LogInformation("RoleService: Start send create role event. Id : {roleId}", roleId);
-        await _servicePublisher.PublishAsync(new CreatedRoleEvent
+        await _servicePublisher.PublishAsync(new RoleCreatedEvent
         {
             EventIdentifier = $"RoleId = '{roleId}'",
-            DataEvent = new CreatedRoleDataEvent
+            DataEvent = new RoleCreatedDataEvent
             {
                 RoleId = roleId,
                 AccountId = role.AccountId,
@@ -64,7 +66,23 @@ public class RolesService : IRolesService
 
     public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
     {
-        await _rolesRepository.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
+        var roleId = await _rolesRepository.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
+
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(roleId.ToString());
+        _logger.LogInformation("RoleService: Start send update role event. Id : {roleId}", roleId);
+        await _servicePublisher.PublishAsync(new RoleUpdatedEvent
+        {
+            EventIdentifier = $"RoleId = '{roleId}'",
+            DataEvent = new RoleUpdatedDataEvent
+            {
+                RoleId = roleId,
+                AccountId = accountId,
+                ContactId = contactId,
+                IsSignatory = isSignatory
+            },
+            Sender = "AccountAPI - UpdateRole"
+        });
+        _logger.LogInformation("RoleService: End send update role event. Id : {roleId}", roleId);
     }
 
     public async Task DeleteRoleAsync(int accountId, int contactId)
