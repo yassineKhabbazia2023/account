@@ -373,7 +373,6 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             using (var context = new AccountContext(_dbContextOptions))
             {
                 // Arrange
-                var resultExpected = new List<Contact>();
                 var accountsMock = _fixture.Create<List<AccountEntity>>();
 
                 context.AccountEntity.AddRange(accountsMock);

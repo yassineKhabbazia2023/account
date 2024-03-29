@@ -47,14 +47,13 @@ public class DelegationControllerTests
                 request.DelegationDetails.FirstOrDefault() !.EndDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate);
                 request.DelegatorId.Should().Be(createDelegation.DelegatorId);
             })
-            .ReturnsAsync(100)
+            .Returns(Task.CompletedTask)
             .Verifiable();
 
         var controller = new DelegationController(_service.Object);
         var actionResult = await controller.CreateDelegationAsync(createDelegation);
 
-        actionResult.As<OkObjectResult>().StatusCode.Should().Be(200);
-        actionResult.As<OkObjectResult>().Value.Should().Be(100);
+        actionResult.As<OkResult>().StatusCode.Should().Be(200);
         _service.VerifyAll();
     }
 
@@ -77,14 +76,13 @@ public class DelegationControllerTests
                 request.DelegationDetails.FirstOrDefault() !.EndDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate);
                 request.DelegatorId.Should().Be(createDelegation.DelegatorId);
             })
-            .ReturnsAsync(100)
+            .Returns(Task.CompletedTask)
             .Verifiable();
 
         var controller = new DelegationController(service.Object);
         var actionResult = await controller.CreateDelegationAsync(createDelegation);
 
-        actionResult.As<OkObjectResult>().StatusCode.Should().Be(200);
-        actionResult.As<OkObjectResult>().Value.Should().Be(100);
+        actionResult.As<OkResult>().StatusCode.Should().Be(200);
         service.VerifyAll();
     }
 
@@ -100,7 +98,7 @@ public class DelegationControllerTests
             .With(p => p.DelegationDetails, details)
             .Create();
         var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
-        var service = new DelegationService(repository.Object);
+        var service = new DelegationService(repository.Object, null!, null!);
 
         var controller = new DelegationController(service);
 

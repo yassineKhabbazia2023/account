@@ -4,6 +4,8 @@
 
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Microsoft.Extensions.Logging;
+using Pulse.Account.Core.Broker.Events;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -16,10 +18,14 @@ namespace Pulse.Account.Core.Services;
 public class RolesService : IRolesService
 {
     private readonly IRoleRepository _rolesRepository;
+    private readonly IServicePublisher _servicePublisher;
+    private readonly ILogger<RolesService> _logger;
 
-    public RolesService(IRoleRepository rolesRepository)
+    public RolesService(IRoleRepository rolesRepository, IServicePublisher servicePublisher, ILogger<RolesService> logger)
     {
         _rolesRepository = rolesRepository;
+        _servicePublisher = servicePublisher;
+        _logger = logger;
     }
 
     public async Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, int pageNumber, int pageSize)
@@ -36,7 +42,24 @@ public class RolesService : IRolesService
 
     public async Task CreateRoleAsync(CreateRoleRequest role)
     {
-        await _rolesRepository.CreateRoleAsync(role);
+        var roleId = await _rolesRepository.CreateRoleAsync(role);
+        ArgumentNullException.ThrowIfNullOrWhiteSpace(roleId.ToString());
+        _logger.LogInformation("RoleService: Start send create role event. Id : {roleId}", roleId);
+        await _servicePublisher.PublishAsync(new CreatedRoleEvent
+        {
+            EventIdentifier = $"RoleId = '{roleId}'",
+            DataEvent = new CreatedRoleDataEvent
+            {
+                RoleId = roleId,
+                AccountId = role.AccountId,
+                ContactId = role.ContactId,
+                IsDelegation = role.IsDelegation,
+                IsFavorite = role.IsFavorite,
+                IsSignatory = role.IsSignatory
+            },
+            Sender = "AccountAPI - CreateRole"
+        });
+        _logger.LogInformation("RoleService: End send create role event. Id : {roleId}", roleId);
     }
 
     public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)

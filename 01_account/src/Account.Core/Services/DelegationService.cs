@@ -4,6 +4,9 @@
 
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Pulse.Account.Core.Broker.Events;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -15,13 +18,20 @@ namespace Pulse.Account.Core.Services;
 public class DelegationService : IDelegationService
 {
     private readonly IDelegationRepository _delegationRepository;
+    private readonly IServicePublisher _servicePublisher;
+    private readonly ILogger<DelegationService> _logger;
 
-    public DelegationService(IDelegationRepository delegationRepository)
+    public DelegationService(
+        IDelegationRepository delegationRepository,
+        IServicePublisher servicePublisher,
+        ILogger<DelegationService> logger)
     {
         _delegationRepository = delegationRepository;
+        _servicePublisher = servicePublisher;
+        _logger = logger;
     }
 
-    public async Task<int> CreateDelegationAsync(CreateDelegationRequest delegation)
+    public async Task CreateDelegationAsync(CreateDelegationRequest delegation)
     {
         if (delegation is null)
         {
@@ -36,8 +46,15 @@ public class DelegationService : IDelegationService
         }
 
         var roles = CreateRoleRequests(delegation);
+        var roleIds = await _delegationRepository.CreateDelegationAsync(delegation, roles);
 
-        return await _delegationRepository.CreateDelegationAsync(delegation, roles);
+        if (roles.Any())
+        {
+            for (int i = 0; i < roles.Count(); i++)
+            {
+                await SendCreatedRoleEvent(roleIds.ElementAt(i), roles.ElementAt(i));
+            }
+        }
     }
 
     public async Task DeleteDelegationAsync(int delegationId)
@@ -98,5 +115,27 @@ public class DelegationService : IDelegationService
         }
 
         return roleRequests;
+    }
+
+    private async Task SendCreatedRoleEvent(int roleId, CreateRoleRequest role)
+    {
+        _logger.LogInformation("DelegationService: Start send create role event. Id : {roleId}", roleId);
+
+        await _servicePublisher.PublishAsync(new CreatedRoleEvent
+        {
+            EventIdentifier = $"RoleId = '{roleId}'",
+            DataEvent = new CreatedRoleDataEvent
+            {
+                RoleId = roleId,
+                AccountId = role.AccountId,
+                ContactId = role.ContactId,
+                IsDelegation = role.IsDelegation,
+                IsFavorite = role.IsFavorite,
+                IsSignatory = role.IsSignatory
+            },
+            Sender = "AccountAPI - CreateRole"
+        });
+
+        _logger.LogInformation("DelegationService: End send create role event. Id : {roleId}", roleId);
     }
 }

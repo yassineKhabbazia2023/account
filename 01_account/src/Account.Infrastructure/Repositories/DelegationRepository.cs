@@ -4,7 +4,6 @@
 
 using System.Data;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;
@@ -34,8 +33,9 @@ public class DelegationRepository : IDelegationRepository
                 sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(3000));
     }
 
-    public async Task<int> CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles)
+    public async Task<IEnumerable<int>> CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles)
     {
+        ArgumentNullException.ThrowIfNull(delegation);
         var contactsToCheck = delegation.DelegationDetails.Select(d => d.DelegateeId).ToList();
         contactsToCheck.Add(delegation.DelegatorId);
 
@@ -51,19 +51,20 @@ public class DelegationRepository : IDelegationRepository
 
         var accounts = await GetAccountsAsync(delegation.AccountIds);
         var delegationEntities = delegation.MapDelegationRequestToDelegationsDb(accounts.ToList());
+        var roleEntities = roles.MapRolesToRoleDb();
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
             if (roles.Any())
             {
-                await _accountContext.RoleEntity.AddRangeAsync(roles.MapRolesToRoleDb());
+                await _accountContext.RoleEntity.AddRangeAsync(roleEntities);
             }
 
             await _accountContext.DelegationEntity.AddRangeAsync(delegationEntities);
             await _accountContext.SaveChangesAsync();
         });
 
-        return StatusCodes.Status201Created;
+        return roleEntities.Select(r => r.RoleId);
     }
 
     public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(int delegateeId)

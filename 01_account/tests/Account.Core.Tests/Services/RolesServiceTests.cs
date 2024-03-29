@@ -2,25 +2,33 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Net;
-using System.Text.Json;
-using Kpmg.ExceptionMiddleware.AdvancedException;
-using Moq;
 using AutoFixture;
+using FluentAssertions;
+using Kpmg.ExceptionMiddleware.AdvancedException;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
-using FluentAssertions;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 
 namespace Pulse.Account.Core.Tests.Services;
 
 public class RolesServiceTests
 {
+    private readonly Mock<IServicePublisher>? _servicePublisher;
+    private readonly Mock<ILogger<RolesService>>? _logger;
+
+    public RolesServiceTests()
+    {
+        _servicePublisher = new Mock<IServicePublisher>();
+        _logger = new Mock<ILogger<RolesService>>();
+    }
+
     [Fact]
     public async Task GetContactRolesAsync_Should_ReturnsOkResultAsync()
     {
@@ -29,8 +37,7 @@ public class RolesServiceTests
         var accountList = fixture.Create<Paging<AccountModel>>();
         var rolesRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         rolesRepository.Setup(repository => repository.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(accountList);
-
-        var rolesService = new RolesService(rolesRepository.Object);
+        var rolesService = new RolesService(rolesRepository.Object, _servicePublisher!.Object, _logger!.Object);
 
         // Act
         var accounts = await rolesService.GetContactRolesAsync(contactId: 123, pageNumber: 0, pageSize: 0);
@@ -51,9 +58,9 @@ public class RolesServiceTests
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
             .Callback<int>(id => id.Should().Be(accountId))
-            .ReturnsAsync(expected);
+        .ReturnsAsync(expected);
 
-        var roleService = new RolesService(roleRepository.Object);
+        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
 
         // Act
         var result = await roleService.GetSignatoryAsync(accountId);
@@ -76,8 +83,8 @@ public class RolesServiceTests
 
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
-            .Returns(Task.CompletedTask);
-        var roleService = new RolesService(roleRepository.Object);
+            .ReturnsAsync(It.IsAny<int>());
+        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
 
         // Act
         await roleService.CreateRoleAsync(roleParam);
@@ -91,13 +98,13 @@ public class RolesServiceTests
     {
         // Arrange
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
-        roleRepository.Setup(repo => repo.CreateRoleAsync(null))
+        roleRepository.Setup(repo => repo.CreateRoleAsync(null!))
             .ThrowsAsync(new BadRequestException(Errors.NotFoundAccountMessage, Errors.NotFoundAccountMessage));
 
-        var roleService = new RolesService(roleRepository.Object);
+        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
 
         // Act
-        Task Roles() => roleService.CreateRoleAsync(null);
+        Task Roles() => roleService.CreateRoleAsync(null!);
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(Roles);
@@ -110,7 +117,7 @@ public class RolesServiceTests
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.UpdateRoleSignatoryAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(Task.CompletedTask);
-        var roleService = new RolesService(roleRepository.Object);
+        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
 
         // Act
         await roleService.UpdateRoleSignatoryAsync(1, 1, true);
@@ -153,7 +160,7 @@ public class RolesServiceTests
     {
         // Arrange
         var roleRepository = DeleteRole_MockRepo();
-        var roleService = new RolesService(roleRepository.Object);
+        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
 
         // Act
         Task DeleteRole() => roleService!.DeleteRoleAsync(1, 1);
@@ -170,7 +177,7 @@ public class RolesServiceTests
         var fixture = new Fixture();
         roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
             .ReturnsAsync(fixture.CreateMany<Contact>(2));
-        var roleService = new RolesService(roleRepository.Object);
+        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
 
         // Act
         Task DeleteRole() => roleService!.DeleteRoleAsync(1, 1);
@@ -184,7 +191,7 @@ public class RolesServiceTests
     {
         // Arrange
         var roleRepository = DeleteRole_MockRepo();
-        var roleService = new RolesService(roleRepository.Object);
+        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
 
         // Act
         Task DeleteRole() => roleService.DeleteRoleAsync(1, 2);
@@ -201,7 +208,7 @@ public class RolesServiceTests
         var fixture = new Fixture();
         roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
             .ReturnsAsync(new List<Contact> { fixture.Create<Contact>() });
-        var roleService = new RolesService(roleRepository.Object);
+        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
 
         // Act
         Task DeleteRole() => roleService.DeleteRoleAsync(1, 3);

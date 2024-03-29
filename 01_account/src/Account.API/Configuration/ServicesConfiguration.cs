@@ -3,10 +3,14 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
+using Azure.Messaging.ServiceBus;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
+using Pulse.Account.Core.Broker.Events;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Services;
 using Pulse.Account.Infrastructure.Context;
+using Pulse.Account.Infrastructure.Providers;
 using Pulse.Account.Infrastructure.Repositories;
 
 namespace Pulse.Account.API.Configuration
@@ -28,6 +32,35 @@ namespace Pulse.Account.API.Configuration
             services.AddScoped<IReferentialRepository, ReferentialRepository>();
             services.AddScoped<IStatisticsService, StatisticsService>();
             services.AddScoped<IStatisticsRepository, StatisticsRepository>();
+            services.AddScoped<IServicePublisher, ServicePublisher>();
+        }
+
+        public static void RegisterBroker(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddAzureClients(builder =>
+            {
+                var brokerConnectionString = configuration["ServiceBusConnectionString"];
+                ArgumentNullException.ThrowIfNullOrWhiteSpace(brokerConnectionString);
+
+                var topics = configuration["TopicNames"];
+                ArgumentNullException.ThrowIfNullOrWhiteSpace(topics);
+
+                builder.AddServiceBusClient(brokerConnectionString);
+                var topicArray = topics.Split(';').ToArray();
+                foreach (var topicName in topicArray)
+                {
+                    builder.AddClient<ServiceBusSender, ServiceBusClientOptions>((_, _, provider) =>
+                        provider
+                            .GetService<ServiceBusClient>()
+                            .CreateSender(topicName))
+                            .WithName(topicName);
+                }
+            });
+
+            services.Configure<TopicManagerOptions>(opt =>
+            {
+                opt.Register(typeof(CreatedRoleEvent).Name, "CreatedRoleTopic");
+            });
         }
 
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)

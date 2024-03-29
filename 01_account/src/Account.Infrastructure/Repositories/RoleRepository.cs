@@ -96,9 +96,9 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task CreateRoleAsync(CreateRoleRequest role)
+    public async Task<int> CreateRoleAsync(CreateRoleRequest role)
     {
-        await _retryPolicy.ExecuteAsync(async () =>
+        return await _retryPolicy.ExecuteAsync(async () =>
         {
             if (!_accountContext.AccountEntity.Any(x => x.AccountId == role.AccountId))
             {
@@ -110,9 +110,12 @@ public class RoleRepository : IRoleRepository
                 throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
             }
 
-            _accountContext.RoleEntity.Add(role.MapRoleToRoleDb());
+            var roleDb = role.MapRoleToRoleDb();
+            _accountContext.RoleEntity.Add(roleDb);
             await _accountContext.SaveChangesAsync();
+            return roleDb.RoleId;
         });
+
     }
 
     public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
