@@ -1,6 +1,6 @@
 ﻿CREATE TABLE [actor].[Contact]
 (
-	[ContactId]				INT IDENTITY(1, 1)	NOT NULL,
+	[ContactId]				INT	                NOT NULL,
 	[ContactGlobalUniqueId]	UNIQUEIDENTIFIER	NOT NULL,
 	[FirstName]				VARCHAR(250)		NOT NULL,
 	[LastName]				VARCHAR(250)		NOT NULL,

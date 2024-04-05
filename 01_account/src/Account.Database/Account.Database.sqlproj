@@ -61,6 +61,8 @@
     <Folder Include="account\Tables" />
     <Folder Include="postDeployment" />
     <Folder Include="ScriptRec" />
+    <Folder Include="ScriptITG" />
+    <Folder Include="Log" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="account\Tables\Account.sql" />
@@ -76,6 +78,12 @@
     <Build Include="account\Tables\DelegationDetail.sql" />
     <None Include="scriptRec\Script.600Accounts.sql" />
     <None Include="scriptRec\Script.600Address.sql" />
+    <None Include="ScriptITG\Script.Contact.Pulse.sql" />
+    <None Include="ScriptRec\Script.Contact.ExpertDigitaux.sql" />
+    <None Include="ScriptITG\Script.Contact.Client.sql" />
+    <None Include="Log\Script.Contact.sql" />
+    <None Include="ScriptRec\Script.Role.ExpertDigitaux.sql" />
+    <None Include="ScriptITG\Script.Role.Client.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Account.Database.refactorlog" />
@@ -86,7 +94,6 @@
     <None Include="postDeployment\Script.Naf.sql" />
     <None Include="postDeployment\Script.Account.sql" />
     <None Include="postDeployment\Script.Address.sql" />
-    <None Include="postDeployment\Script.Contact.sql" />
     <None Include="postDeployment\Script.Phone.sql" />
     <None Include="postDeployment\Script.Role.sql" />
     <None Include="postDeployment\Script.Deployment.sql" />
