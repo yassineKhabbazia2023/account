@@ -48,11 +48,11 @@ namespace Pulse.Account.Infrastructure.Repositories
                 if (!string.IsNullOrWhiteSpace(search))
                 {
                     query = from n in query
-                            where n.LegalName.Contains(search)
-                                  || n.AccountNumber.Contains(search)
-                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search)
-                                                      || role.Contact.LastName.Contains(search)
-                                                      || role.Contact.Email.Contains(search)))
+                            where n.LegalName.Contains(search, StringComparison.OrdinalIgnoreCase)
+                                  || n.SourceAccountNumber.Contains(search, StringComparison.OrdinalIgnoreCase)
+                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase)
+                                                      || role.Contact.LastName.Contains(search, StringComparison.OrdinalIgnoreCase)
+                                                      || role.Contact.Email.Contains(search, StringComparison.OrdinalIgnoreCase)))
                             select n;
                 }
 

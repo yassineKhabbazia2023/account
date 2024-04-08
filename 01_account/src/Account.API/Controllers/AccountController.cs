@@ -30,7 +30,7 @@ namespace Pulse.Account.API.Controllers
         /// <summary>
         /// Recherche des entités morales.
         /// </summary>
-        /// <param name="search">Critère de recherche (nom/n° IBS de l'entité).</param>
+        /// <param name="search">Critère de recherche (nom/n° IBS de l'entité/nom ou prénom ou email du signataire).</param>
         /// <param name="pageNumber">Numéro de page.</param>
         /// <param name="pageSize">Nombre d'éléments par page.</param>
         /// <param name="contactId">Identification de l'utilisateur connecté.</param>

@@ -37,10 +37,10 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
         [Theory]
         [InlineData("199900046522")]
-        [InlineData("Test SCA")]
-        [InlineData("FirstUser")]
-        [InlineData("LastUser")]
-        [InlineData("firstLastUser@test.fr")]
+        [InlineData("test scA")]
+        [InlineData("firstuser")]
+        [InlineData("lastuser")]
+        [InlineData("firstlastuser@test.fr")]
         public async Task GetAccountListSearch_Should_ReturnsOkResultAsync(string criteria)
         {
             using (var context = new AccountContext(_dbContextOptions))
