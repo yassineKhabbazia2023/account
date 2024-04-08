@@ -1,4 +1,6 @@
-﻿INSERT INTO account.Deployment (AccountId, DeploymentDate, Status)
+﻿IF NOT EXISTS (SELECT * FROM [account].[Deployment] WHERE AccountId = 1)
+BEGIN
+INSERT INTO account.Deployment (AccountId, DeploymentDate, Status)
 VALUES
 (1, GETDATE(), 0),
 (2, GETDATE(), 0),
@@ -600,3 +602,4 @@ VALUES
 (598, GETDATE(), 0),
 (599, GETDATE(), 0),
 (600, GETDATE(), 0)
+END

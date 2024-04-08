@@ -1,4 +1,6 @@
-﻿INSERT INTO account.Phone (AccountId, PhoneNumber, Type)
+﻿IF NOT EXISTS (SELECT * FROM [account].[Phone] WHERE AccountId = 1)
+BEGIN
+INSERT INTO account.Phone (AccountId, PhoneNumber, Type)
 VALUES
 (1,'2913556293','delivery'),
 (2,'5617772315','delivery'),
@@ -1203,3 +1205,4 @@ VALUES
 (598,'6696513159','billing'),
 (599,'7132327651','billing'),
 (600,'8409397894','billing')
+END

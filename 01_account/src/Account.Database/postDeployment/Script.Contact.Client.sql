@@ -1,6 +1,7 @@
+IF NOT EXISTS (SELECT * FROM [actor].[Contact] WHERE ContactId = 56)
+BEGIN
 INSERT into actor.Contact(ContactId, ContactGlobalUniqueId, FirstName, LastName, Email, Type, Status, CreationDate, PersonaName)
 VALUES
-
 (56,NEWID(),'Alice','Durand','alice.durand@example.com','customer','declared',GETDATE(),'ADMIN/Dirigeant'),
 (57,NEWID(),'Pierre','Dubois','pierre.dubois@example.com','customer','declared',GETDATE(),'ADMIN/Associé'),
 (58,NEWID(),'Élodie','Martin','elodie.martin@example.com','customer','declared',GETDATE(),'Assistante'),
@@ -19,3 +20,4 @@ VALUES
 (71,NEWID(),'Paul','Robin','paul.robin@example.com','customer','declared',GETDATE(),'Responsable financier'),
 (72,NEWID(),'Louise','Petit','louise.petit@example.com','customer','declared',GETDATE(),'RH'),
 (73,NEWID(),'Hugo','Dubois','hugo.dubois@example.com','customer','declared',GETDATE(),'Comptable')
+END
