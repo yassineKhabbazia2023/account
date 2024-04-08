@@ -12,11 +12,11 @@ Post-Deployment Script Template
 
 :r .\postDeployment\Hub.Refential.sql
 :r .\postDeployment\Script.Naf.sql
-:r .\postDeployment\Script.Account.sql
-:r .\postDeployment\Script.Contact.sql
-:r .\postDeployment\Script.Address.sql
+:r .\postDeployment\Script.600Accounts.sql
+:r .\postDeployment\Script.600Address.sql
+:r .\postDeployment\Script.Contact.Pulse.sql
+:r .\postDeployment\Script.Contact.Client.sql
+:r .\postDeployment\Script.Role.Pulse.sql
+:r .\postDeployment\Script.Role.Client.sql
 :r .\postDeployment\Script.Phone.sql
-:r .\postDeployment\Script.Role.sql
 :r .\postDeployment\Script.Deployment.sql
-:r .\postDeployment\Script.Delegation.sql
-:r .\postDeployment\Script.DelegationDetail.sql

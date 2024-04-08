@@ -76,14 +76,18 @@
     <Build Include="account\Tables\Hub.sql" />
     <Build Include="Security\Schemas\account.sql" />
     <Build Include="account\Tables\DelegationDetail.sql" />
-    <None Include="scriptRec\Script.600Accounts.sql" />
-    <None Include="scriptRec\Script.600Address.sql" />
-    <None Include="ScriptITG\Script.Contact.Pulse.sql" />
     <None Include="ScriptRec\Script.Contact.ExpertDigitaux.sql" />
-    <None Include="ScriptITG\Script.Contact.Client.sql" />
     <None Include="Log\Script.Contact.sql" />
     <None Include="ScriptRec\Script.Role.ExpertDigitaux.sql" />
-    <None Include="ScriptITG\Script.Role.Client.sql" />
+    <None Include="Log\Script.Account.sql" />
+    <None Include="Log\Script.Address.sql" />
+    <None Include="postDeployment\Script.600Accounts.sql" />
+    <None Include="postDeployment\Script.600Address.sql" />
+    <None Include="postDeployment\Script.Contact.Client.sql" />
+    <None Include="postDeployment\Script.Contact.Pulse.sql" />
+    <None Include="postDeployment\Script.Role.Client.sql" />
+    <None Include="postDeployment\Script.Role.Pulse.sql" />
+    <None Include="Log\Script.Delegation.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Account.Database.refactorlog" />
@@ -92,11 +96,7 @@
     <PostDeploy Include="Script.Referential.PostDeployment.sql" />
     <None Include="postDeployment\Hub.Refential.sql" />
     <None Include="postDeployment\Script.Naf.sql" />
-    <None Include="postDeployment\Script.Account.sql" />
-    <None Include="postDeployment\Script.Address.sql" />
     <None Include="postDeployment\Script.Phone.sql" />
-    <None Include="postDeployment\Script.Role.sql" />
     <None Include="postDeployment\Script.Deployment.sql" />
-    <None Include="postDeployment\Script.Delegation.sql" />
   </ItemGroup>
 </Project>
