@@ -47,12 +47,13 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 if (!string.IsNullOrWhiteSpace(search))
                 {
+                    search = search.ToLower();
                     query = from n in query
-                            where n.LegalName.Contains(search, StringComparison.OrdinalIgnoreCase)
-                                  || n.AccountNumber.Contains(search, StringComparison.OrdinalIgnoreCase)
-                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase)
-                                                      || role.Contact.LastName.Contains(search, StringComparison.OrdinalIgnoreCase)
-                                                      || role.Contact.Email.Contains(search, StringComparison.OrdinalIgnoreCase)))
+                            where n.LegalName.ToLower().Contains(search)
+                                  || n.AccountNumber.ToLower().Contains(search)
+                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.ToLower().Contains(search)
+                                                      || role.Contact.LastName.ToLower().Contains(search)
+                                                      || role.Contact.Email.ToLower().Contains(search)))
                             select n;
                 }
 
