@@ -72,7 +72,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
-                var accountReceived = JsonConvert.SerializeObject(accounts.Items?.FirstOrDefault());
+                var accountReceived = JsonConvert.SerializeObject(accounts.Items?.First());
                 Assert.Contains(accountReceived, accountExpect);
             }
         }
