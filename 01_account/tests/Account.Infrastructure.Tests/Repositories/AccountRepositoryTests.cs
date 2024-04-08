@@ -58,7 +58,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
 
                 // Act
-                var search = accountObject.First()!.LegalName;
+                var search = accountObject.First() !.AccountNumber;
                 var accounts = await accountRepository.GetAccountsAsync(search: search, pageNumber: 1, pageSize: 4, contactId);
 
                 // Assert
