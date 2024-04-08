@@ -1,5 +1,3 @@
-DBCC CHECKIDENT ('actor.Contact', RESEED, 0);
-
 INSERT into actor.Contact(ContactId, ContactGlobalUniqueId, FirstName, LastName, Email, Type, Status, CreationDate, PersonaName)
 VALUES
 (1,NEWID(),'Yasser','Arouaoui','yarouaoui@kpmg.fr','collaborator','declared',GETDATE(),''),
