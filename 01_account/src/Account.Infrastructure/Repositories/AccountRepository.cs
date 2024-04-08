@@ -49,7 +49,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 {
                     query = from n in query
                             where n.LegalName.Contains(search, StringComparison.OrdinalIgnoreCase)
-                                  || n.SourceAccountNumber.Contains(search, StringComparison.OrdinalIgnoreCase)
+                                  || n.AccountNumber.Contains(search, StringComparison.OrdinalIgnoreCase)
                                   || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase)
                                                       || role.Contact.LastName.Contains(search, StringComparison.OrdinalIgnoreCase)
                                                       || role.Contact.Email.Contains(search, StringComparison.OrdinalIgnoreCase)))
