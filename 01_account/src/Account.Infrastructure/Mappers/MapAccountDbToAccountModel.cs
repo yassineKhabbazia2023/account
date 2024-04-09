@@ -79,6 +79,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             new AccountDetail
             {
                 AccountId = source.AccountId,
+                AccountGlobalUniqueId = source.AccountGlobalUniqueId,
                 AccountNumber = source.AccountNumber,
                 IconName = source.IconName,
                 IsActive = source.IsActive,
