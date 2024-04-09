@@ -24,6 +24,7 @@ extends:
   parameters:
     devIndex: ${{ parameters.devIndex }}
     deployType: ${{ parameters.deployType }}
+    sonarExclusions: '**/Account.Database/ScriptRec/**, **/Account.Database/postDeployment/**'
     domain: acc
     resource:
       id: '01'
