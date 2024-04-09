@@ -43,6 +43,8 @@ public class DelegationServiceTest
         var createDelegation = _fixture.Build<CreateDelegationRequest>()
             .With(p => p.DelegationDetails, details)
             .Create();
+        var createRole = _fixture.Build<Role>()
+            .CreateMany();
 
         _repository.Setup(x => x.CreateDelegationAsync(createDelegation, It.IsAny<IEnumerable<CreateRoleRequest>>()))
             .Callback<CreateDelegationRequest, IEnumerable<CreateRoleRequest>>((request, roles) =>
@@ -51,7 +53,7 @@ public class DelegationServiceTest
                 request.DelegationDetails.FirstOrDefault() !.EndDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate);
                 request.DelegatorId.Should().Be(createDelegation.DelegatorId);
             })
-            .ReturnsAsync(createDelegation.AccountIds)
+            .ReturnsAsync(createRole)
             .Verifiable();
 
         var service = new DelegationService(_repository.Object, _publisher.Object, _logger.Object);
@@ -146,7 +148,6 @@ public class DelegationServiceTest
     {
         var roleToDelete = new Role
         {
-            RoleId = 1,
             AccountId = 1,
             ContactId = 1,
         };

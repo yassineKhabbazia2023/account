@@ -74,7 +74,13 @@ public class RolesServiceTests
     public async Task CreateRole_Should_ReturnsCreatedResultAsync()
     {
         // Arrange
-        var newRoleId = 56;
+        var newRole = new Role()
+        {
+            AccountId = 6,
+            ContactId = 6,
+            IsFavorite = false,
+            IsSignatory = false
+        };
         var createRoleRequest = new CreateRoleRequest()
         {
             AccountId = 6,
@@ -85,7 +91,7 @@ public class RolesServiceTests
 
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
-            .ReturnsAsync(newRoleId)
+            .ReturnsAsync(newRole)
             .Verifiable();
 
         _servicePublisher!.Setup(x => x.PublishAsync(It.IsAny<BaseEvent>()))
@@ -93,7 +99,6 @@ public class RolesServiceTests
          {
              var roleCreatedEvent = @event as RoleCreatedEvent;
              roleCreatedEvent.Should().NotBeNull();
-             roleCreatedEvent!.DataEvent!.RoleId.Should().Be(newRoleId);
              roleCreatedEvent!.DataEvent!.ContactId.Should().Be(createRoleRequest.ContactId);
              roleCreatedEvent!.DataEvent!.AccountId.Should().Be(createRoleRequest.AccountId);
              roleCreatedEvent!.DataEvent!.IsSignatory.Should().Be(createRoleRequest.IsSignatory);
@@ -133,12 +138,18 @@ public class RolesServiceTests
     public async Task UpdateRole_Should_ReturnsOkResultAsync()
     {
         // Arrange
-        int roleId = 101;
         int accountId = 10;
         int contactId = 25;
+        var newRole = new Role()
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsFavorite = false,
+            IsSignatory = false
+        };
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.UpdateRoleSignatoryAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
-            .ReturnsAsync(roleId)
+            .ReturnsAsync(newRole)
             .Verifiable();
 
         _servicePublisher!.Setup(x => x.PublishAsync(It.IsAny<BaseEvent>()))
@@ -146,7 +157,6 @@ public class RolesServiceTests
           {
               var roleUpdatedEvent = @event as RoleUpdatedEvent;
               roleUpdatedEvent.Should().NotBeNull();
-              roleUpdatedEvent!.DataEvent!.RoleId.Should().Be(roleId);
               roleUpdatedEvent!.DataEvent!.ContactId.Should().Be(contactId);
               roleUpdatedEvent!.DataEvent!.AccountId.Should().Be(accountId);
               roleUpdatedEvent!.DataEvent!.IsSignatory.Should().Be(true);
@@ -180,8 +190,7 @@ public class RolesServiceTests
             IsFavorite = false,
             IsSignatory = true,
         };
-        roleRepository.Setup(repo => repo.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
-            .ReturnsAsync(1);
+        roleRepository.Setup(repo => repo.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.CompletedTask);
         roleRepository.Setup(repo => repo.GetContactRoleAsync(1, 1))
             .ReturnsAsync(roleNormal);
         roleRepository.Setup(repo => repo.GetContactRoleAsync(1, 3))

@@ -417,10 +417,10 @@ public class DelegationRepositoryTests
             Assert.NotNull(resultDelegation);
             Assert.Equal(DelegationStatus.Disabled.ToString().ToLower(), resultDelegation.Status);
 
-            var resultRoleDeleted = await context.RoleEntity.FirstOrDefaultAsync(r => r.RoleId == roleIsDelegation.RoleId);
+            var resultRoleDeleted = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == roleIsDelegation.AccountId && r.ContactId == roleIsDelegation.ContactId);
             Assert.Null(resultRoleDeleted);
 
-            var resultRoleNotDeleted = await context.RoleEntity.FirstOrDefaultAsync(r => r.RoleId == roleIsNotDelegation.RoleId);
+            var resultRoleNotDeleted = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == roleIsNotDelegation.AccountId && r.ContactId == roleIsNotDelegation.ContactId);
             Assert.NotNull(resultRoleNotDeleted);
         }
     }
