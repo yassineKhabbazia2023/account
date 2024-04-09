@@ -226,7 +226,9 @@ public partial class AccountContext : DbContext
 
             entity.HasIndex(e => e.ContactGlobalUniqueId, "IDX_Contact_ContactGlobalUniqueId");
 
-            entity.Property(e => e.ContactId).HasComment("L''identifiant technique");
+            entity.Property(e => e.ContactId)
+                .ValueGeneratedNever()
+                .HasComment("L''identifiant technique");
             entity.Property(e => e.ContactGlobalUniqueId).HasComment("L''identifiant global du contact");
             entity.Property(e => e.CreationDate).HasComment("La date de création du contact");
             entity.Property(e => e.Email)
@@ -254,7 +256,6 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("Le site du contact");
             entity.Property(e => e.Status)
-                .IsRequired()
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasComment("Le statut de contact");
