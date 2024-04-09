@@ -1,4 +1,6 @@
-﻿INSERT INTO [account].[Address] ([AccountId], [AddressLine1], [AddressLine2], [AddressLine3], [ZipCode], [City], [State], [Country], [AddressType])
+﻿IF NOT EXISTS (SELECT * FROM [account].[Address] WHERE AccountId = 1)
+BEGIN
+INSERT INTO [account].[Address] ([AccountId], [AddressLine1], [AddressLine2], [AddressLine3], [ZipCode], [City], [State], [Country], [AddressType])
 VALUES
 (1, '10 Rue de la République', NULL, NULL, '75001', 'Paris', NULL, 'France', 'delivery'),
 (2, '25 Avenue des Champs-Élysées', NULL, NULL, '75008', 'Paris', NULL, 'France', 'billing'),
@@ -600,3 +602,4 @@ VALUES
 (598, '12 Rue de la Roquette', NULL, NULL, '75035', 'Paris', NULL, 'France', 'delivery'),
 (599, '16 Rue du Faubourg Saint-Honoré', NULL, NULL, '75036', 'Paris', NULL, 'France', 'billing'),
 (600, '5 Avenue des Champs-Élysées', NULL, NULL, '13001', 'Marseille', NULL, 'France', 'delivery');
+END

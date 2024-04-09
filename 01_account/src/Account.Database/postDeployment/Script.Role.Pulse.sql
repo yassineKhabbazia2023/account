@@ -1,5 +1,5 @@
-﻿DBCC CHECKIDENT ('account.Role', RESEED, 0);
-
+﻿IF NOT EXISTS (SELECT * FROM account.Role WHERE ContactId = 1)
+BEGIN
 INSERT INTO account.Role(ContactId, AccountId, IsFavorite, IsSignatory, IsDelegation)
 VALUES
 (1,1,0,0,0),
@@ -164,3 +164,4 @@ VALUES
 (55,160,0,0,0),
 (55,161,0,0,0),
 (55,162,0,1,0)
+END

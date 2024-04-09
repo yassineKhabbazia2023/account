@@ -1,3 +1,5 @@
+IF NOT EXISTS (SELECT * FROM [account].[Role] WHERE ContactId = 56)
+BEGIN
 INSERT INTO account.Role(ContactId, AccountId, IsSignatory, IsFavorite, IsDelegation)
 VALUES
 (56,1,1,0,0),
@@ -3609,3 +3611,4 @@ VALUES
 (73,598,0,0,0),
 (73,599,0,0,0),
 (73,600,0,0,0)
+END

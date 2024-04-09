@@ -35,14 +35,24 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 .Options;
         }
 
-        [Fact]
-        public async Task GetAccountListSearch_Should_ReturnsOkResultAsync()
+        [Theory]
+        [InlineData("199900046522")]
+        [InlineData("test scA")]
+        [InlineData("firstuser")]
+        [InlineData("lastuser")]
+        [InlineData("firstlastuser@test.fr")]
+        public async Task GetAccountListSearch_Should_ReturnsOkResultAsync(string criteria)
         {
             using (var context = new AccountContext(_dbContextOptions))
             {
                 // Arrange
                 var accountsModel = _fixture.Create<List<AccountEntity>>();
                 accountsModel.First().AddressEntity.First().AddressType = AddressType.delivery.ToString();
+                accountsModel.First().AccountNumber = "199900046522";
+                accountsModel.First().LegalName = "Test SCA";
+                accountsModel.First().RoleEntity.First().Contact.FirstName = "FirstUser";
+                accountsModel.First().RoleEntity.First().Contact.LastName = "LastUser";
+                accountsModel.First().RoleEntity.First().Contact.Email = "firstLastUser@test.fr";
                 context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
 
@@ -58,12 +68,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
 
                 // Act
-                var search = accountObject.First()!.LegalName;
-                var accounts = await accountRepository.GetAccountsAsync(search: search, pageNumber: 1, pageSize: 4, contactId);
+                var accounts = await accountRepository.GetAccountsAsync(search: criteria, pageNumber: 1, pageSize: 4, contactId);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
-                var accountReceived = JsonConvert.SerializeObject(accounts.Items?.FirstOrDefault());
+                var accountReceived = JsonConvert.SerializeObject(accounts.Items?.First());
                 Assert.Contains(accountReceived, accountExpect);
             }
         }
