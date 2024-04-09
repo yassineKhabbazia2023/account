@@ -49,11 +49,11 @@ namespace Pulse.Account.Infrastructure.Repositories
                 {
                     search = search.ToLowerInvariant();
                     query = from n in query
-                            where n.LegalName.ToLowerInvariant().Contains(search)
-                                  || n.AccountNumber.ToLowerInvariant().Contains(search)
-                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.ToLowerInvariant().Contains(search)
-                                                      || role.Contact.LastName.ToLowerInvariant().Contains(search)
-                                                      || role.Contact.Email.ToLowerInvariant().Contains(search)))
+                            where n.LegalName.ToLower().Contains(search)
+                                  || n.AccountNumber.ToLower().Contains(search)
+                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.ToLower().Contains(search)
+                                                      || role.Contact.LastName.ToLower().Contains(search)
+                                                      || role.Contact.Email.ToLower().Contains(search)))
                             select n;
                 }
 
