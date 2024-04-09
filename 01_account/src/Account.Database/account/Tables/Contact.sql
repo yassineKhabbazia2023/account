@@ -15,9 +15,6 @@
 )
 
 GO
-CREATE CLUSTERED INDEX [IXC_Contact_ContactId]
-    ON  [actor].[Contact]([ContactId] ASC);
-GO
 CREATE NONCLUSTERED INDEX [IX_Contact_Email_LastName_FirstName]
     ON  [actor].[Contact]([Email] ASC, [LastName] ASC, [FirstName] ASC);
 GO

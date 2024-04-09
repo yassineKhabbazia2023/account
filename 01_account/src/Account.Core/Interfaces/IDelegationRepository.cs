@@ -13,7 +13,7 @@ public interface IDelegationRepository
 
     Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId);
 
-    Task<IEnumerable<int>> CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles);
+    Task<IEnumerable<Role>> CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles);
 
     Task<IEnumerable<Role>> DeleteDelegationAsync(int delegationId);
 

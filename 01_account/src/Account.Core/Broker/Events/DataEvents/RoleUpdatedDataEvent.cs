@@ -8,7 +8,6 @@ namespace Pulse.Account.Core.Broker.Events.DataEvents
 {
     public class RoleUpdatedDataEvent
     {
-        public int RoleId { get; set; }
 
         public int AccountId { get; set; }
 

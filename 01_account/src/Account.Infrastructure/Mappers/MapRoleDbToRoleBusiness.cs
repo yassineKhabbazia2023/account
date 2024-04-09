@@ -13,7 +13,6 @@ namespace Pulse.Account.Infrastructure.Mappers
         {
             return role == null ? null! : new Role
             {
-                RoleId = role.RoleId,
                 AccountId = role.AccountId,
                 ContactId = role.ContactId,
                 IsFavorite = role.IsFavorite,

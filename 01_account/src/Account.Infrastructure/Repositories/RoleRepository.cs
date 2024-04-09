@@ -96,7 +96,7 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task<int> CreateRoleAsync(CreateRoleRequest role)
+    public async Task<Role> CreateRoleAsync(CreateRoleRequest role)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -113,11 +113,11 @@ public class RoleRepository : IRoleRepository
             var roleDb = role.MapRoleToRoleDb();
             _accountContext.RoleEntity.Add(roleDb);
             await _accountContext.SaveChangesAsync();
-            return roleDb.RoleId;
+            return roleDb!.MapToRole();
         });
     }
 
-    public async Task<int> UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
+    public async Task<Role> UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -138,11 +138,11 @@ public class RoleRepository : IRoleRepository
                 await _accountContext.SaveChangesAsync();
             }
 
-            return role.RoleId;
+            return role!.MapToRole();
         });
     }
 
-    public async Task<int> DeleteRoleAsync(int accountId, int contactId)
+    public async Task DeleteRoleAsync(int accountId, int contactId)
     {
         var role = new RoleEntity();
 
@@ -154,7 +154,5 @@ public class RoleRepository : IRoleRepository
             _accountContext.Remove(role!);
             await _accountContext.SaveChangesAsync();
         });
-
-        return role!.RoleId;
     }
 }

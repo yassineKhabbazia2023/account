@@ -14,11 +14,11 @@ public interface IRoleRepository
 
     Task<IEnumerable<Contact>> GetSignatoryAsync(int accountId);
 
-    Task<int> CreateRoleAsync(CreateRoleRequest role);
+    Task<Role> CreateRoleAsync(CreateRoleRequest role);
 
-    Task<int> UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory);
+    Task<Role> UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory);
 
-    Task<int> DeleteRoleAsync(int accountId, int contactId);
+    Task DeleteRoleAsync(int accountId, int contactId);
 
     Task<Role> GetContactRoleAsync(int accountId, int contactId);
 }

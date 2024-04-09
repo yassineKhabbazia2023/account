@@ -47,13 +47,13 @@ public class DelegationService : IDelegationService
         }
 
         var roles = CreateRoleRequests(delegation);
-        var roleIds = await _delegationRepository.CreateDelegationAsync(delegation, roles);
+        var roleDelegation = await _delegationRepository.CreateDelegationAsync(delegation, roles);
 
         if (roles.Any())
         {
             for (int i = 0; i < roles.Count(); i++)
             {
-                await SendCreatedRoleEvent(roleIds.ElementAt(i), roles.ElementAt(i));
+                await SendCreatedRoleEvent(roleDelegation.ElementAt(i).AccountId, roleDelegation.ElementAt(i).ContactId, roles.ElementAt(i));
             }
         }
     }
@@ -123,16 +123,15 @@ public class DelegationService : IDelegationService
         return roleRequests;
     }
 
-    private async Task SendCreatedRoleEvent(int roleId, CreateRoleRequest role)
+    private async Task SendCreatedRoleEvent(int accountId, int contactId, CreateRoleRequest role)
     {
-        _logger.LogInformation("DelegationService: Start send create role event. Id : {roleId}", roleId);
+        _logger.LogInformation("DelegationService: Start send create role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
 
         await _servicePublisher.PublishAsync(new RoleCreatedEvent
         {
-            EventIdentifier = $"RoleId = '{roleId}'",
+            EventIdentifier = $"AccountId = '{accountId}' - ContactId = '{contactId}'",
             DataEvent = new RoleCreatedDataEvent
             {
-                RoleId = roleId,
                 AccountId = role.AccountId,
                 ContactId = role.ContactId,
                 IsDelegation = role.IsDelegation,
@@ -142,27 +141,24 @@ public class DelegationService : IDelegationService
             Sender = "AccountAPI - CreateRole"
         });
 
-        _logger.LogInformation("DelegationService: End send create role event. Id : {roleId}", roleId);
+        _logger.LogInformation("DelegationService: End send create role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
     }
 
     private async Task SendRoleDeletedEvent(Role role)
     {
-        var roleId = role.RoleId;
-
-        _logger.LogInformation("DelegationService: Start send delete role event. Id : {roleId}", roleId);
+        _logger.LogInformation("DelegationService: Start send delete role event. AccountId : {accountId}, ContactId : {contactId}", role.AccountId, role.ContactId);
 
         await _servicePublisher.PublishAsync(new RoleDeletedEvent
         {
-            EventIdentifier = $"RoleId = '{roleId}'",
+            EventIdentifier = $"AccountId = '{role.AccountId}', ContactId = '{role.ContactId}'",
             DataEvent = new RoleDeletedDataEvent
             {
-                RoleId = roleId,
                 AccountId = role.AccountId,
                 ContactId = role.ContactId,
             },
             Sender = "AccountAPI - DeleteRole"
         });
 
-        _logger.LogInformation("DelegationService: End send delete role event. Id : {roleId}", roleId);
+        _logger.LogInformation("DelegationService: End send delete role event. AccountId : {accountId}, ContactId : {contactId}", role.AccountId, role.ContactId);
     }
 }

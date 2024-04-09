@@ -47,10 +47,6 @@ CREATE NONCLUSTERED INDEX [IX_Account_AccountGlobalUniqueId]
     ON [account].[Account]([AccountGlobalUniqueId] ASC)
 
 GO
-CREATE CLUSTERED INDEX [IXC_Account_AccountId]
-    ON [account].[Account]([AccountId] ASC)
-
-GO
 CREATE NONCLUSTERED INDEX [IX_Account_AccountNumber]
     ON  [account].[Account]([AccountNumber] ASC)
 
