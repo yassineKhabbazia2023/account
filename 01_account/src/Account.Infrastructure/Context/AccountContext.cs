@@ -230,6 +230,9 @@ public partial class AccountContext : DbContext
 
             entity.HasIndex(e => e.ContactGlobalUniqueId, "IX_Contact_ContactGlobalUniqueId");
 
+            entity.Property(e => e.ContactId)
+                .ValueGeneratedNever()
+                .HasComment("L''identifiant technique");
             entity.HasIndex(e => new { e.Email, e.LastName, e.FirstName }, "IX_Contact_Email_LastName_FirstName");
 
             entity.HasIndex(e => e.Status, "IX_Contact_Status");
@@ -261,8 +264,11 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasComment("Le nom du persona");
+            entity.Property(e => e.Office)
+                .HasMaxLength(250)
+                .IsUnicode(false)
+                .HasComment("Le site du contact");
             entity.Property(e => e.Status)
-                .IsRequired()
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasComment("Le statut de contact");

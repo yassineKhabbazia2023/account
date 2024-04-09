@@ -34,6 +34,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             expectedAccount.LegalName = tAccountFixture.LegalName;
             expectedAccount.AccountId = tAccountFixture.AccountId;
             expectedAccount.AccountNumber = tAccountFixture.AccountNumber;
+            expectedAccount.AccountGlobalUniqueId = tAccountFixture.AccountGlobalUniqueId;
             expectedAccount.Address = tAccountFixture.AddressEntity.Select(address => new Address()
             {
                 AddressId = address.AddressId,
@@ -57,6 +58,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             Assert.Equal(expectedAccount.LegalName, accountModel.LegalName);
             Assert.Equal(expectedAccount.AccountNumber, accountModel.AccountNumber);
             Assert.Equal(expectedAccount.AccountId, accountModel.AccountId);
+            Assert.Equal(expectedAccount.AccountGlobalUniqueId, accountModel.AccountGlobalUniqueId);
         }
 
         [Fact]
@@ -77,6 +79,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             expectedAccount.Legal.LegalName = tAccountFixture.LegalName;
             expectedAccount.AccountId = tAccountFixture.AccountId;
             expectedAccount.AccountNumber = tAccountFixture.AccountNumber;
+            expectedAccount.AccountGlobalUniqueId = tAccountFixture.AccountGlobalUniqueId;
             expectedAccount.Address = tAccountFixture.AddressEntity.Select(address => new Address()
             {
                 AddressId = address.AddressId,
@@ -100,6 +103,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             Assert.Equal(expectedAccount.Legal?.LegalName, accountModel.Legal?.LegalName);
             Assert.Equal(expectedAccount.AccountNumber, accountModel.AccountNumber);
             Assert.Equal(expectedAccount.AccountId, accountModel.AccountId);
+            Assert.Equal(expectedAccount.AccountGlobalUniqueId, accountModel.AccountGlobalUniqueId);
         }
 
         [Fact]

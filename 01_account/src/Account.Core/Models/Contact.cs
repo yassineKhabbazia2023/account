@@ -25,5 +25,7 @@ public class Contact
 
     public string? PersonaName { get; set; }
 
+    public string? Office { get; set; }
+
     public DateTime? CreationDate { get; set; }
 }

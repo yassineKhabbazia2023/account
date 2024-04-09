@@ -282,8 +282,8 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
         [Theory]
         [InlineData(null)]
-        [InlineData(ContactType.collaborator)]
-        [InlineData(ContactType.customer)]
+        [InlineData(ContactType.Collaborator)]
+        [InlineData(ContactType.Customer)]
         public async Task GetContactsAccountAsync_WhenAccountIdIsValid_ShouldReturnContactsAccount(ContactType? type)
         {
             // Arrange

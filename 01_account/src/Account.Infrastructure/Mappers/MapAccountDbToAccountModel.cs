@@ -79,6 +79,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             new AccountDetail
             {
                 AccountId = source.AccountId,
+                AccountGlobalUniqueId = source.AccountGlobalUniqueId,
                 AccountNumber = source.AccountNumber,
                 IconName = source.IconName,
                 IsActive = source.IsActive,
@@ -106,6 +107,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 LastName = tContact.LastName,
                 Status = tContact.Status,
                 PersonaName = tContact.PersonaName,
+                Office = tContact.Office,
                 CreationDate = tContact.CreationDate,
             };
         }
@@ -256,9 +258,9 @@ namespace Pulse.Account.Infrastructure.Mappers
                 AccountToDeploy = countByAccountStatus?.TryGetValue(0, out var toDeploy) == true ? toDeploy : 0,
                 AccountInProgress = countByAccountStatus?.TryGetValue(1, out var inProgress) == true ? inProgress : 0,
                 AccountConnected = countByAccountStatus?.TryGetValue(2, out var connected) == true ? connected : 0,
-                ContactConnected = countByContactStatus?.TryGetValue("Connected", out var contactConnected) == true ? contactConnected : 0,
-                ContactDeclared = countByContactStatus?.TryGetValue("Declared", out var contactDeclared) == true ? contactDeclared : 0,
-                ContactInvited = countByContactStatus?.TryGetValue("Invited", out var contactInvited) == true ? contactInvited : 0
+                ContactConnected = countByContactStatus?.TryGetValue(ContactStatus.Connected.ToString(), out var contactConnected) == true ? contactConnected : 0,
+                ContactDeclared = countByContactStatus?.TryGetValue(ContactStatus.Declared.ToString(), out var contactDeclared) == true ? contactDeclared : 0,
+                ContactInvited = countByContactStatus?.TryGetValue(ContactStatus.Invited.ToString(), out var contactInvited) == true ? contactInvited : 0
             };
         }
 

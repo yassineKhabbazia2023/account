@@ -48,6 +48,11 @@ public partial class ContactEntity
     public string PersonaName { get; set; }
 
     /// <summary>
+    /// Le site du contact
+    /// </summary>
+    public string? Office { get; set; }
+
+    /// <summary>
     /// La date de création du contact
     /// </summary>
     public DateTime CreationDate { get; set; }

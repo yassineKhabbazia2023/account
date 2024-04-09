@@ -49,11 +49,11 @@ namespace Pulse.Account.Infrastructure.Repositories
                 {
                     search = search.ToLowerInvariant();
                     query = from n in query
-                            where n.LegalName.ToLowerInvariant().Contains(search)
-                                  || n.AccountNumber.ToLowerInvariant().Contains(search)
-                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.ToLowerInvariant().Contains(search)
-                                                      || role.Contact.LastName.ToLowerInvariant().Contains(search)
-                                                      || role.Contact.Email.ToLowerInvariant().Contains(search)))
+                            where n.LegalName.ToLower().Contains(search)
+                                  || n.AccountNumber.ToLower().Contains(search)
+                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.ToLower().Contains(search)
+                                                      || role.Contact.LastName.ToLower().Contains(search)
+                                                      || role.Contact.Email.ToLower().Contains(search)))
                             select n;
                 }
 
@@ -170,7 +170,8 @@ namespace Pulse.Account.Infrastructure.Repositories
                     resultContact = resultContact.Where(role => role.Contact.Email.Contains(search!, StringComparison.OrdinalIgnoreCase)
                                                                 || role.Contact.FirstName.Contains(search!, StringComparison.OrdinalIgnoreCase)
                                                                 || role.Contact.LastName.Contains(search!, StringComparison.OrdinalIgnoreCase)
-                                                                || role.Contact.PersonaName.Contains(search!, StringComparison.OrdinalIgnoreCase));
+                                                                || role.Contact.PersonaName.Contains(search!, StringComparison.OrdinalIgnoreCase)
+                                                                || (role.Contact.Office is not null && role.Contact.Office.Contains(search!, StringComparison.OrdinalIgnoreCase)));
                 }
 
                 var totalItems = resultContact.Count();

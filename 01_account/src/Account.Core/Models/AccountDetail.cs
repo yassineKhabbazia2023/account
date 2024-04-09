@@ -11,6 +11,8 @@ namespace Pulse.Account.Core.Models
     {
         public int AccountId { get; set; }
 
+        public Guid AccountGlobalUniqueId { get; set; }
+
         public string? AccountNumber { get; set; }
 
         public string? IconName { get; set; }

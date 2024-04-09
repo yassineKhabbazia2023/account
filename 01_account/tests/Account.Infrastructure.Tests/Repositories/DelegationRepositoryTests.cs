@@ -472,6 +472,7 @@ public class DelegationRepositoryTests
                     Type = "customer",
                     Status = "Declared",
                     PersonaName = "Collaborateur ESC",
+                    Office = "Paris",
                     CreationDate = DateTime.UtcNow,
                 });
 
@@ -484,6 +485,7 @@ public class DelegationRepositoryTests
                     Type = "customer",
                     Status = "Declared",
                     PersonaName = "Collaborateur ESC",
+                    Office = "Paris",
                     CreationDate = DateTime.UtcNow,
                 });
 

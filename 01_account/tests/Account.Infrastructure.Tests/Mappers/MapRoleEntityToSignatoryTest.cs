@@ -60,6 +60,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 LastName = role.Contact.LastName,
                 Status = role.Contact.Status,
                 PersonaName = role.Contact.PersonaName,
+                Office = role.Contact.Office,
                 CreationDate = role.Contact.CreationDate,
             };
 
@@ -85,6 +86,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                     LastName = roles!.First().Contact.LastName,
                     Status = roles!.First().Contact.Status,
                     PersonaName = roles!.First().Contact.PersonaName,
+                    Office = roles!.First().Contact.Office,
                     CreationDate = roles!.First().Contact.CreationDate,
                 }
             };

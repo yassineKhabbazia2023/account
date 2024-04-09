@@ -76,8 +76,9 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                         Email = "email1@abc.com",
                         FirstName = "fname1",
                         LastName = "lname1",
-                        Type = "collaborator",
+                        Type = "Collaborator",
                         PersonaName = "Persona1",
+                        Office = "Paris",
                         CreationDate = DateTime.UtcNow
                     },
                     new()
@@ -87,8 +88,9 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                         Email = "email2@abc.com",
                         FirstName = "fname2",
                         LastName = "lname2",
-                        Type = "customer",
+                        Type = "Customer",
                         PersonaName = "Persona1",
+                        Office = "Paris",
                         CreationDate = DateTime.UtcNow
                     }
                 };
