@@ -15,7 +15,19 @@
 )
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_Contact_ContactGlobalUniqueId]
+CREATE CLUSTERED INDEX [IXC_Contact_ContactId]
+    ON  [actor].[Contact]([ContactId] ASC);
+GO
+CREATE NONCLUSTERED INDEX [IX_Contact_Email_LastName_FirstName]
+    ON  [actor].[Contact]([Email] ASC, [LastName] ASC, [FirstName] ASC);
+GO
+CREATE NONCLUSTERED INDEX [IX_Contact_Type]
+    ON  [actor].[Contact]([Type] ASC);
+GO
+CREATE NONCLUSTERED INDEX [IX_Contact_Status]
+    ON  [actor].[Contact]([Status] ASC);
+GO
+CREATE NONCLUSTERED INDEX [IX_Contact_ContactGlobalUniqueId]
     ON  [actor].[Contact]([ContactGlobalUniqueId] ASC);
 
 GO

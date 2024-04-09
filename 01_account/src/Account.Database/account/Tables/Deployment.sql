@@ -4,13 +4,19 @@
 	[AccountId]				INT					NOT NULL,
 	[DeploymentDate]        DATETIME2           NOT NULL,
 	[Status]                INT	                NOT NULL,
-	CONSTRAINT [C_Deployment_PK] PRIMARY KEY CLUSTERED ([DeploymentId] ASC),
+	CONSTRAINT [C_Deployment_PK] PRIMARY KEY NONCLUSTERED ([DeploymentId] ASC),
 	CONSTRAINT [C_Account_Deployment_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId])
 )
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_Deployment_AccountId]
+CREATE NONCLUSTERED INDEX [IX_Deployment_DeploymentId]
+    ON  [account].[Deployment]([DeploymentId] ASC);
+GO
+CREATE CLUSTERED INDEX [IXC_Deployment_AccountId]
     ON  [account].[Deployment]([AccountId] ASC);
+GO
+CREATE NONCLUSTERED INDEX [IX_Deployment_Status]
+    ON  [account].[Deployment]([Status] ASC);
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
