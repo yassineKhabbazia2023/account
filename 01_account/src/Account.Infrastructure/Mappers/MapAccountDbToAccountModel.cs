@@ -107,6 +107,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 LastName = tContact.LastName,
                 Status = tContact.Status,
                 PersonaName = tContact.PersonaName,
+                Office = tContact.Office,
                 CreationDate = tContact.CreationDate,
             };
         }

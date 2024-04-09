@@ -139,6 +139,7 @@ public class RolesRepositoryTests
             Type = "customer",
             Status = "Declared",
             PersonaName = "Collaborateur ESC",
+            Office = "Paris",
             CreationDate = DateTime.UtcNow,
         });
 
@@ -177,6 +178,7 @@ public class RolesRepositoryTests
             Type = "customer",
             Status = "Declared",
             PersonaName = "Collaborateur ESC",
+            Office = "Paris",
             CreationDate = DateTime.UtcNow,
         });
 

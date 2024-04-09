@@ -170,7 +170,8 @@ namespace Pulse.Account.Infrastructure.Repositories
                     resultContact = resultContact.Where(role => role.Contact.Email.Contains(search!, StringComparison.OrdinalIgnoreCase)
                                                                 || role.Contact.FirstName.Contains(search!, StringComparison.OrdinalIgnoreCase)
                                                                 || role.Contact.LastName.Contains(search!, StringComparison.OrdinalIgnoreCase)
-                                                                || role.Contact.PersonaName.Contains(search!, StringComparison.OrdinalIgnoreCase));
+                                                                || role.Contact.PersonaName.Contains(search!, StringComparison.OrdinalIgnoreCase)
+                                                                || (role.Contact.Office is not null && role.Contact.Office.Contains(search!, StringComparison.OrdinalIgnoreCase)));
                 }
 
                 var totalItems = resultContact.Count();

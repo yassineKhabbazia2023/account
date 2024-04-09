@@ -249,6 +249,10 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasComment("Le nom du persona");
+            entity.Property(e => e.Office)
+                .HasMaxLength(250)
+                .IsUnicode(false)
+                .HasComment("Le site du contact");
             entity.Property(e => e.Status)
                 .IsRequired()
                 .HasMaxLength(20)

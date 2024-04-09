@@ -78,6 +78,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                         LastName = "lname1",
                         Type = "collaborator",
                         PersonaName = "Persona1",
+                        Office = "Paris",
                         CreationDate = DateTime.UtcNow
                     },
                     new()
@@ -89,6 +90,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                         LastName = "lname2",
                         Type = "customer",
                         PersonaName = "Persona1",
+                        Office = "Paris",
                         CreationDate = DateTime.UtcNow
                     }
                 };

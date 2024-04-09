@@ -7,7 +7,8 @@
 	[Email]     			VARCHAR(250)		NOT NULL,
 	[Type]                  VARCHAR(20)         NOT NULL, 
 	[Status]                VARCHAR(20)         NOT NULL, 
-	[PersonaName]           VARCHAR(50)         NOT NULL, 
+	[PersonaName]           VARCHAR(50)         NOT NULL,
+	[Office]				VARCHAR(250)		NULL,
 	[CreationDate]          DATETIME2           NOT NULL, 
     CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC),
     CONSTRAINT [CHK_Type] CHECK ([Type]= 'customer' OR [Type]= 'collaborator'),
@@ -90,6 +91,15 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'Contact',
     @level2type = N'COLUMN',
     @level2name = N'PersonaName'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Le site du contact',
+    @level0type = N'SCHEMA',
+    @level0name = N'actor',
+    @level1type = N'TABLE',
+    @level1name = N'Contact',
+    @level2type = N'COLUMN',
+    @level2name = N'Office'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'La date de création du contact',
