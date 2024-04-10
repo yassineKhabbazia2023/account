@@ -20,11 +20,11 @@ namespace Pulse.Account.API.Controllers
         /// </summary>
         /// <param name="contactId">ID du contact.</param>
         /// <returns>Le nombre de comptes par statut.</returns>
-        [HttpGet("statistics/{contactId}")]
+        [HttpGet("statistics")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Statistics))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Statistics>> GetStatistics(int contactId)
+        public async Task<ActionResult<Statistics>> GetStatistics([FromQuery] int contactId)
         {
             var result = await _statisticsService.GetStatisticsAsync(contactId);
 
