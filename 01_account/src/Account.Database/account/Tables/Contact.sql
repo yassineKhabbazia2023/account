@@ -24,9 +24,6 @@ CREATE NONCLUSTERED INDEX [IX_Contact_Type]
 GO
 CREATE NONCLUSTERED INDEX [IX_Contact_Status]
     ON  [actor].[Contact]([Status] ASC);
-GO
-CREATE NONCLUSTERED INDEX [IX_Contact_ContactGlobalUniqueId]
-    ON  [actor].[Contact]([ContactGlobalUniqueId] ASC);
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',

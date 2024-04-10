@@ -40,12 +40,6 @@
     CONSTRAINT [UQ_Account_AccountGlobalUniqueId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC)
 );
 
-
-
-GO
-CREATE NONCLUSTERED INDEX [IX_Account_AccountGlobalUniqueId]
-    ON [account].[Account]([AccountGlobalUniqueId] ASC)
-
 GO
 CREATE NONCLUSTERED INDEX [IX_Account_AccountNumber]
     ON  [account].[Account]([AccountNumber] ASC)
@@ -53,10 +47,6 @@ CREATE NONCLUSTERED INDEX [IX_Account_AccountNumber]
 GO
 CREATE NONCLUSTERED INDEX [IX_Account_LegalName]
     ON  [account].[Account]([LegalName] ASC)
-
-GO
-CREATE NONCLUSTERED INDEX [IX_Account_AccountType]
-    ON  [account].[Account]([AccountType] ASC)
 
 GO
 CREATE NONCLUSTERED INDEX [IX_Hub_HubId]
