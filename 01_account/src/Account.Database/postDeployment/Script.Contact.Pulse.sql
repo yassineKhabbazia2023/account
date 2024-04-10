@@ -20,6 +20,7 @@ VALUES
 (16,'4D3E46FB-4D7A-41AE-98BF-EF9D18212BD5','Arab','Ait Ouarabi','aaitouarabi@kpmg.fr','Collaborator','Declared',GETDATE(),'Middle Office','La Défense EQHO'),
 (17,'7302AABE-45B5-4AFA-8205-4C72E170C795','Firas','Bey','fbey@kpmg.fr','Collaborator','Declared',GETDATE(),'Support','La Défense EQHO'),
 (18,'3E3B94AB-D402-4535-88BE-339AFBF4058E','Youness','El Gueraoui','yelgueraoui@kpmg.fr','Collaborator','Declared',GETDATE(),'Expert Digital ESC','La Défense EQHO'),
+(19,'dca62bb9-d058-4e34-b330-5abd73d4d124','Pulse','Service','achebbah+221124@kpmg.onmicrosoft.com','Collaborator','Declared',GETDATE(),'Expert Digital ESC',null),
 (20,'029BF001-8D71-4B64-B160-3B38689E8842','Clément','Fory','cfory@kpmg.fr','Collaborator','Declared',GETDATE(),'Admin / Collab Product','La Défense EQHO'),
 (21,'43716BE5-4905-4974-9C29-BCDC0FB8534C','Suliman','Lescot','slescot@kpmg.fr','Collaborator','Declared',GETDATE(),'Admin / Collab Product','La Défense EQHO'),
 (22,'2EF30524-B3D3-4477-A93D-D0BE2EAFED51','Jerry','Nantenaina','jnantenaina@kpmg.fr','Collaborator','Declared',GETDATE(),'Partner','La Défense EQHO'),
