@@ -40,15 +40,19 @@ public partial class AccountContext : DbContext
 
             entity.ToTable("Account", "account");
 
-            entity.HasIndex(e => e.AccountGlobalUniqueId, "IDX_Account_AccountGlobalUniqueId");
+            entity.HasIndex(e => e.AccountGlobalUniqueId, "IX_Account_AccountGlobalUniqueId");
 
-            entity.HasIndex(e => e.HubId, "IDX_Hub_HubId");
+            entity.HasIndex(e => e.AccountNumber, "IX_Account_AccountNumber");
 
-            entity.HasIndex(e => e.NafId, "IDX_Naf_NafId");
+            entity.HasIndex(e => e.AccountType, "IX_Account_AccountType");
+
+            entity.HasIndex(e => e.LegalName, "IX_Account_LegalName");
+
+            entity.HasIndex(e => e.HubId, "IX_Hub_HubId");
+
+            entity.HasIndex(e => e.NafId, "IX_Naf_NafId");
 
             entity.HasIndex(e => e.AccountGlobalUniqueId, "UQ_Account_AccountGlobalUniqueId").IsUnique();
-
-            entity.HasIndex(e => e.AccountGlobalUniqueId, "UQ_Phone_PhoneId").IsUnique();
 
             entity.Property(e => e.AccountId).HasComment("L''identifiant technique");
             entity.Property(e => e.AccountGlobalUniqueId).HasComment("L''identifiant global de l''entité");
@@ -224,7 +228,16 @@ public partial class AccountContext : DbContext
 
             entity.ToTable("Contact", "actor");
 
-            entity.HasIndex(e => e.ContactGlobalUniqueId, "IDX_Contact_ContactGlobalUniqueId");
+            entity.HasIndex(e => e.ContactGlobalUniqueId, "IX_Contact_ContactGlobalUniqueId");
+
+            entity.Property(e => e.ContactId)
+                .ValueGeneratedNever()
+                .HasComment("L''identifiant technique");
+            entity.HasIndex(e => new { e.Email, e.LastName, e.FirstName }, "IX_Contact_Email_LastName_FirstName");
+
+            entity.HasIndex(e => e.Status, "IX_Contact_Status");
+
+            entity.HasIndex(e => e.Type, "IX_Contact_Type");
 
             entity.Property(e => e.ContactId)
                 .ValueGeneratedNever()
@@ -325,11 +338,17 @@ public partial class AccountContext : DbContext
 
         modelBuilder.Entity<DeploymentEntity>(entity =>
         {
-            entity.HasKey(e => e.DeploymentId).HasName("C_Deployment_PK");
+            entity.HasKey(e => e.DeploymentId)
+                .HasName("C_Deployment_PK")
+                .IsClustered(false);
 
             entity.ToTable("Deployment", "account");
 
-            entity.HasIndex(e => e.AccountId, "IDX_Deployment_AccountId");
+            entity.HasIndex(e => e.AccountId, "IXC_Deployment_AccountId").IsClustered();
+
+            entity.HasIndex(e => e.DeploymentId, "IX_Deployment_DeploymentId");
+
+            entity.HasIndex(e => e.Status, "IX_Deployment_Status");
 
             entity.Property(e => e.DeploymentId).HasComment("L''identifiant technique");
             entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
@@ -401,19 +420,18 @@ public partial class AccountContext : DbContext
 
         modelBuilder.Entity<RoleEntity>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("C_Role_PK");
+            entity.HasKey(e => new { e.ContactId, e.AccountId }).HasName("C_Role_PK");
 
             entity.ToTable("Role", "account");
 
             entity.HasIndex(e => new { e.AccountId, e.ContactId }, "C_Role_AccountId_ContactId").IsUnique();
 
-            entity.HasIndex(e => e.AccountId, "IDX_Role_AccountId");
+            entity.HasIndex(e => e.IsFavorite, "IX_Role_IsFavorite");
 
-            entity.HasIndex(e => e.ContactId, "IDX_Role_ContactId");
+            entity.HasIndex(e => e.IsSignatory, "IX_Role_IsSignatory");
 
-            entity.Property(e => e.RoleId).HasComment("L''identifiant technique");
-            entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
             entity.Property(e => e.ContactId).HasComment("L''identifiant technique du contact");
+            entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
             entity.Property(e => e.IsDelegation).HasComment("Indique, dans les cas où c''est possible, si le role est lié à une délégation");
             entity.Property(e => e.IsFavorite).HasComment("Le rôle est-il considéré comme un favori ou mis en avant comme tel");
             entity.Property(e => e.IsSignatory).HasComment("Le signataire");

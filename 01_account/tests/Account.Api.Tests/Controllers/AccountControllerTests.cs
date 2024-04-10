@@ -78,14 +78,6 @@ namespace Account.Api.Tests.Controllers
             // Arrange
             var account = _context.AccountEntity.First();
             var contact = _context.ContactEntity.First();
-            var role = _fixture.Build<RoleEntity>()
-                .With(r => r.Account, account)
-                .With(r => r.AccountId, account.AccountId)
-                .With(r => r.Contact, contact)
-                .With(r => r.ContactId, contact.ContactId)
-                .Create();
-            _context.RoleEntity.Add(role);
-            _context.SaveChanges();
 
             // Act
             var accounts = await _accountController.GetAccountsAsync(search: string.Empty, contactId: contact.ContactId, pageNumber: 1, pageSize: 4);

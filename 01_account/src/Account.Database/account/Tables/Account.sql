@@ -37,22 +37,33 @@
     CONSTRAINT [C_Account_PK] PRIMARY KEY CLUSTERED ([AccountId] ASC),
     CONSTRAINT [C_Account_Hub_HubId_FK] FOREIGN KEY ([HubId]) REFERENCES [account].[Hub] ([HubId]),
     CONSTRAINT [C_Account_NafId_FK] FOREIGN KEY ([NafId]) REFERENCES [account].[Naf] ([NafId]),
-    CONSTRAINT [UQ_Account_AccountGlobalUniqueId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC),
-    CONSTRAINT [UQ_Phone_PhoneId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC)
+    CONSTRAINT [UQ_Account_AccountGlobalUniqueId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC)
 );
 
 
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_Account_AccountGlobalUniqueId]
+CREATE NONCLUSTERED INDEX [IX_Account_AccountGlobalUniqueId]
     ON [account].[Account]([AccountGlobalUniqueId] ASC)
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_Hub_HubId]
+CREATE NONCLUSTERED INDEX [IX_Account_AccountNumber]
+    ON  [account].[Account]([AccountNumber] ASC)
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Account_LegalName]
+    ON  [account].[Account]([LegalName] ASC)
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Account_AccountType]
+    ON  [account].[Account]([AccountType] ASC)
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Hub_HubId]
     ON  [account].[Account]([HubId] ASC)
 
 GO
-CREATE NONCLUSTERED INDEX [IDX_Naf_NafId]
+CREATE NONCLUSTERED INDEX [IX_Naf_NafId]
     ON  [account].[Account]([NafId] ASC)
 
 GO

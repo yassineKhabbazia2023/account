@@ -6,8 +6,6 @@ namespace Pulse.Account.Core.Models
 {
     public class Role
     {
-        public int RoleId { get; set; }
-
         public int AccountId { get; set; }
 
         public int ContactId { get; set; }

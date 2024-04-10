@@ -8,11 +8,6 @@ namespace Pulse.Account.Infrastructure.Entities;
 public partial class RoleEntity
 {
     /// <summary>
-    /// L&apos;&apos;identifiant technique
-    /// </summary>
-    public int RoleId { get; set; }
-
-    /// <summary>
     /// L&apos;&apos;identifiant technique de l&apos;&apos;entité
     /// </summary>
     public int AccountId { get; set; }

@@ -43,19 +43,18 @@ public class RolesService : IRolesService
 
     public async Task CreateRoleAsync(CreateRoleRequest role)
     {
-        var roleId = await _rolesRepository.CreateRoleAsync(role);
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(roleId.ToString());
+        var roleCreated = await _rolesRepository.CreateRoleAsync(role);
 
-        await SendRoleCreatedEvent(roleId, role);
+        await SendRoleCreatedEvent(roleCreated.AccountId, roleCreated.ContactId, role);
     }
 
     public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
     {
-        var roleId = await _rolesRepository.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
+        var role = await _rolesRepository.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
 
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(roleId.ToString());
+        ArgumentNullException.ThrowIfNull(role);
 
-        await SendRoleUpdatedEvent(roleId, accountId, contactId, isSignatory);
+        await SendRoleUpdatedEvent(accountId, contactId, isSignatory);
     }
 
     public async Task DeleteRoleAsync(int accountId, int contactId)
@@ -76,21 +75,20 @@ public class RolesService : IRolesService
             }
         }
 
-        var roleId = await _rolesRepository.DeleteRoleAsync(accountId, contactId);
+        await _rolesRepository.DeleteRoleAsync(accountId, contactId);
 
-        await SendRoleDeletedEvent(roleId, accountId, contactId);
+        await SendRoleDeletedEvent(accountId, contactId);
     }
 
-    private async Task SendRoleCreatedEvent(int roleId, CreateRoleRequest role)
+    private async Task SendRoleCreatedEvent(int accountId, int contactId, CreateRoleRequest role)
     {
-        _logger.LogInformation("RoleService: Start send create role event. Id : {roleId}", roleId);
+        _logger.LogInformation("RoleService: Start send create role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
 
         await _servicePublisher.PublishAsync(new RoleCreatedEvent
         {
-            EventIdentifier = $"RoleId = '{roleId}'",
+            EventIdentifier = $"AccountId = '{accountId}' - ContactId = '{contactId}'",
             DataEvent = new RoleCreatedDataEvent
             {
-                RoleId = roleId,
                 AccountId = role.AccountId,
                 ContactId = role.ContactId,
                 IsDelegation = role.IsDelegation,
@@ -100,43 +98,41 @@ public class RolesService : IRolesService
             Sender = "AccountAPI - CreateRole"
         });
 
-        _logger.LogInformation("RoleService: End send create role event. Id : {roleId}", roleId);
+        _logger.LogInformation("RoleService: End send create role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
     }
 
-    private async Task SendRoleUpdatedEvent(int roleId, int accountId, int contactId, bool isSignatory)
+    private async Task SendRoleUpdatedEvent(int accountId, int contactId, bool isSignatory)
     {
-        _logger.LogInformation("RoleService: Start send update role event. Id : {roleId}", roleId);
+        _logger.LogInformation("RoleService: Start send update role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
         await _servicePublisher.PublishAsync(new RoleUpdatedEvent
         {
-            EventIdentifier = $"RoleId = '{roleId}'",
+            EventIdentifier = $"AccountId = '{accountId}' - ContactId = '{contactId}'",
             DataEvent = new RoleUpdatedDataEvent
             {
-                RoleId = roleId,
                 AccountId = accountId,
                 ContactId = contactId,
                 IsSignatory = isSignatory
             },
             Sender = "AccountAPI - UpdateRole"
         });
-        _logger.LogInformation("RoleService: End send update role event. Id : {roleId}", roleId);
+        _logger.LogInformation("RoleService: End send update role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
     }
 
-    private async Task SendRoleDeletedEvent(int roleId, int accountId, int contactId)
+    private async Task SendRoleDeletedEvent(int accountId, int contactId)
     {
-        _logger.LogInformation("RoleService: Start send delete role event. Id : {roleId}", roleId);
+        _logger.LogInformation("RoleService: Start send delete role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
 
         await _servicePublisher.PublishAsync(new RoleDeletedEvent
         {
-            EventIdentifier = $"RoleId = '{roleId}'",
+            EventIdentifier = $"AccountId = '{accountId}' - ContactId = '{contactId}'",
             DataEvent = new RoleDeletedDataEvent
             {
-                RoleId = roleId,
                 AccountId = accountId,
                 ContactId = contactId,
             },
             Sender = "AccountAPI - DeleteRole"
         });
 
-        _logger.LogInformation("RoleService: End send delete role event. Id : {roleId}", roleId);
+        _logger.LogInformation("RoleService: End send delete role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
     }
 }
