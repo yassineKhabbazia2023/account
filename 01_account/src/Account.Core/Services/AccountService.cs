@@ -19,11 +19,11 @@ namespace Pulse.Account.Core.Services
             _accountRepository = accountRepository;
         }
 
-        public async Task<Paging<Models.Account>> GetAccountsAsync(string? search, int pageNumber, int pageSize, int contactId)
+        public async Task<Paging<Models.Account>> GetAccountsAsync(string? search, int pageNumber, int pageSize, int contactId, DeploymentStatus? status)
         {
             pageNumber = Pagination.GetValidPageNumber(pageNumber);
             pageSize = Pagination.GetValidPageSize(pageSize);
-            return await _accountRepository.GetAccountsAsync(search, pageNumber, pageSize, contactId);
+            return await _accountRepository.GetAccountsAsync(search, pageNumber, pageSize, contactId, status);
         }
 
         public async Task<AccountDetail?> GetAccountAsync(int accountId)

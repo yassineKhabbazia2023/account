@@ -36,13 +36,14 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DeploymentStatus?>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
 
             // Act
-            var accounts = await accountService.GetAccountsAsync(search: string.Empty, contactId: 123, pageNumber: 1, pageSize: 4);
+            var accounts = await accountService.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize: 4, contactId: 123, null)
+            ;
 
             // Assert
             Assert.Equal(accountMocked, accounts);
@@ -53,13 +54,13 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DeploymentStatus?>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
 
             // Act
-            var accounts = await accountService.GetAccountsAsync(search: string.Empty, contactId: 123, pageNumber: 0, pageSize: 0);
+            var accounts = await accountService.GetAccountsAsync(search: string.Empty, pageNumber: 0, pageSize: 0, contactId: 123, null);
 
             // Assert
             Assert.Equal(accountMocked, accounts);

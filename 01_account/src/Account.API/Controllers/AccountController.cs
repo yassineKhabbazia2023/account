@@ -34,14 +34,15 @@ namespace Pulse.Account.API.Controllers
         /// <param name="pageNumber">Numéro de page.</param>
         /// <param name="pageSize">Nombre d'éléments par page.</param>
         /// <param name="contactId">Identification de l'utilisateur connecté.</param>
+        /// <param name="status">Statut d'entreprise.</param>
         /// <returns>Liste d'entités morales.</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<AccountModel>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync(string? search, int pageNumber, int pageSize, [Required] int contactId)
+        public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync(string? search, int pageNumber, int pageSize, [Required] int contactId, DeploymentStatus? status)
         {
-            var result = await _accountService.GetAccountsAsync(search, pageNumber, pageSize, contactId);
+            var result = await _accountService.GetAccountsAsync(search, pageNumber, pageSize, contactId, status);
 
             return Ok(result);
         }

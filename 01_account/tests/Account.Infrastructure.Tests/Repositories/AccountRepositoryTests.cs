@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Linq;
 using AutoFixture;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
@@ -68,12 +67,64 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(search: criteria, pageNumber: 1, pageSize: 4, contactId);
+                var accounts = await accountRepository.GetAccountsAsync(search: criteria, pageNumber: 1, pageSize: 4, contactId, null);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
                 var accountReceived = JsonConvert.SerializeObject(accounts.Items?.First());
                 Assert.Contains(accountReceived, accountExpect);
+            }
+        }
+
+        [Fact]
+        public async Task GetAccountListSearchStatus_Should_ReturnsOkResultAsync()
+        {
+            // Arrange
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                var accountsModel = _fixture.Create<List<AccountEntity>>();
+                accountsModel.First().AddressEntity.First().AddressType = AddressType.delivery.ToString();
+                accountsModel.First().AccountNumber = "199900046522";
+                accountsModel.First().DeploymentEntity.First().Status = 0;
+                accountsModel.First().LegalName = "Test SCA";
+                accountsModel.First().RoleEntity.First().Contact.FirstName = "FirstUser";
+                accountsModel.First().RoleEntity.First().Contact.LastName = "LastUser";
+                accountsModel.First().RoleEntity.First().Contact.Email = "firstLastUser@test.fr";
+                context.AccountEntity.AddRange(accountsModel);
+                await context.SaveChangesAsync();
+
+                var accountRepository = new AccountRepository(context);
+                var contactId = accountsModel.Select(account => account.RoleEntity.Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
+                var accountObject = accountsModel.Select(item => item.MapToAccount(contactId)) ?? Enumerable.Empty<AccountModel>();
+                Paging<AccountModel> accountPaging = new Paging<AccountModel>()
+                {
+                    CurrentPage = 1,
+                    Items = accountObject!,
+                    TotalItems = accountObject.Count(),
+                    TotalPage = 1
+                };
+                Paging<AccountModel> accountPagingEmpty = new Paging<AccountModel>()
+                {
+                    CurrentPage = 1,
+                    Items = new List<AccountModel>(),
+                    TotalItems = 0,
+                    TotalPage = 0
+                };
+
+                // Act
+                var accounts = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, null);
+                var accountsFiltreToDeploy = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, DeploymentStatus.ToDeploy);
+                var accountsFiltreInProgress = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, DeploymentStatus.InProgress);
+                var accountsFiltreConnected = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, DeploymentStatus.Connected);
+
+                // Assert
+                var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
+                var accountReceived = JsonConvert.SerializeObject(accounts.Items?.First());
+                var accountFiltreToDeployReceived = JsonConvert.SerializeObject(accountsFiltreToDeploy.Items?.First());
+                Assert.Contains(accountReceived, accountExpect);
+                Assert.Contains(accountFiltreToDeployReceived, accountExpect);
+                Assert.Equivalent(accountsFiltreInProgress, accountPagingEmpty);
+                Assert.Equivalent(accountsFiltreConnected, accountPagingEmpty);
             }
         }
 
@@ -116,7 +167,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     context.AccountEntity.Add(accountMock);
                     context.SaveChanges();
 
-                    resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId) !);
+                    resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId)!);
                 }
 
                 var accountRepository = new AccountRepository(context);
@@ -130,7 +181,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize, contactId);
+                var accounts = await accountRepository.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize, contactId, null);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -158,7 +209,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize: 4, contactId: 100);
+                var accounts = await accountRepository.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize: 4, contactId: 100, null);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -318,7 +369,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 if (type == null || contactMock.Type == type.ToString())
                 {
-                    resultExpected.Add(contactMock.MapToContact() !);
+                    resultExpected.Add(contactMock.MapToContact()!);
                 }
             }
 
@@ -362,7 +413,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     context.RoleEntity.Add(roleMock);
                     context.SaveChanges();
 
-                    resultExpected.AddRange(accountsMock[i].RoleEntity.Select(x => x.Contact.ToContact() !));
+                    resultExpected.AddRange(accountsMock[i].RoleEntity.Select(x => x.Contact.ToContact()!));
                 }
 
                 var accountRepository = new AccountRepository(context);

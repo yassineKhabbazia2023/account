@@ -80,7 +80,7 @@ namespace Account.Api.Tests.Controllers
             var contact = _context.ContactEntity.First();
 
             // Act
-            var accounts = await _accountController.GetAccountsAsync(search: string.Empty, contactId: contact.ContactId, pageNumber: 1, pageSize: 4);
+            var accounts = await _accountController.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize: 4, contactId: contact.ContactId, null);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
