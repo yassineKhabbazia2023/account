@@ -29,7 +29,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
 
             result.Should().NotBeNull();
             result!.ContactId.Should().Be(expected.ContactId);
-            result!.GlobalContactId.Should().Be(expected.ContactGlobalUniqueId);
+            result!.ContactGlobalUniqueId.Should().Be(expected.ContactGlobalUniqueId);
             result!.Email.Should().Be(expected.Email);
             result!.FirstName.Should().Be(expected.FirstName);
             result!.LastName.Should().Be(expected.LastName);

@@ -54,7 +54,7 @@ public static class MapDelegationDbToDelegationModel
             new Contact
             {
                 ContactId = source.ContactId,
-                GlobalContactId = source.ContactGlobalUniqueId,
+                ContactGlobalUniqueId = source.ContactGlobalUniqueId,
                 Email = source.Email,
                 FirstName = source.FirstName,
                 LastName = source.LastName,

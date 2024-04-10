@@ -101,7 +101,7 @@ namespace Pulse.Account.Infrastructure.Mappers
             return tContact == null ? null : new Contact
             {
                 ContactId = tContact.ContactId,
-                GlobalContactId = tContact.ContactGlobalUniqueId,
+                ContactGlobalUniqueId = tContact.ContactGlobalUniqueId,
                 Email = tContact.Email,
                 FirstName = tContact.FirstName,
                 LastName = tContact.LastName,
