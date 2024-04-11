@@ -6,11 +6,11 @@ namespace Pulse.Account.Infrastructure.Providers
 {
     public class TopicManagerOptions
     {
-        public IDictionary<string, string> TopicName { get; } = new Dictionary<string, string>();
+        public string TopicName { get; set; } = string.Empty;
 
-        public TopicManagerOptions Register(string key, string topicName)
+        public TopicManagerOptions Register(string? topicName)
         {
-            this.TopicName.Add(key, topicName);
+            this.TopicName = topicName ?? string.Empty;
             return this;
         }
     }

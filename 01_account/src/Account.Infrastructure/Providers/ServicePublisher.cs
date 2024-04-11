@@ -31,7 +31,7 @@ namespace Pulse.Account.Infrastructure.Providers
 
         public async Task PublishAsync(BaseEvent @event)
         {
-            var topicName = @event == null ? string.Empty : _options.TopicName[@event.GetType().Name];
+            var topicName = _options.TopicName;
             var sender = _clientFactory.CreateClient(topicName);
 
             try

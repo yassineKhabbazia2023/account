@@ -37,31 +37,26 @@ namespace Pulse.Account.API.Configuration
 
         public static void RegisterBroker(this IServiceCollection services, IConfiguration configuration)
         {
+            var topicName = configuration["TopicName"];
+            ArgumentException.ThrowIfNullOrWhiteSpace(topicName);
+
+            var brokerConnectionString = configuration["ServiceBusConnectionString"];
+            ArgumentException.ThrowIfNullOrWhiteSpace(brokerConnectionString);
+
             services.AddAzureClients(builder =>
             {
-                var brokerConnectionString = configuration["ServiceBusConnectionString"];
-                ArgumentNullException.ThrowIfNullOrWhiteSpace(brokerConnectionString);
-
-                var topics = configuration["TopicNames"];
-                ArgumentNullException.ThrowIfNullOrWhiteSpace(topics);
-
                 builder.AddServiceBusClient(brokerConnectionString);
-                var topicArray = topics.Split(';').ToArray();
-                foreach (var topicName in topicArray)
-                {
-                    builder.AddClient<ServiceBusSender, ServiceBusClientOptions>((_, _, provider) =>
+
+                builder.AddClient<ServiceBusSender, ServiceBusClientOptions>((_, _, provider) =>
                         provider
                             .GetService<ServiceBusClient>()
                             .CreateSender(topicName))
                             .WithName(topicName);
-                }
             });
 
             services.Configure<TopicManagerOptions>(opt =>
             {
-                opt.Register(typeof(RoleCreatedEvent).Name, "RoleCreatedTopic");
-                opt.Register(typeof(RoleUpdatedEvent).Name, "RoleUpdatedTopic");
-                opt.Register(typeof(RoleDeletedEvent).Name, "RoleDeletedTopic");
+                opt.Register(topicName);
             });
         }
 
