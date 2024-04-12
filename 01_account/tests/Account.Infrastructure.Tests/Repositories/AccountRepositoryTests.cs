@@ -85,7 +85,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var accountsModel = _fixture.Create<List<AccountEntity>>();
                 accountsModel.First().AddressEntity.First().AddressType = AddressType.delivery.ToString();
                 accountsModel.First().AccountNumber = "199900046522";
-                accountsModel.First().DeploymentEntity.First().Status = 0;
+                accountsModel.First().DeploymentEntity.First().Status = 1;
                 accountsModel.First().LegalName = "Test SCA";
                 accountsModel.First().RoleEntity.First().Contact.FirstName = "FirstUser";
                 accountsModel.First().RoleEntity.First().Contact.LastName = "LastUser";
