@@ -36,7 +36,7 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DeploymentStatus?>()))
+                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
@@ -54,7 +54,7 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DeploymentStatus?>()))
+                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
