@@ -113,9 +113,9 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 // Act
                 var accounts = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, null);
-                var accountsFiltreToDeploy = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, DeploymentStatus.ToDeploy);
-                var accountsFiltreInProgress = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, DeploymentStatus.InProgress);
-                var accountsFiltreConnected = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, DeploymentStatus.Connected);
+                var accountsFiltreToDeploy = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, 1);
+                var accountsFiltreInProgress = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, 2);
+                var accountsFiltreConnected = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, 3);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);

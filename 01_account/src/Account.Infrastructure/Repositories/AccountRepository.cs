@@ -39,16 +39,16 @@ namespace Pulse.Account.Infrastructure.Repositories
                         sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN));
         }
 
-        public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int pageNumber, int pageSize, int contactId, DeploymentStatus? status)
+        public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int pageNumber, int pageSize, int contactId, int? deploymentStatus)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
                 IQueryable<AccountEntity> query = GetAccountQueryByContactId(contactId);
 
-                if (status != null && System.Enum.IsDefined(typeof(DeploymentStatus), status))
+                if (deploymentStatus != null)
                 {
                     query = from n in query
-                            where n.DeploymentEntity.Any(dp => dp.Status.Equals((int)status))
+                            where n.DeploymentEntity.Any(dp => dp.Status.Equals(deploymentStatus))
                             select n;
                 }
 

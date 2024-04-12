@@ -108,7 +108,7 @@ VALUES
 (181,'BF99245E-DE15-41A4-A233-15936043ACD7','Coralie','Voisin','cvoisin@kpmg.fr','Collaborator','Declared',GETDATE(),'Expert digital GS','La défense EQHO'),
 (182,'00481753-103C-44CF-9ACE-895ABA2C5467','Flavie','Delorme','fdelorme@kpmg.fr','Collaborator','Declared',GETDATE(),'Expert digital GS','La défense EQHO'),
 (183,'680F4B56-F451-43C3-9495-0133DF10D537','Delphine','Pousse','dpousse@kpmg.fr','Collaborator','Declared',GETDATE(),'Expert digital ESC','La défense EQHO'),
-(184,'DD201AE8-96CD-4E27-982D-4520890F99D0','Edwige','DARCHEVILLE','edarcheville@kpmg.fr','Collaborator','Declared',GETDATE(),'','La défense EQHO'),
-(185,'63AC4861-1293-46FB-9640-8D3386E683C0','audrey','courmarcel','acourmarcel@kpmg.fr','Collaborator','Declared',GETDATE(),'','La défense EQHO'),
-(186,'09819F35-F43C-4B37-B03C-E09551E1B3BD','Aurore','Marie','auroremarie@kpmg.fr','Collaborator','Declared',GETDATE(),'','La défense EQHO'),
-(187,'E2CE2CC5-3045-4990-BC16-E16A8E33B8C8','Veronique','SIMON','vsimon@kpmg.fr','Collaborator','Declared',GETDATE(),'','La défense EQHO')
+(184,'DD201AE8-96CD-4E27-982D-4520890F99D0','Edwige','DARCHEVILLE','edarcheville@kpmg.fr','Collaborator','Declared',GETDATE(),'Expert digital GS','La défense EQHO'),
+(185,'63AC4861-1293-46FB-9640-8D3386E683C0','audrey','courmarcel','acourmarcel@kpmg.fr','Collaborator','Declared',GETDATE(),'Expert digital GS','La défense EQHO'),
+(186,'09819F35-F43C-4B37-B03C-E09551E1B3BD','Aurore','Marie','auroremarie@kpmg.fr','Collaborator','Declared',GETDATE(),'Expert digital GS','La défense EQHO'),
+(187,'E2CE2CC5-3045-4990-BC16-E16A8E33B8C8','Veronique','SIMON','vsimon@kpmg.fr','Collaborator','Declared',GETDATE(),'Expert digital GS','La défense EQHO')
