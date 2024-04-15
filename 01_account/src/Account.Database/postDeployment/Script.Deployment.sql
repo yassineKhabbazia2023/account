@@ -1,7 +1,9 @@
-﻿DECLARE @Counter INT = 1
-WHILE @Counter <= 600
-BEGIN
+﻿BEGIN
     INSERT INTO account.Deployment (AccountId, DeploymentDate, Status)
-    VALUES (@Counter, GETDATE(), 1)
-    SET @Counter = @Counter + 1
+    SELECT Number, GETDATE(), 1
+        FROM (
+        SELECT TOP 600 ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS Number
+        FROM sys.columns AS c1
+        CROSS JOIN sys.columns AS c2
+    ) AS Numbers;
 END
