@@ -2,6 +2,8 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -23,6 +25,7 @@ namespace Pulse.Account.Core.Services
         {
             pageNumber = Pagination.GetValidPageNumber(pageNumber);
             pageSize = Pagination.GetValidPageSize(pageSize);
+            deploymentStatus = GetValidDeploymentStatus(deploymentStatus);
             return await _accountRepository.GetAccountsAsync(search, pageNumber, pageSize, contactId, deploymentStatus);
         }
 
@@ -51,6 +54,13 @@ namespace Pulse.Account.Core.Services
             pageNumber = Pagination.GetValidPageNumber(pageNumber);
             pageSize = Pagination.GetValidPageSize(pageSize);
             return await _accountRepository.GetContactsAccountByAdminAsync(search, contactId, pageNumber, pageSize);
+        }
+
+        private static int? GetValidDeploymentStatus(int? deploymentStatus)
+        {
+            return deploymentStatus == null || System.Enum.IsDefined(typeof(DeploymentStatus), deploymentStatus)
+                ? deploymentStatus
+                : throw new NotFoundException(Errors.BadRequestDeploymentStatusCode, string.Format(Errors.BadRequestDeploymentStatusMessage, deploymentStatus));
         }
     }
 }

@@ -47,5 +47,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string NotFoundRoleContactCode = "ACC014";
         public static readonly string NotFoundRoleContactMessage = "Le contact avec l'identifiant {0} n'a aucun role";
+
+        public static readonly string BadRequestDeploymentStatusCode = "ACC015";
+        public static readonly string BadRequestDeploymentStatusMessage = "Il n'existe pas cette DeploymentStatus {0}";
     }
 }
