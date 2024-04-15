@@ -36,13 +36,19 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<int>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
+            var searchAccountCriteria = new SearchAccountCriteria
+            {
+                PageNumber = 1,
+                PageSize = 4,
+                Search = string.Empty
+            };
 
             // Act
-            var accounts = await accountService.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize: 4, contactId: 123, null)
+            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria, contactId: 123)
             ;
 
             // Assert
@@ -54,13 +60,18 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int?>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<int>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
+            var searchAccountCriteria = new SearchAccountCriteria
+            {
+                PageNumber = 0,
+                PageSize = 0
+            };
 
             // Act
-            var accounts = await accountService.GetAccountsAsync(search: string.Empty, pageNumber: 0, pageSize: 0, contactId: 123, null);
+            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria, contactId: 123);
 
             // Assert
             Assert.Equal(accountMocked, accounts);

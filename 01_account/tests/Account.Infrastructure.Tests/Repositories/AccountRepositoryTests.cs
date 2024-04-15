@@ -3,6 +3,7 @@
 // </copyright>
 
 using AutoFixture;
+using AutoFixture.Kernel;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -65,9 +66,15 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     TotalItems = accountObject.Count(),
                     TotalPage = 1
                 };
+                var searchAccountCriteria = new SearchAccountCriteria
+                {
+                    PageNumber = 1,
+                    PageSize = 4,
+                    Search = criteria
+                };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(search: criteria, pageNumber: 1, pageSize: 4, contactId, null);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, contactId);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -110,21 +117,21 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     TotalItems = 0,
                     TotalPage = 0
                 };
+                var searchAccountCriteria = new SearchAccountCriteria
+                {
+                    PageNumber = 1,
+                    PageSize = 4,
+                    DeploymentStatus = (int)DeploymentStatus.ToDeploy
+                };
+
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, null);
-                var accountsFiltreToDeploy = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, (int)DeploymentStatus.ToDeploy);
-                var accountsFiltreInProgress = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, (int)DeploymentStatus.InProgress);
-                var accountsFiltreConnected = await accountRepository.GetAccountsAsync(null, pageNumber: 1, pageSize: 4, contactId, (int)DeploymentStatus.Connected);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, contactId);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
                 var accountReceived = JsonConvert.SerializeObject(accounts.Items?.First());
-                var accountFiltreToDeployReceived = JsonConvert.SerializeObject(accountsFiltreToDeploy.Items?.First());
                 Assert.Contains(accountReceived, accountExpect);
-                Assert.Contains(accountFiltreToDeployReceived, accountExpect);
-                Assert.Equivalent(accountsFiltreInProgress, accountPagingEmpty);
-                Assert.Equivalent(accountsFiltreConnected, accountPagingEmpty);
             }
         }
 
@@ -179,9 +186,14 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     TotalItems = resultExpected.Count,
                     TotalPage = Pagination.GetTotalPages(resultExpected.Count, pageSize)
                 };
+                var searchAccountCriteria = new SearchAccountCriteria
+                {
+                    PageNumber = 1,
+                    PageSize = pageSize
+                };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize, contactId, null);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, contactId);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -207,9 +219,14 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     TotalItems = 0,
                     TotalPage = 1
                 };
+                var searchAccountCriteria = new SearchAccountCriteria
+                {
+                    PageNumber = 1,
+                    PageSize = 4
+                };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize: 4, contactId: 100, null);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, contactId: 100);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);

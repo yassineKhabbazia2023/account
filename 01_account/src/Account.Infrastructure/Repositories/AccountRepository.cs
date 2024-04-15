@@ -39,41 +39,41 @@ namespace Pulse.Account.Infrastructure.Repositories
                         sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN));
         }
 
-        public async Task<Paging<AccountModel>> GetAccountsAsync(string? search, int pageNumber, int pageSize, int contactId, int? deploymentStatus)
+        public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, int contactId)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
                 IQueryable<AccountEntity> query = GetAccountQueryByContactId(contactId);
 
-                if (deploymentStatus != null)
+                if (criteria.DeploymentStatus != null)
                 {
                     query = from n in query
-                            where n.DeploymentEntity.Any(dp => dp.Status.Equals(deploymentStatus))
+                            where n.DeploymentEntity.Any(dp => dp.Status.Equals(criteria.DeploymentStatus))
                             select n;
                 }
 
-                if (!string.IsNullOrWhiteSpace(search))
+                if (!string.IsNullOrWhiteSpace(criteria.Search))
                 {
-                    search = search.ToLowerInvariant();
+                    criteria.Search = criteria.Search.ToLowerInvariant();
                     query = from n in query
-                            where n.LegalName.ToLower().Contains(search)
-                                  || n.AccountNumber.ToLower().Contains(search)
-                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.ToLower().Contains(search)
-                                                      || role.Contact.LastName.ToLower().Contains(search)
-                                                      || role.Contact.Email.ToLower().Contains(search)))
+                            where n.LegalName.ToLower().Contains(criteria.Search)
+                                  || n.AccountNumber.ToLower().Contains(criteria.Search)
+                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.ToLower().Contains(criteria.Search)
+                                                      || role.Contact.LastName.ToLower().Contains(criteria.Search)
+                                                      || role.Contact.Email.ToLower().Contains(criteria.Search)))
                             select n;
                 }
 
                 var totalItems = await query.CountAsync();
-                var totalPages = Pagination.GetTotalPages(totalItems, pageSize);
+                var totalPages = Pagination.GetTotalPages(totalItems, criteria.PageSize);
 
-                query = query.Skip((pageNumber - 1) * pageSize);
-                query = query.Take(pageSize);
+                query = query.Skip((criteria.PageNumber - 1) * criteria.PageSize);
+                query = query.Take(criteria.PageSize);
 
                 return MapAccountDbToAccountModel.MapToPaginAccounts(
                     await query.ToListAsync(),
                     contactId,
-                    pageNumber,
+                    criteria.PageNumber,
                     totalItems,
                     totalPages);
             });

@@ -8,7 +8,7 @@ using Pulse.Account.Core.Models.Enum;
 
 namespace Pulse.Account.Core.Extensions
 {
-    public class DeploymentStatusValidation
+    public static class DeploymentStatusValidation
     {
         public static int? GetValidDeploymentStatus(int? deploymentStatus)
         {
