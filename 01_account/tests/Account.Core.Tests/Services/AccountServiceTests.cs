@@ -36,7 +36,7 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<int>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
@@ -44,11 +44,12 @@ namespace Pulse.Account.Core.Tests.Services
             {
                 PageNumber = 1,
                 PageSize = 4,
-                Search = string.Empty
+                Search = string.Empty,
+                ContactId = 123
             };
 
             // Act
-            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria, contactId: 123)
+            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria)
             ;
 
             // Assert
@@ -60,18 +61,19 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<int>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
             var searchAccountCriteria = new SearchAccountCriteria
             {
                 PageNumber = 0,
-                PageSize = 0
+                PageSize = 0,
+                ContactId = 123
             };
 
             // Act
-            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria, contactId: 123);
+            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria);
 
             // Assert
             Assert.Equal(accountMocked, accounts);

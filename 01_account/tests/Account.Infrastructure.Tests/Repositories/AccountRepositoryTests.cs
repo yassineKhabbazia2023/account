@@ -70,11 +70,12 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 {
                     PageNumber = 1,
                     PageSize = 4,
-                    Search = criteria
+                    Search = criteria,
+                    ContactId = contactId
                 };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, contactId);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -121,12 +122,13 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 {
                     PageNumber = 1,
                     PageSize = 4,
-                    DeploymentStatus = (int)DeploymentStatus.ToDeploy
+                    DeploymentStatus = (int)DeploymentStatus.ToDeploy,
+                    ContactId = contactId
                 };
 
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, contactId);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -189,11 +191,12 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var searchAccountCriteria = new SearchAccountCriteria
                 {
                     PageNumber = 1,
-                    PageSize = pageSize
+                    PageSize = pageSize,
+                    ContactId = contactId
                 };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, contactId);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -222,11 +225,12 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var searchAccountCriteria = new SearchAccountCriteria
                 {
                     PageNumber = 1,
-                    PageSize = 4
+                    PageSize = 4,
+                    ContactId = 100
                 };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, contactId: 100);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);

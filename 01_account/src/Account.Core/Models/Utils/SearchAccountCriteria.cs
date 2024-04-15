@@ -2,6 +2,8 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+
 namespace Pulse.Account.Core.Models.Utils
 {
     public class SearchAccountCriteria
@@ -13,5 +15,8 @@ namespace Pulse.Account.Core.Models.Utils
         public int PageSize { get; set; }
 
         public int? DeploymentStatus { get; set; }
+
+        [Required]
+        public int ContactId { get; set; }
     }
 }

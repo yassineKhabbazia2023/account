@@ -39,11 +39,11 @@ namespace Pulse.Account.Infrastructure.Repositories
                         sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN));
         }
 
-        public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, int contactId)
+        public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                IQueryable<AccountEntity> query = GetAccountQueryByContactId(contactId);
+                IQueryable<AccountEntity> query = GetAccountQueryByContactId(criteria.ContactId);
 
                 if (criteria.DeploymentStatus != null)
                 {
@@ -72,7 +72,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 return MapAccountDbToAccountModel.MapToPaginAccounts(
                     await query.ToListAsync(),
-                    contactId,
+                    criteria.ContactId,
                     criteria.PageNumber,
                     totalItems,
                     totalPages);

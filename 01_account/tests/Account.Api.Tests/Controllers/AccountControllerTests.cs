@@ -81,11 +81,12 @@ namespace Account.Api.Tests.Controllers
             var searchAccountCriteria = new SearchAccountCriteria
             {
                 PageNumber = 1,
-                PageSize = 4
+                PageSize = 4,
+                ContactId = contact.ContactId
             };
 
             // Act
-            var accounts = await _accountController.GetAccountsAsync(searchAccountCriteria, contactId: contact.ContactId);
+            var accounts = await _accountController.GetAccountsAsync(searchAccountCriteria);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert

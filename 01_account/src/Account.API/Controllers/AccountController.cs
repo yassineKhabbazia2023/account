@@ -31,15 +31,14 @@ namespace Pulse.Account.API.Controllers
         /// Recherche des entités morales.
         /// </summary>
         /// <param name="criteria">Critère de recherche.</param>
-        /// <param name="contactId">Identification de l'utilisateur connecté</param>
         /// <returns>Liste d'entités morales.</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<AccountModel>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync([FromQuery] SearchAccountCriteria criteria, [Required] int contactId)
+        public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync([FromQuery] SearchAccountCriteria criteria)
         {
-            var result = await _accountService.GetAccountsAsync(criteria, contactId);
+            var result = await _accountService.GetAccountsAsync(criteria);
 
             return Ok(result);
         }

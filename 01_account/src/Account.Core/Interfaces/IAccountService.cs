@@ -10,7 +10,7 @@ namespace Pulse.Account.Core.Interfaces
 {
     public interface IAccountService
     {
-        public Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, int contactId);
+        public Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria);
 
         public Task<AccountDetail?> GetAccountAsync(int accountId);
 
