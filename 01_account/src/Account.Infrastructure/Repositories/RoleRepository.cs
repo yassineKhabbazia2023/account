@@ -96,9 +96,9 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task<Role> CreateRoleAsync(CreateRoleRequest role)
+    public async Task CreateRoleAsync(CreateRoleRequest role)
     {
-        return await _retryPolicy.ExecuteAsync(async () =>
+        await _retryPolicy.ExecuteAsync(async () =>
         {
             if (!_accountContext.AccountEntity.Any(x => x.AccountId == role.AccountId))
             {
@@ -113,7 +113,6 @@ public class RoleRepository : IRoleRepository
             var roleDb = role.MapRoleToRoleDb();
             _accountContext.RoleEntity.Add(roleDb);
             await _accountContext.SaveChangesAsync();
-            return roleDb!.MapToRole();
         });
     }
 

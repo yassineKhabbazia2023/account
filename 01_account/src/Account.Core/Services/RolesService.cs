@@ -5,8 +5,6 @@
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Extensions.Logging;
-using Pulse.Account.Core.Broker.Events;
-using Pulse.Account.Core.Broker.Events.DataEvents;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -19,13 +17,13 @@ namespace Pulse.Account.Core.Services;
 public class RolesService : IRolesService
 {
     private readonly IRoleRepository _rolesRepository;
-    private readonly IServicePublisher _servicePublisher;
+    private readonly IRoleEventPusblisher _roleEventPublisher;
     private readonly ILogger<RolesService> _logger;
 
-    public RolesService(IRoleRepository rolesRepository, IServicePublisher servicePublisher, ILogger<RolesService> logger)
+    public RolesService(IRoleRepository rolesRepository, IRoleEventPusblisher roleEventPublisher, ILogger<RolesService> logger)
     {
         _rolesRepository = rolesRepository;
-        _servicePublisher = servicePublisher;
+        _roleEventPublisher = roleEventPublisher;
         _logger = logger;
     }
 
@@ -43,9 +41,9 @@ public class RolesService : IRolesService
 
     public async Task CreateRoleAsync(CreateRoleRequest role)
     {
-        var roleCreated = await _rolesRepository.CreateRoleAsync(role);
+        await _rolesRepository.CreateRoleAsync(role);
 
-        await SendRoleCreatedEvent(roleCreated.AccountId, roleCreated.ContactId, role);
+        await PublishRoleCreatedEvent(role);
     }
 
     public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
@@ -54,7 +52,7 @@ public class RolesService : IRolesService
 
         ArgumentNullException.ThrowIfNull(role);
 
-        await SendRoleUpdatedEvent(accountId, contactId, isSignatory);
+        await PublishRoleUpdatedEvent(accountId, contactId, isSignatory);
     }
 
     public async Task DeleteRoleAsync(int accountId, int contactId)
@@ -77,61 +75,32 @@ public class RolesService : IRolesService
 
         await _rolesRepository.DeleteRoleAsync(accountId, contactId);
 
-        await SendRoleDeletedEvent(accountId, contactId);
+        await PublishRoleDeletedEvent(accountId, contactId);
     }
 
-    private async Task SendRoleCreatedEvent(int accountId, int contactId, CreateRoleRequest role)
+    private async Task PublishRoleCreatedEvent(CreateRoleRequest role)
     {
-        _logger.LogInformation("RoleService: Start send create role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
+        _logger.LogInformation("RoleService: Start send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);
 
-        await _servicePublisher.PublishAsync(new RoleCreatedEvent
-        {
-            EventIdentifier = $"AccountId = '{accountId}' - ContactId = '{contactId}'",
-            DataEvent = new RoleCreatedDataEvent
-            {
-                AccountId = role.AccountId,
-                ContactId = role.ContactId,
-                IsDelegation = role.IsDelegation,
-                IsFavorite = role.IsFavorite,
-                IsSignatory = role.IsSignatory
-            },
-            Sender = "AccountAPI - CreateRole"
-        });
+        await _roleEventPublisher.PublishRoleCreatedEventAsync(role);
 
-        _logger.LogInformation("RoleService: End send create role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
+        _logger.LogInformation("RoleService: End send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);
     }
 
-    private async Task SendRoleUpdatedEvent(int accountId, int contactId, bool isSignatory)
+    private async Task PublishRoleUpdatedEvent(int accountId, int contactId, bool isSignatory)
     {
         _logger.LogInformation("RoleService: Start send update role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
-        await _servicePublisher.PublishAsync(new RoleUpdatedEvent
-        {
-            EventIdentifier = $"AccountId = '{accountId}' - ContactId = '{contactId}'",
-            DataEvent = new RoleUpdatedDataEvent
-            {
-                AccountId = accountId,
-                ContactId = contactId,
-                IsSignatory = isSignatory
-            },
-            Sender = "AccountAPI - UpdateRole"
-        });
+
+        await _roleEventPublisher.PublishRoleUpdatedEventAsync(accountId, contactId, isSignatory);
+
         _logger.LogInformation("RoleService: End send update role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
     }
 
-    private async Task SendRoleDeletedEvent(int accountId, int contactId)
+    private async Task PublishRoleDeletedEvent(int accountId, int contactId)
     {
         _logger.LogInformation("RoleService: Start send delete role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
 
-        await _servicePublisher.PublishAsync(new RoleDeletedEvent
-        {
-            EventIdentifier = $"AccountId = '{accountId}' - ContactId = '{contactId}'",
-            DataEvent = new RoleDeletedDataEvent
-            {
-                AccountId = accountId,
-                ContactId = contactId,
-            },
-            Sender = "AccountAPI - DeleteRole"
-        });
+        await _roleEventPublisher.PublishRoleDeletedEventAsync(accountId, contactId);
 
         _logger.LogInformation("RoleService: End send delete role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
     }

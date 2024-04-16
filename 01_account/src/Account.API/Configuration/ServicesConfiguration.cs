@@ -3,15 +3,15 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
-using Azure.Messaging.ServiceBus;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Azure;
-using Pulse.Account.Core.Broker.Events;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Services;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Providers;
 using Pulse.Account.Infrastructure.Repositories;
+using Pulse.Back.Events;
 
 namespace Pulse.Account.API.Configuration
 {
@@ -32,32 +32,30 @@ namespace Pulse.Account.API.Configuration
             services.AddScoped<IReferentialRepository, ReferentialRepository>();
             services.AddScoped<IStatisticsService, StatisticsService>();
             services.AddScoped<IStatisticsRepository, StatisticsRepository>();
-            services.AddScoped<IServicePublisher, ServicePublisher>();
+            services.AddScoped<IRoleEventPusblisher, RoleEventPublisher>();
         }
 
         public static void RegisterBroker(this IServiceCollection services, IConfiguration configuration)
         {
             var topicName = configuration["TopicName"];
-            ArgumentException.ThrowIfNullOrWhiteSpace(topicName);
+            if (string.IsNullOrWhiteSpace(topicName))
+            {
+                throw new NullArgumentException(Errors.NotFoundTopicName, Errors.NotFoundTopicName);
+            }
 
             var brokerConnectionString = configuration["ServiceBusConnectionString"];
-            ArgumentException.ThrowIfNullOrWhiteSpace(brokerConnectionString);
-
-            services.AddAzureClients(builder =>
+            if (string.IsNullOrWhiteSpace(brokerConnectionString))
             {
-                builder.AddServiceBusClient(brokerConnectionString);
+                throw new NullArgumentException(Errors.NotFoundServiceBusConnectionString, Errors.NotFoundServiceBusConnectionStringMessage);
+            }
 
-                builder.AddClient<ServiceBusSender, ServiceBusClientOptions>((_, _, provider) =>
-                        provider
-                            .GetService<ServiceBusClient>()
-                            .CreateSender(topicName))
-                            .WithName(topicName);
-            });
-
-            services.Configure<TopicManagerOptions>(opt =>
+            var options = new BrokerOptions
             {
-                opt.Register(topicName);
-            });
+                ServiceBusConnectionString = brokerConnectionString,
+                PushTopicName = topicName
+            };
+
+            services.AddEventPushServices(options);
         }
 
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)

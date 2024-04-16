@@ -33,7 +33,7 @@ public class DelegationRepository : IDelegationRepository
                 sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(3000));
     }
 
-    public async Task<IEnumerable<Role>> CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles)
+    public async Task CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles)
     {
         ArgumentNullException.ThrowIfNull(delegation);
         var contactsToCheck = delegation.DelegationDetails.Select(d => d.DelegateeId).ToList();
@@ -63,8 +63,6 @@ public class DelegationRepository : IDelegationRepository
             await _accountContext.DelegationEntity.AddRangeAsync(delegationEntities);
             await _accountContext.SaveChangesAsync();
         });
-
-        return roleEntities.Select(r => r.MapToRole());
     }
 
     public async Task<IReadOnlyCollection<Delegation>> GetContactDelegationsAsync(int delegateeId)

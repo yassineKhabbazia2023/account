@@ -8,7 +8,6 @@ using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Pulse.Account.Core.Broker.Events;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -20,15 +19,15 @@ namespace Pulse.Account.Core.Tests.Services;
 public class DelegationServiceTest
 {
     private readonly Mock<IDelegationRepository> _repository;
-    private readonly Mock<IServicePublisher> _publisher;
+    private readonly Mock<IRoleEventPusblisher> _publisher;
     private readonly Mock<ILogger<DelegationService>> _logger;
     private readonly Fixture _fixture;
 
     public DelegationServiceTest()
     {
-        _repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
+        _repository = new Mock<IDelegationRepository>();
         _fixture = new Fixture();
-        _publisher = new Mock<IServicePublisher>();
+        _publisher = new Mock<IRoleEventPusblisher>();
         _logger = new Mock<ILogger<DelegationService>>();
     }
 
@@ -52,9 +51,7 @@ public class DelegationServiceTest
                 request.DelegationDetails.FirstOrDefault() !.StartDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.StartDate);
                 request.DelegationDetails.FirstOrDefault() !.EndDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate);
                 request.DelegatorId.Should().Be(createDelegation.DelegatorId);
-            })
-            .ReturnsAsync(createRole)
-            .Verifiable();
+            });
 
         var service = new DelegationService(_repository.Object, _publisher.Object, _logger.Object);
         await service.CreateDelegationAsync(createDelegation);
@@ -158,7 +155,7 @@ public class DelegationServiceTest
         await service.DeleteDelegationAsync(1);
 
         _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>()), Times.Once);
-        _publisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Once);
+        _publisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
     }
 
     [Theory]
@@ -173,7 +170,7 @@ public class DelegationServiceTest
         Assert.Equal(Errors.BadRequestDeleteDelegationCode, result.Code);
         Assert.Equal(Errors.BadRequestDeleteDelegationMessage, result.Message);
 
-        _publisher.Verify(p => p.PublishAsync(It.IsAny<BaseEvent>()), Times.Never);
+        _publisher.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
 
     [Fact]
