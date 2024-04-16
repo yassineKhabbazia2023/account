@@ -1,4 +1,4 @@
-﻿// <copyright file="IRoleEventPusblisher.cs" company="Pulse">
+﻿// <copyright file="IRoleEventPublisher.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -6,7 +6,7 @@ using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Interfaces
 {
-    public interface IRoleEventPusblisher
+    public interface IRoleEventPublisher
     {
         Task PublishRoleCreatedEventAsync(CreateRoleRequest roleRequest);
 

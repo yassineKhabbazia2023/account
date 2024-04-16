@@ -19,7 +19,7 @@ namespace Pulse.Account.Core.Tests.Services;
 public class DelegationServiceTest
 {
     private readonly Mock<IDelegationRepository> _repository;
-    private readonly Mock<IRoleEventPusblisher> _publisher;
+    private readonly Mock<IRoleEventPublisher> _publisher;
     private readonly Mock<ILogger<DelegationService>> _logger;
     private readonly Fixture _fixture;
 
@@ -27,7 +27,7 @@ public class DelegationServiceTest
     {
         _repository = new Mock<IDelegationRepository>();
         _fixture = new Fixture();
-        _publisher = new Mock<IRoleEventPusblisher>();
+        _publisher = new Mock<IRoleEventPublisher>();
         _logger = new Mock<ILogger<DelegationService>>();
     }
 

@@ -16,12 +16,12 @@ namespace Pulse.Account.Core.Services;
 public class DelegationService : IDelegationService
 {
     private readonly IDelegationRepository _delegationRepository;
-    private readonly IRoleEventPusblisher _roleEventPublisher;
+    private readonly IRoleEventPublisher _roleEventPublisher;
     private readonly ILogger<DelegationService> _logger;
 
     public DelegationService(
         IDelegationRepository delegationRepository,
-        IRoleEventPusblisher roleEventPublisher,
+        IRoleEventPublisher roleEventPublisher,
         ILogger<DelegationService> logger)
     {
         _delegationRepository = delegationRepository;

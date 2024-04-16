@@ -21,12 +21,12 @@ namespace Pulse.Account.Core.Tests.Services;
 
 public class RolesServiceTests
 {
-    private readonly Mock<IRoleEventPusblisher>? _rolePublisher;
+    private readonly Mock<IRoleEventPublisher>? _rolePublisher;
     private readonly Mock<ILogger<RolesService>>? _logger;
 
     public RolesServiceTests()
     {
-        _rolePublisher = new Mock<IRoleEventPusblisher>();
+        _rolePublisher = new Mock<IRoleEventPublisher>();
         _logger = new Mock<ILogger<RolesService>>();
     }
 

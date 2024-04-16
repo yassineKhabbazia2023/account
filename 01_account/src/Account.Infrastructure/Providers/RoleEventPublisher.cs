@@ -10,7 +10,7 @@ using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Infrastructure.Providers
 {
-    public class RoleEventPublisher : IRoleEventPusblisher
+    public class RoleEventPublisher : IRoleEventPublisher
     {
         private readonly IEventPublisher _eventPublisher;
 

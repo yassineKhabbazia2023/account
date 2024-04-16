@@ -17,10 +17,10 @@ namespace Pulse.Account.Core.Services;
 public class RolesService : IRolesService
 {
     private readonly IRoleRepository _rolesRepository;
-    private readonly IRoleEventPusblisher _roleEventPublisher;
+    private readonly IRoleEventPublisher _roleEventPublisher;
     private readonly ILogger<RolesService> _logger;
 
-    public RolesService(IRoleRepository rolesRepository, IRoleEventPusblisher roleEventPublisher, ILogger<RolesService> logger)
+    public RolesService(IRoleRepository rolesRepository, IRoleEventPublisher roleEventPublisher, ILogger<RolesService> logger)
     {
         _rolesRepository = rolesRepository;
         _roleEventPublisher = roleEventPublisher;
