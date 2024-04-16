@@ -6,8 +6,8 @@ namespace Pulse.Account.Core.Models.Enum
 {
     public enum DeploymentStatus
     {
-        ToDeploy = 0,
-        InProgress = 1,
-        Connected = 2
+        ToDeploy = 1,
+        InProgress = 2,
+        Connected = 3
     }
 }

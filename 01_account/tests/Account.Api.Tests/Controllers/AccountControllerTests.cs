@@ -78,9 +78,15 @@ namespace Account.Api.Tests.Controllers
             // Arrange
             var account = _context.AccountEntity.First();
             var contact = _context.ContactEntity.First();
+            var searchAccountCriteria = new SearchAccountCriteria
+            {
+                pageNumber = 1,
+                pageSize = 4,
+                contactId = contact.ContactId
+            };
 
             // Act
-            var accounts = await _accountController.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize: 4, contactId: contact.ContactId, null);
+            var accounts = await _accountController.GetAccountsAsync(searchAccountCriteria);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert

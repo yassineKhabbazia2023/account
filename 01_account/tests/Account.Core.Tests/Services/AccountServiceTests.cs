@@ -36,13 +36,20 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DeploymentStatus?>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
+            var searchAccountCriteria = new SearchAccountCriteria
+            {
+                pageNumber = 1,
+                pageSize = 4,
+                search = string.Empty,
+                contactId = 123
+            };
 
             // Act
-            var accounts = await accountService.GetAccountsAsync(search: string.Empty, pageNumber: 1, pageSize: 4, contactId: 123, null)
+            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria)
             ;
 
             // Assert
@@ -54,13 +61,19 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DeploymentStatus?>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
+            var searchAccountCriteria = new SearchAccountCriteria
+            {
+                pageNumber = 0,
+                pageSize = 0,
+                contactId = 123
+            };
 
             // Act
-            var accounts = await accountService.GetAccountsAsync(search: string.Empty, pageNumber: 0, pageSize: 0, contactId: 123, null);
+            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria);
 
             // Assert
             Assert.Equal(accountMocked, accounts);

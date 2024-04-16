@@ -53,5 +53,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string NotFoundServiceBusConnectionString = "ACC016";
         public static readonly string NotFoundServiceBusConnectionStringMessage = "La chaine de connexion au service bus doit être renseignée";
+
+        public static readonly string BadRequestDeploymentStatusCode = "ACC017";
+        public static readonly string BadRequestDeploymentStatusMessage = "La statut de déploiement {0} n'existe pas";
     }
 }
