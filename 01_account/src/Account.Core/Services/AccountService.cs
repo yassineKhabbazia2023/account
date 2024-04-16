@@ -21,9 +21,9 @@ namespace Pulse.Account.Core.Services
 
         public async Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria)
         {
-            criteria.PageNumber = Pagination.GetValidPageNumber(criteria.PageNumber);
-            criteria.PageSize = Pagination.GetValidPageSize(criteria.PageSize);
-            criteria.DeploymentStatus = DeploymentStatusValidation.GetValidDeploymentStatus(criteria.DeploymentStatus);
+            criteria.pageNumber = Pagination.GetValidPageNumber(criteria.pageNumber);
+            criteria.pageSize = Pagination.GetValidPageSize(criteria.pageSize);
+            criteria.deploymentStatus = DeploymentStatusValidation.GetValidDeploymentStatus(criteria.deploymentStatus);
             return await _accountRepository.GetAccountsAsync(criteria);
         }
 

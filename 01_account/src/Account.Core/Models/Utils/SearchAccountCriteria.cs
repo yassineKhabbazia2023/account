@@ -8,15 +8,17 @@ namespace Pulse.Account.Core.Models.Utils
 {
     public class SearchAccountCriteria
     {
-        public string? Search { get; set; }
+#pragma warning disable SA1300 // Element should begin with upper-case letter
+        public string? search { get; set; }
 
-        public int PageNumber { get; set; }
+        public int pageNumber { get; set; }
 
-        public int PageSize { get; set; }
+        public int pageSize { get; set; }
 
-        public int? DeploymentStatus { get; set; }
+        public int? deploymentStatus { get; set; }
 
         [Required]
-        public int ContactId { get; set; }
+        public int contactId { get; set; }
+#pragma warning restore SA1300 // Element should begin with upper-case letter
     }
 }

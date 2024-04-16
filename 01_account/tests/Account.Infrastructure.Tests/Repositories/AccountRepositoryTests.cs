@@ -68,10 +68,10 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
                 var searchAccountCriteria = new SearchAccountCriteria
                 {
-                    PageNumber = 1,
-                    PageSize = 4,
-                    Search = criteria,
-                    ContactId = contactId
+                    pageNumber = 1,
+                    pageSize = 4,
+                    search = criteria,
+                    contactId = contactId
                 };
 
                 // Act
@@ -120,10 +120,10 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
                 var searchAccountCriteria = new SearchAccountCriteria
                 {
-                    PageNumber = 1,
-                    PageSize = 4,
-                    DeploymentStatus = (int)DeploymentStatus.ToDeploy,
-                    ContactId = contactId
+                    pageNumber = 1,
+                    pageSize = 4,
+                    deploymentStatus = (int)DeploymentStatus.ToDeploy,
+                    contactId = contactId
                 };
 
 
@@ -190,9 +190,9 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
                 var searchAccountCriteria = new SearchAccountCriteria
                 {
-                    PageNumber = 1,
-                    PageSize = pageSize,
-                    ContactId = contactId
+                    pageNumber = 1,
+                    pageSize = pageSize,
+                    contactId = contactId
                 };
 
                 // Act
@@ -224,9 +224,9 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
                 var searchAccountCriteria = new SearchAccountCriteria
                 {
-                    PageNumber = 1,
-                    PageSize = 4,
-                    ContactId = 100
+                    pageNumber = 1,
+                    pageSize = 4,
+                    contactId = 100
                 };
 
                 // Act

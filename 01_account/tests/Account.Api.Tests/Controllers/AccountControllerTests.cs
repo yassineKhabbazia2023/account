@@ -80,9 +80,9 @@ namespace Account.Api.Tests.Controllers
             var contact = _context.ContactEntity.First();
             var searchAccountCriteria = new SearchAccountCriteria
             {
-                PageNumber = 1,
-                PageSize = 4,
-                ContactId = contact.ContactId
+                pageNumber = 1,
+                pageSize = 4,
+                contactId = contact.ContactId
             };
 
             // Act

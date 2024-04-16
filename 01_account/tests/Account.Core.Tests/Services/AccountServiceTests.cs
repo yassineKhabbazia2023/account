@@ -42,10 +42,10 @@ namespace Pulse.Account.Core.Tests.Services
             var accountService = new AccountService(_accountRepository.Object);
             var searchAccountCriteria = new SearchAccountCriteria
             {
-                PageNumber = 1,
-                PageSize = 4,
-                Search = string.Empty,
-                ContactId = 123
+                pageNumber = 1,
+                pageSize = 4,
+                search = string.Empty,
+                contactId = 123
             };
 
             // Act
@@ -67,9 +67,9 @@ namespace Pulse.Account.Core.Tests.Services
             var accountService = new AccountService(_accountRepository.Object);
             var searchAccountCriteria = new SearchAccountCriteria
             {
-                PageNumber = 0,
-                PageSize = 0,
-                ContactId = 123
+                pageNumber = 0,
+                pageSize = 0,
+                contactId = 123
             };
 
             // Act
