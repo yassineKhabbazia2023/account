@@ -5,13 +5,18 @@
 using System.Diagnostics.CodeAnalysis;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
+using Pulse.Account.API.Configuration.Model;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Services;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Providers;
+using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Account.Infrastructure.Repositories;
 using Pulse.Back.Events;
+using Pulse.Back.Events.Abstractions;
+using Pulse.Back.Events.Configurations;
+using Pulse.Back.Events.IntegrationEvents;
 
 namespace Pulse.Account.API.Configuration
 {
@@ -32,30 +37,41 @@ namespace Pulse.Account.API.Configuration
             services.AddScoped<IReferentialRepository, ReferentialRepository>();
             services.AddScoped<IStatisticsService, StatisticsService>();
             services.AddScoped<IStatisticsRepository, StatisticsRepository>();
-            services.AddScoped<IRoleEventPusblisher, RoleEventPublisher>();
         }
 
-        public static void RegisterBroker(this IServiceCollection services, IConfiguration configuration)
+        public static void RegisterBrokerServices(this IServiceCollection services, IConfiguration configuration)
         {
-            var topicName = configuration["TopicName"];
-            if (string.IsNullOrWhiteSpace(topicName))
+            var brokerSettings = configuration!.GetSection("BrokerSetting").Get<BrokerSetting>();
+
+            if (string.IsNullOrWhiteSpace(brokerSettings!.PushTopicName))
             {
                 throw new NullArgumentException(Errors.NotFoundTopicName, Errors.NotFoundTopicName);
             }
 
-            var brokerConnectionString = configuration["ServiceBusConnectionString"];
-            if (string.IsNullOrWhiteSpace(brokerConnectionString))
+            if (string.IsNullOrWhiteSpace(brokerSettings!.ServiceBusConnectionString))
             {
                 throw new NullArgumentException(Errors.NotFoundServiceBusConnectionString, Errors.NotFoundServiceBusConnectionStringMessage);
             }
 
             var options = new BrokerOptions
             {
-                ServiceBusConnectionString = brokerConnectionString,
-                PushTopicName = topicName
+                ServiceBusConnectionString = brokerSettings!.ServiceBusConnectionString,
+                PushTopicName = brokerSettings.PushTopicName
             };
 
+            if (brokerSettings?.PullTopics?.Any() == true)
+            {
+                foreach (var topic in brokerSettings.PullTopics)
+                {
+                    options.AddPullTopicItem(topic.TopicName, topic.Subscriptions);
+                }
+            }
+
+            services.AddScoped<IContactEventRepository, ContactEventRepository>();
+            services.AddKeyedScoped<IEventHandler, ContactCreatedEventHandler>(nameof(ContactCreatedEvent));
+
             services.AddEventPushServices(options);
+            services.AddEventPullServices(options);
         }
 
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)

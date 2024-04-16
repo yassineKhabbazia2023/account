@@ -58,7 +58,7 @@ namespace Pulse.Account.API
             services.ConfigureSwaggerService(_swaggerConfiguration);
             services.RegisterApplicationInsights(_configuration);
             services.RegisterServices();
-            services.RegisterBroker(_configuration);
+            services.RegisterBrokerServices(_configuration);
             services.RegisterDatabase(_configuration!);
         }
 
