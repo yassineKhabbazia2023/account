@@ -31,17 +31,17 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     new()
                     {
                         AccountId = 1,
-                        Status = 1
+                        Status = 2
                     },
                     new()
                     {
                         AccountId = 2,
-                        Status = 0
+                        Status = 1
                     },
                     new()
                     {
                         AccountId = 3,
-                        Status = 2,
+                        Status = 3,
                     }
                 };
                 var roles = new List<RoleEntity>
