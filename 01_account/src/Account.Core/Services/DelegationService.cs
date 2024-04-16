@@ -4,10 +4,7 @@
 
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Pulse.Account.Core.Broker.Events;
-using Pulse.Account.Core.Broker.Events.DataEvents;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -19,16 +16,16 @@ namespace Pulse.Account.Core.Services;
 public class DelegationService : IDelegationService
 {
     private readonly IDelegationRepository _delegationRepository;
-    private readonly IServicePublisher _servicePublisher;
+    private readonly IRoleEventPusblisher _roleEventPublisher;
     private readonly ILogger<DelegationService> _logger;
 
     public DelegationService(
         IDelegationRepository delegationRepository,
-        IServicePublisher servicePublisher,
+        IRoleEventPusblisher roleEventPublisher,
         ILogger<DelegationService> logger)
     {
         _delegationRepository = delegationRepository;
-        _servicePublisher = servicePublisher;
+        _roleEventPublisher = roleEventPublisher;
         _logger = logger;
     }
 
@@ -47,15 +44,9 @@ public class DelegationService : IDelegationService
         }
 
         var roles = CreateRoleRequests(delegation);
-        var roleDelegation = await _delegationRepository.CreateDelegationAsync(delegation, roles);
+        await _delegationRepository.CreateDelegationAsync(delegation, roles);
 
-        if (roles.Any())
-        {
-            for (int i = 0; i < roles.Count(); i++)
-            {
-                await SendCreatedRoleEvent(roleDelegation.ElementAt(i).AccountId, roleDelegation.ElementAt(i).ContactId, roles.ElementAt(i));
-            }
-        }
+        await Task.WhenAll(roles.Select(PublishCreatedRoleEvent));
     }
 
     public async Task DeleteDelegationAsync(int delegationId)
@@ -69,7 +60,7 @@ public class DelegationService : IDelegationService
 
         foreach (var role in rolesToDelete)
         {
-            await SendRoleDeletedEvent(role);
+            await PublishRoleDeletedEvent(role);
         }
     }
 
@@ -123,41 +114,20 @@ public class DelegationService : IDelegationService
         return roleRequests;
     }
 
-    private async Task SendCreatedRoleEvent(int accountId, int contactId, CreateRoleRequest role)
+    private async Task PublishCreatedRoleEvent(CreateRoleRequest role)
     {
-        _logger.LogInformation("DelegationService: Start send create role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
+        _logger.LogInformation("DelegationService: Start send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);
 
-        await _servicePublisher.PublishAsync(new RoleCreatedEvent
-        {
-            EventIdentifier = $"AccountId = '{accountId}' - ContactId = '{contactId}'",
-            DataEvent = new RoleCreatedDataEvent
-            {
-                AccountId = role.AccountId,
-                ContactId = role.ContactId,
-                IsDelegation = role.IsDelegation,
-                IsFavorite = role.IsFavorite,
-                IsSignatory = role.IsSignatory
-            },
-            Sender = "AccountAPI - CreateRole"
-        });
+        await _roleEventPublisher.PublishRoleCreatedEventAsync(role);
 
-        _logger.LogInformation("DelegationService: End send create role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
+        _logger.LogInformation("DelegationService: End send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);
     }
 
-    private async Task SendRoleDeletedEvent(Role role)
+    private async Task PublishRoleDeletedEvent(Role role)
     {
         _logger.LogInformation("DelegationService: Start send delete role event. AccountId : {accountId}, ContactId : {contactId}", role.AccountId, role.ContactId);
 
-        await _servicePublisher.PublishAsync(new RoleDeletedEvent
-        {
-            EventIdentifier = $"AccountId = '{role.AccountId}', ContactId = '{role.ContactId}'",
-            DataEvent = new RoleDeletedDataEvent
-            {
-                AccountId = role.AccountId,
-                ContactId = role.ContactId,
-            },
-            Sender = "AccountAPI - DeleteRole"
-        });
+        await _roleEventPublisher.PublishRoleDeletedEventAsync(role.AccountId, role.ContactId);
 
         _logger.LogInformation("DelegationService: End send delete role event. AccountId : {accountId}, ContactId : {contactId}", role.AccountId, role.ContactId);
     }

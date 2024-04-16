@@ -7,8 +7,8 @@ using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client;
 using Moq;
-using Pulse.Account.Core.Broker.Events;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -21,12 +21,12 @@ namespace Pulse.Account.Core.Tests.Services;
 
 public class RolesServiceTests
 {
-    private readonly Mock<IServicePublisher>? _servicePublisher;
+    private readonly Mock<IRoleEventPusblisher>? _rolePublisher;
     private readonly Mock<ILogger<RolesService>>? _logger;
 
     public RolesServiceTests()
     {
-        _servicePublisher = new Mock<IServicePublisher>();
+        _rolePublisher = new Mock<IRoleEventPusblisher>();
         _logger = new Mock<ILogger<RolesService>>();
     }
 
@@ -38,7 +38,7 @@ public class RolesServiceTests
         var accountList = fixture.Create<Paging<AccountModel>>();
         var rolesRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         rolesRepository.Setup(repository => repository.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(accountList);
-        var rolesService = new RolesService(rolesRepository.Object, _servicePublisher!.Object, _logger!.Object);
+        var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
         var accounts = await rolesService.GetContactRolesAsync(contactId: 123, pageNumber: 0, pageSize: 0);
@@ -61,7 +61,7 @@ public class RolesServiceTests
             .Callback<int>(id => id.Should().Be(accountId))
         .ReturnsAsync(expected);
 
-        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
         var result = await roleService.GetSignatoryAsync(accountId);
@@ -89,31 +89,29 @@ public class RolesServiceTests
             IsSignatory = false
         };
 
-        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        var roleRepository = new Mock<IRoleRepository>();
         roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
-            .ReturnsAsync(newRole)
             .Verifiable();
 
-        _servicePublisher!.Setup(x => x.PublishAsync(It.IsAny<BaseEvent>()))
-         .Callback<BaseEvent>(@event =>
-         {
-             var roleCreatedEvent = @event as RoleCreatedEvent;
-             roleCreatedEvent.Should().NotBeNull();
-             roleCreatedEvent!.DataEvent!.ContactId.Should().Be(createRoleRequest.ContactId);
-             roleCreatedEvent!.DataEvent!.AccountId.Should().Be(createRoleRequest.AccountId);
-             roleCreatedEvent!.DataEvent!.IsSignatory.Should().Be(createRoleRequest.IsSignatory);
-         })
+        _rolePublisher!.Setup(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()))
+            .Callback<CreateRoleRequest>(role =>
+            {
+                role.Should().NotBeNull();
+                role.ContactId.Should().Be(newRole.ContactId);
+                role.AccountId.Should().Be(newRole.AccountId);
+                role.IsSignatory.Should().Be(false);
+            })
          .Returns(Task.CompletedTask)
          .Verifiable();
 
-        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
         await roleService.CreateRoleAsync(createRoleRequest);
 
         // Assert
         roleRepository.VerifyAll();
-        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Once);
+        _rolePublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Once);
     }
 
     [Fact]
@@ -124,14 +122,14 @@ public class RolesServiceTests
         roleRepository.Setup(repo => repo.CreateRoleAsync(null!))
             .ThrowsAsync(new BadRequestException(Errors.NotFoundAccountMessage, Errors.NotFoundAccountMessage));
 
-        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
         Task Roles() => roleService.CreateRoleAsync(null!);
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(Roles);
-        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Never);
+        _rolePublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
     }
 
     [Fact]
@@ -152,19 +150,17 @@ public class RolesServiceTests
             .ReturnsAsync(newRole)
             .Verifiable();
 
-        _servicePublisher!.Setup(x => x.PublishAsync(It.IsAny<BaseEvent>()))
-          .Callback<BaseEvent>(@event =>
+        _rolePublisher!.Setup(x => x.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
+          .Callback<int, int, bool>((accountId, contactId, isSignatory) =>
           {
-              var roleUpdatedEvent = @event as RoleUpdatedEvent;
-              roleUpdatedEvent.Should().NotBeNull();
-              roleUpdatedEvent!.DataEvent!.ContactId.Should().Be(contactId);
-              roleUpdatedEvent!.DataEvent!.AccountId.Should().Be(accountId);
-              roleUpdatedEvent!.DataEvent!.IsSignatory.Should().Be(true);
+              contactId.Should().Be(contactId);
+              accountId.Should().Be(accountId);
+              isSignatory.Should().Be(true);
           })
           .Returns(Task.CompletedTask)
           .Verifiable();
 
-        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
         await roleService.UpdateRoleSignatoryAsync(accountId, contactId, true);
@@ -206,14 +202,14 @@ public class RolesServiceTests
     {
         // Arrange
         var roleRepository = DeleteRole_MockRepo();
-        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
         Task DeleteRole() => roleService!.DeleteRoleAsync(1, 1);
 
         // Assert
         Assert.Equal(Task.CompletedTask, DeleteRole());
-        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Once);
+        _rolePublisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
     }
 
     [Fact]
@@ -224,14 +220,14 @@ public class RolesServiceTests
         var fixture = new Fixture();
         roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
             .ReturnsAsync(fixture.CreateMany<Contact>(2));
-        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
         Task DeleteRole() => roleService!.DeleteRoleAsync(1, 1);
 
         // Assert
         Assert.Equal(Task.CompletedTask, DeleteRole());
-        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Once);
+        _rolePublisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
     }
 
     [Fact]
@@ -239,14 +235,14 @@ public class RolesServiceTests
     {
         // Arrange
         var roleRepository = DeleteRole_MockRepo();
-        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
         Task DeleteRole() => roleService.DeleteRoleAsync(1, 2);
 
         // Assert
         await Assert.ThrowsAsync<NotFoundException>(DeleteRole);
-        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Never);
+        _rolePublisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
 
     [Fact]
@@ -257,13 +253,13 @@ public class RolesServiceTests
         var fixture = new Fixture();
         roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
             .ReturnsAsync(new List<Contact> { fixture.Create<Contact>() });
-        var roleService = new RolesService(roleRepository.Object, _servicePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
         Task DeleteRole() => roleService.DeleteRoleAsync(1, 3);
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(DeleteRole);
-        _servicePublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent>()), Times.Never);
+        _rolePublisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
 }

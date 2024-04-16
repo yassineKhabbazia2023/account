@@ -3,15 +3,20 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
-using Azure.Messaging.ServiceBus;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Azure;
-using Pulse.Account.Core.Broker.Events;
+using Pulse.Account.API.Configuration.Model;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Services;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Providers;
+using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Account.Infrastructure.Repositories;
+using Pulse.Back.Events;
+using Pulse.Back.Events.Abstractions;
+using Pulse.Back.Events.Configurations;
+using Pulse.Back.Events.IntegrationEvents;
 
 namespace Pulse.Account.API.Configuration
 {
@@ -32,32 +37,41 @@ namespace Pulse.Account.API.Configuration
             services.AddScoped<IReferentialRepository, ReferentialRepository>();
             services.AddScoped<IStatisticsService, StatisticsService>();
             services.AddScoped<IStatisticsRepository, StatisticsRepository>();
-            services.AddScoped<IServicePublisher, ServicePublisher>();
         }
 
-        public static void RegisterBroker(this IServiceCollection services, IConfiguration configuration)
+        public static void RegisterBrokerServices(this IServiceCollection services, IConfiguration configuration)
         {
-            var topicName = configuration["TopicName"];
-            ArgumentException.ThrowIfNullOrWhiteSpace(topicName);
+            var brokerSettings = configuration!.GetSection("BrokerSetting").Get<BrokerSetting>();
 
-            var brokerConnectionString = configuration["ServiceBusConnectionString"];
-            ArgumentException.ThrowIfNullOrWhiteSpace(brokerConnectionString);
-
-            services.AddAzureClients(builder =>
+            if (string.IsNullOrWhiteSpace(brokerSettings!.PushTopicName))
             {
-                builder.AddServiceBusClient(brokerConnectionString);
+                throw new NullArgumentException(Errors.NotFoundTopicName, Errors.NotFoundTopicName);
+            }
 
-                builder.AddClient<ServiceBusSender, ServiceBusClientOptions>((_, _, provider) =>
-                        provider
-                            .GetService<ServiceBusClient>()
-                            .CreateSender(topicName))
-                            .WithName(topicName);
-            });
-
-            services.Configure<TopicManagerOptions>(opt =>
+            if (string.IsNullOrWhiteSpace(brokerSettings!.ServiceBusConnectionString))
             {
-                opt.Register(topicName);
-            });
+                throw new NullArgumentException(Errors.NotFoundServiceBusConnectionString, Errors.NotFoundServiceBusConnectionStringMessage);
+            }
+
+            var options = new BrokerOptions
+            {
+                ServiceBusConnectionString = brokerSettings!.ServiceBusConnectionString,
+                PushTopicName = brokerSettings.PushTopicName
+            };
+
+            if (brokerSettings?.PullTopics?.Any() == true)
+            {
+                foreach (var topic in brokerSettings.PullTopics)
+                {
+                    options.AddPullTopicItem(topic.TopicName, topic.Subscriptions);
+                }
+            }
+
+            services.AddScoped<IContactEventRepository, ContactEventRepository>();
+            services.AddKeyedScoped<IEventHandler, ContactCreatedEventHandler>(nameof(ContactCreatedEvent));
+
+            services.AddEventPushServices(options);
+            services.AddEventPullServices(options);
         }
 
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)

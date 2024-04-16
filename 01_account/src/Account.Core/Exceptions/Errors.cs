@@ -48,7 +48,13 @@ namespace Pulse.Account.Core.Exceptions
         public static readonly string NotFoundRoleContactCode = "ACC014";
         public static readonly string NotFoundRoleContactMessage = "Le contact avec l'identifiant {0} n'a aucun role";
 
-        public static readonly string BadRequestDeploymentStatusCode = "ACC015";
+        public static readonly string NotFoundTopicName = "ACC015";
+        public static readonly string NotFoundTopicNameMessage = "Le nom du topic doit être renseigné";
+
+        public static readonly string NotFoundServiceBusConnectionString = "ACC016";
+        public static readonly string NotFoundServiceBusConnectionStringMessage = "La chaine de connexion au service bus doit être renseignée";
+
+        public static readonly string BadRequestDeploymentStatusCode = "ACC017";
         public static readonly string BadRequestDeploymentStatusMessage = "La statut de déploiement {0} n'existe pas";
     }
 }
