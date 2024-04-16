@@ -3612,3 +3612,10 @@ VALUES
 (73,599,0,0,0),
 (73,600,0,0,0)
 END
+
+-- US 315015
+INSERT INTO account.Role(ContactId, AccountId, IsFavorite, IsSignatory, IsDelegation)
+VALUES
+(188, 601, 0, 1, 0),
+(188, 602, 0, 1, 0),
+(188, 603, 0, 1, 0)

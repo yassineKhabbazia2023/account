@@ -20,4 +20,6 @@ VALUES
 (71,'A4E462E3-4CFD-4471-8623-27C38D33A437','Paul','Robin','paul.robin@example.com','Customer','Declared',GETDATE(),'Responsable financier',null),
 (72,'83A4FA34-D90C-4606-B7A4-6A88AE3B2412','Louise','Petit','louise.petit@example.com','Customer','Declared',GETDATE(),'RH',null),
 (73,'F0EB61A1-A4B4-44EF-B783-E76025014358','Hugo','Dubois','hugo.dubois@example.com','Customer','Declared',GETDATE(),'Comptable',null)
+,(188,'F0EB61A1-A4B4-44EF-B783-E76025014300','Olympe','GREC','userdemo2@test.fr','Customer','Declared',GETDATE(),'ADMIN/Dirigeant',null)
+,(189,'F0EB61A1-A4B4-44EF-B783-E76025014301','Sully','MAN','slescot+CP1@kpmg.onmicrosoft.com','Customer','Declared',GETDATE(),'ADMIN/Dirigeant',null)
 END
