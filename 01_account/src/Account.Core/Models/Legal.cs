@@ -19,5 +19,7 @@ namespace Pulse.Account.Core.Models
         public string? StaffSizeRange { get; set; }
 
         public ICollection<Naf>? Naf { get; set; }
+
+        public DateTime CreationDate { get; set; }
     }
 }

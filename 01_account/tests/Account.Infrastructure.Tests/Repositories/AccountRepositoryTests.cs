@@ -261,6 +261,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 Assert.Equal(accountDetail?.Legal?.LegalName, accounts.Legal?.LegalName);
                 Assert.Equal(accountDetail?.Legal?.Siren, accounts.Legal?.Siren);
                 Assert.Equal(accountDetail?.Legal?.Siret, accounts.Legal?.Siret);
+                Assert.Equal(accountDetail?.Legal?.CreationDate, accounts.Legal?.CreationDate);
             }
         }
 

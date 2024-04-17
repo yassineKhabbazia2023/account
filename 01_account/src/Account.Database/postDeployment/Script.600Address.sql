@@ -601,8 +601,10 @@ VALUES
 (597, '8 Place Vendôme', NULL, NULL, '75034', 'Paris', NULL, 'France', 'delivery'),
 (598, '12 Rue de la Roquette', NULL, NULL, '75035', 'Paris', NULL, 'France', 'delivery'),
 (599, '16 Rue du Faubourg Saint-Honoré', NULL, NULL, '75036', 'Paris', NULL, 'France', 'delivery'),
-(600, '5 Avenue des Champs-Élysées', NULL, NULL, '13001', 'Marseille', NULL, 'France', 'delivery'),
+(600, '5 Avenue des Champs-Élysées', NULL, NULL, '13001', 'Marseille', NULL, 'France', 'delivery')
 --billing
+INSERT INTO [account].[Address] ([AccountId], [AddressLine1], [AddressLine2], [AddressLine3], [ZipCode], [City], [State], [Country], [AddressType])
+VALUES
 (1, '1 Rue du Général de Gaulle', NULL, NULL, '14000', 'Caen', 'Normandie', 'France', 'billing'),
 (2, '25 Rue Saint-Jean', NULL, NULL, '14000', 'Caen', 'Normandie', 'France', 'billing'),
 (3, '8 Rue de Bayeux', NULL, NULL, '14000', 'Caen', 'Normandie', 'France', 'billing'),

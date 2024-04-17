@@ -223,6 +223,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 LegalFormCode = tAccount.LegalFormCode,
                 StaffSizeRange = tAccount.StaffSizeRange,
                 Naf = tAccount.MapToNaf(),
+                CreationDate = tAccount.CreationDate
             };
         }
 
