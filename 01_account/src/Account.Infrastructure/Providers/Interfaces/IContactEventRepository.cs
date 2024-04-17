@@ -9,4 +9,8 @@ namespace Pulse.Account.Infrastructure.Providers.Interfaces;
 public interface IContactEventRepository
 {
     Task CreateContactAsync(ContactEntity contactEntity);
+
+    Task UpdateContactAsync(ContactEntity contactEntity);
+
+    Task RevokeContactAsync(int contactId);
 }

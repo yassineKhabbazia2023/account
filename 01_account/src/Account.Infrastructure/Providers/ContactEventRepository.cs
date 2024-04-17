@@ -9,6 +9,9 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Account.Core.Constants;
+using Microsoft.EntityFrameworkCore;
+using Pulse.Account.Infrastructure.Mappers.EventsMapper;
+using Pulse.Account.Core.Models.Enum;
 
 namespace Pulse.Account.Infrastructure.Providers;
 
@@ -31,6 +34,28 @@ public class ContactEventRepository : IContactEventRepository
     public async Task CreateContactAsync(ContactEntity contactEntity)
     {
         await _accountContext.ContactEntity.AddAsync(contactEntity);
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            await _accountContext.SaveChangesAsync();
+        });
+    }
+
+    public async Task RevokeContactAsync(int contactId)
+    {
+        var existingContact = await _accountContext.ContactEntity.SingleAsync(x => x.ContactId == contactId);
+        existingContact.Status = ContactStatus.Revoked.ToString();
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            await _accountContext.SaveChangesAsync();
+        });
+    }
+
+    public async Task UpdateContactAsync(ContactEntity contactEntity)
+    {
+        var existingContact = await _accountContext.ContactEntity.SingleAsync(x => x.ContactId == contactEntity.ContactId);
+        contactEntity.ToContactEntity(existingContact);
+
         await _retryPolicy.ExecuteAsync(async () =>
         {
             await _accountContext.SaveChangesAsync();

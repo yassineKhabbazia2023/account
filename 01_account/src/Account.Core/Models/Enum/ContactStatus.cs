@@ -8,6 +8,7 @@ namespace Pulse.Account.Core.Models.Enum
     {
         Connected = 1,
         Declared = 2,
-        Invited = 3
+        Invited = 3,
+        Revoked = 4,
     }
 }

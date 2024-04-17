@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Providers;
@@ -29,7 +30,7 @@ public class ContactEventRepositoryTests
             LastName = "Doe",
             Email = "john.doe@test.com",
             PersonaName = "Collab GS",
-            Status = "Declared",
+            Status = ContactStatus.Declared.ToString(),
             Type = "collaborator",
             CreationDate = DateTime.Parse("2024-04-16T09:19:16Z"),
             ContactGlobalUniqueId = Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF"),
@@ -42,14 +43,105 @@ public class ContactEventRepositoryTests
         var addedContact = await context.ContactEntity.FirstOrDefaultAsync();
 
         Assert.NotNull(addedContact);
-        Assert.Equal(1, addedContact.ContactId);
-        Assert.Equal(Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF"), addedContact.ContactGlobalUniqueId);
-        Assert.Equal("John", addedContact.FirstName);
-        Assert.Equal("Doe", addedContact.LastName);
-        Assert.Equal("john.doe@test.com", addedContact.Email);
-        Assert.Equal("Collab GS", addedContact.PersonaName);
-        Assert.Equal("Declared", addedContact.Status);
-        Assert.Equal("collaborator", addedContact.Type);
-        Assert.Equal(DateTime.Parse("2024-04-16T09:19:16Z"), addedContact.CreationDate);
+        Assert.Equal(contactEntity.ContactId, addedContact.ContactId);
+        Assert.Equal(contactEntity.ContactGlobalUniqueId, addedContact.ContactGlobalUniqueId);
+        Assert.Equal(contactEntity.FirstName, addedContact.FirstName);
+        Assert.Equal(contactEntity.LastName, addedContact.LastName);
+        Assert.Equal(contactEntity.Email, addedContact.Email);
+        Assert.Equal(contactEntity.PersonaName, addedContact.PersonaName);
+        Assert.Equal(contactEntity.Status, addedContact.Status);
+        Assert.Equal(contactEntity.Type, addedContact.Type);
+        Assert.Equal(contactEntity.CreationDate, addedContact.CreationDate);
+    }
+
+    [Fact]
+    public async Task UpdateContactAsync_WithContactData_ShouldCreateContact()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using var context = new AccountContext(options);
+        var repository = new ContactEventRepository(context);
+        var contactEntity = new ContactEntity
+        {
+            ContactId = 1,
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john.doe@test.com",
+            PersonaName = "Collab GS",
+            Status = ContactStatus.Declared.ToString(),
+            Type = "collaborator",
+            CreationDate = DateTime.Parse("2024-04-16T09:19:16Z"),
+            ContactGlobalUniqueId = Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF"),
+        };
+
+        await context.ContactEntity.AddAsync(contactEntity);
+        await context.SaveChangesAsync();
+
+        var modifiedContactEntity = new ContactEntity
+        {
+            ContactId = 1,
+            FirstName = "Jane",
+            LastName = "Smith",
+            Email = "jane.smith@test.com",
+            PersonaName = "Collab RS",
+            Status = ContactStatus.Connected.ToString(),
+            Type = "collaborator",
+            CreationDate = DateTime.Parse("2024-04-16T09:19:16Z"),
+            ContactGlobalUniqueId = Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF"),
+        };
+
+        // Act
+        await repository.UpdateContactAsync(modifiedContactEntity);
+
+        // Assert
+        var updatedContact = await context.ContactEntity.FirstOrDefaultAsync();
+
+        Assert.NotNull(updatedContact);
+        Assert.Equal(modifiedContactEntity.ContactId, updatedContact.ContactId);
+        Assert.Equal(modifiedContactEntity.ContactGlobalUniqueId, updatedContact.ContactGlobalUniqueId);
+        Assert.Equal(modifiedContactEntity.FirstName, updatedContact.FirstName);
+        Assert.Equal(modifiedContactEntity.LastName, updatedContact.LastName);
+        Assert.Equal(modifiedContactEntity.Email, updatedContact.Email);
+        Assert.Equal(modifiedContactEntity.PersonaName, updatedContact.PersonaName);
+        Assert.Equal(modifiedContactEntity.Status, updatedContact.Status);
+        Assert.Equal(modifiedContactEntity.Type, updatedContact.Type);
+        Assert.Equal(modifiedContactEntity.CreationDate, updatedContact.CreationDate);
+    }
+
+    [Fact]
+    public async Task RevokContactAsync_WithContactData_ShouldCreateContact()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using var context = new AccountContext(options);
+        var repository = new ContactEventRepository(context);
+        var contactEntity = new ContactEntity
+        {
+            ContactId = 1,
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john.doe@test.com",
+            PersonaName = "Collab GS",
+            Status = ContactStatus.Connected.ToString(),
+            Type = "collaborator",
+            CreationDate = DateTime.Parse("2024-04-16T09:19:16Z"),
+            ContactGlobalUniqueId = Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF"),
+        };
+
+        await context.ContactEntity.AddAsync(contactEntity);
+        await context.SaveChangesAsync();
+
+        // Act
+        await repository.RevokeContactAsync(contactId: 1);
+
+        // Assert
+        var updatedContact = await context.ContactEntity.FirstOrDefaultAsync();
+
+        Assert.NotNull(updatedContact);
+        Assert.Equal(ContactStatus.Revoked.ToString(), updatedContact.Status);
     }
 }
