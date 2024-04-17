@@ -12,6 +12,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.API.Controllers
@@ -102,18 +103,16 @@ namespace Pulse.Account.API.Controllers
         /// <summary>
         /// Récupérer la liste des contacts rattachés aux entités d'un contact admin.
         /// </summary>
-        /// <param name="search">Critère de recherche.</param>
         /// <param name="contactId">Identifiant du contact connecté.</param>
-        /// <param name="pageNumber">Numéro de page.</param>
-        /// <param name="pageSize">Nombre d'éléments par page.</param>
+        /// <param name="request">Paramètre de la requête.</param>
         /// <returns>La liste des contacts rattachés aux entités d'un contact admin.</returns>
         [HttpGet("contacts/{contactId}")]
         [ProducesResponseType(typeof(IEnumerable<Contact>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<IEnumerable<Contact>>> GetContactsAccountByAdminAsync(string? search, int contactId, int pageNumber, int pageSize)
+        public async Task<ActionResult<IEnumerable<Contact>>> GetAssociatedContactsAsync(int contactId, [FromQuery] GetAssociatedContactsRequest request)
         {
-            var result = await _accountService.GetContactsAccountByAdminAsync(search, contactId, pageNumber, pageSize);
+            var result = await _accountService.GetAssociatedContactsAsync(contactId, request);
             return Ok(result);
         }
     }

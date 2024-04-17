@@ -12,6 +12,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
@@ -151,42 +152,56 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         [Fact]
-        public async Task GetContactsAccountByAdminAsync_WhenValidContactId_ShouldReturnsContacts()
+        public async Task GetAssociatedContactsAsync_WhenValidContactId_ShouldReturnsContacts()
         {
             // Arrange
             var contactId = 6000;
             var fixture = new Fixture();
             var expected = fixture.Create<Paging<Contact>>();
+            var request = new GetAssociatedContactsRequest
+            {
+                Search = string.Empty,
+                PageNumber = 1,
+                PageSize = 999,
+                ContactType = ContactType.Customer,
+            };
 
             var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
-            accountRepository.Setup(repo => repo.GetContactsAccountByAdminAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+            accountRepository.Setup(repo => repo.GetAssociatedContactsAsync(contactId, request))
                 .ReturnsAsync(expected);
 
             var accountService = new AccountService(accountRepository.Object);
 
             // Act
-            var result = await accountService.GetContactsAccountByAdminAsync(string.Empty, contactId, 1, 999);
+            var result = await accountService.GetAssociatedContactsAsync(contactId, request);
 
             // Assert
             Assert.Equal(expected, result);
         }
 
         [Fact]
-        public async Task GetContactsAccountByAdminAsync_WhenInvalidContactId_ShouldThrows_NotFoundException()
+        public async Task GetAssociatedContactsAsync_WhenInvalidContactId_ShouldThrows_NotFoundException()
         {
             // Arrange
             var contactId = 6000;
             var fixture = new Fixture();
             var expected = fixture.Create<Paging<Contact>>();
+            var request = new GetAssociatedContactsRequest
+            {
+                Search = string.Empty,
+                PageNumber = 1,
+                PageSize = 999,
+                ContactType = ContactType.Customer,
+            };
 
             var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
-            accountRepository.Setup(repo => repo.GetContactsAccountByAdminAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+            accountRepository.Setup(repo => repo.GetAssociatedContactsAsync(contactId, request))
                 .Throws(new NotFoundException(Errors.NotFoundRoleContactCode, Errors.NotFoundRoleContactMessage));
 
             var accountService = new AccountService(accountRepository.Object);
 
             // Act
-            var result = async () => await accountService.GetContactsAccountByAdminAsync(string.Empty, contactId, 1, 999);
+            var result = async () => await accountService.GetAssociatedContactsAsync(contactId, request);
 
             // Assert
             var exception = await Assert.ThrowsAsync<NotFoundException>(result);

@@ -11,6 +11,7 @@ using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
@@ -405,7 +406,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetContactsAccountByAdminAsync_ShouldReturnsContacts()
+        public async Task GetAssociatedContactsAsync_ShouldReturnsContacts()
         {
             using (var context = new AccountContext(_dbContextOptions))
             {
@@ -419,6 +420,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                                            .Without(c => c.ContactGlobalUniqueId)
                                            .Create();
 
+                contactAdmin.Type = "customer";
                 context.AccountEntity.AddRange(accountsMock);
                 context.SaveChanges();
 
@@ -435,13 +437,23 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     context.RoleEntity.Add(roleMock);
                     context.SaveChanges();
 
-                    resultExpected.AddRange(accountsMock[i].RoleEntity.Select(x => x.Contact.ToContact()!));
+                    resultExpected.AddRange(accountsMock[i].RoleEntity
+                        .Where(x => x.Contact.Type == "customer")
+                        .Select(x => x.Contact.ToContact()!));
                 }
 
                 var accountRepository = new AccountRepository(context);
 
+                var request = new GetAssociatedContactsRequest
+                {
+                    Search = string.Empty,
+                    PageNumber = 1,
+                    PageSize = 999,
+                    ContactType = ContactType.Customer,
+                };
+
                 // Act
-                var contactByAdmin = await accountRepository.GetContactsAccountByAdminAsync(string.Empty, contactAdmin.ContactId, 1, 999);
+                var contactByAdmin = await accountRepository.GetAssociatedContactsAsync(contactAdmin.ContactId, request);
                 var expected = resultExpected.Select(x => x.ContactId).Distinct();
 
                 // Assert
@@ -450,7 +462,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetContactsAccountByAdminAsync_ShouldThrow_NotFoundException()
+        public async Task GetAssociatedContactsAsync_ShouldThrow_NotFoundException()
         {
             using (var context = new AccountContext(_dbContextOptions))
             {
@@ -462,8 +474,16 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 var accountRepository = new AccountRepository(context);
 
+                var request = new GetAssociatedContactsRequest
+                {
+                    Search = string.Empty,
+                    PageNumber = 1,
+                    PageSize = 999,
+                    ContactType = ContactType.Customer,
+                };
+
                 // Act
-                Task ContactAdmin() => accountRepository.GetContactsAccountByAdminAsync(string.Empty, 123, 1, 999);
+                Task ContactAdmin() => accountRepository.GetAssociatedContactsAsync(123, request);
 
                 // Assert
                 await Assert.ThrowsAsync<NotFoundException>(ContactAdmin);

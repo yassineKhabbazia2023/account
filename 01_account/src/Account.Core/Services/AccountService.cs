@@ -7,6 +7,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Services
 {
@@ -47,11 +48,11 @@ namespace Pulse.Account.Core.Services
             return await _accountRepository.GetContactsAccountAsync(accountId, type);
         }
 
-        public async Task<Paging<Contact>> GetContactsAccountByAdminAsync(string? search, int contactId, int pageNumber, int pageSize)
+        public async Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request)
         {
-            pageNumber = Pagination.GetValidPageNumber(pageNumber);
-            pageSize = Pagination.GetValidPageSize(pageSize);
-            return await _accountRepository.GetContactsAccountByAdminAsync(search, contactId, pageNumber, pageSize);
+            request.PageNumber = Pagination.GetValidPageNumber(request.PageNumber);
+            request.PageSize = Pagination.GetValidPageSize(request.PageSize);
+            return await _accountRepository.GetAssociatedContactsAsync(contactId, request);
         }
     }
 }

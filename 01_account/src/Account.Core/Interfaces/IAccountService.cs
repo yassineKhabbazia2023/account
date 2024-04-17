@@ -5,6 +5,7 @@
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Interfaces
 {
@@ -20,6 +21,6 @@ namespace Pulse.Account.Core.Interfaces
 
         Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId, ContactType? type);
 
-        Task<Paging<Contact>> GetContactsAccountByAdminAsync(string? search, int contactId, int pageNumber, int pageSize);
+        Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request);
     }
 }

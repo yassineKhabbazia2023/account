@@ -16,6 +16,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
@@ -154,7 +155,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             });
         }
 
-        public async Task<Paging<Contact>> GetContactsAccountByAdminAsync(string? search, int contactId, int pageNumber, int pageSize)
+        public async Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
@@ -167,30 +168,30 @@ namespace Pulse.Account.Infrastructure.Repositories
                 var result = await _accountContext.RoleEntity
                         .AsNoTracking()
                         .Include(x => x.Contact)
-                        .Where(x => accountIds.Contains(x.AccountId))
+                        .Where(x => accountIds.Contains(x.AccountId) && x.Contact.Type == request.ContactType.ToString().ToLower())
                         .ToListAsync();
 
                 var resultContact = result.DistinctBy(x => x.ContactId);
 
-                if (!search.IsNullOrEmpty())
+                if (!request.Search.IsNullOrEmpty())
                 {
-                    resultContact = resultContact.Where(role => role.Contact.Email.Contains(search!, StringComparison.OrdinalIgnoreCase)
-                                                                || role.Contact.FirstName.Contains(search!, StringComparison.OrdinalIgnoreCase)
-                                                                || role.Contact.LastName.Contains(search!, StringComparison.OrdinalIgnoreCase)
-                                                                || role.Contact.PersonaName.Contains(search!, StringComparison.OrdinalIgnoreCase)
-                                                                || (role.Contact.Office is not null && role.Contact.Office.Contains(search!, StringComparison.OrdinalIgnoreCase)));
+                    resultContact = resultContact.Where(role => role.Contact.Email.Contains(request.Search!, StringComparison.OrdinalIgnoreCase)
+                                                                || role.Contact.FirstName.Contains(request.Search!, StringComparison.OrdinalIgnoreCase)
+                                                                || role.Contact.LastName.Contains(request.Search!, StringComparison.OrdinalIgnoreCase)
+                                                                || role.Contact.PersonaName.Contains(request.Search!, StringComparison.OrdinalIgnoreCase)
+                                                                || (role.Contact.Office is not null && role.Contact.Office.Contains(request.Search!, StringComparison.OrdinalIgnoreCase)));
                 }
 
                 var totalItems = resultContact.Count();
-                var totalPages = Pagination.GetTotalPages(totalItems, pageSize);
+                var totalPages = Pagination.GetTotalPages(totalItems, request.PageSize);
 
-                resultContact = resultContact.Skip((pageNumber - 1) * pageSize);
-                resultContact = resultContact.Take(pageSize);
+                resultContact = resultContact.Skip((request.PageNumber - 1) * request.PageSize);
+                resultContact = resultContact.Take(request.PageSize);
 
                 return resultContact
                         .ToList()
                         .MapToContacts()
-                        .MapToPagingContact(pageNumber, totalItems, totalPages);
+                        .MapToPagingContact(request.PageNumber, totalItems, totalPages);
             });
         }
 
