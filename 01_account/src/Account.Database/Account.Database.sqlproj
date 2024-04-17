@@ -81,16 +81,7 @@
     <None Include="ScriptRec\Script.Role.ExpertDigitaux.sql" />
     <None Include="Log\Script.Account.sql" />
     <None Include="Log\Script.Address.sql" />
-    <None Include="postDeployment\Script.600Accounts.sql" />
-    <None Include="postDeployment\Script.600Address.sql" />
-    <None Include="postDeployment\Script.Contact.Client.sql" />
-    <None Include="postDeployment\Script.Contact.Pulse.sql" />
-    <None Include="postDeployment\Script.Role.Client.sql" />
-    <None Include="postDeployment\Script.Role.Pulse.sql" />
     <None Include="Log\Script.Delegation.sql" />
-    <None Include="ScriptRec\Script.3Account.sql" />
-    <None Include="ScriptRec\Script.Role.3Accounts.sql" />
-    <None Include="ScriptRec\Script.AddresssFor3Account.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Account.Database.refactorlog" />
@@ -101,8 +92,12 @@
     <None Include="postDeployment\Script.Naf.sql" />
     <None Include="postDeployment\Script.Phone.sql" />
     <None Include="postDeployment\Script.Deployment.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ScriptRec\Script.Deployment.3Account.sql" />
+	<None Include="postDeployment\Script.600Accounts.sql" />
+    <None Include="postDeployment\Script.600Address.sql" />
+    <None Include="postDeployment\Script.Contact.Client.sql" />
+    <None Include="postDeployment\Script.Contact.Pulse.sql" />
+    <None Include="postDeployment\Script.Role.Client.sql" />
+    <None Include="postDeployment\Script.Role.Pulse.sql" />
+	<None Include="postDeployment\Script.Role.3Accounts.sql" />
   </ItemGroup>
 </Project>
