@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// <copyright file="ContactEventRepositoryTests.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
+// </copyright>
+
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Pulse.Account.Core.Models.Enum;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Providers;

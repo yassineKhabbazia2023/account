@@ -1,23 +1,19 @@
-﻿// <copyright file="Pagination.cs" company="Pulse">
+﻿// <copyright file="Paginator.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 namespace Pulse.Account.Core.Extensions
 {
-    public static class Pagination
+    public static class Paginator
     {
         public static int GetTotalPages(int totalItems, int pageSize)
         {
             if (totalItems <= 0 || pageSize <= 0)
             {
-                return 0;
+                return 1;
             }
 
-            int totalPages = totalItems / pageSize;
-            if (totalItems % pageSize != 0)
-            {
-                totalPages++;
-            }
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
             return totalPages;
         }

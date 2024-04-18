@@ -7,10 +7,10 @@ using AutoFixture;
 using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Moq;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
@@ -37,20 +37,23 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
             var searchAccountCriteria = new SearchAccountCriteria
             {
-                pageNumber = 1,
-                pageSize = 4,
-                search = string.Empty,
-                contactId = 123
+                Search = string.Empty,
+                ContactId = 123
+            };
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4
             };
 
             // Act
-            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria)
+            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria, pagination)
             ;
 
             // Assert
@@ -62,19 +65,17 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object);
             var searchAccountCriteria = new SearchAccountCriteria
             {
-                pageNumber = 0,
-                pageSize = 0,
-                contactId = 123
+                ContactId = 123
             };
 
             // Act
-            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria);
+            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria, null!);
 
             // Assert
             Assert.Equal(accountMocked, accounts);
@@ -161,19 +162,22 @@ namespace Pulse.Account.Core.Tests.Services
             var request = new GetAssociatedContactsRequest
             {
                 Search = string.Empty,
-                PageNumber = 1,
-                PageSize = 999,
                 ContactType = ContactType.Customer,
+            };
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 999
             };
 
             var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
-            accountRepository.Setup(repo => repo.GetAssociatedContactsAsync(contactId, request))
+            accountRepository.Setup(repo => repo.GetAssociatedContactsAsync(contactId, request, pagination))
                 .ReturnsAsync(expected);
 
             var accountService = new AccountService(accountRepository.Object);
 
             // Act
-            var result = await accountService.GetAssociatedContactsAsync(contactId, request);
+            var result = await accountService.GetAssociatedContactsAsync(contactId, request, pagination);
 
             // Assert
             Assert.Equal(expected, result);
@@ -189,19 +193,22 @@ namespace Pulse.Account.Core.Tests.Services
             var request = new GetAssociatedContactsRequest
             {
                 Search = string.Empty,
-                PageNumber = 1,
-                PageSize = 999,
                 ContactType = ContactType.Customer,
+            };
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 999
             };
 
             var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
-            accountRepository.Setup(repo => repo.GetAssociatedContactsAsync(contactId, request))
+            accountRepository.Setup(repo => repo.GetAssociatedContactsAsync(contactId, request, pagination))
                 .Throws(new NotFoundException(Errors.NotFoundRoleContactCode, Errors.NotFoundRoleContactMessage));
 
             var accountService = new AccountService(accountRepository.Object);
 
             // Act
-            var result = async () => await accountService.GetAssociatedContactsAsync(contactId, request);
+            var result = async () => await accountService.GetAssociatedContactsAsync(contactId, request, pagination);
 
             // Assert
             var exception = await Assert.ThrowsAsync<NotFoundException>(result);

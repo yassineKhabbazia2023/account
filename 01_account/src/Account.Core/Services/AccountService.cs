@@ -2,10 +2,10 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 
@@ -20,12 +20,16 @@ namespace Pulse.Account.Core.Services
             _accountRepository = accountRepository;
         }
 
-        public async Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria)
+        public async Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination? pagination)
         {
-            criteria.pageNumber = Pagination.GetValidPageNumber(criteria.pageNumber);
-            criteria.pageSize = Pagination.GetValidPageSize(criteria.pageSize);
-            criteria.deploymentStatus = DeploymentStatusValidation.GetValidDeploymentStatus(criteria.deploymentStatus);
-            return await _accountRepository.GetAccountsAsync(criteria);
+            pagination = pagination ?? new Pagination();
+            pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
+            pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
+
+            criteria = criteria ?? new SearchAccountCriteria();
+            criteria.DeploymentStatus = DeploymentStatusValidation.GetValidDeploymentStatus(criteria.DeploymentStatus);
+
+            return await _accountRepository.GetAccountsAsync(criteria, pagination);
         }
 
         public async Task<AccountDetail?> GetAccountAsync(int accountId)
@@ -48,11 +52,12 @@ namespace Pulse.Account.Core.Services
             return await _accountRepository.GetContactsAccountAsync(accountId, type);
         }
 
-        public async Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request)
+        public async Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request, Pagination? pagination)
         {
-            request.PageNumber = Pagination.GetValidPageNumber(request.PageNumber);
-            request.PageSize = Pagination.GetValidPageSize(request.PageSize);
-            return await _accountRepository.GetAssociatedContactsAsync(contactId, request);
+            pagination = pagination ?? new Pagination();
+            pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
+            pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
+            return await _accountRepository.GetAssociatedContactsAsync(contactId, request, pagination);
         }
     }
 }

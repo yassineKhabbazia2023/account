@@ -36,7 +36,7 @@ public class RoleRepository : IRoleRepository
                     sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN));
     }
 
-    public async Task<Paging<Core.Models.Account>> GetContactRolesAsync(int contactId, int pageNumber, int pageSize)
+    public async Task<Paging<Core.Models.Account>> GetContactRolesAsync(int contactId, Pagination pagination)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -51,16 +51,16 @@ public class RoleRepository : IRoleRepository
 
             var totalRows = await query.CountAsync();
 
-            query = query.Skip((pageNumber - 1) * pageSize);
-            query = query.Take(pageSize);
+            query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
+            query = query.Take(pagination.PageSize);
 
-            var totalPages = Pagination.GetTotalPages(totalRows, pageSize);
+            var totalPages = Paginator.GetTotalPages(totalRows, pagination.PageSize);
             var entities = await query.ToListAsync();
 
             return MapAccountDbToAccountModel.MapToPaginAccounts(
                   entities,
                   contactId,
-                  pageNumber,
+                  pagination.PageNumber,
                   totalRows,
                   totalPages);
         });

@@ -10,7 +10,7 @@ namespace Pulse.Account.Core.Interfaces;
 
 public interface IRoleRepository
 {
-    Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, int pageNumber, int pageSize);
+    Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, Pagination pagination);
 
     Task<IEnumerable<Contact>> GetSignatoryAsync(int accountId);
 

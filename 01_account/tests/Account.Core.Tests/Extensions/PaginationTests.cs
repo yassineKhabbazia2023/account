@@ -8,12 +8,13 @@ namespace Pulse.Account.Core.Tests.Extensions
         [InlineData(100, 10, 10)]
         [InlineData(10, 10, 1)]
         [InlineData(5, 10, 1)]
-        [InlineData(0, 10, 0)]
+        [InlineData(0, 10, 1)]
         [InlineData(30, 25, 2)]
+        [InlineData(10, 3, 4)]
         public void GetTotalPages_Valid_ReturnsExpected(int totalItems, int pageSize, int expectedPages)
         {
             // Arrange & Act
-            float resultPages = Pagination.GetTotalPages(totalItems, pageSize);
+            float resultPages = Paginator.GetTotalPages(totalItems, pageSize);
 
             // Assert
             Assert.Equal(expectedPages, resultPages);
@@ -26,7 +27,7 @@ namespace Pulse.Account.Core.Tests.Extensions
         public void GetValidPageNumber_Valid_ReturnsExpected(int pageNumber, int expectedPageNumber)
         {
             // Act
-            int resultPageNumber = Pagination.GetValidPageNumber(pageNumber);
+            int resultPageNumber = Paginator.GetValidPageNumber(pageNumber);
 
             // Assert
             Assert.Equal(expectedPageNumber, resultPageNumber);
@@ -39,7 +40,7 @@ namespace Pulse.Account.Core.Tests.Extensions
         public void GetValidPageSize_Valid_ReturnsExpected(int pageSize, int expectedPageSize)
         {
             // Act
-            int resultPageSize = Pagination.GetValidPageSize(pageSize);
+            int resultPageSize = Paginator.GetValidPageSize(pageSize);
 
             // Assert
             Assert.Equal(expectedPageSize, resultPageSize);

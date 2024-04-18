@@ -5,6 +5,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.API.Controllers
 {
@@ -36,15 +37,14 @@ namespace Pulse.Account.API.Controllers
         /// Récupère la liste des NAF.
         /// </summary>
         /// <param name="search">Critère de recherche (code NAF).</param>
-        /// <param name="pageNumber">Numéro de page.</param>
-        /// <param name="pageSize">Nombre d'éléments par page.</param>
+        /// <param name="pagination">Paramètres de pagination.</param>
         /// <returns>Liste des NAF.</returns>
         [HttpGet("nafs")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Naf?>))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<IReadOnlyCollection<Naf?>>> GetNafsAsync(string? search, int pageNumber, int pageSize)
+        public async Task<ActionResult<IReadOnlyCollection<Naf?>>> GetNafsAsync(string? search, [FromQuery] Pagination? pagination)
         {
-            var result = await _referentialService.GetNafsAsync(search, pageNumber, pageSize);
+            var result = await _referentialService.GetNafsAsync(search, pagination);
 
             return Ok(result);
         }

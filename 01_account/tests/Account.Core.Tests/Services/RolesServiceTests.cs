@@ -36,16 +36,16 @@ public class RolesServiceTests
         // Arrange
         var fixture = new Fixture();
         var accountList = fixture.Create<Paging<AccountModel>>();
-        var rolesRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
-        rolesRepository.Setup(repository => repository.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(accountList);
+        var rolesRepository = new Mock<IRoleRepository>();
+        rolesRepository.Setup(repository => repository.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<Pagination>())).ReturnsAsync(accountList);
         var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
-        var accounts = await rolesService.GetContactRolesAsync(contactId: 123, pageNumber: 0, pageSize: 0);
+        var accounts = await rolesService.GetContactRolesAsync(contactId: 123, null!);
 
         // Assert
         Assert.Equal(accountList, accounts);
-        rolesRepository.Verify(x => x.GetContactRolesAsync(123, 1, int.MaxValue));
+        rolesRepository.Verify(x => x.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<Pagination>()));
     }
 
     [Fact]

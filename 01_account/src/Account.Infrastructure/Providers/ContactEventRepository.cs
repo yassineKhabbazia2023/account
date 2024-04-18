@@ -11,7 +11,7 @@ using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Account.Core.Constants;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
-using Pulse.Account.Core.Models.Enum;
+using Pulse.Account.Core.Enum;
 
 namespace Pulse.Account.Infrastructure.Providers;
 

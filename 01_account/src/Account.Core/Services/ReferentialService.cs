@@ -6,6 +6,7 @@ using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Services
 {
@@ -23,12 +24,13 @@ namespace Pulse.Account.Core.Services
             return await _referentialRepository.GetHubsAsync();
         }
 
-        public async Task<Paging<Naf>> GetNafsAsync(string? search, int pageNumber, int pageSize)
+        public async Task<Paging<Naf>> GetNafsAsync(string? search, Pagination? pagination)
         {
-            pageNumber = Pagination.GetValidPageNumber(pageNumber);
-            pageSize = Pagination.GetValidPageSize(pageSize);
+            pagination = pagination ?? new Pagination();
+            pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
+            pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
 
-            return await _referentialRepository.GetNafsAsync(search, pageNumber, pageSize);
+            return await _referentialRepository.GetNafsAsync(search, pagination);
         }
 
         public AccountReferentialInformation GetAccountReferentialInformation()

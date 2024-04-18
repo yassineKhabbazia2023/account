@@ -3,6 +3,7 @@
 // </copyright>
 
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Interfaces;
@@ -17,5 +18,5 @@ public interface IDelegationService
 
     Task DeleteDelegationAsync(int delegationId);
 
-    Task<IReadOnlyCollection<Delegation>> GetAccountDelegationsHistoryAsync(int accountId);
+    Task<Paging<Delegation>> GetAccountDelegationsHistoryAsync(int accountId, string? search, Pagination? pagination);
 }

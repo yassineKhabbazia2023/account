@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Mappers;
 

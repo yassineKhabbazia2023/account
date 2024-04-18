@@ -11,6 +11,7 @@ using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
@@ -42,7 +43,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             });
         }
 
-        public async Task<Paging<Naf>> GetNafsAsync(string? search, int pageNumber, int pageSize)
+        public async Task<Paging<Naf>> GetNafsAsync(string? search, Pagination pagination)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
@@ -50,14 +51,14 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 var totalRows = await query.CountAsync();
 
-                query = query.Skip((pageNumber - 1) * pageSize);
-                query = query.Take(pageSize);
+                query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
+                query = query.Take(pagination.PageSize);
 
-                var totalPages = Pagination.GetTotalPages(totalRows, pageSize);
+                var totalPages = Paginator.GetTotalPages(totalRows, pagination.PageSize);
 
                 var nafs = await query.ToListAsync();
 
-                return nafs.MapToPagingNaf(pageNumber, totalRows, totalPages);
+                return nafs.MapToPagingNaf(pagination.PageNumber, totalRows, totalPages);
             });
         }
 

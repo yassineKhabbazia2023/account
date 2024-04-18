@@ -2,9 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-
 namespace Pulse.Account.Core.Models.Utils
 {
     public class Paging<T>

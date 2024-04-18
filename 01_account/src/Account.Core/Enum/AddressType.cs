@@ -2,7 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-namespace Pulse.Account.Core.Models.Enum
+namespace Pulse.Account.Core.Enum
 {
     public enum AddressType
     {

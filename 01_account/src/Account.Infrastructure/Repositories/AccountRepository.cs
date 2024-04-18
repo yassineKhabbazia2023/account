@@ -10,11 +10,11 @@ using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
@@ -40,41 +40,41 @@ namespace Pulse.Account.Infrastructure.Repositories
                         sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN));
         }
 
-        public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria)
+        public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                IQueryable<AccountEntity> query = GetAccountQueryByContactId(criteria.contactId);
+                IQueryable<AccountEntity> query = GetAccountQueryByContactId(criteria.ContactId);
 
-                if (criteria.deploymentStatus != null)
+                if (criteria.DeploymentStatus != null)
                 {
                     query = from n in query
-                            where n.DeploymentEntity.Any(dp => dp.Status.Equals(criteria.deploymentStatus))
+                            where n.DeploymentEntity.Any(dp => dp.Status.Equals(criteria.DeploymentStatus))
                             select n;
                 }
 
-                if (!string.IsNullOrWhiteSpace(criteria.search))
+                if (!string.IsNullOrWhiteSpace(criteria.Search))
                 {
-                    criteria.search = criteria.search.ToLowerInvariant();
+                    criteria.Search = criteria.Search.ToLowerInvariant();
                     query = from n in query
-                            where n.LegalName.ToLower().Contains(criteria.search)
-                                  || n.AccountNumber.ToLower().Contains(criteria.search)
-                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.ToLower().Contains(criteria.search)
-                                                      || role.Contact.LastName.ToLower().Contains(criteria.search)
-                                                      || role.Contact.Email.ToLower().Contains(criteria.search)))
+                            where n.LegalName.ToLower().Contains(criteria.Search)
+                                  || n.AccountNumber.ToLower().Contains(criteria.Search)
+                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.ToLower().Contains(criteria.Search)
+                                                      || role.Contact.LastName.ToLower().Contains(criteria.Search)
+                                                      || role.Contact.Email.ToLower().Contains(criteria.Search)))
                             select n;
                 }
 
                 var totalItems = await query.CountAsync();
-                var totalPages = Pagination.GetTotalPages(totalItems, criteria.pageSize);
+                var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
-                query = query.Skip((criteria.pageNumber - 1) * criteria.pageSize);
-                query = query.Take(criteria.pageSize);
+                query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
+                query = query.Take(pagination.PageSize);
 
                 return MapAccountDbToAccountModel.MapToPaginAccounts(
                     await query.ToListAsync(),
-                    criteria.contactId,
-                    criteria.pageNumber,
+                    criteria.ContactId,
+                    pagination.PageNumber,
                     totalItems,
                     totalPages);
             });
@@ -155,7 +155,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             });
         }
 
-        public async Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request)
+        public async Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request, Pagination pagination)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
@@ -183,15 +183,15 @@ namespace Pulse.Account.Infrastructure.Repositories
                 }
 
                 var totalItems = resultContact.Count();
-                var totalPages = Pagination.GetTotalPages(totalItems, request.PageSize);
+                var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
-                resultContact = resultContact.Skip((request.PageNumber - 1) * request.PageSize);
-                resultContact = resultContact.Take(request.PageSize);
+                resultContact = resultContact.Skip((pagination.PageNumber - 1) * pagination.PageSize);
+                resultContact = resultContact.Take(pagination.PageSize);
 
                 return resultContact
                         .ToList()
                         .MapToContacts()
-                        .MapToPagingContact(request.PageNumber, totalItems, totalPages);
+                        .MapToPagingContact(pagination.PageNumber, totalItems, totalPages);
             });
         }
 

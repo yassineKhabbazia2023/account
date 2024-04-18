@@ -2,7 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Core.Models.Enum;
+using Pulse.Account.Core.Enum;
 
 namespace Pulse.Account.Core.Requests
 {
@@ -13,18 +13,6 @@ namespace Pulse.Account.Core.Requests
         /// Critère de recherche.
         /// </summary>
         public string? Search { get; set; }
-
-        /// <summary>
-        /// Gets or sets PageNumber.
-        /// Numéro de page.
-        /// </summary>
-        public int PageNumber { get; set; }
-
-        /// <summary>
-        /// Gets or sets Search.
-        /// Nombre d'éléments par page.
-        /// </summary>
-        public int PageSize { get; set; }
 
         /// <summary>
         /// Gets or sets ContactType.

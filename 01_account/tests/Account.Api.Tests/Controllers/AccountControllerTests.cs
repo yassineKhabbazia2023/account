@@ -14,10 +14,10 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using Pulse.Account.API;
 using Pulse.Account.API.Controllers;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
@@ -81,13 +81,16 @@ namespace Account.Api.Tests.Controllers
             var contact = _context.ContactEntity.First();
             var searchAccountCriteria = new SearchAccountCriteria
             {
-                pageNumber = 1,
-                pageSize = 4,
-                contactId = contact.ContactId
+                ContactId = contact.ContactId
+            };
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4,
             };
 
             // Act
-            var accounts = await _accountController.GetAccountsAsync(searchAccountCriteria);
+            var accounts = await _accountController.GetAccountsAsync(searchAccountCriteria, pagination);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
@@ -175,18 +178,21 @@ namespace Account.Api.Tests.Controllers
             var request = new GetAssociatedContactsRequest
             {
                 Search = string.Empty,
-                PageNumber = 1,
-                PageSize = 999,
                 ContactType = ContactType.Collaborator,
+            };
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 999
             };
 
             var accountService = new Mock<IAccountService>(MockBehavior.Strict);
-            accountService.Setup(service => service.GetAssociatedContactsAsync(contactId, request))
+            accountService.Setup(service => service.GetAssociatedContactsAsync(contactId, request, pagination))
                 .ReturnsAsync(expected);
             var accountController = new AccountController(accountService.Object);
 
             // Act
-            var result = await accountController.GetAssociatedContactsAsync(contactId, request);
+            var result = await accountController.GetAssociatedContactsAsync(contactId, request, pagination);
 
             // Assert
             Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);
@@ -197,20 +203,24 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var contactId = 6000;
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 999
+            };
+
             var accountService = new Mock<IAccountService>(MockBehavior.Strict);
             var request = new GetAssociatedContactsRequest
             {
-                Search = string.Empty,
-                PageNumber = 1,
-                PageSize = 999,
+                Search = string.Empty
             };
 
-            accountService.Setup(service => service.GetAssociatedContactsAsync(contactId, request))
+            accountService.Setup(service => service.GetAssociatedContactsAsync(contactId, request, pagination))
                 .Throws(new NotFoundException(Errors.NotFoundRoleContactCode, Errors.NotFoundRoleContactMessage));
             var accountController = new AccountController(accountService.Object);
 
             // Act
-            var result = async () => await accountController.GetAssociatedContactsAsync(contactId, request);
+            var result = async () => await accountController.GetAssociatedContactsAsync(contactId, request, pagination);
 
             // Assert
             var exception = await Assert.ThrowsAsync<NotFoundException>(result);

@@ -9,6 +9,7 @@ using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Services;
@@ -74,14 +75,19 @@ public class DelegationService : IDelegationService
         return await _delegationRepository.GetDelegationsAsync(delegatorId, delegateeId);
     }
 
-    public async Task<IReadOnlyCollection<Delegation>> GetAccountDelegationsHistoryAsync(int accountId)
+    public async Task<Paging<Delegation>> GetAccountDelegationsHistoryAsync(int accountId, string? search, Pagination? pagination)
     {
         if (!await _delegationRepository.DoesAccountExistAsync(accountId))
         {
             throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
         }
 
-        return await _delegationRepository.GetAccountDelegationsHistoryAsync(accountId);
+        pagination = pagination ?? new Pagination();
+
+        pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
+        pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
+
+        return await _delegationRepository.GetAccountDelegationsHistoryAsync(accountId, search, pagination);
     }
 
     public static IEnumerable<CreateRoleRequest> CreateRoleRequests(CreateDelegationRequest delegationRequest)

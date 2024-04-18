@@ -4,6 +4,7 @@
 
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
@@ -62,13 +63,18 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         {
             using (var context = new AccountContext(_options))
             {
+                var pagination = new Pagination
+                {
+                    PageNumber = 1,
+                    PageSize = 10
+                };
                 var tNafs = _fixture.CreateMany<NafEntity>();
                 context.AddRange(tNafs);
                 await context.SaveChangesAsync();
 
                 var repository = new ReferentialRepository(context);
 
-                var result = await repository.GetNafsAsync(string.Empty, 1, 10);
+                var result = await repository.GetNafsAsync(string.Empty, pagination);
 
                 Assert.NotNull(result);
                 Assert.Equal(tNafs.Count(), result?.Items?.Count());
@@ -82,7 +88,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             {
                 var repository = new ReferentialRepository(context);
 
-                var result = await repository.GetNafsAsync(string.Empty, 0, 0);
+                var result = await repository.GetNafsAsync(string.Empty, new Pagination());
 
                 Assert.NotNull(result);
                 Assert.Empty(result.Items);

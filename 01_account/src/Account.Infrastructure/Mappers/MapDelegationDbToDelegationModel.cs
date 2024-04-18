@@ -3,7 +3,7 @@
 // </copyright>
 
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
+using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
 
 namespace Pulse.Account.Infrastructure.Mappers;
@@ -59,5 +59,19 @@ public static class MapDelegationDbToDelegationModel
                 FirstName = source.FirstName,
                 LastName = source.LastName,
             };
+    }
+
+    public static Paging<Delegation> MapToPagingDelegations(this ICollection<DelegationEntity> source,
+        int pageNumber,
+        int totalRows,
+        int totalPageCalcul)
+    {
+        return new Paging<Delegation>
+        {
+            Items = source.ToDelegations(),
+            CurrentPage = pageNumber,
+            TotalItems = totalRows,
+            TotalPage = totalPageCalcul
+        };
     }
 }

@@ -2,8 +2,8 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
 
 namespace Pulse.Account.Core.Extensions
 {

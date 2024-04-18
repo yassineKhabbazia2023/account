@@ -7,9 +7,9 @@ using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
@@ -41,6 +41,12 @@ public class RolesRepositoryTests
         // Arrange
         using (var context = new AccountContext(_dbContextOptions))
         {
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4
+            };
+
             var accountsEntity = _fixture.Create<List<AccountEntity>>();
             context.AccountEntity.AddRange(accountsEntity);
             context.SaveChanges();
@@ -62,7 +68,7 @@ public class RolesRepositoryTests
             };
 
             // Act
-            var accounts = await rolesRepository.GetContactRolesAsync(contactId, pageNumber: 1, pageSize: 4);
+            var accounts = await rolesRepository.GetContactRolesAsync(contactId, pagination);
 
             // Assert
             var accountExpect = JsonConvert.SerializeObject(accountPaging);

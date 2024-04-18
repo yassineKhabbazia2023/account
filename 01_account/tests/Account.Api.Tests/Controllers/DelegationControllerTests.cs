@@ -13,6 +13,7 @@ using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
 
@@ -185,11 +186,11 @@ public class DelegationControllerTests
     {
         // Arrange
         var accountId = 100;
-        IReadOnlyCollection<Delegation> delegations = _fixture.Create<List<Delegation>>();
+        var delegations = _fixture.Create<Paging<Delegation>>();
         var service = new Mock<IDelegationService>(MockBehavior.Strict);
 
-        service.Setup(x => x.GetAccountDelegationsHistoryAsync(It.IsAny<int>()))
-            .Callback<int>((id) =>
+        service.Setup(x => x.GetAccountDelegationsHistoryAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<Pagination>()))
+            .Callback<int, string, Pagination>((id, search, pagination) =>
             {
                 id.Should().Be(accountId);
             })
@@ -199,7 +200,7 @@ public class DelegationControllerTests
         var controller = new DelegationController(service.Object);
 
         // Act
-        var actionResult = await controller.GetAccountDelegationsHistoryAsync(accountId);
+        var actionResult = await controller.GetAccountDelegationsHistoryAsync(accountId, null, new Pagination());
 
         // Assert
         actionResult.Result.As<OkObjectResult>().StatusCode.Should().Be(200);

@@ -27,11 +27,13 @@ public class RolesService : IRolesService
         _logger = logger;
     }
 
-    public async Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, int pageNumber, int pageSize)
+    public async Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, Pagination? pagination)
     {
-        pageNumber = Pagination.GetValidPageNumber(pageNumber);
-        pageSize = Pagination.GetValidPageSize(pageSize);
-        return await _rolesRepository.GetContactRolesAsync(contactId, pageNumber, pageSize);
+        pagination = pagination ?? new Pagination();
+        pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
+        pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
+
+        return await _rolesRepository.GetContactRolesAsync(contactId, pagination);
     }
 
     public async Task<IEnumerable<Contact>> GetSignatoryAsync(int accountId)

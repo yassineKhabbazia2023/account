@@ -8,10 +8,12 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Retry;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
+using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -126,20 +128,41 @@ public class DelegationRepository : IDelegationRepository
         return roles;
     }
 
-    public async Task<IReadOnlyCollection<Delegation>> GetAccountDelegationsHistoryAsync(int accountId)
+    public async Task<Paging<Delegation>> GetAccountDelegationsHistoryAsync(int accountId, string search, Pagination pagination)
     {
         var delegations = new List<DelegationEntity>();
-        await _retryPolicy.ExecuteAsync(async () =>
+
+        return await _retryPolicy.ExecuteAsync(async () =>
         {
-            delegations = await _accountContext.DelegationEntity
+            IQueryable<DelegationEntity> query = _accountContext.DelegationEntity
+                                        .AsNoTracking()
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
                                         .Where(d => d.Account.Any(a => a.AccountId == accountId))
-                                        .ToListAsync();
-        });
+                                        .OrderBy(d => d.DelegationId);
 
-        return delegations.ToDelegations();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.ToLowerInvariant().Trim();
+                query = from d in query
+                        where d.Delegator.LastName.ToLower().Contains(search) ||
+                        d.Delegatee.LastName.ToLower().Contains(search) ||
+                        d.Delegator.FirstName.ToLower().Contains(search) ||
+                        d.Delegatee.FirstName.ToLower().Contains(search)
+                        select d;
+            }
+
+            var totalItems = await query.CountAsync();
+            var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+
+            query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
+            query = query.Take(pagination.PageSize);
+
+            delegations = await query.ToListAsync();
+
+            return delegations.MapToPagingDelegations(pagination.PageNumber, totalItems, totalPages);
+        });
     }
 
     public async Task<bool> DoesAccountExistAsync(int accountId)

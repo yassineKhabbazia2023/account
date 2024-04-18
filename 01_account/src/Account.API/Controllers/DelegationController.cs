@@ -5,6 +5,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.API.Controllers;
@@ -91,17 +92,21 @@ public class DelegationController : ControllerBase
     }
 
     /// <summary>
-    /// Récupérer l'historique des delegations d'une entité morale.
+    /// Récupérer l'historique des délégations d'une entité morale.
     /// </summary>
     /// <param name="accountId">L'identifiant de l'identité morale.</param>
+    /// <param name="search">Critère de recherche (nom/prénom du délégateur ou du délégataire).</param>
+    /// <param name="pagination">Paramètres de pagination.</param>
     /// <returns>Liste de délégations.</returns>
     [HttpGet("{accountId}/history")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Delegation>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<Delegation>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IReadOnlyCollection<Delegation>>> GetAccountDelegationsHistoryAsync(int accountId)
+    public async Task<ActionResult<Paging<Delegation>>> GetAccountDelegationsHistoryAsync(int accountId,
+        string? search,
+        [FromQuery] Pagination? pagination)
     {
-        var delegations = await _delegationService.GetAccountDelegationsHistoryAsync(accountId);
+        var delegations = await _delegationService.GetAccountDelegationsHistoryAsync(accountId, search, pagination);
         return Ok(delegations!);
     }
 }

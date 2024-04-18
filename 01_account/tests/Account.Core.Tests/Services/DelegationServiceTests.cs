@@ -11,6 +11,7 @@ using Moq;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
 
@@ -178,7 +179,7 @@ public class DelegationServiceTest
     {
         // Arrange
         var accountId = 100;
-        IReadOnlyCollection<Delegation> delegationlist = _fixture.Create<List<Delegation>>();
+        var delegationlist = _fixture.Create<Paging<Delegation>>();
 
         _repository.Setup(x => x.DoesAccountExistAsync(It.IsAny<int>()))
           .Callback<int>((id) =>
@@ -188,8 +189,8 @@ public class DelegationServiceTest
           .ReturnsAsync(true)
           .Verifiable();
 
-        _repository.Setup(x => x.GetAccountDelegationsHistoryAsync(It.IsAny<int>()))
-            .Callback<int>((id) =>
+        _repository.Setup(x => x.GetAccountDelegationsHistoryAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<Pagination>()))
+            .Callback<int, string, Pagination>((id, search, pagination) =>
             {
                 id.Should().Be(accountId);
             })
@@ -199,7 +200,7 @@ public class DelegationServiceTest
         var service = new DelegationService(_repository.Object, null!, null!);
 
         // Act
-        var delegationsHistory = await service.GetAccountDelegationsHistoryAsync(accountId);
+        var delegationsHistory = await service.GetAccountDelegationsHistoryAsync(accountId, null!, null!);
 
         // Assert
         delegationsHistory.Should().NotBeNull();
@@ -224,7 +225,7 @@ public class DelegationServiceTest
         var service = new DelegationService(_repository.Object, null!, null!);
 
         // Act
-        var act = async () => await service.GetAccountDelegationsHistoryAsync(accountId);
+        var act = async () => await service.GetAccountDelegationsHistoryAsync(accountId, null!, null!);
 
         // Assert
         var exception = Assert.ThrowsAsync<NotFoundException>(act);

@@ -3,13 +3,12 @@
 // </copyright>
 
 using AutoFixture;
-using AutoFixture.Kernel;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
@@ -69,14 +68,17 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
                 var searchAccountCriteria = new SearchAccountCriteria
                 {
-                    pageNumber = 1,
-                    pageSize = 4,
-                    search = criteria,
-                    contactId = contactId
+                    Search = criteria,
+                    ContactId = contactId
+                };
+                var pagination = new Pagination
+                {
+                    PageNumber = 1,
+                    PageSize = 4
                 };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, pagination);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -121,15 +123,18 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
                 var searchAccountCriteria = new SearchAccountCriteria
                 {
-                    pageNumber = 1,
-                    pageSize = 4,
-                    deploymentStatus = (int)DeploymentStatus.ToDeploy,
-                    contactId = contactId
+                    DeploymentStatus = (int)DeploymentStatus.ToDeploy,
+                    ContactId = contactId
+                };
+                var pagination = new Pagination
+                {
+                    PageNumber = 1,
+                    PageSize = 4
                 };
 
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, pagination);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -187,17 +192,20 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     CurrentPage = 1,
                     Items = resultExpected!,
                     TotalItems = resultExpected.Count,
-                    TotalPage = Pagination.GetTotalPages(resultExpected.Count, pageSize)
+                    TotalPage = Paginator.GetTotalPages(resultExpected.Count, pageSize)
                 };
                 var searchAccountCriteria = new SearchAccountCriteria
                 {
-                    pageNumber = 1,
-                    pageSize = pageSize,
-                    contactId = contactId
+                    ContactId = contactId
+                };
+                var pagination = new Pagination
+                {
+                    PageNumber = 1,
+                    PageSize = pageSize
                 };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, pagination);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -225,13 +233,16 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 };
                 var searchAccountCriteria = new SearchAccountCriteria
                 {
-                    pageNumber = 1,
-                    pageSize = 4,
-                    contactId = 100
+                    ContactId = 100
+                };
+                var pagination = new Pagination
+                {
+                    PageNumber = 1,
+                    PageSize = 4
                 };
 
                 // Act
-                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria);
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, pagination);
 
                 // Assert
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
@@ -411,6 +422,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             using (var context = new AccountContext(_dbContextOptions))
             {
                 // Arrange
+                var pagination = new Pagination
+                {
+                    PageNumber = 1,
+                    PageSize = 999
+                };
                 var resultExpected = new List<Contact>();
                 var accountsMock = _fixture.Create<List<AccountEntity>>();
                 var contactAdmin = _fixture.Build<ContactEntity>()
@@ -447,13 +463,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var request = new GetAssociatedContactsRequest
                 {
                     Search = string.Empty,
-                    PageNumber = 1,
-                    PageSize = 999,
                     ContactType = ContactType.Customer,
                 };
 
                 // Act
-                var contactByAdmin = await accountRepository.GetAssociatedContactsAsync(contactAdmin.ContactId, request);
+                var contactByAdmin = await accountRepository.GetAssociatedContactsAsync(contactAdmin.ContactId, request, pagination);
                 var expected = resultExpected.Select(x => x.ContactId).Distinct();
 
                 // Assert
@@ -467,6 +481,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             using (var context = new AccountContext(_dbContextOptions))
             {
                 // Arrange
+                var pagination = new Pagination
+                {
+                    PageNumber = 1,
+                    PageSize = 999
+                };
                 var accountsMock = _fixture.Create<List<AccountEntity>>();
 
                 context.AccountEntity.AddRange(accountsMock);
@@ -477,13 +496,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var request = new GetAssociatedContactsRequest
                 {
                     Search = string.Empty,
-                    PageNumber = 1,
-                    PageSize = 999,
                     ContactType = ContactType.Customer,
                 };
 
                 // Act
-                Task ContactAdmin() => accountRepository.GetAssociatedContactsAsync(123, request);
+                Task ContactAdmin() => accountRepository.GetAssociatedContactsAsync(123, request, pagination);
 
                 // Assert
                 await Assert.ThrowsAsync<NotFoundException>(ContactAdmin);

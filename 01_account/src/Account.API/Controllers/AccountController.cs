@@ -7,10 +7,10 @@ using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.Model;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using AccountModel = Pulse.Account.Core.Models.Account;
@@ -32,14 +32,16 @@ namespace Pulse.Account.API.Controllers
         /// Recherche des entités morales.
         /// </summary>
         /// <param name="criteria">Critère de recherche.</param>
+        /// <param name="pagination">Paramètres de pagination.</param>
         /// <returns>Liste d'entités morales.</returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<AccountModel>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync([FromQuery] SearchAccountCriteria criteria)
+        public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync([FromQuery] SearchAccountCriteria criteria,
+            [FromQuery] Pagination? pagination)
         {
-            var result = await _accountService.GetAccountsAsync(criteria);
+            var result = await _accountService.GetAccountsAsync(criteria, pagination);
 
             return Ok(result);
         }
@@ -105,14 +107,17 @@ namespace Pulse.Account.API.Controllers
         /// </summary>
         /// <param name="contactId">Identifiant du contact connecté.</param>
         /// <param name="request">Paramètre de la requête.</param>
+        /// <param name="pagination">Paramètres de pagination.</param>
         /// <returns>La liste des contacts rattachés aux entités d'un contact admin.</returns>
         [HttpGet("contacts/{contactId}")]
         [ProducesResponseType(typeof(IEnumerable<Contact>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<IEnumerable<Contact>>> GetAssociatedContactsAsync(int contactId, [FromQuery] GetAssociatedContactsRequest request)
+        public async Task<ActionResult<IEnumerable<Contact>>> GetAssociatedContactsAsync(int contactId,
+            [FromQuery] GetAssociatedContactsRequest request,
+            Pagination? pagination)
         {
-            var result = await _accountService.GetAssociatedContactsAsync(contactId, request);
+            var result = await _accountService.GetAssociatedContactsAsync(contactId, request, pagination);
             return Ok(result);
         }
     }

@@ -140,5 +140,22 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             result.Should().NotBeNull();
             result.Should().BeEmpty();
         }
+
+        [Fact]
+        public void MapToPagingDelegations_ShouldMapPagingDelegations()
+        {
+            ICollection<DelegationEntity> expected = _fixture.CreateMany<DelegationEntity>(3).ToList();
+            var pageNumber = 1;
+            var totalRows = 3;
+            var totalPageCalcul = 1;
+
+            var result = expected.MapToPagingDelegations(pageNumber, totalRows, totalPageCalcul);
+
+            result.Should().NotBeNull();
+            result.Items.Should().HaveCount(expected.Count);
+            result.CurrentPage.Should().Be(pageNumber);
+            result.TotalItems.Should().Be(totalRows);
+            result.TotalPage.Should().Be(totalPageCalcul);
+        }
     }
 }

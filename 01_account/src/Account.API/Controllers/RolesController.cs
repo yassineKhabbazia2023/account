@@ -3,7 +3,6 @@
 // </copyright>
 
 using System.ComponentModel.DataAnnotations;
-using System.Net;
 using Kpmg.ExceptionMiddleware.Model;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
@@ -35,16 +34,15 @@ public class RolesController : ControllerBase
     /// Lister les entités morales auxquelles un contact est lié.
     /// </summary>
     /// <param name="contactId">Identification de l'utilisateur connecté.</param>
-    /// <param name="pageNumber">Numéro de page.</param>
-    /// <param name="pageSize">Nombre d'éléments par page.</param>
+    /// <param name="pagination">Paramètres de pagination.</param>
     /// <returns>Liste d'entités morales.</returns>
     [HttpGet("{contactId}")]
-    [ProducesResponseType(typeof(Paging<Pulse.Account.Core.Models.Account>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Paging<Core.Models.Account>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Paging<Core.Models.Account>>> GetContactRolesAsync(int contactId, int pageNumber, int pageSize)
+    public async Task<ActionResult<Paging<Core.Models.Account>>> GetContactRolesAsync(int contactId, [FromQuery] Pagination? pagination)
     {
-        var result = await _rolesService.GetContactRolesAsync(contactId, pageNumber, pageSize);
+        var result = await _rolesService.GetContactRolesAsync(contactId, pagination);
 
         return Ok(result);
     }

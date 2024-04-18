@@ -4,8 +4,8 @@
 
 using AutoFixture;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Enum;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 

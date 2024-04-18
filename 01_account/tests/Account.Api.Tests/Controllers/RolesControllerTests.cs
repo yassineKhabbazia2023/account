@@ -15,7 +15,6 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
-using Pulse.Account.Infrastructure.Entities;
 
 namespace Account.Api.Tests.Controllers
 {
@@ -38,14 +37,19 @@ namespace Account.Api.Tests.Controllers
         public async Task GetContactRoles_Should_ReturnsOkResultAsync()
         {
             // Arrange
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4
+            };
             var accountMocked = _fixture.Create<Paging<Pulse.Account.Core.Models.Account>>();
             var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
-            rolesService.Setup(service => service.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(accountMocked);
+            rolesService.Setup(service => service.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<Pagination>())).ReturnsAsync(accountMocked);
 
             var rolesController = new RolesController(rolesService.Object);
 
             // Act
-            var accounts = await rolesController.GetContactRolesAsync(contactId: 123, pageNumber: 1, pageSize: 4);
+            var accounts = await rolesController.GetContactRolesAsync(contactId: 123, pagination);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert

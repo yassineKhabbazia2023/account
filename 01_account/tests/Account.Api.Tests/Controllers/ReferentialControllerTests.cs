@@ -10,6 +10,7 @@ using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 
 namespace Account.Api.Tests.Controllers
 {
@@ -55,11 +56,11 @@ namespace Account.Api.Tests.Controllers
         public async Task GetNafsAsync_ShouldReturnOkResult()
         {
             var nafs = _fixture.Create<Paging<Naf>>();
-            _service.Setup(x => x.GetNafsAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(nafs).Verifiable();
+            _service.Setup(x => x.GetNafsAsync(It.IsAny<string?>(), It.IsAny<Pagination>())).ReturnsAsync(nafs).Verifiable();
 
             var referentialController = new ReferentialController(_service.Object);
 
-            var result = await referentialController.GetNafsAsync(string.Empty, 0, 0);
+            var result = await referentialController.GetNafsAsync(string.Empty, new Pagination());
 
             result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
             result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(nafs);
@@ -69,11 +70,11 @@ namespace Account.Api.Tests.Controllers
         public async Task GetNafsAsync_WithNoNafInBase_ShouldReturnOkResult()
         {
             var expected = new Paging<Naf> { Items = Enumerable.Empty<Naf>() };
-            _service.Setup(x => x.GetNafsAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(expected).Verifiable();
+            _service.Setup(x => x.GetNafsAsync(It.IsAny<string?>(), It.IsAny<Pagination>())).ReturnsAsync(expected).Verifiable();
 
             var referentialController = new ReferentialController(_service.Object);
 
-            var result = await referentialController.GetNafsAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>());
+            var result = await referentialController.GetNafsAsync(It.IsAny<string?>(), It.IsAny<Pagination>());
 
             result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
             result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(expected);
