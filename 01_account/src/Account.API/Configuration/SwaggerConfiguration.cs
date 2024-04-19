@@ -16,11 +16,11 @@ namespace Pulse.Account.API.Configuration
             {
                 swaggerGenOptions.AddServer(new OpenApiServer()
                 {
-                    Url = "/account",
+                    Url = "/",
                 });
                 swaggerGenOptions.AddServer(new OpenApiServer()
                 {
-                    Url = "/",
+                    Url = "/account",
                 });
                 swaggerGenOptions.SwaggerDoc(swaggerConfiguration?.Version, new OpenApiInfo
                 {
