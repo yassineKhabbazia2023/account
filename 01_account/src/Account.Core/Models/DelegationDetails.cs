@@ -21,5 +21,7 @@ namespace Pulse.Account.Core.Models
 
         [JsonIgnore]
         public bool IsRoleToCreate { get; set; } = false;
+
+        public bool IsAutomaticDelegation { get; set; }
     }
 }

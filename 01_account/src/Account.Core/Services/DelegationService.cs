@@ -32,7 +32,7 @@ public class DelegationService : IDelegationService
 
     public async Task CreateDelegationAsync(CreateDelegationRequest delegation)
     {
-        if (delegation is null)
+        if (delegation is null || !delegation.DelegationDetails.Any() || delegation.AccountIds?.Any() is not true)
         {
             throw new BadRequestException(Errors.CreateDelegationCode, Errors.CreateDelegationMessage);
         }
@@ -103,7 +103,7 @@ public class DelegationService : IDelegationService
         {
             if (detail.IsRoleToCreate)
             {
-                foreach (var accountId in delegationRequest.AccountIds)
+                foreach (var accountId in delegationRequest.AccountIds!)
                 {
                     roleRequests.Add(new CreateRoleRequest
                     {

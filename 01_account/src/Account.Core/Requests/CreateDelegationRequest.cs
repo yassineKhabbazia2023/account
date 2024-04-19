@@ -12,5 +12,7 @@ public class CreateDelegationRequest
 
     required public IEnumerable<DelegationDetails> DelegationDetails { get; set; }
 
-    required public IEnumerable<int> AccountIds { get; set; }
+    public IEnumerable<int>? AccountIds { get; set; }
+
+    public bool IsFullDelegation { get; set; }
 }
