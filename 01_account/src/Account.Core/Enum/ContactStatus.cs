@@ -9,6 +9,6 @@ namespace Pulse.Account.Core.Enum
         Connected = 1,
         Declared = 2,
         Invited = 3,
-        Revoked = 4,
+        Removed = 4,
     }
 }

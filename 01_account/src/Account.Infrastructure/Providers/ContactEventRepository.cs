@@ -40,10 +40,10 @@ public class ContactEventRepository : IContactEventRepository
         });
     }
 
-    public async Task RevokeContactAsync(int contactId)
+    public async Task RemoveContactAsync(int contactId)
     {
         var existingContact = await _accountContext.ContactEntity.SingleAsync(x => x.ContactId == contactId);
-        existingContact.Status = ContactStatus.Revoked.ToString();
+        existingContact.Status = ContactStatus.Removed.ToString();
 
         await _retryPolicy.ExecuteAsync(async () =>
         {

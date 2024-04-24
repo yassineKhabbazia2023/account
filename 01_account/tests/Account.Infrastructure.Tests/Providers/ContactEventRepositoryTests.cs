@@ -134,12 +134,12 @@ public class ContactEventRepositoryTests
         await context.SaveChangesAsync();
 
         // Act
-        await repository.RevokeContactAsync(contactId: 1);
+        await repository.RemoveContactAsync(contactId: 1);
 
         // Assert
         var updatedContact = await context.ContactEntity.FirstOrDefaultAsync();
 
         Assert.NotNull(updatedContact);
-        Assert.Equal(ContactStatus.Revoked.ToString(), updatedContact.Status);
+        Assert.Equal(ContactStatus.Removed.ToString(), updatedContact.Status);
     }
 }

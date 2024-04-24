@@ -12,7 +12,7 @@
 	[CreationDate]          DATETIME2           NOT NULL, 
     CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC),
     CONSTRAINT [CHK_Type] CHECK ([Type]= 'customer' OR [Type]= 'collaborator'),
-    CONSTRAINT [CHK_Status] CHECK ([Status]= 'connected' OR [Status]= 'declared' OR [Status]= 'invited' OR [Status]= 'revoked')
+    CONSTRAINT [CHK_Status] CHECK ([Status]= 'connected' OR [Status]= 'declared' OR [Status]= 'invited' OR [Status]= 'removed')
 )
 
 GO

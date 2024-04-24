@@ -12,5 +12,5 @@ public interface IContactEventRepository
 
     Task UpdateContactAsync(ContactEntity contactEntity);
 
-    Task RevokeContactAsync(int contactId);
+    Task RemoveContactAsync(int contactId);
 }
