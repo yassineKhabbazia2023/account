@@ -9,7 +9,8 @@ namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapDelegationBusinessToDelegationDb
     {
-        public static IEnumerable<DelegationEntity> MapDelegationRequestToDelegationsDb(this CreateDelegationRequest delegation, IEnumerable<AccountEntity> accounts)
+        public static IEnumerable<DelegationEntity> MapDelegationRequestToDelegationsDb(this CreateDelegationRequest delegation,
+            IEnumerable<AccountEntity> accounts)
         {
             if (delegation?.DelegationDetails?.Any() != true)
             {
@@ -30,6 +31,8 @@ namespace Pulse.Account.Infrastructure.Mappers
                     Status = detail.Status,
                     Note = detail.Note,
                     Account = accounts.ToList(),
+                    IsFullDelegation = delegation.IsFullDelegation,
+                    IsAutomaticDelegation = detail.IsAutomaticDelegation
                 };
 
                 delegationEntities.Add(delegationEntity);

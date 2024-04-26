@@ -61,13 +61,14 @@ public class DelegationServiceTest
         _publisher.VerifyAll();
     }
 
-    [Fact]
-    public void CreateDelegationAsync_WithNullRequest_ShouldThrowBadRequestException()
+    [Theory]
+    [MemberData(nameof(CreateDelegationData))]
+    public void CreateDelegationAsync_WithInvalidParameters_ShouldThrowBadRequestException(CreateDelegationRequest delegation)
     {
         var service = new DelegationService(null!, null!, null!);
 
         // Act
-        var act = async () => await service.CreateDelegationAsync(null!);
+        var act = async () => await service.CreateDelegationAsync(delegation);
 
         // Assert
         var exception = Assert.ThrowsAsync<BadRequestException>(act);
@@ -258,7 +259,7 @@ public class DelegationServiceTest
     }
 
     [Theory]
-    [MemberData(nameof(DelegationRequestData))]
+    [MemberData(nameof(CreateRoleRequestData))]
     public void CreateRoleRequestsWithNullOrEmtpyDelegationDetail_ShouldReturnEmptyList(CreateDelegationRequest delegation)
     {
         var result = DelegationService.CreateRoleRequests(delegation);
@@ -267,7 +268,42 @@ public class DelegationServiceTest
         result.Should().BeEmpty();
     }
 
-    public static IEnumerable<object[]> DelegationRequestData => new List<object[]>
+    public static IEnumerable<object[]> CreateDelegationData => new List<object[]>
+        {
+            new object[] { null! },
+            new object[]
+            {
+                new CreateDelegationRequest
+                {
+                    DelegatorId = 0,
+                    DelegationDetails = Enumerable.Empty<DelegationDetails>(),
+                    AccountIds = null!,
+                    IsFullDelegation = true
+                }
+            },
+            new object[]
+            {
+                new CreateDelegationRequest
+                {
+                    DelegatorId = 0,
+                    DelegationDetails = new List<DelegationDetails> { new DelegationDetails { DelegateeId = 1 } },
+                    AccountIds = null!,
+                    IsFullDelegation = false
+                }
+            },
+            new object[]
+            {
+                new CreateDelegationRequest
+                {
+                    DelegatorId = 0,
+                    DelegationDetails = new List<DelegationDetails> { new DelegationDetails { DelegateeId = 1 } },
+                    AccountIds = Enumerable.Empty<int>(),
+                    IsFullDelegation = false
+                }
+            }
+        };
+
+    public static IEnumerable<object[]> CreateRoleRequestData => new List<object[]>
         {
             new object[] { null! },
             new object[]

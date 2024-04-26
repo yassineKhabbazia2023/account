@@ -26,4 +26,8 @@ public class Delegation
     public Contact? Delegatee { get; set; }
 
     public Contact? Delegator { get; set; }
+
+    public bool IsFullDelegation { get; set; }
+
+    public bool IsAutomaticDelegation { get; set; }
 }

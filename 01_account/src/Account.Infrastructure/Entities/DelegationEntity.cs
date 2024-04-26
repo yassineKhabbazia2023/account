@@ -47,6 +47,16 @@ public partial class DelegationEntity
     /// </summary>
     public DateTime CreationDate { get; set; }
 
+    /// <summary>
+    /// Indique si la délégation concerne l&apos;&apos;intégralité du portefeuille ou non
+    /// </summary>
+    public bool IsFullDelegation { get; set; }
+
+    /// <summary>
+    /// Indique s&apos;&apos;il s&apos;&apos;agit d&apos;&apos;une délégation automatique
+    /// </summary>
+    public bool IsAutomaticDelegation { get; set; }
+
     public virtual ContactEntity Delegatee { get; set; }
 
     public virtual ContactEntity Delegator { get; set; }

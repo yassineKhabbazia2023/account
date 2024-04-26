@@ -50,7 +50,7 @@ public partial class ContactEntity
     /// <summary>
     /// Le site du contact
     /// </summary>
-    public string? Office { get; set; }
+    public string Office { get; set; }
 
     /// <summary>
     /// La date de création du contact

@@ -29,6 +29,8 @@ public static class MapDelegationDbToDelegationModel
                 Accounts = source.Account.ToAccounts(),
                 Delegatee = source.Delegatee?.ToContact(),
                 Delegator = source.Delegator?.ToContact(),
+                IsFullDelegation = source.IsFullDelegation,
+                IsAutomaticDelegation = source.IsAutomaticDelegation
             };
     }
 

@@ -56,5 +56,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string BadRequestDeploymentStatusCode = "ACC017";
         public static readonly string BadRequestDeploymentStatusMessage = "La statut de déploiement {0} n'existe pas";
+
+        public static readonly string DontHaveRightAccountsCode = "ACC018";
+        public static readonly string DontHaveRightAccountsMessage = "Impossible de créer une délégation: Vous avez pas le droit sur un des accounts.";
     }
 }

@@ -40,11 +40,7 @@ public partial class AccountContext : DbContext
 
             entity.ToTable("Account", "account");
 
-            entity.HasIndex(e => e.AccountGlobalUniqueId, "IX_Account_AccountGlobalUniqueId");
-
             entity.HasIndex(e => e.AccountNumber, "IX_Account_AccountNumber");
-
-            entity.HasIndex(e => e.AccountType, "IX_Account_AccountType");
 
             entity.HasIndex(e => e.LegalName, "IX_Account_LegalName");
 
@@ -228,11 +224,6 @@ public partial class AccountContext : DbContext
 
             entity.ToTable("Contact", "actor");
 
-            entity.HasIndex(e => e.ContactGlobalUniqueId, "IX_Contact_ContactGlobalUniqueId");
-
-            entity.Property(e => e.ContactId)
-                .ValueGeneratedNever()
-                .HasComment("L''identifiant technique");
             entity.HasIndex(e => new { e.Email, e.LastName, e.FirstName }, "IX_Contact_Email_LastName_FirstName");
 
             entity.HasIndex(e => e.Status, "IX_Contact_Status");
@@ -259,15 +250,15 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(250)
                 .IsUnicode(false)
                 .HasComment("Le nom du contact");
+            entity.Property(e => e.Office)
+                .HasMaxLength(250)
+                .IsUnicode(false)
+                .HasComment("Le site du contact");
             entity.Property(e => e.PersonaName)
                 .IsRequired()
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasComment("Le nom du persona");
-            entity.Property(e => e.Office)
-                .HasMaxLength(250)
-                .IsUnicode(false)
-                .HasComment("Le site du contact");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .IsUnicode(false)
@@ -294,6 +285,8 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.DelegateeId).HasComment("L''identifiant du délégataire");
             entity.Property(e => e.DelegatorId).HasComment("Le délégateur ");
             entity.Property(e => e.EndDate).HasComment("La date effective de la fin de la délégation");
+            entity.Property(e => e.IsAutomaticDelegation).HasComment("Indique s''il s''agit d''une délégation automatique");
+            entity.Property(e => e.IsFullDelegation).HasComment("Indique si la délégation concerne l''intégralité du portefeuille ou non");
             entity.Property(e => e.Note)
                 .HasMaxLength(255)
                 .IsUnicode(false)

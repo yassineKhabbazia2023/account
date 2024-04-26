@@ -45,10 +45,12 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 resultItem.EndDate.Should().Be(expectedItem.EndDate);
                 resultItem.Status.Should().Be(expectedItem.Status);
                 resultItem.Note.Should().Be(expectedItem.Note);
+                resultItem.IsFullDelegation.Should().Be(expected.IsFullDelegation);
+                resultItem.IsAutomaticDelegation.Should().Be(expectedItem.IsAutomaticDelegation);
 
-                for (int j = 0; j < expected.AccountIds.Count(); j++)
+                for (int j = 0; j < expected.AccountIds!.Count(); j++)
                 {
-                    resultItem.Account.Should().HaveCount(expected.AccountIds.Count());
+                    resultItem.Account.Should().HaveCount(expected.AccountIds!.Count());
                     resultItem.Account.Select(a => a.AccountId).Should().BeEquivalentTo(expected.AccountIds);
                 }
             }

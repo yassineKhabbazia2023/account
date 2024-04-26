@@ -2,10 +2,13 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.ComponentModel;
 using System.Data;
+using System.Linq;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Enum;
@@ -18,6 +21,7 @@ using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
+using Pulse.Account.Infrastructure.Utils;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -46,18 +50,23 @@ public class DelegationRepository : IDelegationRepository
             throw new NotFoundException(Errors.NotFoundContactsCode, Errors.NotFoundContactsMessage);
         }
 
-        if (!(await CheckExistingAccountsAsync(delegation.AccountIds))?.Any() == false)
+        if (!(await CheckExistingAccountsAsync(delegation.AccountIds!))?.Any() == false)
         {
             throw new NotFoundException(Errors.NotFoundAccountsCode, Errors.NotFoundAccountsMessage);
         }
 
-        var accounts = await GetAccountsAsync(delegation.AccountIds);
+        if (!await CheckContactHasAccounts(delegation.DelegatorId, delegation.AccountIds!))
+        {
+            throw new NotFoundException(Errors.DontHaveRightAccountsCode, Errors.DontHaveRightAccountsMessage);
+        }
+
+        var accounts = await GetAccountsAsync(delegation.AccountIds!);
         var delegationEntities = delegation.MapDelegationRequestToDelegationsDb(accounts.ToList());
-        var roleEntities = roles.MapRolesToRoleDb();
+        var roleEntities = RemoveExistingRoles(roles.MapRolesToRoleDb());
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            if (roles.Any())
+            if (roleEntities.Any())
             {
                 await _accountContext.RoleEntity.AddRangeAsync(roleEntities);
             }
@@ -104,22 +113,19 @@ public class DelegationRepository : IDelegationRepository
     public async Task<IEnumerable<Role>> DeleteDelegationAsync(int delegationId)
     {
         var delegationEntity = await GetDelegationAsync(delegationId);
+        delegationEntity.Status = DelegationStatus.Disabled.ToString().ToLower();
         var roles = Enumerable.Empty<Role>();
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            delegationEntity.Status = DelegationStatus.Disabled.ToString().ToLower();
             _accountContext.DelegationEntity.Update(delegationEntity);
 
-            if (delegationEntity.StartDate.Date <= DateTime.UtcNow.Date)
-            {
-                var roleEntities = await GetRoleForDelegationAsync(delegationEntity.Account.Select(a => a.AccountId), delegationEntity.DelegateeId);
+            var roleEntities = await GetRoleForDelegationAsync(delegationEntity);
 
-                if (roleEntities.Any())
-                {
-                    roles = roleEntities.MapToRoles();
-                    _accountContext.RoleEntity.RemoveRange(roleEntities);
-                }
+            if (roleEntities.Any())
+            {
+                roles = roleEntities.MapToRoles();
+                _accountContext.RoleEntity.RemoveRange(roleEntities);
             }
 
             await _accountContext.SaveChangesAsync();
@@ -128,7 +134,7 @@ public class DelegationRepository : IDelegationRepository
         return roles;
     }
 
-    public async Task<Paging<Delegation>> GetAccountDelegationsHistoryAsync(int accountId, string search, Pagination pagination)
+    public async Task<Paging<Delegation>> GetAccountDelegationsHistoryAsync(int accountId, string? search, Pagination pagination)
     {
         var delegations = new List<DelegationEntity>();
 
@@ -176,6 +182,21 @@ public class DelegationRepository : IDelegationRepository
         return validAccount;
     }
 
+    public async Task<IEnumerable<int>> GetAccountIdsForFullDelegationAsync(int delegatorId)
+    {
+        var accountIds = Enumerable.Empty<int>();
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            accountIds = await _accountContext.RoleEntity
+                            .Where(r => r.ContactId == delegatorId)
+                            .Select(a => a.AccountId)
+                            .ToListAsync();
+        });
+
+        return accountIds;
+    }
+
     private async Task<IEnumerable<int>> CheckExistingContactsAsync(IEnumerable<int> contactIds)
     {
         var missingIds = new List<int>();
@@ -187,6 +208,19 @@ public class DelegationRepository : IDelegationRepository
         });
 
         return missingIds;
+    }
+
+    private async Task<bool> CheckContactHasAccounts(int delegatorId, IEnumerable<int> accountIds)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var accountIdsExists = await _accountContext.RoleEntity
+                .Where(r => r.ContactId == delegatorId)
+                .Select(r => r.AccountId)
+                .ToListAsync();
+
+            return !accountIds.Any(id => !accountIdsExists.Contains(id));
+        });
     }
 
     private async Task<IEnumerable<AccountEntity>> GetAccountsAsync(IEnumerable<int> accountIds)
@@ -232,17 +266,53 @@ public class DelegationRepository : IDelegationRepository
         return tDelegation;
     }
 
-    private async Task<IEnumerable<RoleEntity>> GetRoleForDelegationAsync(IEnumerable<int> accountIds, int contactId)
+    private async Task<IEnumerable<RoleEntity>> GetRoleForDelegationAsync(DelegationEntity delegationEntity)
     {
         var roles = Enumerable.Empty<RoleEntity>();
+        var existingRoles = new List<RoleEntity>();
+        var existingDelegations = Enumerable.Empty<DelegationEntity>();
+        var accountIds = delegationEntity.Account.Select(a => a.AccountId);
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
+            existingDelegations = await _accountContext.DelegationEntity
+                .Include(d => d.Account)
+                .Where(d => d.DelegationId != delegationEntity.DelegationId && d.Status.Equals(DelegationStatus.Enabled.ToString().ToLower())
+                    && d.DelegateeId == delegationEntity.DelegateeId && d.Account.Any(a => accountIds.Contains(a.AccountId)))
+                .ToListAsync();
+
             roles = await _accountContext.RoleEntity
-                .Where(r => accountIds.Contains(r.AccountId) && r.ContactId == contactId && r.IsDelegation == true)
+                .Where(r => accountIds.Contains(r.AccountId) && r.ContactId == delegationEntity.DelegateeId)
                 .ToListAsync();
         });
 
-        return roles;
+        foreach(var delegation in existingDelegations)
+        {
+            foreach(var account in delegation.Account)
+            {
+                existingRoles.Add(new RoleEntity { ContactId = delegation.DelegateeId, AccountId = account.AccountId });
+            }
+        }
+
+        return roles.Except(existingRoles, new RoleComparer());
+    }
+
+    private IEnumerable<RoleEntity> RemoveExistingRoles(IEnumerable<RoleEntity> roles)
+    {
+        var accountIds = roles.Select(r => r.AccountId).ToList();
+        var contactIds = roles.Select(r => r.ContactId).ToList();
+
+        // Convertir les listes en chaînes pour la requête SQL
+        string accountIdsString = string.Join(",", accountIds.Select(id => $"{id}"));
+        string contactIdsString = string.Join(",", contactIds.Select(id => $"{id}"));
+
+        var existingRoles = _accountContext
+            .RoleEntity
+            .Where(r => accountIds.Contains(r.AccountId) && contactIds.Contains(r.ContactId))
+            .ToList();
+
+        var rolesToCreate = roles.Except(existingRoles, new RoleComparer());
+
+        return rolesToCreate;
     }
 }

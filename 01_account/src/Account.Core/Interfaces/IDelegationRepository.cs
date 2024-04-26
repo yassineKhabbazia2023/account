@@ -21,4 +21,6 @@ public interface IDelegationRepository
     Task<Paging<Delegation>> GetAccountDelegationsHistoryAsync(int accountId, string? search, Pagination pagination);
 
     Task<bool> DoesAccountExistAsync(int accountId);
+
+    Task<IEnumerable<int>> GetAccountIdsForFullDelegationAsync(int delegatorId);
 }

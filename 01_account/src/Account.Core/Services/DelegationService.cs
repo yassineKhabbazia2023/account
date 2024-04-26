@@ -32,7 +32,7 @@ public class DelegationService : IDelegationService
 
     public async Task CreateDelegationAsync(CreateDelegationRequest delegation)
     {
-        if (delegation is null || !delegation.DelegationDetails.Any() || delegation.AccountIds?.Any() is not true)
+        if (delegation is null || !delegation.DelegationDetails.Any() || (!delegation.IsFullDelegation && delegation.AccountIds?.Any() is not true))
         {
             throw new BadRequestException(Errors.CreateDelegationCode, Errors.CreateDelegationMessage);
         }
@@ -42,6 +42,11 @@ public class DelegationService : IDelegationService
         if (!DelegationValidation.ValidateEndDateDelegation(delegation.DelegationDetails))
         {
             throw new BadRequestException(Errors.DelegationEndDateInvalidCode, Errors.DelegationEndDateInvalidMessage);
+        }
+
+        if (delegation.IsFullDelegation)
+        {
+            delegation.AccountIds = await _delegationRepository.GetAccountIdsForFullDelegationAsync(delegation.DelegatorId);
         }
 
         var roles = CreateRoleRequests(delegation);
