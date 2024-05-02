@@ -146,7 +146,7 @@ public class DelegationRepository : IDelegationRepository
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
                                         .Where(d => d.Account.Any(a => a.AccountId == accountId))
-                                        .OrderBy(d => d.DelegationId);
+                                        .OrderByDescending(d => d.CreationDate);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -282,7 +282,8 @@ public class DelegationRepository : IDelegationRepository
                 .ToListAsync();
 
             roles = await _accountContext.RoleEntity
-                .Where(r => accountIds.Contains(r.AccountId) && r.ContactId == delegationEntity.DelegateeId)
+                .Where(r => accountIds.Contains(r.AccountId) && r.ContactId == delegationEntity.DelegateeId
+                    && r.IsDelegation == true)
                 .ToListAsync();
         });
 
