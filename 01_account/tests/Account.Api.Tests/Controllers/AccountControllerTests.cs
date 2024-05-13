@@ -155,15 +155,22 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var accountId = 6000;
-            var expected = _fixture.Create<List<Contact>>();
+            var expected = _fixture.Create<Paging<Contact>>();
 
             var accountService = new Mock<IAccountService>(MockBehavior.Strict);
-            accountService.Setup(service => service.GetContactsAccountAsync(It.IsAny<int>(), It.IsAny<ContactType?>()))
+            accountService.Setup(service => service.GetContactsAccountAsync(It.IsAny<int>(), It.IsAny<SearchContactsAccountCriteria>(), It.IsAny<Pagination>()))
                 .ReturnsAsync(expected);
             var accountController = new AccountController(accountService.Object);
+            var criteria = new SearchContactsAccountCriteria();
+
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4
+            };
 
             // Act
-            var result = await accountController.GetContactsAccountAsync(accountId, null!);
+            var result = await accountController.GetContactsAccountAsync(accountId, criteria, pagination);
 
             // Assert
             Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);

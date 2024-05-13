@@ -47,9 +47,14 @@ namespace Pulse.Account.Core.Services
             await _accountRepository.UpdateAccountAsync(accountId, accountDetail);
         }
 
-        public async Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId, ContactType? type)
+        public async Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination? pagination)
         {
-            return await _accountRepository.GetContactsAccountAsync(accountId, type);
+            pagination = pagination ?? new Pagination();
+            pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
+            pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
+
+            criteria = criteria ?? new SearchContactsAccountCriteria();
+            return await _accountRepository.GetContactsAccountAsync(accountId, criteria, pagination);
         }
 
         public async Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request, Pagination? pagination)

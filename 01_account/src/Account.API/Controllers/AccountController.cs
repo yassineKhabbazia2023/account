@@ -89,16 +89,17 @@ namespace Pulse.Account.API.Controllers
         /// <summary>
         /// Récupérer la liste des contacts d'une entité morale.
         /// </summary>
-        /// <param name="accountId">Identifiant de l'entité morale.</param>
-        /// <param name="type">Th contact type.</param>
+        /// <param name="accountId">ID de l'entité morale.</param>
+        /// <param name="criteria">Critère de recherche.</param>
+        /// <param name="pagination">Paramètre de pagination.</param>
         /// <returns>La liste des contacts.</returns>
         [HttpGet("{accountId}/contacts")]
         [ProducesResponseType(typeof(IEnumerable<Contact>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<IEnumerable<Contact>>> GetContactsAccountAsync(int accountId, ContactType? type)
+        public async Task<ActionResult<Paging<Contact>>> GetContactsAccountAsync(int accountId, [FromQuery] SearchContactsAccountCriteria criteria, [FromQuery] Pagination? pagination)
         {
-            var result = await _accountService.GetContactsAccountAsync(accountId, type);
+            var result = await _accountService.GetContactsAccountAsync(accountId, criteria, pagination);
             return Ok(result);
         }
 

@@ -134,24 +134,48 @@ namespace Pulse.Account.Infrastructure.Repositories
             });
         }
 
-        public async Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId, ContactType? type)
+        public async Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination pagination)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                IQueryable<RoleEntity> query =
-                    _accountContext.RoleEntity
-                        .AsNoTracking()
-                        .Include(x => x.Contact)
-                        .Where(x => x.AccountId == accountId);
+                IQueryable<ContactEntity> query = GetContactEntitiesByAccountId(accountId);
 
-                if (type != null && System.Enum.IsDefined(typeof(ContactType), type))
+                if (!string.IsNullOrWhiteSpace(criteria.Search))
                 {
-                    query = query.Where(x => x.Contact.Type.Equals(type.ToString()));
+                    criteria.Search = criteria.Search.ToLowerInvariant();
+                    query = from n in query
+                            where n.Email.ToLower().Contains(criteria.Search)
+                                  || n.FirstName.ToLower().Contains(criteria.Search)
+                                  || n.LastName.ToLower().Contains(criteria.Search)
+                                  || n.PersonaName.ToLower().Contains(criteria.Search)
+                                  || (n.Office != null && n.Office.ToLower().Contains(criteria.Search))
+                            select n;
                 }
 
-                var result = await query.ToListAsync();
+                if (criteria.Type != null && System.Enum.IsDefined(typeof(ContactType), criteria.Type))
+                {
+                    query = query.Where(x => x.Type.Equals(criteria.Type.ToString()));
+                }
 
-                return result.MapToContacts();
+                var totalItems = await query.CountAsync();
+
+                var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+
+                query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
+                query = query.Take(pagination.PageSize == 0 ? totalItems : pagination.PageSize);
+
+                var result = await query.ToListAsync();
+                if(result == null)
+                {
+                    throw new NotFoundException(Errors.NotFoundContactsCode, Errors.NotFoundContactsMessage);
+                }
+
+                var contacts = result.Select(c => c.MapToContact());
+
+                return contacts!.MapToPagingContact(
+                    pagination.PageNumber,
+                    totalItems,
+                    totalPages);
             });
         }
 
@@ -205,6 +229,14 @@ namespace Pulse.Account.Infrastructure.Repositories
                             .Include(x => x.DeploymentEntity)
                             .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
                             .OrderBy(a => a.LegalName);
+        }
+
+        private IQueryable<ContactEntity> GetContactEntitiesByAccountId(int accountId)
+        {
+            return _accountContext.RoleEntity.AsNoTracking()
+                        .Include(x => x.Contact)
+                        .Where(x => x.AccountId == accountId)
+                        .Select(x => x.Contact);
         }
     }
 }

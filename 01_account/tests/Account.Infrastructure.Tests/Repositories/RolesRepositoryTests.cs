@@ -62,7 +62,7 @@ public class RolesRepositoryTests
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
             {
                 CurrentPage = 1,
-                Items = accountObjects,
+                Items = accountObjects!,
                 TotalItems = accountObjects.Count(),
                 TotalPage = 1
             };
@@ -259,7 +259,7 @@ public class RolesRepositoryTests
             var role = await roleObjects.FirstOrDefaultAsync();
 
             // Assert
-            Assert.Equal(false, role.IsSignatory);
+            Assert.Equal(false, role!.IsSignatory);
         }
     }
 
@@ -308,14 +308,26 @@ public class RolesRepositoryTests
                 IsSignatory = true
             });
             var accountRepository = new AccountRepository(context);
-            var rolesBefore = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, It.IsAny<ContactType>());
+
+            var criteria = new SearchContactsAccountCriteria
+            {
+                Type = It.IsAny<ContactType>(),
+            };
+
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4
+            };
+
+            var rolesBefore = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, pagination);
 
             // Act
             await roleRepository.DeleteRoleAsync(accountMock.AccountId, contactMock.First().ContactId);
 
             // Assert
-            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, It.IsAny<ContactType>());
-            Assert.Equal(rolesBefore.Count() - 1, roles.Count());
+            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, pagination);
+            Assert.Equal(rolesBefore.TotalItems - 1, roles.TotalItems);
         }
     }
 }

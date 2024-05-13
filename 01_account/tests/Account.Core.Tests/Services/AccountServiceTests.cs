@@ -136,20 +136,61 @@ namespace Pulse.Account.Core.Tests.Services
             // Arrange
             var accountId = 6000;
             var fixture = new Fixture();
-            var expected = fixture.Create<List<Contact>>();
+            var expected = fixture.Create<Paging<Contact>>();
 
             var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
-            accountRepository.Setup(repo => repo.GetContactsAccountAsync(It.IsAny<int>(), It.IsAny<ContactType?>()))
-                .Callback<int, ContactType?>((id, type) => id.Should().Be(accountId))
+            accountRepository.Setup(repo => repo.GetContactsAccountAsync(It.IsAny<int>(), It.IsAny<SearchContactsAccountCriteria>(), It.IsAny<Pagination>()))
+                .Callback<int, SearchContactsAccountCriteria, Pagination>((accId, criteria, pagination) => accId.Should().Be(accountId))
                 .ReturnsAsync(expected);
 
             var accountService = new AccountService(accountRepository.Object);
+            var searchCriteria = new SearchContactsAccountCriteria
+            {
+                Search = string.Empty,
+            };
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4
+            };
 
             // Act
-            var result = await accountService.GetContactsAccountAsync(accountId, null!);
+            var result = await accountService.GetContactsAccountAsync(accountId, searchCriteria, pagination);
 
             // Assert
-            Assert.Equal(expected, result);
+            result.Should().Be(expected);
+        }
+
+        [Fact]
+        public async Task GetContactsAccountAsync_WhenInvalidAccountId_ShouldThrow_NotFoundException()
+        {
+            // Arrange
+            var accountId = 6000;
+            var fixture = new Fixture();
+            var expected = fixture.Create<Paging<Contact>>();
+
+            var accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
+            accountRepository.Setup(repo => repo.GetContactsAccountAsync(It.IsAny<int>(), It.IsAny<SearchContactsAccountCriteria>(), It.IsAny<Pagination>()))
+                .Throws(new NotFoundException(Errors.NotFoundContactsCode, Errors.NotFoundContactsMessage));
+
+            var accountService = new AccountService(accountRepository.Object);
+            var searchCriteria = new SearchContactsAccountCriteria
+            {
+                Search = string.Empty,
+            };
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4
+            };
+
+            // Act
+            var result = async () => await accountService.GetContactsAccountAsync(accountId, searchCriteria, pagination);
+
+            // Assert
+            var exception = await Assert.ThrowsAsync<NotFoundException>(result);
+            Assert.Equal(Errors.NotFoundContactsCode, exception.Code);
+            Assert.Equal(Errors.NotFoundContactsMessage, exception.Message);
         }
 
         [Fact]

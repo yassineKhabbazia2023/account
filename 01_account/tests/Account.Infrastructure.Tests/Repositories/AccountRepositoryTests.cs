@@ -132,7 +132,6 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     PageSize = 4
                 };
 
-
                 // Act
                 var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, pagination);
 
@@ -182,7 +181,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     context.AccountEntity.Add(accountMock);
                     context.SaveChanges();
 
-                    resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId)!);
+                    resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId) !);
                 }
 
                 var accountRepository = new AccountRepository(context);
@@ -227,7 +226,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var accountPaging = new Paging<AccountModel>()
                 {
                     CurrentPage = 1,
-                    Items = Enumerable.Empty<AccountModel>()!,
+                    Items = Enumerable.Empty<AccountModel>() !,
                     TotalItems = 0,
                     TotalPage = 1
                 };
@@ -403,17 +402,21 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 if (type == null || contactMock.Type == type.ToString())
                 {
-                    resultExpected.Add(contactMock.MapToContact()!);
+                    resultExpected.Add(contactMock.MapToContact() !);
                 }
             }
 
             var accountRepository = new AccountRepository(context);
+            var criteria = new SearchContactsAccountCriteria
+            {
+                Type = type,
+            };
 
             // Act
-            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, type);
+            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, new Pagination());
 
             // Assert
-            Assert.Equivalent(resultExpected, roles);
+            Assert.Equivalent(resultExpected, roles.Items);
         }
 
         [Fact]
@@ -455,7 +458,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                     resultExpected.AddRange(accountsMock[i].RoleEntity
                         .Where(x => x.Contact.Type == "customer")
-                        .Select(x => x.Contact.ToContact()!));
+                        .Select(x => x.Contact.ToContact() !));
                 }
 
                 var accountRepository = new AccountRepository(context);

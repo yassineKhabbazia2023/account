@@ -19,7 +19,7 @@ namespace Pulse.Account.Core.Interfaces
 
         public Task UpdateAccountAsync(int accountId, AccountDetail accountDetail);
 
-        Task<IEnumerable<Contact>> GetContactsAccountAsync(int accountId, ContactType? type);
+        public Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination? pagination);
 
         Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request, Pagination? pagination);
     }
