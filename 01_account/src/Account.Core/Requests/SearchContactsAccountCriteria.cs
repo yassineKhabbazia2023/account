@@ -11,5 +11,7 @@ public class SearchContactsAccountCriteria
 {
     public string? Search { get; set; }
 
+    public Sorting? Sorting { get; set; }
+
     public ContactType? Type { get; set; }
 }

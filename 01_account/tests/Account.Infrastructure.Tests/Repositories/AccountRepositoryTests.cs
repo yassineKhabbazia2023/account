@@ -3,8 +3,10 @@
 // </copyright>
 
 using AutoFixture;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Extensions;
@@ -365,10 +367,14 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Theory]
-        [InlineData(null)]
-        [InlineData(ContactType.Collaborator)]
-        [InlineData(ContactType.Customer)]
-        public async Task GetContactsAccountAsync_WhenAccountIdIsValid_ShouldReturnContactsAccount(ContactType? type)
+        [InlineData(null, null, false)]
+        [InlineData(null, "name", false)]
+        [InlineData(null, "name", true)]
+        [InlineData(ContactType.Collaborator, null, false)]
+        [InlineData(ContactType.Customer, null, false)]
+        [InlineData(ContactType.Collaborator, "name", false)]
+        [InlineData(ContactType.Customer, "name", true)]
+        public async Task GetContactsAccountAsync_WhenAccountIdIsValid_ShouldReturnContactsAccount(ContactType? type, string? sorting, bool descending)
         {
             // Arrange
             using var context = new AccountContext(_dbContextOptions);
@@ -397,13 +403,15 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                                        .With(e => e.Account, accountMock)
                                        .Create();
 
-                context.RoleEntity.Add(roleMock);
-                context.SaveChanges();
-
-                if (type == null || contactMock.Type == type.ToString())
+                if (type == null || contactMock.Type == type.ToString().ToLower())
                 {
+
+                    contactMock.Type = type.ToString();
                     resultExpected.Add(contactMock.MapToContact() !);
                 }
+
+                context.RoleEntity.Add(roleMock);
+                context.SaveChanges();
             }
 
             var accountRepository = new AccountRepository(context);
@@ -411,12 +419,65 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             {
                 Type = type,
             };
+            if (!string.IsNullOrEmpty(sorting))
+            {
+                criteria.Sorting = new Sorting
+                {
+                    Field = sorting,
+                    Descending = descending,
+                };
+
+                if (descending)
+                {
+                    resultExpected = resultExpected.OrderBy(c => c.GetType().GetProperty(sorting)).ToList();
+                }
+                else
+                {
+                    resultExpected = resultExpected.OrderByDescending(c => c.GetType().GetProperty(sorting)).ToList();
+                }
+            }
+
+            var pagination = new Pagination();
+            pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
+            pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
 
             // Act
-            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, new Pagination());
+            var contacts = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, pagination);
 
             // Assert
-            Assert.Equivalent(resultExpected, roles.Items);
+            Assert.Equivalent(resultExpected, contacts.Items);
+        }
+
+        [Fact]
+        public async Task GetContactsAccountAsync_WhenSortingCriteriaIsInvalid_ShouldThrowBadRequestExceptionEsync()
+        {
+            // Arrange
+            using var context = new AccountContext(_dbContextOptions);
+
+            _fixture.Customizations.Add(new ContactEntityTypeSpecimenBuilder());
+            var resultExpected = new List<Contact>();
+
+            var accountMock = _fixture.Build<AccountEntity>()
+                                           .Without(a => a.Delegation)
+                                           .Without(a => a.RoleEntity)
+                                           .Create();
+
+            var accountRepository = new AccountRepository(context);
+            var criteria = new SearchContactsAccountCriteria
+            {
+                Type = It.IsAny<ContactType>(),
+            };
+
+            criteria.Sorting = new Sorting
+            {
+                Field = "bad",
+            };
+
+            // Act
+            Task Accounts() => accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, new Pagination());
+
+            // Assert
+            await Assert.ThrowsAsync<BadRequestException>(Accounts);
         }
 
         [Fact]

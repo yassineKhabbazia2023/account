@@ -3,6 +3,8 @@
 // </copyright>
 
 using System.Data;
+using System.Linq.Expressions;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -157,12 +159,14 @@ namespace Pulse.Account.Infrastructure.Repositories
                     query = query.Where(x => x.Type.Equals(criteria.Type.ToString()));
                 }
 
+                query = GetContactEntitiesSorted(query, criteria.Sorting);
+
                 var totalItems = await query.CountAsync();
 
                 var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
                 query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
-                query = query.Take(pagination.PageSize == 0 ? totalItems : pagination.PageSize);
+                query = query.Take(pagination.PageSize);
 
                 var result = await query.ToListAsync();
                 if(result == null)
@@ -237,6 +241,42 @@ namespace Pulse.Account.Infrastructure.Repositories
                         .Include(x => x.Contact)
                         .Where(x => x.AccountId == accountId)
                         .Select(x => x.Contact);
+        }
+
+        private static IQueryable<ContactEntity> GetContactEntitiesSorted(IQueryable<ContactEntity> query, Sorting? sorting)
+        {
+            if (sorting != null)
+            {
+                Expression<Func<ContactEntity, string>> exp = null!;
+                switch (sorting.Field.ToLowerInvariant())
+                {
+                    case "name":
+                        exp = c => c.FirstName + c.LastName;
+                        break;
+                    case "email":
+                        exp = c => c.Email;
+                        break;
+                    case "function":
+                        exp = c => c.PersonaName;
+                        break;
+                    case "office":
+                        exp = c => c.Office;
+                        break;
+                    default:
+                        throw new BadRequestException(Errors.BadRequestContactsAccountCode, string.Format(Errors.BadRequestContactsAccountMessage, sorting.Field));
+                }
+
+                if (sorting.Descending)
+                {
+                    query = query.OrderByDescending(exp);
+                }
+                else
+                {
+                    query = query.OrderBy(exp);
+                }
+            }
+
+            return query;
         }
     }
 }

@@ -59,5 +59,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string DontHaveRightAccountsCode = "ACC018";
         public static readonly string DontHaveRightAccountsMessage = "Impossible de créer une délégation: Vous avez pas le droit sur un des accounts.";
+
+        public static readonly string BadRequestContactsAccountCode = "ACC019";
+        public static readonly string BadRequestContactsAccountMessage = "Le champ demandé {0} n'existe pas";
     }
 }
