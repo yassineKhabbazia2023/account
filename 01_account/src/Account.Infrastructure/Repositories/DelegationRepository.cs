@@ -87,7 +87,7 @@ public class DelegationRepository : IDelegationRepository
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
-                                        .Where(d => d.DelegateeId == delegateeId && d.Status != DelegationStatus.Disabled.ToString().ToLower())
+                                        .Where(d => d.DelegateeId == delegateeId && !d.Status.Equals(DelegationStatus.Disabled.ToString().ToLower()))
                                         .ToListAsync();
         });
 
@@ -104,7 +104,7 @@ public class DelegationRepository : IDelegationRepository
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
-                                        .Where(d => d.DelegatorId == delegatorId && d.DelegateeId == delegateeId && d.Status != DelegationStatus.Disabled.ToString().ToLower())
+                                        .Where(d => d.DelegatorId == delegatorId && d.DelegateeId == delegateeId && !d.Status.Equals(DelegationStatus.Disabled.ToString().ToLower()))
                                         .ToListAsync();
         });
 
