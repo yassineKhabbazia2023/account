@@ -47,7 +47,7 @@ public partial class AccountEntity
     /// <summary>
     /// L&apos;&apos;identifiant technique du code Naf
     /// </summary>
-    public int NafId { get; set; }
+    public int? NafId { get; set; }
 
     /// <summary>
     /// L&apos;&apos;entité est-elle activé

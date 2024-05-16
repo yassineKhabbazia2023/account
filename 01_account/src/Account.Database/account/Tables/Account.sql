@@ -7,7 +7,7 @@
     [AccountType]             VARCHAR (50)     NULL,
     [Email]                   NVARCHAR (100)   NOT NULL,
     [HubId]                   INT              NULL,
-    [NafId]                   INT              NOT NULL,
+    [NafId]                   INT              NULL,
     [IsActive]                BIT              NOT NULL,
     [SourceAccountNumber]     VARCHAR (50)     NOT NULL,
     [SectorCode]              VARCHAR (50)     NULL,

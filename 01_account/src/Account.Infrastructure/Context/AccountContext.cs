@@ -170,7 +170,6 @@ public partial class AccountContext : DbContext
 
             entity.HasOne(d => d.Naf).WithMany(p => p.AccountEntity)
                 .HasForeignKey(d => d.NafId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("C_Account_NafId_FK");
         });
 
