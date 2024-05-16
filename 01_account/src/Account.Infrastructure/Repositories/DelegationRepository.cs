@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using Polly;
 using Polly.Retry;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
@@ -86,7 +87,7 @@ public class DelegationRepository : IDelegationRepository
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
-                                        .Where(d => d.DelegateeId == delegateeId)
+                                        .Where(d => d.DelegateeId == delegateeId && !d.Status.Equals(DelegationStatus.Disabled.ToString().ToLower()))
                                         .ToListAsync();
         });
 
@@ -103,7 +104,7 @@ public class DelegationRepository : IDelegationRepository
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
-                                        .Where(d => d.DelegatorId == delegatorId && d.DelegateeId == delegateeId)
+                                        .Where(d => d.DelegatorId == delegatorId && d.DelegateeId == delegateeId && !d.Status.Equals(DelegationStatus.Disabled.ToString().ToLower()))
                                         .ToListAsync();
         });
 

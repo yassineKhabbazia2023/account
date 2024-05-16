@@ -423,6 +423,47 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
+    public async Task GetContactDelegationsAsync_WhenDelegationStatusIsDisabled_ShouldReturnEmpty()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Create Account
+            var tAccount = _fixture.Create<AccountEntity>();
+            await context.AccountEntity.AddAsync(tAccount);
+            await context.SaveChangesAsync();
+
+            // Create Contacts
+            var tDelegator = _fixture.Create<ContactEntity>();
+            var tDelegatee = _fixture.Create<ContactEntity>();
+            await context.ContactEntity.AddRangeAsync(new List<ContactEntity> { tDelegator, tDelegatee });
+            await context.SaveChangesAsync();
+
+            // Try create a delegation
+            var tDelegation = new DelegationEntity
+            {
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow.AddMonths(5),
+                DelegatorId = tDelegator.ContactId,
+                DelegateeId = tDelegatee.ContactId,
+                Status = "disabled",
+                Note = "Note",
+                Account = new List<AccountEntity>
+                {
+                    tAccount
+                }
+            };
+            await context.DelegationEntity.AddAsync(tDelegation);
+            await context.SaveChangesAsync();
+
+            // Try get contact delegation
+            var repository = new DelegationRepository(context);
+            var contactDelegations = await repository.GetContactDelegationsAsync(tDelegatee.ContactId);
+
+            Assert.Equal(0, contactDelegations.Count);
+        }
+    }
+
+    [Fact]
     public async Task GetDelegationsAsync_WhenRequestIsValid_ShouldReturnDelegations()
     {
         using (var context = new AccountContext(_dbContextOptions))
@@ -484,6 +525,62 @@ public class DelegationRepositoryTests
             Assert.Equal(delegation.CreationDate, tDelegation.CreationDate);
             Assert.Equal(delegation.Accounts!.Count(), tDelegation.Account.Count);
             Assert.Equal(delegation.Delegator!.ContactId, tDelegation.DelegatorId);
+        }
+    }
+
+    [Fact]
+    public async Task GetDelegationsAsync_WhenDelegationStatusIsDisabled_ShouldReturnEmpty()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Create Account
+            var tAccount = _fixture.Create<AccountEntity>();
+            await context.AccountEntity.AddAsync(tAccount);
+            await context.SaveChangesAsync();
+
+            // Create Contacts
+            var tDelegator = _fixture.Create<ContactEntity>();
+            var tDelegatee = _fixture.Create<ContactEntity>();
+            var anotherDelegatee = _fixture.Create<ContactEntity>();
+            await context.ContactEntity.AddRangeAsync(new List<ContactEntity> { tDelegator, tDelegatee, anotherDelegatee });
+            await context.SaveChangesAsync();
+
+            // Try create a delegation
+            var tDelegation = new DelegationEntity()
+            {
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow.AddMonths(5),
+                DelegatorId = tDelegator.ContactId,
+                DelegateeId = tDelegatee.ContactId,
+                Status = "disabled",
+                Note = "Note",
+                Account = new List<AccountEntity>
+                {
+                    tAccount
+                }
+            };
+
+            var anothetDelegationEntity = new DelegationEntity()
+            {
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow.AddMonths(15),
+                DelegatorId = tDelegator.ContactId,
+                DelegateeId = anotherDelegatee.ContactId,
+                Status = "disabled",
+                Note = "Note 2",
+                Account = new List<AccountEntity>
+                {
+                    tAccount
+                }
+            };
+            await context.DelegationEntity.AddRangeAsync(new List<DelegationEntity> { tDelegation, anothetDelegationEntity });
+            await context.SaveChangesAsync();
+
+            // Try get contact delegation
+            var repository = new DelegationRepository(context);
+            var delegationList = await repository.GetDelegationsAsync(tDelegator.ContactId, tDelegatee.ContactId);
+
+            Assert.Equal(0, delegationList.Count);
         }
     }
 

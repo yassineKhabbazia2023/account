@@ -43,12 +43,6 @@ namespace Pulse.Account.API.Configuration
         {
             var brokerSettings = configuration!.GetSection("BrokerSetting").Get<BrokerSetting>();
 
-            // allows to run local tests without servicebusconnection
-            if (brokerSettings.ServiceBusConnectionString == "xxx")
-            {
-                return;
-            }
-
             if (string.IsNullOrWhiteSpace(brokerSettings!.PushTopicName))
             {
                 throw new NullArgumentException(Errors.NotFoundTopicName, Errors.NotFoundTopicName);
