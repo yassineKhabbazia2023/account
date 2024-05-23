@@ -16,13 +16,16 @@ public class ContactUpdatedEventHandler : IEventHandler
 {
     private readonly ILogger<ContactUpdatedEventHandler> _logger;
     private readonly IContactEventRepository _contactEventRepository;
+    private readonly IAccountEventRepository _accountEventRepository;
 
     public ContactUpdatedEventHandler(
         ILogger<ContactUpdatedEventHandler> logger,
-        IContactEventRepository contactEventRepository)
+        IContactEventRepository contactEventRepository,
+        IAccountEventRepository accountEventRepository)
     {
         _logger = logger;
         _contactEventRepository = contactEventRepository;
+        _accountEventRepository = accountEventRepository;
     }
 
     public async Task HandleAsync(string message)
@@ -44,11 +47,9 @@ public class ContactUpdatedEventHandler : IEventHandler
 
         var contactEntity = contactEvent!.Data.ToContactEntity();
 
-        await _contactEventRepository.UpdateContactAsync(contactEntity!);
+        var accountEntity = _accountEventRepository.GetAccountBySignatory(contactEntity!.ContactId);
 
-        var accountEntity = _contactEventRepository.GetAccountBySignatory(contactEntity!.ContactId);
-
-        if (accountEntity != null)
+        if (accountEntity != null && accountEntity.Any())
         {
             var contactStatus = _contactEventRepository.GetContactById(contactEntity.ContactId)!.Status;
             int deploymentStatus = 0;
@@ -66,10 +67,12 @@ public class ContactUpdatedEventHandler : IEventHandler
                 deploymentStatus = (int)DeploymentStatus.ToDeploy;
             }
 
-            var accountIds = await _contactEventRepository.UpdateAccountStatusByContactAsync(accountEntity.Select(x => x.AccountId), deploymentStatus);
+            var accountIds = await _accountEventRepository.UpdateAccountStatusByContactAsync(accountEntity.Select(x => x.AccountId), deploymentStatus);
 
             _logger.LogInformation("L'entité avec l'identifiant: {AccountId} vient d'être modifié.", string.Join('-', accountIds));
         }
+
+        await _contactEventRepository.UpdateContactAsync(contactEntity!);
 
         _logger.LogInformation("Le contact avec l'identifiant: {ContactId} vient d'être modifié.", contactEntity.ContactId);
     }
