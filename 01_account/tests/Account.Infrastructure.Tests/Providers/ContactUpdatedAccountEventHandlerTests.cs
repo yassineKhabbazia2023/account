@@ -20,10 +20,11 @@ public class ContactUpdatedAccountEventHandlerTests
         var repositoryMock = new Mock<IAccountEventRepository>(MockBehavior.Strict);
         repositoryMock.Setup(repository => repository.GetContactById(123)).Returns(new ContactEntity()
         {
-            ContactId = 123
+            ContactId = 123,
+            Status = "Connected"
         }).Verifiable();
         repositoryMock.Setup(repository => repository.GetAccountQueryByContactId(It.IsAny<int>())).Returns(new List<AccountEntity>()).Verifiable();
-        repositoryMock.Setup(repository => repository.UpdateAccountStatusByContactAsync(new List<int>(), 1)).ReturnsAsync(new List<int>()).Verifiable();
+        repositoryMock.Setup(repository => repository.UpdateAccountStatusByContactAsync(new List<int>(), 3)).ReturnsAsync(new List<int>()).Verifiable();
 
         loggerMock.Setup(x => x.Log(
             It.IsAny<LogLevel>(),
@@ -39,6 +40,6 @@ public class ContactUpdatedAccountEventHandlerTests
         await handler.HandleAsync(message);
 
         // Assert
-        repositoryMock.Verify(repo => repo.UpdateAccountStatusByContactAsync(new List<int>(), 1), Times.Once);
+        repositoryMock.Verify(repo => repo.UpdateAccountStatusByContactAsync(new List<int>(), 3), Times.Once);
     }
 }
