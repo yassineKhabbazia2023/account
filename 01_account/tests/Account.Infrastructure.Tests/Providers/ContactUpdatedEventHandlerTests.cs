@@ -98,9 +98,15 @@ public class ContactUpdatedEventHandlerTests
             ContactId = 123,
             Status = "Connected"
         }).Verifiable();
+
+        var accountEntityMock = new AccountEntity()
+        {
+            AccountId = 1,
+            LegalName = "test"
+        };
         repositoryContactMock.Setup(repository => repository.UpdateContactAsync(It.IsAny<ContactEntity>())).Returns(Task.CompletedTask).Verifiable();
-        repositoryAccountMock.Setup(repository => repository.GetAccountBySignatory(It.IsAny<int>())).Returns(new List<AccountEntity>()).Verifiable();
-        repositoryAccountMock.Setup(repository => repository.UpdateAccountStatusByContactAsync(new List<int>(), 3)).ReturnsAsync(new List<int>()).Verifiable();
+        repositoryAccountMock.Setup(repository => repository.GetAccountBySignatory(It.IsAny<int>())).Returns(new List<AccountEntity>() { accountEntityMock }).Verifiable();
+        repositoryAccountMock.Setup(repository => repository.UpdateAccountStatusByContactAsync(new List<int>() { 1 }, 3)).ReturnsAsync(new List<int>()).Verifiable();
 
         loggerMock.Setup(x => x.Log(
             It.IsAny<LogLevel>(),
@@ -118,6 +124,6 @@ public class ContactUpdatedEventHandlerTests
         // Assert
         repositoryAccountMock.Verify(repo => repo.GetAccountBySignatory(It.IsAny<int>()), Times.Once);
         repositoryContactMock.Verify(repo => repo.GetContactById(123), Times.Once);
-        repositoryAccountMock.Verify(repo => repo.UpdateAccountStatusByContactAsync(new List<int>(), 3), Times.Once);
+        repositoryAccountMock.Verify(repo => repo.UpdateAccountStatusByContactAsync(new List<int>() { 1 }, 3), Times.Once);
     }
 }
