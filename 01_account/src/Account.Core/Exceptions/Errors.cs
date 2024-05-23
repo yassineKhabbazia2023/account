@@ -51,8 +51,8 @@ namespace Pulse.Account.Core.Exceptions
         public static readonly string NotFoundTopicName = "ACC015";
         public static readonly string NotFoundTopicNameMessage = "Le nom du topic doit être renseigné";
 
-        public static readonly string NotFoundServiceBusConnectionString = "ACC016";
-        public static readonly string NotFoundServiceBusConnectionStringMessage = "La chaine de connexion au service bus doit être renseignée";
+        public static readonly string NotFoundServiceBusNamespaceCode = "ACC016";
+        public static readonly string NotFoundServiceBusNamespaceMessage = "La namespace du service bus doit être renseignée";
 
         public static readonly string BadRequestDeploymentStatusCode = "ACC017";
         public static readonly string BadRequestDeploymentStatusMessage = "La statut de déploiement {0} n'existe pas";
@@ -62,5 +62,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string BadRequestContactsAccountCode = "ACC019";
         public static readonly string BadRequestContactsAccountMessage = "Le champ demandé {0} n'existe pas";
+
+        public static readonly string NotFoundManagedIdentityClientIdCode = "ACC020";
+        public static readonly string NotFoundManagedIdentityClientIdMessage = "L'identité du clientID doit être renseignée";
     }
 }

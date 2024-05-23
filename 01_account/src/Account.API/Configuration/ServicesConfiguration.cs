@@ -43,20 +43,26 @@ namespace Pulse.Account.API.Configuration
         {
             var brokerSettings = configuration!.GetSection("BrokerSetting").Get<BrokerSetting>();
 
-            if (string.IsNullOrWhiteSpace(brokerSettings!.PushTopicName))
+            if (brokerSettings!.PushTopicName == null || !brokerSettings!.PushTopicName.Any())
             {
                 throw new NullArgumentException(Errors.NotFoundTopicName, Errors.NotFoundTopicName);
             }
 
-            if (string.IsNullOrWhiteSpace(brokerSettings!.ServiceBusConnectionString))
+            if (string.IsNullOrWhiteSpace(brokerSettings!.ServiceBusNamespace))
             {
-                throw new NullArgumentException(Errors.NotFoundServiceBusConnectionString, Errors.NotFoundServiceBusConnectionStringMessage);
+                throw new NullArgumentException(Errors.NotFoundServiceBusNamespaceCode, Errors.NotFoundServiceBusNamespaceMessage);
+            }
+
+            if (string.IsNullOrWhiteSpace(brokerSettings!.ManagedIdentityClientId))
+            {
+                throw new NullArgumentException(Errors.NotFoundManagedIdentityClientIdCode, Errors.NotFoundManagedIdentityClientIdMessage);
             }
 
             var options = new BrokerOptions
             {
-                ServiceBusConnectionString = brokerSettings!.ServiceBusConnectionString,
-                PushTopicName = brokerSettings.PushTopicName
+                ServiceBusNamespace = brokerSettings.ServiceBusNamespace,
+                ManagedIdentityClientId = brokerSettings.ManagedIdentityClientId,
+                PushTopicNames = brokerSettings.PushTopicName
             };
 
             if (brokerSettings?.PullTopics?.Any() == true)
