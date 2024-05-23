@@ -10,6 +10,7 @@ using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Core.Constants;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
+using Pulse.Authorization.Infrastructure.Extensions;
 
 namespace Pulse.Account.Infrastructure.Providers;
 
@@ -21,6 +22,7 @@ public class AccountEventRepository : IAccountEventRepository
     public AccountEventRepository(AccountContext accountContext)
     {
         _accountContext = accountContext;
+        _accountContext.HandleEFCoreFailure();
 
         _retryPolicy = Policy
                 .Handle<SqlException>()
