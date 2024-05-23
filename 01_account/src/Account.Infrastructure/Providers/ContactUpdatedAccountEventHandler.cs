@@ -50,8 +50,8 @@ public class ContactUpdatedAccountEventHandler : IEventHandler
 
         if(accountEntity != null)
         {
-            var deploymentStatus = contactEntity.Status == ContactStatus.Invited.ToString().ToLower() ? DeploymentStatus.InProgress :
-                                    (contactEntity.Status == ContactStatus.Connected.ToString().ToLower() ? DeploymentStatus.Connected : DeploymentStatus.ToDeploy);
+            var deploymentStatus = contactEntity.Status.Equals(ContactStatus.Invited.ToString(), StringComparison.OrdinalIgnoreCase) ? DeploymentStatus.InProgress :
+                                    (contactEntity.Status.Equals(ContactStatus.Connected.ToString(), StringComparison.OrdinalIgnoreCase) ? DeploymentStatus.Connected : DeploymentStatus.ToDeploy);
 
             var accountIds = await _accountEventRepository.UpdateAccountStatusByContactAsync(accountEntity.Select(x => x.AccountId), (int)deploymentStatus);
 
