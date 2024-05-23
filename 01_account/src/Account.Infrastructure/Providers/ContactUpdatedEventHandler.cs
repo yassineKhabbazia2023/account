@@ -8,6 +8,7 @@ using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.IntegrationEvents;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
+using Pulse.Account.Core.Enum;
 
 namespace Pulse.Account.Infrastructure.Providers;
 
@@ -15,13 +16,16 @@ public class ContactUpdatedEventHandler : IEventHandler
 {
     private readonly ILogger<ContactUpdatedEventHandler> _logger;
     private readonly IContactEventRepository _contactEventRepository;
+    private readonly IAccountEventRepository _accountEventRepository;
 
     public ContactUpdatedEventHandler(
         ILogger<ContactUpdatedEventHandler> logger,
-        IContactEventRepository contactEventRepository)
+        IContactEventRepository contactEventRepository,
+        IAccountEventRepository accountEventRepository)
     {
         _logger = logger;
         _contactEventRepository = contactEventRepository;
+        _accountEventRepository = accountEventRepository;
     }
 
     public async Task HandleAsync(string message)
@@ -42,6 +46,31 @@ public class ContactUpdatedEventHandler : IEventHandler
         }
 
         var contactEntity = contactEvent!.Data.ToContactEntity();
+
+        var accountEntity = _accountEventRepository.GetAccountBySignatory(contactEntity!.ContactId);
+
+        if (accountEntity != null && accountEntity.Any())
+        {
+            var contactStatus = _contactEventRepository.GetContactById(contactEntity.ContactId)!.Status;
+            int deploymentStatus = 0;
+
+            if (contactStatus.Equals(ContactStatus.Invited.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                deploymentStatus = (int)DeploymentStatus.InProgress;
+            }
+            else if (contactStatus.Equals(ContactStatus.Connected.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                deploymentStatus = (int)DeploymentStatus.Connected;
+            }
+            else
+            {
+                deploymentStatus = (int)DeploymentStatus.ToDeploy;
+            }
+
+            var accountIds = await _accountEventRepository.UpdateAccountStatusByContactAsync(accountEntity.Select(x => x.AccountId), deploymentStatus);
+
+            _logger.LogInformation("L'entité avec l'identifiant: {AccountId} vient d'être modifié.", string.Join('-', accountIds));
+        }
 
         await _contactEventRepository.UpdateContactAsync(contactEntity!);
 

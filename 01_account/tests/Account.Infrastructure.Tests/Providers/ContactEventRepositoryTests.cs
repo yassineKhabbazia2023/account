@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Infrastructure.Context;

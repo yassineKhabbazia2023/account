@@ -13,4 +13,6 @@ public interface IContactEventRepository
     Task UpdateContactAsync(ContactEntity contactEntity);
 
     Task RemoveContactAsync(int contactId);
+
+    ContactEntity? GetContactById(int contactId);
 }

@@ -6,9 +6,11 @@ namespace Pulse.Account.API.Configuration.Model;
 
 public class BrokerSetting
 {
-    public string? ServiceBusConnectionString { get; set; }
+    public string? ServiceBusNamespace { get; set; }
 
-    public string? PushTopicName { get; set; }
+    public string? ManagedIdentityClientId { get; set; }
 
-    public List<PullTopic>? PullTopics { get; set; }
+    public List<string>? PushTopicName { get; set; }
+
+    public required List<PullTopic> PullTopics { get; set; }
 }
