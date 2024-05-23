@@ -13,4 +13,10 @@ public interface IContactEventRepository
     Task UpdateContactAsync(ContactEntity contactEntity);
 
     Task RemoveContactAsync(int contactId);
+
+    Task<IEnumerable<int>> UpdateAccountStatusByContactAsync(IEnumerable<int> accountIds, int deploymentStatus);
+
+    List<AccountEntity> GetAccountBySignatory(int contactId);
+
+    ContactEntity? GetContactById(int contactId);
 }

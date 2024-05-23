@@ -61,4 +61,37 @@ public class ContactEventRepository : IContactEventRepository
             await _accountContext.SaveChangesAsync();
         });
     }
+
+    public async Task<IEnumerable<int>> UpdateAccountStatusByContactAsync(IEnumerable<int> accountIds, int deploymentStatus)
+    {
+        var accountDeployment = _accountContext.DeploymentEntity.Where(x => accountIds.Contains(x.AccountId));
+        foreach (var item in accountDeployment)
+        {
+            item.Status = deploymentStatus;
+        }
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            await _accountContext.SaveChangesAsync();
+        });
+
+        return accountDeployment.Select(x => x.AccountId);
+    }
+
+    public List<AccountEntity> GetAccountBySignatory(int contactId)
+    {
+        return _accountContext.AccountEntity
+                    .AsNoTracking()
+                    .Include(x => x.RoleEntity)
+                    .ThenInclude(r => r.Contact)
+                    .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId && r.IsSignatory == true))
+                    .ToList();
+    }
+
+    public ContactEntity? GetContactById(int contactId)
+    {
+        return _accountContext.ContactEntity
+                    .AsNoTracking()
+                    .FirstOrDefault(c => c.ContactId == contactId);
+    }
 }
