@@ -17,7 +17,11 @@ public class ContactUpdatedAccountEventHandlerTests
     {
         // Arrange
         var loggerMock = new Mock<ILogger<ContactUpdatedAccountEventHandler>>();
-        var repositoryMock = new Mock<IAccountEventRepository>();
+        var repositoryMock = new Mock<IAccountEventRepository>(MockBehavior.Strict);
+        repositoryMock.Setup(repository => repository.GetContactById(123)).Returns(new ContactEntity()
+        {
+            ContactId = 123
+        }).Verifiable();
         repositoryMock.Setup(repository => repository.GetAccountQueryByContactId(It.IsAny<int>())).Returns(new List<AccountEntity>()).Verifiable();
         repositoryMock.Setup(repository => repository.UpdateAccountStatusByContactAsync(new List<int>(), 1)).ReturnsAsync(new List<int>()).Verifiable();
 
