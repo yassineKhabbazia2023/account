@@ -12,6 +12,8 @@ namespace Pulse.Account.Core.Models
 
         public int AccountConnected { get; set; }
 
+        public int AccountRevoked { get; set; }
+
         public int ContactDeclared { get; set; }
 
         public int ContactInvited { get; set; }

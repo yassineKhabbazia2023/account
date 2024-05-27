@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.API.Configuration.Model;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Services;
@@ -62,22 +63,28 @@ namespace Pulse.Account.API.Configuration
             {
                 ServiceBusNamespace = brokerSettings.ServiceBusNamespace,
                 ManagedIdentityClientId = brokerSettings.ManagedIdentityClientId,
-                PushTopicNames = brokerSettings.PushTopicName
+                PushTopicNames = brokerSettings.PushTopicName,
             };
 
             if (brokerSettings?.PullTopics?.Any() == true)
             {
                 foreach (var topic in brokerSettings.PullTopics)
                 {
-                    options.AddPullTopicItem(topic.TopicName, topic.Subscriptions);
+                    options.AddPullTopicItem(topic.TopicName!, topic.Subscriptions!);
                 }
             }
 
             services.AddScoped<IContactEventRepository, ContactEventRepository>();
+            services.AddScoped<IRegistryAccountEventRepository, RegistryAccountEventRepository>();
             services.AddScoped<IAccountEventRepository, AccountEventRepository>();
             services.AddKeyedScoped<IEventHandler, ContactCreatedEventHandler>(nameof(ContactCreatedEvent));
             services.AddKeyedScoped<IEventHandler, ContactUpdatedEventHandler>(nameof(ContactUpdatedEvent));
             services.AddKeyedScoped<IEventHandler, ContactRemovedEventHandler>(nameof(ContactRemovedEvent));
+            services.AddKeyedScoped<IEventHandler, RegistryAccountCreatedEventHandler>(nameof(RegistryAccountCreatedEvent));
+            services.AddKeyedScoped<IEventHandler, RegistryAccountUpdatedEventHandler>(nameof(RegistryAccountUpdatedEvent));
+            services.AddKeyedScoped<IEventHandler, RegistryAccountRemovedEventHandler>(nameof(RegistryAccountRemovedEvent));
+
+            services.AddScoped<IAccountEventPublisher, AccountEventPublisher>();
             services.AddScoped<IRoleEventPublisher, RoleEventPublisher>();
 
             services.AddEventPushServices(options);
@@ -94,6 +101,7 @@ namespace Pulse.Account.API.Configuration
                 options.UseSqlServer(connectionString, opt =>
                 {
                     opt.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                    opt.EnableRetryOnFailure(GlobalConstants.RETRYCOUNT, TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN), null);
                 });
             });
 

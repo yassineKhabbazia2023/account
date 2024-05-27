@@ -251,7 +251,7 @@ public class DelegationServiceTest
         result.Should().HaveCount(1);
 
         var resultItem = result.First();
-        resultItem.AccountId.Should().Be(expected.AccountIds.First());
+        resultItem.AccountId.Should().Be(expected.AccountIds!.First());
         resultItem.ContactId.Should().Be(expected.DelegationDetails.First().DelegateeId);
         resultItem.IsFavorite.Should().BeFalse();
         resultItem.IsSignatory.Should().BeFalse();

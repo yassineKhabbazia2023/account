@@ -403,9 +403,8 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                                        .With(e => e.Account, accountMock)
                                        .Create();
 
-                if (type == null || contactMock.Type == type.ToString().ToLower())
+                if (type == null || contactMock.Type == type.ToString() !.ToLower())
                 {
-
                     contactMock.Type = type.ToString();
                     resultExpected.Add(contactMock.MapToContact() !);
                 }

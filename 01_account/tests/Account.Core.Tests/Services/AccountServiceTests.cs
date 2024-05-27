@@ -21,12 +21,14 @@ namespace Pulse.Account.Core.Tests.Services
     public class AccountServiceTests
     {
         private readonly Mock<IAccountRepository> _accountRepository;
+        private readonly Mock<IAccountEventPublisher> _accountEventPublisher;
 
         private readonly Fixture _fixture;
 
         public AccountServiceTests()
         {
             _accountRepository = new Mock<IAccountRepository>(MockBehavior.Strict);
+            _accountEventPublisher = new Mock<IAccountEventPublisher>();
             _fixture = new Fixture();
             _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
@@ -40,7 +42,7 @@ namespace Pulse.Account.Core.Tests.Services
                     repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
                 .ReturnsAsync(accountMocked);
 
-            var accountService = new AccountService(_accountRepository.Object);
+            var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
             var searchAccountCriteria = new SearchAccountCriteria
             {
                 Search = string.Empty,
@@ -68,7 +70,7 @@ namespace Pulse.Account.Core.Tests.Services
                     repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
                 .ReturnsAsync(accountMocked);
 
-            var accountService = new AccountService(_accountRepository.Object);
+            var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
             var searchAccountCriteria = new SearchAccountCriteria
             {
                 ContactId = 123
@@ -88,7 +90,7 @@ namespace Pulse.Account.Core.Tests.Services
             var accountMocked = _fixture.Create<AccountDetail>();
             _accountRepository.Setup(repository => repository.GetAccountDetailAsync(It.IsAny<int>())).ReturnsAsync(accountMocked);
 
-            var accountService = new AccountService(_accountRepository.Object);
+            var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
 
             // Act
             var accounts = await accountService.GetAccountDetailAsync(accountId: 1);
@@ -104,7 +106,7 @@ namespace Pulse.Account.Core.Tests.Services
             var accountMocked = _fixture.Create<AccountDetail>();
             _accountRepository.Setup(repository => repository.GetAccountAsync(It.IsAny<int>())).ReturnsAsync(accountMocked);
 
-            var accountService = new AccountService(_accountRepository.Object);
+            var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
 
             // Act
             var accounts = await accountService.GetAccountAsync(accountId: 1);
@@ -114,20 +116,21 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         [Fact]
-        public async Task Should_UpdateAccount_ReturnsOkResultAsync()
+        public async Task Should_UpdateAccount_ReturnsOkResultAsync_And_PublishEvent()
         {
             // Arrange
             var accountMocked = _fixture.Create<AccountDetail>();
             _accountRepository.Setup(repository => repository.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>()))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync(It.IsAny<AccountDetail>());
 
-            var accountService = new AccountService(_accountRepository.Object);
+            var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
 
             // Act
             await accountService.UpdateAccountAsync(accountId: 1, accountMocked);
 
             // Assert
             _accountRepository.Verify(repository => repository.UpdateAccountAsync(1, accountMocked));
+            _accountEventPublisher.Verify(e => e.PublishAccountUpdatedEventAsync(It.IsAny<AccountDetail>()), Times.Once);
         }
 
         [Fact]
@@ -143,7 +146,7 @@ namespace Pulse.Account.Core.Tests.Services
                 .Callback<int, SearchContactsAccountCriteria, Pagination>((accId, criteria, pagination) => accId.Should().Be(accountId))
                 .ReturnsAsync(expected);
 
-            var accountService = new AccountService(accountRepository.Object);
+            var accountService = new AccountService(accountRepository.Object, _accountEventPublisher.Object);
             var searchCriteria = new SearchContactsAccountCriteria
             {
                 Search = string.Empty,
@@ -173,7 +176,7 @@ namespace Pulse.Account.Core.Tests.Services
             accountRepository.Setup(repo => repo.GetContactsAccountAsync(It.IsAny<int>(), It.IsAny<SearchContactsAccountCriteria>(), It.IsAny<Pagination>()))
                 .Throws(new NotFoundException(Errors.NotFoundContactsCode, Errors.NotFoundContactsMessage));
 
-            var accountService = new AccountService(accountRepository.Object);
+            var accountService = new AccountService(accountRepository.Object, _accountEventPublisher.Object);
             var searchCriteria = new SearchContactsAccountCriteria
             {
                 Search = string.Empty,
@@ -215,7 +218,7 @@ namespace Pulse.Account.Core.Tests.Services
             accountRepository.Setup(repo => repo.GetAssociatedContactsAsync(contactId, request, pagination))
                 .ReturnsAsync(expected);
 
-            var accountService = new AccountService(accountRepository.Object);
+            var accountService = new AccountService(accountRepository.Object, _accountEventPublisher.Object);
 
             // Act
             var result = await accountService.GetAssociatedContactsAsync(contactId, request, pagination);
@@ -246,7 +249,7 @@ namespace Pulse.Account.Core.Tests.Services
             accountRepository.Setup(repo => repo.GetAssociatedContactsAsync(contactId, request, pagination))
                 .Throws(new NotFoundException(Errors.NotFoundRoleContactCode, Errors.NotFoundRoleContactMessage));
 
-            var accountService = new AccountService(accountRepository.Object);
+            var accountService = new AccountService(accountRepository.Object, _accountEventPublisher.Object);
 
             // Act
             var result = async () => await accountService.GetAssociatedContactsAsync(contactId, request, pagination);

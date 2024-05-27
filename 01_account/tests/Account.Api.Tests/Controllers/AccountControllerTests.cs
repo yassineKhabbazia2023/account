@@ -52,7 +52,8 @@ namespace Account.Api.Tests.Controllers
                 .Options;
             _context = InitContext();
             var accountRepository = new AccountRepository(_context);
-            var accountService = new AccountService(accountRepository);
+            var accountEventPublisher = new Mock<IAccountEventPublisher>();
+            var accountService = new AccountService(accountRepository, accountEventPublisher.Object);
             _accountController = new AccountController(accountService);
         }
 

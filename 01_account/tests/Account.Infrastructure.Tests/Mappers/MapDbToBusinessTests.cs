@@ -98,7 +98,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
 
             // Assert
             var accountAddressExpect = JsonConvert.SerializeObject(expectedAccount.Address);
-            var accountAddressReceived = JsonConvert.SerializeObject(accountModel.Address);
+            var accountAddressReceived = JsonConvert.SerializeObject(accountModel!.Address);
             Assert.Equal(accountAddressExpect, accountAddressReceived);
             Assert.Equal(expectedAccount.Legal?.LegalName, accountModel.Legal?.LegalName);
             Assert.Equal(expectedAccount.AccountNumber, accountModel.AccountNumber);
@@ -165,7 +165,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             var result = MapperReferentialDbToBusiness.MapToPagingNaf(expectedSource, expectedpageNumber, expectedTotalRows, expectedTotalPageCalcul);
 
             Assert.NotNull(result);
-            Assert.Equal(expectedSource.Count(), result.Items.Count());
+            Assert.Equal(expectedSource.Count(), result.Items!.Count());
             Assert.Equal(expectedpageNumber, result.CurrentPage);
             Assert.Equal(expectedTotalRows, result.TotalItems);
             Assert.Equal(expectedTotalPageCalcul, result.TotalPage);
@@ -177,7 +177,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             var result = MapperReferentialDbToBusiness.MapToPagingNaf(null!, 1, 1, 1);
 
             Assert.NotNull(result);
-            Assert.Empty(result.Items);
+            Assert.Empty(result.Items!);
         }
 
         [Fact]

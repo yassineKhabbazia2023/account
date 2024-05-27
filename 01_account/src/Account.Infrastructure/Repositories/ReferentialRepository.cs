@@ -47,7 +47,7 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                IQueryable<NafEntity?> query = GetNafsWithCriteria(search);
+                IQueryable<NafEntity?> query = GetNafsWithCriteria(search!);
 
                 var totalRows = await query.CountAsync();
 

@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -14,10 +13,12 @@ namespace Pulse.Account.Core.Services
     public class AccountService : IAccountService
     {
         private readonly IAccountRepository _accountRepository;
+        private readonly IAccountEventPublisher _accountEventPublisher;
 
-        public AccountService(IAccountRepository accountRepository)
+        public AccountService(IAccountRepository accountRepository, IAccountEventPublisher accountEventPublisher)
         {
             _accountRepository = accountRepository;
+            _accountEventPublisher = accountEventPublisher;
         }
 
         public async Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination? pagination)
@@ -44,7 +45,8 @@ namespace Pulse.Account.Core.Services
 
         public async Task UpdateAccountAsync(int accountId, AccountDetail accountDetail)
         {
-            await _accountRepository.UpdateAccountAsync(accountId, accountDetail);
+            var updatedAccount = await _accountRepository.UpdateAccountAsync(accountId, accountDetail);
+            await _accountEventPublisher.PublishAccountUpdatedEventAsync(updatedAccount);
         }
 
         public async Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination? pagination)

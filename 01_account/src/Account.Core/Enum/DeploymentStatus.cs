@@ -8,6 +8,7 @@ namespace Pulse.Account.Core.Enum
     {
         ToDeploy = 1,
         InProgress = 2,
-        Connected = 3
+        Connected = 3,
+        Revoked = 4,
     }
 }

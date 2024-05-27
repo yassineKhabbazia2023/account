@@ -127,7 +127,7 @@ public class DelegationRepositoryTests
         }
         catch (Exception ex)
         {
-            throw new Exception(ex.InnerException.Message, ex);
+            throw new Exception(ex.InnerException!.Message, ex);
         }
         finally
         {
@@ -749,7 +749,7 @@ public class DelegationRepositoryTests
 
                 await context.DelegationEntity.AddRangeAsync(tDelegation);
 
-                expectedDelegationsResult.Add(tDelegation.ToDelegation()!);
+                expectedDelegationsResult.Add(tDelegation.ToDelegation() !);
             }
 
             await context.SaveChangesAsync();

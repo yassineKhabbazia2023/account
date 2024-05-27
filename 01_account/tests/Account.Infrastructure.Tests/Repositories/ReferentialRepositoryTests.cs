@@ -91,7 +91,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var result = await repository.GetNafsAsync(string.Empty, new Pagination());
 
                 Assert.NotNull(result);
-                Assert.Empty(result.Items);
+                Assert.Empty(result.Items!);
             }
         }
     }

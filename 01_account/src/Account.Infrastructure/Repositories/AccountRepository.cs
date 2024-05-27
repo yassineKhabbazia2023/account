@@ -125,15 +125,24 @@ namespace Pulse.Account.Infrastructure.Repositories
             return account.MapToAccountDetail();
         }
 
-        public async Task UpdateAccountAsync(int accountId, AccountDetail accountDetail)
+        public async Task<AccountDetail> UpdateAccountAsync(int accountId, AccountDetail accountDetail)
         {
+            AccountDetail? toReturn = null!;
             await _retryPolicy.ExecuteAsync(async () =>
             {
                 var existingAccount = await _accountContext.AccountEntity.SingleAsync(x => x.AccountId == accountId);
+                if(existingAccount == null)
+                {
+                    throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                }
+
                 existingAccount.MapToUpdatedAccount(accountDetail);
                 _accountContext.AccountEntity.Update(existingAccount);
+                toReturn = existingAccount.MapToAccountDetail();
                 await _accountContext.SaveChangesAsync();
             });
+
+            return toReturn!;
         }
 
         public async Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination pagination)
@@ -250,16 +259,16 @@ namespace Pulse.Account.Infrastructure.Repositories
                 Expression<Func<ContactEntity, string>> exp = null!;
                 switch (sorting.Field.ToLowerInvariant())
                 {
-                    case "name":
+                    case SortingConstants.NAME:
                         exp = c => c.FirstName + c.LastName;
                         break;
-                    case "email":
+                    case SortingConstants.EMAIL:
                         exp = c => c.Email;
                         break;
-                    case "function":
+                    case SortingConstants.PERSONA:
                         exp = c => c.PersonaName;
                         break;
-                    case "office":
+                    case SortingConstants.OFFICE:
                         exp = c => c.Office;
                         break;
                     default:

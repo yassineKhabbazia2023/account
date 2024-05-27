@@ -38,7 +38,7 @@ namespace Pulse.Account.Infrastructure.Mappers
 
         public static IEnumerable<Naf> MapNafEntitiesToNafs(this IEnumerable<NafEntity?> source)
         {
-            return source?.Select(s => s.MapNafEntityToNaf() !) ?? Enumerable.Empty<Naf>();
+            return source?.Select(s => s!.MapNafEntityToNaf() !) ?? Enumerable.Empty<Naf>();
         }
 
         public static Naf? MapNafEntityToNaf(this NafEntity source)

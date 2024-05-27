@@ -1,4 +1,8 @@
-﻿using AutoFixture;
+﻿// <copyright file="StatisticsRepositoryTests.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
+// </copyright>
+
+using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -42,6 +46,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     {
                         AccountId = 3,
                         Status = 3,
+                    },
+                    new()
+                    {
+                        AccountId = 4,
+                        Status = 4,
                     }
                 };
                 var roles = new List<RoleEntity>
@@ -65,6 +74,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     {
                         ContactId = 2,
                         AccountId = 3
+                    },
+                    new()
+                    {
+                        ContactId = 2,
+                        AccountId = 4
                     }
                 };
                 var contacts = new List<ContactEntity>
@@ -106,6 +120,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 Assert.Equal(1, result.AccountToDeploy);
                 Assert.Equal(1, result.AccountConnected);
                 Assert.Equal(1, result.AccountInProgress);
+                Assert.Equal(1, result.AccountRevoked);
                 Assert.Equal(0, result.ContactInvited);
                 Assert.Equal(0, result.ContactDeclared);
                 Assert.Equal(1, result.ContactConnected);

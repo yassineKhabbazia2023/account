@@ -36,7 +36,7 @@ public static class MapDelegationDbToDelegationModel
 
     public static IEnumerable<Core.Models.Account> ToAccounts(this IEnumerable<AccountEntity> source)
     {
-        return source?.Select(a => a.ToAccount()) ?? Enumerable.Empty<Core.Models.Account>();
+        return source?.Select(a => a.ToAccount() !) ?? Enumerable.Empty<Core.Models.Account>();
     }
 
     public static Core.Models.Account? ToAccount(this AccountEntity source)

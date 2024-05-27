@@ -1,4 +1,8 @@
-﻿using Moq;
+﻿// <copyright file="StatisticsServiceTests.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
+// </copyright>
+
+using Moq;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Services;

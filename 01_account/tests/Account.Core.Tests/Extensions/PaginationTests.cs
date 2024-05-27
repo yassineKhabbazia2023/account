@@ -1,4 +1,8 @@
-﻿using Pulse.Account.Core.Extensions;
+﻿// <copyright file="PaginationTests.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
+// </copyright>
+
+using Pulse.Account.Core.Extensions;
 
 namespace Pulse.Account.Core.Tests.Extensions
 {
