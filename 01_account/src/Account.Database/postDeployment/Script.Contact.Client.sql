@@ -19,7 +19,11 @@ VALUES
 (70,'1B9DBD68-4DE9-4B4A-83C5-57E96CE6ABAA','Maëlys','Meunier','maelys.meunier@example.com','Customer','Declared',GETDATE(),'Assistante',null),
 (71,'A4E462E3-4CFD-4471-8623-27C38D33A437','Paul','Robin','paul.robin@example.com','Customer','Declared',GETDATE(),'Responsable financier',null),
 (72,'83A4FA34-D90C-4606-B7A4-6A88AE3B2412','Louise','Petit','louise.petit@example.com','Customer','Declared',GETDATE(),'RH',null),
-(73,'F0EB61A1-A4B4-44EF-B783-E76025014358','Hugo','Dubois','hugo.dubois@example.com','Customer','Declared',GETDATE(),'Comptable',null)
-,(188,'F0EB61A1-A4B4-44EF-B783-E76025014300','Olympe','GREC','userdemo2@test.fr','Customer','Declared',GETDATE(),'ADMIN/Dirigeant',null)
-,(189,'F0EB61A1-A4B4-44EF-B783-E76025014301','Sully','MAN','slescot+CP1@kpmg.onmicrosoft.com','Customer','Declared',GETDATE(),'ADMIN/Dirigeant',null)
+(73,'F0EB61A1-A4B4-44EF-B783-E76025014358','Hugo','Dubois','hugo.dubois@example.com','Customer','Declared',GETDATE(),'Comptable',null),
+(74,'99D10D34-271E-4202-94A9-E4361A338B54', 'Test', 'Compte', 'fr-comptedetestpulsetnr@kpmg.onmicrosoft.com', 'Customer', 'Declared', GETDATE(), 'Support / CX',null),
+(75,'0F585612-56C4-4322-9FBF-A4C2650F4FDB', 'Test', 'Compte2', 'kkhamliche+test02@kpmg.onmicrosoft.com', 'Customer', 'Declared', GETDATE(), 'Support / CX',null),
+(76,'F8B11CE4-E5FC-4B2B-9659-3392CF815E13', 'Test', 'Compte3', 'kkhamliche+test03@kpmg.onmicrosoft.com', 'Customer', 'Declared', GETDATE(), 'Support / CX',null),
+(77,'E037686F-2206-464D-9B6E-A10AF2FC2E22', 'FR', 'PulsePO1', 'FR-Pulse-PO+01@kpmg.onmicrosoft.com', 'Customer', 'Declared', GETDATE(), 'Support / CX',null),
+(78,'BB92D397-5868-49D6-88FD-096402861A94', 'FR', 'PulsePO2', 'FR-Pulse-PO+02@kpmg.onmicrosoft.com', 'Customer', 'Declared', GETDATE(), 'Support / CX',null),
+(79,'28B7C850-9DC6-4039-9BED-22C2EE175A7B','Abderazak','Chebbah','achebbah+0603@kpmg.onmicrosoft.com','Customer','Declared',GETDATE(),'Support / CX',null)
 END

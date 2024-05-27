@@ -58,5 +58,7 @@ VALUES
 (54,'C6C47B06-4495-49F0-8A7B-C9229AF754EB','Katia','Sana','katiasana@kpmg.fr','Collaborator','Declared',GETDATE(),'Expert Digital ESC','La Défense EQHO'),
 (55,'7A1D04A9-45F3-49AE-882A-6DB3FE46CD32','Joan','Fayard','jfayard@kpmg.fr','Collaborator','Declared',GETDATE(),'Collaborateur GS','La Défense EQHO'),
 (161,'592D23F2-4EBF-47F1-8137-6589F284EA42','Kevin','Cour','kcour@kpmg.fr','Collaborator','Declared',GETDATE(),'Admin / Collab Product','La Défense EQHO'),
-(162,'CA749D21-81BF-44DB-83C4-8D8D999BFCE2','Smahane','Agram','sagram@kpmg.fr','Collaborator','Declared',GETDATE(),'Admin / Collab Product','La Défense EQHO')
+(162,'CA749D21-81BF-44DB-83C4-8D8D999BFCE2','Smahane','Agram','sagram@kpmg.fr','Collaborator','Declared',GETDATE(),'Admin / Collab Product','La Défense EQHO'),
+(163,'03B47DDE-3335-4C92-8DA6-123442DD4819','Eddy','Eyme','eeyme@kpmg.fr','Collaborator','Declared',GETDATE(),'Admin / Collab Product','La Défense EQHO'),
+(164,'746FA13C-DBBA-40CA-AAA4-A049747DB641','Marc','Dibeh','mdibeh@kpmg.fr','Collaborator','Declared',GETDATE(),'Admin / Collab Product','La Défense EQHO')
 END
