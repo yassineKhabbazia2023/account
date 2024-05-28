@@ -4,6 +4,7 @@
 
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.IntegrationEvents;
@@ -13,17 +14,20 @@ namespace Pulse.Account.Infrastructure.Providers;
 public class ContactRemovedEventHandler : IEventHandler
 {
     private readonly ILogger<ContactRemovedEventHandler> _logger;
+    private readonly IRoleEventPublisher _roleEventPublisher;
     private readonly IContactEventRepository _contactEventRepository;
     private readonly IRoleEventRepository _roleEventRepository;
     private readonly IDelegationEventRepository _delegationEventRepository;
 
     public ContactRemovedEventHandler(
         ILogger<ContactRemovedEventHandler> logger,
+        IRoleEventPublisher roleEventPublisher,
         IContactEventRepository contactEventRepository,
         IRoleEventRepository roleEventRepository,
         IDelegationEventRepository delegationEventRepository)
     {
         _logger = logger;
+        _roleEventPublisher = roleEventPublisher;
         _contactEventRepository = contactEventRepository;
         _roleEventRepository = roleEventRepository;
         _delegationEventRepository = delegationEventRepository;
@@ -47,8 +51,13 @@ public class ContactRemovedEventHandler : IEventHandler
         }
 
         await _contactEventRepository.RemoveContactAsync(contactEvent!.Data.ContactId);
-        await _roleEventRepository.DeleteContactRolesAsync(contactEvent!.Data.ContactId);
         await _delegationEventRepository.DeleteContactDelegationsAsync(contactEvent!.Data.ContactId);
+        var rolesToDelete = await _roleEventRepository.DeleteContactRolesAsync(contactEvent!.Data.ContactId);
+
+        rolesToDelete.ToList().ForEach(async role =>
+        {
+            await _roleEventPublisher.PublishRoleDeletedEventAsync(role.AccountId, role.ContactId);
+        });
 
         _logger.LogInformation("Le contact avec l'identifiant: {ContactId} vient d'être supprimé.", contactEvent!.Data.ContactId);
     }

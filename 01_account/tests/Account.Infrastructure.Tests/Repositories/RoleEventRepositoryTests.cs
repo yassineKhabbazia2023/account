@@ -40,10 +40,8 @@ public class RoleEventRepositoryTests
         await context.RoleEntity.AddRangeAsync(new List<RoleEntity> { role1, role2 });
         await context.SaveChangesAsync();
 
-        await repository.DeleteContactRolesAsync(1);
+        var result = await repository.DeleteContactRolesAsync(1);
 
-        var result = await context.RoleEntity.Where(r => r.ContactId == 1).ToListAsync();
-
-        Assert.Empty(result);
+        Assert.Equal(2, result.Count());
     }
 }

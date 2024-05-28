@@ -2,9 +2,11 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Infrastructure.Entities;
+
 namespace Pulse.Account.Infrastructure.Providers.Interfaces;
 
 public interface IRoleEventRepository
 {
-    Task DeleteContactRolesAsync(int contactId);
+    Task<IEnumerable<RoleEntity>> DeleteContactRolesAsync(int contactId);
 }

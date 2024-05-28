@@ -4,6 +4,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Infrastructure.Context;
+using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 
@@ -19,14 +20,16 @@ public class RoleEventRepository : IRoleEventRepository
         _accountContext.HandleEFCoreFailure();
     }
 
-    public async Task DeleteContactRolesAsync(int contactId)
+    public async Task<IEnumerable<RoleEntity>> DeleteContactRolesAsync(int contactId)
     {
-        await _accountContext.RoleEntity.Where(r => r.ContactId == contactId)
-                .ForEachAsync(r =>
-                {
-                    _accountContext.Entry(r).State = EntityState.Deleted;
-                });
+        var rolesToDelete = await _accountContext.RoleEntity.Where(r => r.ContactId == contactId).ToListAsync();
+        rolesToDelete.ForEach(r =>
+                     {
+                         _accountContext.Entry(r).State = EntityState.Deleted;
+                     });
 
         await _accountContext.SaveChangesAsync();
+
+        return rolesToDelete;
     }
 }
