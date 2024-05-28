@@ -22,5 +22,9 @@ public interface IDelegationRepository
 
     Task<bool> DoesAccountExistAsync(int accountId);
 
+    Task<bool> DoesContactExistAsync(int contactId);
+
     Task<IEnumerable<int>> GetAccountIdsForFullDelegationAsync(int delegatorId);
+
+    Task<Paging<Delegation>> GetContactDelegationsHistoryAsync(int contactId, Pagination pagination, bool sortAscending);
 }
