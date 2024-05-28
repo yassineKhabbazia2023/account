@@ -4,11 +4,12 @@
 
 using Microsoft.EntityFrameworkCore;
 
-namespace Pulse.Authorization.Infrastructure.Extensions
+namespace Pulse.Account.Infrastructure.Extensions
 {
     public static class EntityContextExtensions
     {
-        public static void HandleEFCoreFailure<T>(this T context) where T : DbContext
+        public static void HandleEFCoreFailure<T>(this T context)
+            where T : DbContext
         {
             context.SaveChangesFailed += (s, e) =>
             {

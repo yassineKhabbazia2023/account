@@ -14,13 +14,19 @@ public class ContactRemovedEventHandler : IEventHandler
 {
     private readonly ILogger<ContactRemovedEventHandler> _logger;
     private readonly IContactEventRepository _contactEventRepository;
+    private readonly IRoleEventRepository _roleEventRepository;
+    private readonly IDelegationEventRepository _delegationEventRepository;
 
     public ContactRemovedEventHandler(
         ILogger<ContactRemovedEventHandler> logger,
-        IContactEventRepository contactEventRepository)
+        IContactEventRepository contactEventRepository,
+        IRoleEventRepository roleEventRepository,
+        IDelegationEventRepository delegationEventRepository)
     {
         _logger = logger;
         _contactEventRepository = contactEventRepository;
+        _roleEventRepository = roleEventRepository;
+        _delegationEventRepository = delegationEventRepository;
     }
 
     public async Task HandleAsync(string message)
@@ -41,6 +47,8 @@ public class ContactRemovedEventHandler : IEventHandler
         }
 
         await _contactEventRepository.RemoveContactAsync(contactEvent!.Data.ContactId);
+        await _roleEventRepository.DeleteContactRolesAsync(contactEvent!.Data.ContactId);
+        await _delegationEventRepository.DeleteContactDelegationsAsync(contactEvent!.Data.ContactId);
 
         _logger.LogInformation("Le contact avec l'identifiant: {ContactId} vient d'être supprimé.", contactEvent!.Data.ContactId);
     }
