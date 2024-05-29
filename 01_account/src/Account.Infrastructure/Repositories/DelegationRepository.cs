@@ -2,16 +2,12 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.ComponentModel;
 using System.Data;
-using System.Linq;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using Polly;
 using Polly.Retry;
-using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;

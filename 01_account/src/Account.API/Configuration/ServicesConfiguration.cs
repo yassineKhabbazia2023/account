@@ -77,6 +77,8 @@ namespace Pulse.Account.API.Configuration
             services.AddScoped<IContactEventRepository, ContactEventRepository>();
             services.AddScoped<IRegistryAccountEventRepository, RegistryAccountEventRepository>();
             services.AddScoped<IAccountEventRepository, AccountEventRepository>();
+            services.AddScoped<IRoleEventRepository, RoleEventRepository>();
+            services.AddScoped<IDelegationEventRepository, DelegationEventRepository>();
             services.AddKeyedScoped<IEventHandler, ContactCreatedEventHandler>(nameof(ContactCreatedEvent));
             services.AddKeyedScoped<IEventHandler, ContactUpdatedEventHandler>(nameof(ContactUpdatedEvent));
             services.AddKeyedScoped<IEventHandler, ContactRemovedEventHandler>(nameof(ContactRemovedEvent));

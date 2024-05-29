@@ -12,7 +12,7 @@ using Pulse.Account.Core.Constants;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
 using Pulse.Account.Core.Enum;
-using Pulse.Authorization.Infrastructure.Extensions;
+using Pulse.Account.Infrastructure.Extensions;
 
 namespace Pulse.Account.Infrastructure.Providers;
 
