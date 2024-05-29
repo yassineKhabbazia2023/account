@@ -186,7 +186,7 @@ public class DelegationRepository : IDelegationRepository
                                         .Include(d => d.Delegatee)
                                         .Include(d => d.Delegator)
                                         .Where(d => d.DelegateeId == contactId || d.DelegatorId == contactId)
-                                        .OrderBy(d => d.CreationDate);
+                                        .OrderByDescending(d => d.CreationDate);
 
             var totalItems = await query.CountAsync();
             var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);

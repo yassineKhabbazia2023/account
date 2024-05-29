@@ -117,7 +117,7 @@ public class DelegationController : ControllerBase
     /// <param name="pagination">Paramètres de pagination.</param>
     /// <param name="sortAscending">Sens de sort colonne nom.</param>
     /// <returns>Liste de délégations.</returns>
-    [HttpGet("{contactId}/historyContact")]
+    [HttpGet("{contactId}/historyDelegation")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<Delegation>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
