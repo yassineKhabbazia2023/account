@@ -159,7 +159,8 @@ namespace Pulse.Account.Infrastructure.Repositories
                                   || n.FirstName.ToLower().Contains(criteria.Search)
                                   || n.LastName.ToLower().Contains(criteria.Search)
                                   || n.PersonaName.ToLower().Contains(criteria.Search)
-                                  || (n.Office != null && n.Office.ToLower().Contains(criteria.Search))
+                                  || (n.Office != null && n.Office.ToLower().Contains(criteria.Search)
+                                  || (!string.IsNullOrWhiteSpace(n.Status) && n.Status.Contains(criteria.Search, StringComparison.OrdinalIgnoreCase)))
                             select n;
                 }
 
@@ -256,7 +257,7 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             if (sorting != null)
             {
-                Expression<Func<ContactEntity, string>> exp = null!;
+                Expression<Func<ContactEntity, object>> exp = null!;
                 switch (sorting.Field.ToLowerInvariant())
                 {
                     case SortingConstants.NAME:
@@ -270,6 +271,12 @@ namespace Pulse.Account.Infrastructure.Repositories
                         break;
                     case SortingConstants.OFFICE:
                         exp = c => c.Office;
+                        break;
+                    case SortingConstants.STATUS:
+                        exp = c => c.Status;
+                        break;
+                    case SortingConstants.DATE:
+                        exp = c => c.CreationDate;
                         break;
                     default:
                         throw new BadRequestException(Errors.BadRequestContactsAccountCode, string.Format(Errors.BadRequestContactsAccountMessage, sorting.Field));

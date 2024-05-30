@@ -13,5 +13,9 @@ namespace Pulse.Account.Core.Constants
         public const string PERSONA = "personaName";
 
         public const string OFFICE = "office";
+
+        public const string STATUS = "status";
+
+        public const string DATE = "date";
     }
 }
