@@ -207,4 +207,47 @@ public class DelegationControllerTests
         actionResult.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(delegations);
         service.VerifyAll();
     }
+
+    [Fact]
+    public async Task GetContactDelegationsHistoryAsync_ShouldReturnDelegation_WhenContactValid()
+    {
+        // Arrange
+        var contactId = 123;
+        var delegations = _fixture.Create<Paging<Delegation>>();
+        var service = new Mock<IDelegationService>(MockBehavior.Strict);
+
+        service.Setup(x => x.GetContactDelegationsHistoryAsync(contactId, It.IsAny<Pagination>(), It.IsAny<bool>()))
+            .ReturnsAsync(delegations)
+            .Verifiable();
+
+        var controller = new DelegationController(service.Object);
+
+        // Act
+        var result = await controller.GetContactDelegationsHistoryAsync(contactId, new Pagination(), true);
+
+        // Assert
+        result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
+        result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(delegations);
+        service.VerifyAll();
+    }
+
+    [Fact]
+    public async Task GetContactDelegationsHistoryAsync_ShouldReturnNotFound_WhenContactNotFound()
+    {
+        // Arrange
+        var contactId = 123;
+        var service = new Mock<IDelegationService>(MockBehavior.Strict);
+
+        service.Setup(x => x.GetContactDelegationsHistoryAsync(contactId, It.IsAny<Pagination>(), It.IsAny<bool>()))
+            .ThrowsAsync(new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId)))
+            .Verifiable();
+
+        var controller = new DelegationController(service.Object);
+
+        // Act
+        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await controller.GetContactDelegationsHistoryAsync(contactId, new Pagination(), true));
+
+        // Assert
+        service.VerifyAll();
+    }
 }

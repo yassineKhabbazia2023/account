@@ -168,6 +168,34 @@ public class DelegationRepository : IDelegationRepository
         });
     }
 
+    public async Task<Paging<Delegation>> GetContactDelegationsHistoryAsync(int contactId, Pagination pagination, bool sortAscending)
+    {
+        var delegations = new List<DelegationEntity>();
+
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            IQueryable<DelegationEntity> query = _accountContext.DelegationEntity
+                                    .AsNoTracking()
+                                        .Include(d => sortAscending
+                                            ? d.Account.OrderBy(a => a.LegalName)
+                                            : d.Account.OrderByDescending(a => a.LegalName))
+                                        .Include(d => d.Delegatee)
+                                        .Include(d => d.Delegator)
+                                        .Where(d => d.DelegateeId == contactId || d.DelegatorId == contactId)
+                                        .OrderByDescending(d => d.CreationDate);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+
+            query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
+            query = query.Take(pagination.PageSize);
+
+            delegations = await query.ToListAsync();
+
+            return delegations.MapToPagingDelegations(pagination.PageNumber, totalItems, totalPages);
+        });
+    }
+
     public async Task<bool> DoesAccountExistAsync(int accountId)
     {
         var validAccount = false;
@@ -177,6 +205,14 @@ public class DelegationRepository : IDelegationRepository
         });
 
         return validAccount;
+    }
+
+    public async Task<bool> DoesContactExistAsync(int contactId)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            return await _accountContext.ContactEntity.AnyAsync(c => c.ContactId == contactId);
+        });
     }
 
     public async Task<IEnumerable<int>> GetAccountIdsForFullDelegationAsync(int delegatorId)
@@ -284,9 +320,9 @@ public class DelegationRepository : IDelegationRepository
                 .ToListAsync();
         });
 
-        foreach(var delegation in existingDelegations)
+        foreach (var delegation in existingDelegations)
         {
-            foreach(var account in delegation.Account)
+            foreach (var account in delegation.Account)
             {
                 existingRoles.Add(new RoleEntity { ContactId = delegation.DelegateeId, AccountId = account.AccountId });
             }

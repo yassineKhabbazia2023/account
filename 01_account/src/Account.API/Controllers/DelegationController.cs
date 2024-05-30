@@ -109,4 +109,23 @@ public class DelegationController : ControllerBase
         var delegations = await _delegationService.GetAccountDelegationsHistoryAsync(accountId, search, pagination);
         return Ok(delegations!);
     }
+
+    /// <summary>
+    /// Récupérer l'historique des délégations d'un contact.
+    /// </summary>
+    /// <param name="contactId">L'identifiant du contact.</param>
+    /// <param name="pagination">Paramètres de pagination.</param>
+    /// <param name="sortAscending">Sens de sort colonne nom.</param>
+    /// <returns>Liste de délégations.</returns>
+    [HttpGet("{contactId}/historyDelegation")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<Delegation>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Paging<Delegation>>> GetContactDelegationsHistoryAsync(int contactId,
+        [FromQuery] Pagination? pagination,
+        bool sortAscending = true)
+    {
+        var delegations = await _delegationService.GetContactDelegationsHistoryAsync(contactId, pagination, sortAscending);
+        return Ok(delegations!);
+    }
 }

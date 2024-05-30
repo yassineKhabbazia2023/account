@@ -210,6 +210,36 @@ public class DelegationServiceTest
     }
 
     [Fact]
+    public async Task GetContactDelegationsHistoryAsync_WhenContactIdIsValid_ShouldReturnContactDelegationsHistory()
+    {
+        // Arrange
+        var contactId = 100;
+        var delegationlist = _fixture.Create<Paging<Delegation>>();
+
+        _repository.Setup(x => x.DoesContactExistAsync(It.IsAny<int>()))
+          .Callback<int>((id) =>
+          {
+              id.Should().Be(contactId);
+          })
+          .ReturnsAsync(true)
+          .Verifiable();
+
+        _repository.Setup(x => x.GetContactDelegationsHistoryAsync(contactId, It.IsAny<Pagination>(), It.IsAny<bool>()))
+            .ReturnsAsync(delegationlist)
+            .Verifiable();
+
+        var service = new DelegationService(_repository.Object, null!, null!);
+
+        // Act
+        var delegationsHistory = await service.GetContactDelegationsHistoryAsync(contactId, new Pagination(), true);
+
+        // Assert
+        delegationsHistory.Should().NotBeNull();
+        delegationsHistory.Should().BeEquivalentTo(delegationlist);
+        _repository.VerifyAll();
+    }
+
+    [Fact]
     public void GetAccountDelegationsHistoryAsync_WhenAccountIdIsInvalid_ShouldThrowException()
     {
         // Arrange
@@ -232,6 +262,27 @@ public class DelegationServiceTest
         var exception = Assert.ThrowsAsync<NotFoundException>(act);
         Assert.Equal(Errors.NotFoundAccountCode, exception.Result.Code);
         Assert.Equal(string.Format(Errors.NotFoundAccountMessage, accountId), exception.Result.Message);
+    }
+
+    [Fact]
+    public void GetContactDelegationsHistoryAsync_WhenContactIdIsInvalid_ShouldThrowException()
+    {
+        // Arrange
+        var contactId = 100;
+
+        _repository.Setup(x => x.DoesContactExistAsync(contactId))
+            .ReturnsAsync(false)
+            .Verifiable();
+
+        var service = new DelegationService(_repository.Object, null!, null!);
+
+        // Act
+        var act = async () => await service.GetContactDelegationsHistoryAsync(contactId, new Pagination(), false);
+
+        // Assert
+        var exception = Assert.ThrowsAsync<NotFoundException>(act);
+        Assert.Equal(Errors.NotFoundContactCode, exception.Result.Code);
+        Assert.Equal(string.Format(Errors.NotFoundContactMessage, contactId), exception.Result.Message);
     }
 
     [Fact]

@@ -768,6 +768,89 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
+    public async Task GetContactDelegationsHistoryAsync_WithContactIdIsValid_ShouldReturnDelegations()
+    {
+        // Arrange
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Create Account
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 10
+            };
+            var contactId = 10;
+            await context.ContactEntity.AddAsync(new ContactEntity
+            {
+                ContactId = contactId,
+                Email = $"Contact-mail-{contactId}@kpmg.fr",
+                FirstName = $"Contact-FN-{contactId}",
+                LastName = $"Contact-LT-{contactId}",
+                Type = "customer",
+                Status = "Declared",
+                PersonaName = "Collaborateur ESC",
+                Office = "Paris",
+                CreationDate = DateTime.UtcNow,
+            });
+            await context.SaveChangesAsync();
+
+            var expectedDelegationsResult = new List<Delegation>();
+
+            var delegationStatus = new List<string> { "pending", "enabled", "disabled" };
+            for (var i = 1; i <= 10; i++)
+            {
+                var delegateeId = _fixture.Create<int>();
+                await context.ContactEntity.AddAsync(new ContactEntity
+                {
+                    ContactId = delegateeId,
+                    Email = $"Contact-mail-{delegateeId}@kpmg.fr",
+                    FirstName = $"Contact-FN-{delegateeId}",
+                    LastName = $"Contact-LT-{delegateeId}",
+                    Type = "customer",
+                    Status = "Declared",
+                    PersonaName = "Collaborateur ESC",
+                    Office = "Paris",
+                    CreationDate = DateTime.UtcNow,
+                });
+
+                await context.SaveChangesAsync();
+
+                Random random = new Random();
+                int randomStatusindex = random.Next(delegationStatus.Count);
+
+                // Try create a delegation
+                var tDelegation = new DelegationEntity
+                {
+                    StartDate = DateTime.UtcNow,
+                    EndDate = DateTime.UtcNow.AddMonths(i),
+                    DelegatorId = contactId,
+                    DelegateeId = delegateeId,
+                    Status = delegationStatus[randomStatusindex],
+                    Note = $"Note de {contactId}",
+                    Account = _fixture.CreateMany<AccountEntity>(3).ToList()
+                };
+
+                await context.DelegationEntity.AddRangeAsync(tDelegation);
+
+                expectedDelegationsResult.Add(tDelegation.ToDelegation()!);
+            }
+
+            await context.SaveChangesAsync();
+
+            var repository = new DelegationRepository(context);
+
+            // Act
+            var result = await repository.GetContactDelegationsHistoryAsync(contactId, pagination, true);
+
+            // Assert
+            result.Items.Should().NotBeNull().And.NotBeEmpty();
+            result.CurrentPage.Should().Be(1);
+            result.TotalItems.Should().Be(10);
+            result.TotalPage.Should().Be(1);
+        }
+    }
+
+    [Fact]
     public async Task GetAccountDelegationsHistoryAsync_WithAccountIdInvalid_ShouldReturnEmptyListDelegations()
     {
         using (var context = new AccountContext(_dbContextOptions))
@@ -781,6 +864,29 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
 
             var result = await repository.GetAccountDelegationsHistoryAsync(0, null!, pagination);
+
+            result.Should().NotBeNull();
+            result.Items.Should().BeEmpty();
+            result.CurrentPage.Should().Be(1);
+            result.TotalItems.Should().Be(0);
+            result.TotalPage.Should().Be(1);
+        }
+    }
+
+    [Fact]
+    public async Task GetContactDelegationsHistoryAsync_WithContactIdInvalid_ShouldReturnEmptyListDelegations()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 1
+            };
+
+            var repository = new DelegationRepository(context);
+
+            var result = await repository.GetContactDelegationsHistoryAsync(0, pagination, true);
 
             result.Should().NotBeNull();
             result.Items.Should().BeEmpty();
@@ -813,6 +919,33 @@ public class DelegationRepositoryTests
         var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
 
         var result = await repository.DoesAccountExistAsync(It.IsAny<int>());
+
+        result.Should().Be(false);
+    }
+
+    [Fact]
+    public async Task DoesContactExistAsync_WithExistingContact_ShouldReturnTrue()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var contact = _fixture.Create<ContactEntity>();
+            context.ContactEntity.Add(contact);
+            await context.SaveChangesAsync();
+
+            var repository = new DelegationRepository(context);
+
+            var result = await repository.DoesContactExistAsync(contact.ContactId);
+
+            result.Should().Be(true);
+        }
+    }
+
+    [Fact]
+    public async Task DoesContactExistAsync_WithNotExistingContact_ShouldReturnFalse()
+    {
+        var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
+
+        var result = await repository.DoesContactExistAsync(It.IsAny<int>());
 
         result.Should().Be(false);
     }

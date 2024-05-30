@@ -19,4 +19,6 @@ public interface IDelegationService
     Task DeleteDelegationAsync(int delegationId);
 
     Task<Paging<Delegation>> GetAccountDelegationsHistoryAsync(int accountId, string? search, Pagination? pagination);
+
+    Task<Paging<Delegation>> GetContactDelegationsHistoryAsync(int contactId, Pagination? pagination, bool sortAscending);
 }
