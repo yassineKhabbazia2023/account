@@ -160,7 +160,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                                   || n.LastName.ToLower().Contains(criteria.Search)
                                   || n.PersonaName.ToLower().Contains(criteria.Search)
                                   || (n.Office != null && n.Office.ToLower().Contains(criteria.Search)
-                                  || (!string.IsNullOrWhiteSpace(n.Status) && n.Status.Contains(criteria.Search, StringComparison.OrdinalIgnoreCase)))
+                                  || (!string.IsNullOrWhiteSpace(n.Status) && n.Status.ToLower().Contains(criteria.Search.ToLower())))
                             select n;
                 }
 
