@@ -9,10 +9,10 @@
 	[Status]                VARCHAR(20)         NULL, 
 	[PersonaName]           VARCHAR(50)         NOT NULL, 
 	[Office]				VARCHAR(250)		NULL,
-	[CreationDate]          DATETIME2           NOT NULL, 
+	[CreationDate]          DATETIME2           NOT NULL,
+    [LastUpdateDate]        DATETIME2           NULL, 
     CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC),
-    CONSTRAINT [CHK_Type] CHECK ([Type]= 'customer' OR [Type]= 'collaborator'),
-    CONSTRAINT [CHK_Status] CHECK ([Status]= 'connected' OR [Status]= 'declared' OR [Status]= 'invited' OR [Status]= 'removed')
+    CONSTRAINT [DF_Contact_CreationDate]  DEFAULT (getdate()) FOR [CreationDate]
 )
 
 GO
@@ -115,3 +115,12 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'Contact',
     @level2type = N'COLUMN',
     @level2name = N'CreationDate'
+    GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'La date de la dernière modification du contact',
+    @level0type = N'SCHEMA',
+    @level0name = N'actor',
+    @level1type = N'TABLE',
+    @level1name = N'Contact',
+    @level2type = N'COLUMN',
+    @level2name = N'LastUpdateDate'
