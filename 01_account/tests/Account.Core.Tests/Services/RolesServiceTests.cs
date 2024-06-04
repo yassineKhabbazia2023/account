@@ -7,7 +7,6 @@ using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Client;
 using Moq;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
@@ -23,19 +22,20 @@ public class RolesServiceTests
 {
     private readonly Mock<IRoleEventPublisher>? _rolePublisher;
     private readonly Mock<ILogger<RolesService>>? _logger;
+    private readonly Fixture _fixture;
 
     public RolesServiceTests()
     {
         _rolePublisher = new Mock<IRoleEventPublisher>();
         _logger = new Mock<ILogger<RolesService>>();
+        _fixture = new Fixture();
     }
 
     [Fact]
     public async Task GetContactRolesAsync_Should_ReturnsOkResultAsync()
     {
         // Arrange
-        var fixture = new Fixture();
-        var accountList = fixture.Create<Paging<AccountModel>>();
+        var accountList = _fixture.Create<Paging<AccountModel>>();
         var rolesRepository = new Mock<IRoleRepository>();
         rolesRepository.Setup(repository => repository.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<Pagination>())).ReturnsAsync(accountList);
         var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _logger!.Object);
@@ -53,8 +53,7 @@ public class RolesServiceTests
     {
         // Arrange
         var accountId = 116;
-        var fixture = new Fixture();
-        var expected = new List<Contact> { fixture.Create<Contact>() };
+        var expected = new List<Contact> { _fixture.Create<Contact>() };
 
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
@@ -71,7 +70,7 @@ public class RolesServiceTests
     }
 
     [Fact]
-    public async Task CreateRole_Should_ReturnsCreatedResultAsync()
+    public async Task CreateRoleAsync_Should_ReturnsCreatedResult()
     {
         // Arrange
         var newRole = new Role()
@@ -91,6 +90,7 @@ public class RolesServiceTests
 
         var roleRepository = new Mock<IRoleRepository>();
         roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
+            .ReturnsAsync(new List<Role> { newRole })
             .Verifiable();
 
         _rolePublisher!.Setup(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()))
@@ -217,9 +217,8 @@ public class RolesServiceTests
     {
         // Arrange
         var roleRepository = DeleteRole_MockRepo();
-        var fixture = new Fixture();
         roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
-            .ReturnsAsync(fixture.CreateMany<Contact>(2));
+            .ReturnsAsync(_fixture.CreateMany<Contact>(2));
         var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
@@ -250,9 +249,8 @@ public class RolesServiceTests
     {
         // Arrange
         var roleRepository = DeleteRole_MockRepo();
-        var fixture = new Fixture();
         roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
-            .ReturnsAsync(new List<Contact> { fixture.Create<Contact>() });
+            .ReturnsAsync(new List<Contact> { _fixture.Create<Contact>() });
         var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act

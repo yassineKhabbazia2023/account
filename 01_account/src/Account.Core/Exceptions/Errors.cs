@@ -65,5 +65,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string NotFoundManagedIdentityClientIdCode = "ACC020";
         public static readonly string NotFoundManagedIdentityClientIdMessage = "L'identité du clientID doit être renseignée";
+
+        public static readonly string BadRequestExistingRoleCode = "ACC021";
+        public static readonly string BadRequestExistingRoleMessage = "Le role ContactId {0}/AccountId {1} existe déjà";
     }
 }

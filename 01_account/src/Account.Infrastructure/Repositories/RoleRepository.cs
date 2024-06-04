@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -24,10 +25,12 @@ public class RoleRepository : IRoleRepository
 {
     private readonly AccountContext _accountContext;
     private readonly AsyncRetryPolicy _retryPolicy;
+    private readonly IDelegationRepository _delegationRepository;
 
-    public RoleRepository(AccountContext accountContext)
+    public RoleRepository(AccountContext accountContext, IDelegationRepository delegationRepository)
     {
         _accountContext = accountContext;
+        _delegationRepository = delegationRepository;
 
         _retryPolicy = Policy
                 .Handle<SqlException>()
@@ -96,9 +99,9 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task CreateRoleAsync(CreateRoleRequest role)
+    public async Task<IEnumerable<Role>> CreateRoleAsync(CreateRoleRequest role)
     {
-        await _retryPolicy.ExecuteAsync(async () =>
+        return await _retryPolicy.ExecuteAsync(async () =>
         {
             if (!_accountContext.AccountEntity.Any(x => x.AccountId == role.AccountId))
             {
@@ -110,9 +113,20 @@ public class RoleRepository : IRoleRepository
                 throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
             }
 
+            if (await GetContactRoleAsync(role.AccountId, role.ContactId) != null)
+            {
+                throw new BadRequestException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, role.ContactId, role.AccountId));
+            }
+
             var roleDb = role.MapRoleToRoleDb();
             _accountContext.RoleEntity.Add(roleDb);
+
+            var roles = new List<Role> { roleDb.MapToRole() };
+            _delegationRepository.GetAutomaticDelegations(role.ContactId, new List<int> { role.AccountId }, roles);
+
             await _accountContext.SaveChangesAsync();
+
+            return roles;
         });
     }
 

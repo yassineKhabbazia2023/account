@@ -36,7 +36,7 @@ public class DelegationRepository : IDelegationRepository
                 sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(3000));
     }
 
-    public async Task CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles)
+    public async Task<IEnumerable<Role>> CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles)
     {
         ArgumentNullException.ThrowIfNull(delegation);
         var contactsToCheck = delegation.DelegationDetails.Select(d => d.DelegateeId).ToList();
@@ -57,11 +57,17 @@ public class DelegationRepository : IDelegationRepository
             throw new NotFoundException(Errors.DontHaveRightAccountsCode, Errors.DontHaveRightAccountsMessage);
         }
 
-        var accounts = await GetAccountsAsync(delegation.AccountIds!);
+        var accounts = GetAccounts(delegation.AccountIds!);
         var delegationEntities = delegation.MapDelegationRequestToDelegationsDb(accounts.ToList());
         var roleEntities = RemoveExistingRoles(roles.MapRolesToRoleDb());
 
-        await _retryPolicy.ExecuteAsync(async () =>
+        var rolesCreated = roleEntities.MapToRoles().ToList();
+        delegationEntities.ToList().ForEach(de =>
+        {
+            GetAutomaticDelegations(de.DelegateeId, de.Account.Select(a => a.AccountId), rolesCreated);
+        });
+
+        return await _retryPolicy.ExecuteAsync(async () =>
         {
             if (roleEntities.Any())
             {
@@ -70,6 +76,8 @@ public class DelegationRepository : IDelegationRepository
 
             await _accountContext.DelegationEntity.AddRangeAsync(delegationEntities);
             await _accountContext.SaveChangesAsync();
+
+            return rolesCreated;
         });
     }
 
@@ -256,13 +264,10 @@ public class DelegationRepository : IDelegationRepository
         });
     }
 
-    private async Task<IEnumerable<AccountEntity>> GetAccountsAsync(IEnumerable<int> accountIds)
+    private IEnumerable<AccountEntity> GetAccounts(IEnumerable<int> accountIds)
     {
         var accountEntities = new List<AccountEntity>();
-        await _retryPolicy.ExecuteAsync(async () =>
-        {
-            accountEntities = await _accountContext.AccountEntity.Where(a => accountIds.Contains(a.AccountId)).ToListAsync();
-        });
+        accountEntities = _accountContext.AccountEntity.Where(a => accountIds.Contains(a.AccountId)).ToList();
 
         return accountEntities;
     }
@@ -346,7 +351,67 @@ public class DelegationRepository : IDelegationRepository
             .ToList();
 
         var rolesToCreate = roles.Except(existingRoles, new RoleComparer());
-
         return rolesToCreate;
+    }
+
+    public void GetAutomaticDelegations(int delegatorId, IEnumerable<int> accountIds, List<Role> rolesToCreate)
+    {
+        var delegations = _accountContext.DelegationEntity
+                                        .Include(d => d.Account)
+                                        .Include(d => d.Delegatee)
+                                        .Where(d => d.DelegatorId == delegatorId
+                                            && !d.Status.Equals(DelegationStatus.Disabled.ToString().ToLower())
+                                            && d.IsAutomaticDelegation)
+                                        .ToList();
+
+        var accounts = GetAccounts(accountIds);
+        delegations.ForEach(d =>
+        {
+            accounts = accounts.Except(d.Account);
+            List<AccountEntity> newDelegationAccounts = accounts.ToList();
+            newDelegationAccounts.AddRange(d.Account);
+            d.Account = newDelegationAccounts;
+
+            var rolesCreated = CreateRoleForDelegation(d.DelegateeId, accounts.Select(a => a.AccountId));
+            rolesToCreate.AddRange(rolesCreated);
+
+            GetAutomaticDelegations(d.DelegateeId, accounts.Select(a => a.AccountId), rolesToCreate);
+        });
+    }
+
+    public IEnumerable<Role> CreateRoleForDelegation(int contactId, IEnumerable<int> accountIds)
+    {
+        var rolesCreated = new List<Role>();
+
+        var entities = new List<RoleEntity>();
+
+        foreach (var accountId in accountIds)
+        {
+            if (GetRole(contactId, accountId) == null)
+            {
+                var entity = new RoleEntity
+                {
+                    ContactId = contactId,
+                    AccountId = accountId,
+                    IsSignatory = false,
+                    IsFavorite = false,
+                    IsDelegation = true
+                };
+                entities.Add(entity);
+
+                rolesCreated.Add(entity.MapToRole());
+            }
+        }
+
+        _accountContext.RoleEntity.AddRange(entities);
+
+        return rolesCreated;
+    }
+
+    private RoleEntity? GetRole(int contactId, int accountId)
+    {
+        return _accountContext.RoleEntity
+                .AsNoTracking()
+                .FirstOrDefault(r => r.ContactId == contactId && r.AccountId == accountId);
     }
 }

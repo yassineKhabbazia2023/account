@@ -20,7 +20,9 @@ public class RolesService : IRolesService
     private readonly IRoleEventPublisher _roleEventPublisher;
     private readonly ILogger<RolesService> _logger;
 
-    public RolesService(IRoleRepository rolesRepository, IRoleEventPublisher roleEventPublisher, ILogger<RolesService> logger)
+    public RolesService(IRoleRepository rolesRepository,
+        IRoleEventPublisher roleEventPublisher,
+        ILogger<RolesService> logger)
     {
         _rolesRepository = rolesRepository;
         _roleEventPublisher = roleEventPublisher;
@@ -43,9 +45,18 @@ public class RolesService : IRolesService
 
     public async Task CreateRoleAsync(CreateRoleRequest role)
     {
-        await _rolesRepository.CreateRoleAsync(role);
+        var rolesCreated = await _rolesRepository.CreateRoleAsync(role);
 
-        await PublishRoleCreatedEvent(role);
+        var roles = rolesCreated.Select(r => new CreateRoleRequest
+        {
+            ContactId = r.ContactId,
+            AccountId = r.AccountId,
+            IsSignatory = r.IsSignatory,
+            IsFavorite = r.IsFavorite,
+            IsDelegation = r.IsDelegation,
+        }).ToList();
+
+        await Task.WhenAll(roles.Select(PublishRoleCreatedEvent));
     }
 
     public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)

@@ -8,7 +8,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Providers;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 
-namespace Pulse.Offer.Infrastructure.Tests.Providers;
+namespace Pulse.Account.Infrastructure.Tests.Providers;
 
 public class RegistryAccountRemovedEventHandlerTests
 {

@@ -14,7 +14,7 @@ public interface IDelegationRepository
 
     Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId);
 
-    Task CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles);
+    Task<IEnumerable<Role>> CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles);
 
     Task<IEnumerable<Role>> DeleteDelegationAsync(int delegationId);
 
@@ -27,4 +27,6 @@ public interface IDelegationRepository
     Task<IEnumerable<int>> GetAccountIdsForFullDelegationAsync(int delegatorId);
 
     Task<Paging<Delegation>> GetContactDelegationsHistoryAsync(int contactId, Pagination pagination, bool sortAscending);
+
+    void GetAutomaticDelegations(int delegatorId, IEnumerable<int> accountIds, List<Role> rolesToCreate);
 }

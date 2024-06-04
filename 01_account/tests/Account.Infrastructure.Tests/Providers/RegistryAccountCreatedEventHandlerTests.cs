@@ -12,7 +12,7 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 
-namespace Pulse.Offer.Infrastructure.Tests.Providers;
+namespace Pulse.Account.Infrastructure.Tests.Providers;
 
 public class RegistryAccountCreatedEventHandlerTests
 {

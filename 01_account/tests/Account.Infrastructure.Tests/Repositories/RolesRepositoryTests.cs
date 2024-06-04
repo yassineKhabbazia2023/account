@@ -9,6 +9,7 @@ using Moq;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
@@ -51,7 +52,7 @@ public class RolesRepositoryTests
             context.AccountEntity.AddRange(accountsEntity);
             context.SaveChanges();
 
-            var rolesRepository = new RoleRepository(context);
+            var rolesRepository = new RoleRepository(context, null!);
             var contactId = accountsEntity.First().RoleEntity.First().ContactId;
 
             var accountObjects = accountsEntity
@@ -87,7 +88,7 @@ public class RolesRepositoryTests
             context.AccountEntity.AddRange(accountsMock);
             context.SaveChanges();
 
-            var rolesRepository = new RoleRepository(context);
+            var rolesRepository = new RoleRepository(context, null!);
             var data = accountsMock.First().RoleEntity.Where(r => r.IsSignatory!.Value).ToList();
             var resultExpected = new List<Contact>();
             resultExpected.AddRange(data.MapToContacts());
@@ -103,7 +104,7 @@ public class RolesRepositoryTests
     [Fact]
     public async Task GetSignatoryAsync_WithNotExistingAccountId_ShouldThrowNotFoundException()
     {
-        var repository = new RoleRepository(new AccountContext(_dbContextOptions));
+        var repository = new RoleRepository(new AccountContext(_dbContextOptions), null!);
 
         var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.GetSignatoryAsync(It.IsAny<int>()));
 
@@ -112,7 +113,7 @@ public class RolesRepositoryTests
     }
 
     [Fact]
-    public async Task CreateRoleAsync_WithValidRequest_ShouldReturnCreated()
+    public async Task CreateRoleAsync_WithValidRequest_ShouldReturnRolesCreated()
     {
         // Arrange
         const int accountId = 123;
@@ -149,15 +150,27 @@ public class RolesRepositoryTests
             CreationDate = DateTime.UtcNow,
         });
 
+        accountContext.DelegationEntity.Add(new DelegationEntity
+        {
+            DelegatorId = contactId,
+            DelegateeId = 2,
+            StartDate = DateTime.UtcNow,
+            CreationDate = DateTime.UtcNow,
+            IsAutomaticDelegation = true,
+            Status = "enabled"
+        });
+
         await accountContext.SaveChangesAsync();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var delegationRepository = new Mock<IDelegationRepository>();
+        var rolesRepository = new RoleRepository(accountContext, delegationRepository.Object);
 
         // Act
-        await rolesRepository.CreateRoleAsync(roleRequest);
+        var result = await rolesRepository.CreateRoleAsync(roleRequest);
 
         // Assert
-        Assert.Single(accountContext.RoleEntity);
+        Assert.NotNull(result);
+        Assert.Single(result);
     }
 
     [Fact]
@@ -190,7 +203,7 @@ public class RolesRepositoryTests
 
         await accountContext.SaveChangesAsync();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(accountContext, null!);
 
         // Act
         Func<Task> action = async () => await rolesRepository.CreateRoleAsync(roleRequest);
@@ -201,7 +214,7 @@ public class RolesRepositoryTests
     }
 
     [Fact]
-    public async Task CreateRoleAsync_WithInValidContact_ShouldReturnCreated()
+    public async Task CreateRoleAsync_WithInValidContact_ShouldThrowsNotFoundException()
     {
         // Arrange
         const int accountId = 123;
@@ -228,7 +241,7 @@ public class RolesRepositoryTests
 
         await accountContext.SaveChangesAsync();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(accountContext, null!);
 
         // Act
         Func<Task> action = async () => await rolesRepository.CreateRoleAsync(roleRequest);
@@ -249,7 +262,7 @@ public class RolesRepositoryTests
             context.RoleEntity.Add(roleMock);
             context.SaveChanges();
 
-            var rolesRepository = new RoleRepository(context);
+            var rolesRepository = new RoleRepository(context, null!);
 
             // Act
             await rolesRepository.UpdateRoleSignatoryAsync(roleMock.AccountId, roleMock.ContactId, false);
@@ -269,7 +282,7 @@ public class RolesRepositoryTests
         // Arrange
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var rolesRepository = new RoleRepository(context);
+            var rolesRepository = new RoleRepository(context, null!);
 
             // Act
             Task RoleUpdate() => rolesRepository.UpdateRoleSignatoryAsync(1, 1, false);
@@ -291,7 +304,7 @@ public class RolesRepositoryTests
             context.ContactEntity.AddRange(contactMock);
             await context.SaveChangesAsync();
 
-            var roleRepository = new RoleRepository(context);
+            var roleRepository = new RoleRepository(context, new Mock<IDelegationRepository>().Object);
             await roleRepository.CreateRoleAsync(new CreateRoleRequest
             {
                 AccountId = accountMock.AccountId,

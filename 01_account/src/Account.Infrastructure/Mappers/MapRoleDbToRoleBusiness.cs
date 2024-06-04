@@ -16,7 +16,8 @@ namespace Pulse.Account.Infrastructure.Mappers
                 AccountId = role.AccountId,
                 ContactId = role.ContactId,
                 IsFavorite = role.IsFavorite,
-                IsSignatory = role.IsSignatory
+                IsSignatory = role.IsSignatory,
+                IsDelegation = role.IsDelegation,
             };
         }
 

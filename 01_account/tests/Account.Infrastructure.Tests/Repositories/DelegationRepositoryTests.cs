@@ -42,47 +42,45 @@ public class DelegationRepositoryTests
         var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
 
-        try
+        var options = new DbContextOptionsBuilder<AccountContext>()
+        .UseSqlite(connection)
+        .Options;
+
+        // Run the test against one instance of the context
+        using (var context = new AccountContext(options))
         {
-            var options = new DbContextOptionsBuilder<AccountContext>()
-            .UseSqlite(connection)
-            .Options;
+            context.Database.EnsureCreated();
+            context.Database.ExecuteSqlRaw("PRAGMA foreign_keys = OFF;");
 
-            // Run the test against one instance of the context
-            using (var context = new AccountContext(options))
+            // Create Account
+            var tAccount = _fixture.Create<AccountEntity>();
+            context.AccountEntity.Add(tAccount);
+            await context.SaveChangesAsync();
+
+            // Create Contacts
+            var tDelegator = _fixture.Build<ContactEntity>()
+                .With(c => c.ContactId, 123)
+                .Create();
+            var tDelegatee = _fixture.Create<ContactEntity>();
+            context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
+            await context.SaveChangesAsync();
+
+            // Create Role for Delegator
+            var roleDelegator = _fixture.Build<RoleEntity>()
+                .With(c => c.Account, tAccount)
+                .With(c => c.AccountId, tAccount.AccountId)
+                .With(c => c.Contact, tDelegator)
+                .With(c => c.ContactId, 123)
+                .Create();
+            context.RoleEntity.Add(roleDelegator);
+            await context.SaveChangesAsync();
+
+            // Try create a delegation
+            var repository = new DelegationRepository(context);
+            var createDelegation = new CreateDelegationRequest()
             {
-                context.Database.EnsureCreated();
-                context.Database.ExecuteSqlRaw("PRAGMA foreign_keys = OFF;");
-
-                // Create Account
-                var tAccount = _fixture.Create<AccountEntity>();
-                context.AccountEntity.Add(tAccount);
-                await context.SaveChangesAsync();
-
-                // Create Contacts
-                var tDelegator = _fixture.Build<ContactEntity>()
-                    .With(c => c.ContactId, 123)
-                    .Create();
-                var tDelegatee = _fixture.Create<ContactEntity>();
-                context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
-                await context.SaveChangesAsync();
-
-                // Create Role for Delegator
-                var roleDelegator = _fixture.Build<RoleEntity>()
-                    .With(c => c.Account, tAccount)
-                    .With(c => c.AccountId, tAccount.AccountId)
-                    .With(c => c.Contact, tDelegator)
-                    .With(c => c.ContactId, 123)
-                    .Create();
-                context.RoleEntity.Add(roleDelegator);
-                await context.SaveChangesAsync();
-
-                // Try create a delegation
-                var repository = new DelegationRepository(context);
-                var createDelegation = new CreateDelegationRequest()
-                {
-                    DelegatorId = tDelegator.ContactId,
-                    DelegationDetails = new List<DelegationDetails>
+                DelegatorId = tDelegator.ContactId,
+                DelegationDetails = new List<DelegationDetails>
                 {
                     new()
                     {
@@ -90,48 +88,40 @@ public class DelegationRepositoryTests
                         StartDate = DateTime.UtcNow,
                         Status = "enabled",
                         IsRoleToCreate = true,
-                        IsAutomaticDelegation = true
+                        IsAutomaticDelegation = false
                     },
                 },
-                    AccountIds = new List<int> { roleDelegator.AccountId },
-                    IsFullDelegation = true
-                };
-                var roles = new List<CreateRoleRequest>
+                AccountIds = new List<int> { roleDelegator.AccountId },
+                IsFullDelegation = true
+            };
+            var roles = new List<CreateRoleRequest>
+            {
+                new()
                 {
-                    new()
-                    {
-                        AccountId = tAccount.AccountId,
-                        ContactId = tDelegatee.ContactId,
-                        IsFavorite = false,
-                        IsSignatory = false,
-                        IsDelegation = true,
-                    }
-                };
+                    AccountId = tAccount.AccountId,
+                    ContactId = tDelegatee.ContactId,
+                    IsFavorite = false,
+                    IsSignatory = false,
+                    IsDelegation = true,
+                }
+            };
 
-                await repository.CreateDelegationAsync(createDelegation, roles);
+            var result = await repository.CreateDelegationAsync(createDelegation, roles);
 
-                var createdDelegation = await context
-                    .DelegationEntity
-                    .FirstOrDefaultAsync(d => d.DelegatorId == tDelegator.ContactId
-                    && d.DelegateeId == tDelegatee.ContactId
-                    && d.Account.FirstOrDefault(a => a.AccountId == tAccount.AccountId) != null);
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal(tAccount.AccountId, result.First().AccountId);
+            Assert.Equal(tDelegatee.ContactId, result.First().ContactId);
 
-                Assert.NotNull(createdDelegation);
-                Assert.True(createdDelegation.IsFullDelegation);
-                Assert.True(createdDelegation.IsAutomaticDelegation);
+            var createdDelegation = await context
+                .DelegationEntity
+                .FirstOrDefaultAsync(d => d.DelegatorId == tDelegator.ContactId
+                && d.DelegateeId == tDelegatee.ContactId
+                && d.Account.FirstOrDefault(a => a.AccountId == tAccount.AccountId) != null);
 
-                var createdRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == tDelegatee.ContactId);
-                Assert.NotNull(createdRole);
-                Assert.True(createdRole.IsDelegation);
-            }
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(ex.InnerException!.Message, ex);
-        }
-        finally
-        {
-            connection.Close();
+            Assert.NotNull(createdDelegation);
+            Assert.True(createdDelegation.IsFullDelegation);
+            Assert.False(createdDelegation.IsAutomaticDelegation);
         }
     }
 
@@ -1008,5 +998,82 @@ public class DelegationRepositoryTests
             result.Should().NotBeNull();
             result.Should().BeEmpty();
         }
+    }
+
+    [Fact]
+    public async Task GetAutomaticDelegations_ShouldAddRolesToCreate()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var delegation = _fixture.Build<DelegationEntity>()
+            .With(d => d.Status, "enabled")
+            .With(d => d.IsAutomaticDelegation, true)
+            .Create();
+        context.DelegationEntity.Add(delegation);
+
+        var accounts = _fixture.Build<AccountEntity>()
+            .Without(a => a.Delegation)
+            .CreateMany();
+        context.AccountEntity.AddRange(accounts);
+        await context.SaveChangesAsync();
+
+        var repository = new DelegationRepository(context);
+
+        var result = new List<Role>();
+        repository.GetAutomaticDelegations(delegation.DelegatorId, accounts.Select(a => a.AccountId), result);
+
+        Assert.NotEmpty(result);
+        for (int i = 0; i < result.Count(); i++)
+        {
+            var role = result[i];
+            var accountId = accounts.Select(a => a.AccountId).ElementAt(i);
+
+            Assert.Equal(accountId, role.AccountId);
+            Assert.Equal(delegation.DelegateeId, role.ContactId);
+            Assert.False(role.IsSignatory);
+            Assert.False(role.IsFavorite);
+            Assert.True(role.IsDelegation);
+        }
+    }
+
+    [Fact]
+    public void CreateRoleForDelegation_ShouldCreateRoles()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var repository = new DelegationRepository(context);
+
+        var result = repository.CreateRoleForDelegation(1, new List<int> { 1, 2, 3 });
+
+        Assert.NotEmpty(result);
+        Assert.Equal(3, result.Count());
+        Assert.Equal(1, result.First().ContactId);
+        Assert.Equal(1, result.First().AccountId);
+        Assert.Equal(1, result.ElementAt(1).ContactId);
+        Assert.Equal(2, result.ElementAt(1).AccountId);
+        Assert.Equal(1, result.ElementAt(2).ContactId);
+        Assert.Equal(3, result.ElementAt(2).AccountId);
+
+        result.ToList().ForEach(r =>
+        {
+            Assert.False(r.IsFavorite);
+            Assert.False(r.IsSignatory);
+            Assert.True(r.IsDelegation);
+        });
+    }
+
+    [Fact]
+    public async Task CreateRoleForDelegation_WithExistingRole_ShouldNotCreateRole()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var role = _fixture.Create<RoleEntity>();
+        context.RoleEntity.Add(role);
+        await context.SaveChangesAsync();
+
+        var repository = new DelegationRepository(context);
+
+        var result = repository.CreateRoleForDelegation(role.ContactId, new List<int> { role.AccountId });
+
+        Assert.Empty(result);
     }
 }
