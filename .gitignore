@@ -361,3 +361,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /01_account/src/Account.API/Properties/launchSettings.json
+.DS_Store
+.vscode/launch.json
+01_account/nuget.config
