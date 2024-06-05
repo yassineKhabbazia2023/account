@@ -47,6 +47,8 @@ public class ContactUpdatedEventHandler : IEventHandler
 
         var contactEntity = contactEvent!.Data.ToContactEntity();
 
+        await _contactEventRepository.UpdateContactAsync(contactEntity!);
+
         var accountEntity = _accountEventRepository.GetAccountBySignatory(contactEntity!.ContactId);
 
         if (accountEntity != null && accountEntity.Any())
@@ -71,8 +73,6 @@ public class ContactUpdatedEventHandler : IEventHandler
 
             _logger.LogInformation("L'entité avec l'identifiant: {AccountId} vient d'être modifié.", string.Join('-', accountIds));
         }
-
-        await _contactEventRepository.UpdateContactAsync(contactEntity!);
 
         _logger.LogInformation("Le contact avec l'identifiant: {ContactId} vient d'être modifié.", contactEntity.ContactId);
     }
