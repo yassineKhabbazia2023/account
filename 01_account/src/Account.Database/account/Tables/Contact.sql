@@ -6,13 +6,12 @@
 	[LastName]				VARCHAR(250)		NOT NULL,
 	[Email]     			VARCHAR(250)		NOT NULL,
 	[Type]                  VARCHAR(20)         NOT NULL, 
-	[Status]                VARCHAR(20)         NULL, 
+	[Status]                VARCHAR(20)         NOT NULL, 
 	[PersonaName]           VARCHAR(50)         NOT NULL, 
 	[Office]				VARCHAR(250)		NULL,
-	[CreationDate]          DATETIME2           NOT NULL,
+	[CreationDate]          DATETIME2           NOT NULL DEFAULT getdate(),
     [LastUpdateDate]        DATETIME2           NULL, 
-    CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC),
-    CONSTRAINT [DF_Contact_CreationDate]  DEFAULT (getdate()) FOR [CreationDate]
+    CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC)
 )
 
 GO

@@ -57,6 +57,11 @@ public partial class ContactEntity
     /// </summary>
     public DateTime CreationDate { get; set; }
 
+    /// <summary>
+    /// La date de la dernière modification du contact
+    /// </summary>
+    public DateTime? LastUpdateDate { get; set; }
+
     public virtual ICollection<DelegationEntity> DelegationEntityDelegatee { get; set; } = new List<DelegationEntity>();
 
     public virtual ICollection<DelegationEntity> DelegationEntityDelegator { get; set; } = new List<DelegationEntity>();
