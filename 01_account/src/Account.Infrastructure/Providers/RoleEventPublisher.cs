@@ -7,16 +7,21 @@ using Pulse.Back.Events.IntegrationEvents.EventsData;
 using Pulse.Back.Events.IntegrationEvents;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Requests;
+using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Infrastructure.Interfaces;
 
 namespace Pulse.Account.Infrastructure.Providers
 {
     public class RoleEventPublisher : IRoleEventPublisher
     {
         private readonly IEventPublisher _eventPublisher;
+        private readonly IContactRepository _contactRepository;
 
-        public RoleEventPublisher(IEventPublisher eventPublisher)
+        public RoleEventPublisher(IEventPublisher eventPublisher, IContactRepository contactRepository)
         {
             _eventPublisher = eventPublisher;
+            _contactRepository = contactRepository;
         }
 
         public async Task PublishRoleCreatedEventAsync(CreateRoleRequest roleRequest)
@@ -26,6 +31,12 @@ namespace Pulse.Account.Infrastructure.Providers
                 return;
             }
 
+            var contact = await _contactRepository.GetContactAsync(roleRequest.ContactId);
+
+            var account = contact.RoleEntity
+                .FirstOrDefault(r =>
+                    r.AccountId == roleRequest.AccountId)?.Account ?? throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+
             var data = new RoleCreatedEventData
             {
                 AccountId = roleRequest.AccountId,
@@ -33,6 +44,8 @@ namespace Pulse.Account.Infrastructure.Providers
                 IsDelegation = roleRequest.IsDelegation,
                 IsFavorite = roleRequest.IsFavorite,
                 IsSignatory = roleRequest.IsSignatory,
+                AccountGlobalUniqueId = account!.AccountGlobalUniqueId,
+                ContactGlobalUniqueId = contact!.ContactGlobalUniqueId
             };
 
             await _eventPublisher.PublishAsync(new RoleCreatedEvent(data));
@@ -51,10 +64,18 @@ namespace Pulse.Account.Infrastructure.Providers
 
         public async Task PublishRoleDeletedEventAsync(int accountId, int contactId)
         {
+            var contact = await _contactRepository.GetContactAsync(contactId);
+
+            var account = contact.RoleEntity
+                .FirstOrDefault(r =>
+                    r.AccountId == accountId)?.Account ?? throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+
             var data = new RoleDeletedEventData
             {
                 AccountId = accountId,
                 ContactId = contactId,
+                AccountGlobalUniqueId = account!.AccountGlobalUniqueId,
+                ContactGlobalUniqueId = contact!.ContactGlobalUniqueId,
             };
 
             await _eventPublisher.PublishAsync(new RoleDeletedEvent(data));

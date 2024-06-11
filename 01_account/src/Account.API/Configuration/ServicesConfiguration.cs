@@ -11,6 +11,7 @@ using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Services;
 using Pulse.Account.Infrastructure.Context;
+using Pulse.Account.Infrastructure.Interfaces;
 using Pulse.Account.Infrastructure.Providers;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Account.Infrastructure.Repositories;
@@ -38,6 +39,7 @@ namespace Pulse.Account.API.Configuration
             services.AddScoped<IReferentialRepository, ReferentialRepository>();
             services.AddScoped<IStatisticsService, StatisticsService>();
             services.AddScoped<IStatisticsRepository, StatisticsRepository>();
+            services.AddScoped<IContactRepository, ContactRepository>();
         }
 
         public static void RegisterBrokerServices(this IServiceCollection services, IConfiguration configuration)
