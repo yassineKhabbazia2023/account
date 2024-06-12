@@ -46,6 +46,7 @@ public class ContactEventRepository : IContactEventRepository
     {
         var existingContact = await _accountContext.ContactEntity.SingleAsync(x => x.ContactId == contactId);
         existingContact.Status = ContactStatus.Removed.ToString();
+        existingContact.LastUpdateDate = DateTime.UtcNow;
 
         await _retryPolicy.ExecuteAsync(async () =>
         {

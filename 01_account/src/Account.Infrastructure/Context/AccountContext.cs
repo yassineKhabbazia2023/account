@@ -234,7 +234,7 @@ public partial class AccountContext : DbContext
                 .HasComment("L''identifiant technique");
             entity.Property(e => e.ContactGlobalUniqueId).HasComment("L''identifiant global du contact");
             entity.Property(e => e.CreationDate)
-                .HasDefaultValueSql("getdate()")
+                .HasDefaultValueSql("GETDATE()")
                 .HasComment("La date de création du contact");
             entity.Property(e => e.Email)
                 .IsRequired()

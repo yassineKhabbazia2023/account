@@ -48,5 +48,6 @@ public static class MapToContactEntity
         destination.Status = source.Status;
         destination.Type = source.Type;
         destination.CreationDate = source.CreationDate;
+        destination.LastUpdateDate = DateTime.UtcNow;
     }
 }

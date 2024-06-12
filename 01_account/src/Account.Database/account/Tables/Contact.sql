@@ -9,7 +9,7 @@
 	[Status]                VARCHAR(20)         NULL, 
 	[PersonaName]           VARCHAR(50)         NOT NULL, 
 	[Office]				VARCHAR(250)		NULL,
-	[CreationDate]          DATETIME2           NOT NULL DEFAULT getdate(),
+	[CreationDate]          DATETIME2           NOT NULL DEFAULT GETDATE(),
     [LastUpdateDate]        DATETIME2           NULL, 
     CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC)
 )

@@ -2,6 +2,7 @@
    "CodeGenerationMode": 4,
    "ContextClassName": "AccountContext",
    "ContextNamespace": null,
+   "DefaultDacpacSchema": null,
    "FilterSchemas": false,
    "IncludeConnectionString": false,
    "ModelNamespace": null,
@@ -55,9 +56,8 @@
          "ObjectType": 0
       }
    ],
-   "UiHint": null,
+   "UiHint": "..\\Account.Database\\Account.Database.sqlproj",
    "UncountableWords": null,
-   "UseAsyncStoredProcedureCalls": true,
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": false,
    "UseDateOnlyTimeOnly": false,

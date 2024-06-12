@@ -81,7 +81,7 @@ public class MapToContactEntityTests
         };
 
         // Act
-        updatedContact.ToContactEntity(existingContact);
+        existingContact.ToContactEntity(updatedContact);
 
         // Assert
         Assert.Equal(updatedContact.ContactId, updatedContact.ContactId);
@@ -94,5 +94,7 @@ public class MapToContactEntityTests
         Assert.Equal(updatedContact.Status, updatedContact.Status);
         Assert.Equal(updatedContact.Type, updatedContact.Type);
         Assert.Equal(updatedContact.CreationDate, updatedContact.CreationDate);
+        Assert.NotNull(updatedContact.LastUpdateDate);
+        Assert.NotEqual(existingContact.LastUpdateDate, updatedContact.LastUpdateDate);
     }
 }

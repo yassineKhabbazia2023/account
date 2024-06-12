@@ -107,10 +107,11 @@ public class ContactEventRepositoryTests
         Assert.Equal(modifiedContactEntity.Status, updatedContact.Status);
         Assert.Equal(modifiedContactEntity.Type, updatedContact.Type);
         Assert.Equal(modifiedContactEntity.CreationDate, updatedContact.CreationDate);
+        Assert.NotNull(updatedContact.LastUpdateDate);
     }
 
     [Fact]
-    public async Task RevokContactAsync_WithContactData_ShouldCreateContact()
+    public async Task RevokeContactAsync_WithContactData_ShouldCreateContact()
     {
         var options = new DbContextOptionsBuilder<AccountContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
@@ -142,5 +143,6 @@ public class ContactEventRepositoryTests
 
         Assert.NotNull(updatedContact);
         Assert.Equal(ContactStatus.Removed.ToString(), updatedContact.Status);
+        Assert.NotNull(updatedContact.LastUpdateDate);
     }
 }

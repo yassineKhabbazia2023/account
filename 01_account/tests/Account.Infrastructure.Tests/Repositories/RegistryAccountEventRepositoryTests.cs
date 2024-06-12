@@ -82,6 +82,7 @@ public class RegistryAccountEventRepositoryTests
         // Assert
         Assert.NotNull(updatedAccount);
         Assert.Equivalent(detail, updatedDetail);
+        Assert.NotNull(updatedAccount.UpdatedDate);
     }
 
     [Fact]

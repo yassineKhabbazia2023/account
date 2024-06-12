@@ -79,6 +79,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 deploymentEntity.Status = (int)DeploymentStatus.Revoked;
                 deploymentEntity.DeploymentDate = DateTime.UtcNow;
             }
+
             _context.AccountEntity.Update(accountToRemove);
             await _context.SaveChangesAsync();
             return accountToRemove.AccountId;
@@ -96,6 +97,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             }
 
             existingAccount.AccountNumber = eventData.AccountNumber;
+            existingAccount.UpdatedDate = DateTime.UtcNow;
 
             var deploymentStatus = (int)Enum.Parse(typeof(DeploymentStatus), eventData.DeploymentStatus!);
             var deploymentEntity = existingAccount.DeploymentEntity?.FirstOrDefault();
@@ -119,7 +121,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
 
-            return existingAccount.MapToAccountDetail()!;
+            return existingAccount.MapToAccountDetail() !;
         }
     }
 }
