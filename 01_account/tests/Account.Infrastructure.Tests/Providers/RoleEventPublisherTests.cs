@@ -4,6 +4,8 @@
 
 using Moq;
 using Pulse.Account.Core.Enum;
+using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Interfaces;
@@ -54,7 +56,7 @@ namespace Pulse.Account.Infrastructure.Tests.Providers
                 .ReturnsAsync(contact);
 
             var publisherMock = new Mock<IEventPublisher>();
-            var roleEventPublisher = new RoleEventPublisher(publisherMock.Object, contactRepository.Object);
+            var roleEventPublisher = new RoleEventPublisher(publisherMock.Object, contactRepository.Object, null);
             var request = new CreateRoleRequest
             {
                 ContactId = 1,
@@ -106,12 +108,26 @@ namespace Pulse.Account.Infrastructure.Tests.Providers
                 },
             };
 
+            var account = new AccountDetail
+            {
+                AccountId = 1,
+                Legal = new Legal
+                {
+                    LegalName = "jhonny pizza"
+                },
+                AccountNumber = "19999999",
+                Email = "jhonny@test.com",
+                AccountGlobalUniqueId = Guid.NewGuid(),
+            };
+
             var contactRepository = new Mock<IContactRepository>();
             contactRepository.Setup(repository => repository.GetContactAsync(It.IsAny<int>()))
                 .ReturnsAsync(contact);
+            var accountRepository = new Mock<IAccountRepository>();
+            accountRepository.Setup(repo => repo.GetAccountAsync(It.IsAny<int>())).ReturnsAsync(account);
 
             var publisherMock = new Mock<IEventPublisher>();
-            var roleEventPublisher = new RoleEventPublisher(publisherMock.Object, contactRepository.Object);
+            var roleEventPublisher = new RoleEventPublisher(publisherMock.Object, contactRepository.Object, accountRepository.Object);
 
             // Act
             await roleEventPublisher.PublishRoleDeletedEventAsync(1, 1);

@@ -17,11 +17,13 @@ namespace Pulse.Account.Infrastructure.Providers
     {
         private readonly IEventPublisher _eventPublisher;
         private readonly IContactRepository _contactRepository;
+        private readonly IAccountRepository _accountRepository;
 
-        public RoleEventPublisher(IEventPublisher eventPublisher, IContactRepository contactRepository)
+        public RoleEventPublisher(IEventPublisher eventPublisher, IContactRepository contactRepository, IAccountRepository accountRepository)
         {
             _eventPublisher = eventPublisher;
             _contactRepository = contactRepository;
+            _accountRepository = accountRepository;
         }
 
         public async Task PublishRoleCreatedEventAsync(CreateRoleRequest roleRequest)
@@ -66,9 +68,7 @@ namespace Pulse.Account.Infrastructure.Providers
         {
             var contact = await _contactRepository.GetContactAsync(contactId);
 
-            var account = contact.RoleEntity
-                .FirstOrDefault(r =>
-                    r.AccountId == accountId)?.Account ?? throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+            var account = await _accountRepository.GetAccountAsync(accountId);
 
             var data = new RoleDeletedEventData
             {
