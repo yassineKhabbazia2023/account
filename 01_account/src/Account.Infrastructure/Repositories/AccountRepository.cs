@@ -131,7 +131,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             await _retryPolicy.ExecuteAsync(async () =>
             {
                 var existingAccount = await _accountContext.AccountEntity.SingleAsync(x => x.AccountId == accountId);
-                if(existingAccount == null)
+                if (existingAccount == null)
                 {
                     throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
                 }
@@ -153,14 +153,14 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 if (!string.IsNullOrWhiteSpace(criteria.Search))
                 {
-                    criteria.Search = criteria.Search.ToLowerInvariant();
+                    var search = criteria.Search.ToLowerInvariant();
                     query = from n in query
-                            where n.Email.ToLower().Contains(criteria.Search)
-                                  || n.FirstName.ToLower().Contains(criteria.Search)
-                                  || n.LastName.ToLower().Contains(criteria.Search)
-                                  || n.PersonaName.ToLower().Contains(criteria.Search)
-                                  || ((n.Office != null && n.Office.ToLower().Contains(criteria.Search))
-                                  || (!string.IsNullOrWhiteSpace(n.Status) && n.Status.ToLower().Contains(criteria.Search.ToLower())))
+                            where n.Email.ToLower().Contains(search)
+                                  || n.FirstName.ToLower().Contains(search)
+                                  || n.LastName.ToLower().Contains(search)
+                                  || n.PersonaName.ToLower().Contains(search)
+                                  || ((n.Office != null && n.Office.ToLower().Contains(search))
+                                  || (!string.IsNullOrWhiteSpace(n.Status) && n.Status.ToLower().Contains(search)))
                             select n;
                 }
 
@@ -179,7 +179,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 query = query.Take(pagination.PageSize);
 
                 var result = await query.ToListAsync();
-                if(result == null)
+                if (result == null)
                 {
                     throw new NotFoundException(Errors.NotFoundContactsCode, Errors.NotFoundContactsMessage);
                 }
@@ -256,7 +256,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             if (sorting != null)
             {
                 Expression<Func<ContactEntity, object>> exp = null!;
-                switch (sorting.Field.ToLowerInvariant())
+                switch (sorting.Field)
                 {
                     case SortingConstants.NAME:
                         exp = c => c.FirstName + c.LastName;
