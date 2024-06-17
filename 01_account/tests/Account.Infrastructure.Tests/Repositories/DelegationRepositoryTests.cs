@@ -679,7 +679,6 @@ public class DelegationRepositoryTests
                 CreatedBy = "UnitTest@kpmg.fr",
                 Email = "account-mail@kpmg.fr",
                 LegalName = "Pulse",
-                SourceAccountNumber = "IBS",
             };
             context.AccountEntity.Add(tAccount);
             await context.SaveChangesAsync();

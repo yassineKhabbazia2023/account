@@ -36,7 +36,6 @@ namespace Pulse.Account.Infrastructure.Repositories
                 LegalName = eventData.LegalName,
                 CreatedBy = "Unknown",
                 Email = "Unknown",
-                SourceAccountNumber = eventData.AccountNumber,
             };
 
             et.DeploymentEntity = new List<DeploymentEntity> 

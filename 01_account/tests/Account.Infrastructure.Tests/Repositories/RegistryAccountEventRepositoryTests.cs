@@ -9,7 +9,6 @@ using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
-using Xunit;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
@@ -38,7 +37,6 @@ public class RegistryAccountEventRepositoryTests
         LegalName = "Jooooohnnnnyyyy Piza",
         CreatedBy = "Me",
         Email = "me@me.fr",
-        SourceAccountNumber = "69696969",
     };
 
     [Fact]

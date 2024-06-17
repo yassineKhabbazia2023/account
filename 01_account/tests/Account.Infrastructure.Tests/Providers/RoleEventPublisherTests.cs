@@ -44,7 +44,6 @@ namespace Pulse.Account.Infrastructure.Tests.Providers
                             AccountNumber = "19999999",
                             Email = "jhonny@test.com",
                             CreatedBy = "test@test.com",
-                            SourceAccountNumber = "29999999",
                             AccountGlobalUniqueId = Guid.NewGuid(),
                         },
                     }
@@ -101,7 +100,6 @@ namespace Pulse.Account.Infrastructure.Tests.Providers
                             AccountNumber = "19999999",
                             Email = "jhonny@test.com",
                             CreatedBy = "test@test.com",
-                            SourceAccountNumber = "29999999",
                             AccountGlobalUniqueId = Guid.NewGuid(),
                         },
                     }

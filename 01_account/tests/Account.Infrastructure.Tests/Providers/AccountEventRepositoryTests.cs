@@ -51,7 +51,6 @@ public class AccountEventRepositoryTests
             AccountNumber = "19999999",
             Email = "jhonny@test.com",
             CreatedBy = "test@test.com",
-            SourceAccountNumber = "29999999"
         };
 
         var roleEntity = new RoleEntity
@@ -79,7 +78,6 @@ public class AccountEventRepositoryTests
         Assert.Equal(accountEntity.AccountNumber, accountByContact.AccountNumber);
         Assert.Equal(accountEntity.Email, accountByContact.Email);
         Assert.Equal(accountEntity.CreatedBy, accountByContact.CreatedBy);
-        Assert.Equal(accountEntity.SourceAccountNumber, accountByContact.SourceAccountNumber);
     }
 
     [Fact]

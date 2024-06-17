@@ -135,7 +135,6 @@ public class RolesRepositoryTests
             CreatedBy = "UnitTest@kpmg.fr",
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
-            SourceAccountNumber = "IBS",
         });
         accountContext.ContactEntity.Add(new ContactEntity
         {
@@ -236,7 +235,6 @@ public class RolesRepositoryTests
             CreatedBy = "UnitTest@kpmg.fr",
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
-            SourceAccountNumber = "IBS",
         });
 
         await accountContext.SaveChangesAsync();

@@ -24,7 +24,6 @@ public class RegistryAccountCreatedEventHandlerTests
         LegalName = "Jooooohnnnnyyyy Piza",
         CreatedBy = "Me",
         Email = "me@me.fr",
-        SourceAccountNumber = "69696969",
     };
 
     [Fact]

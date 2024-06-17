@@ -39,6 +39,14 @@ public partial class AccountEntity
     /// </summary>
     public string Email { get; set; }
 
+    public string DeliveryEmail { get; set; }
+
+    public string BillingEmail { get; set; }
+
+    public string DeliveryFax { get; set; }
+
+    public string BillingFax { get; set; }
+
     /// <summary>
     /// L&apos;&apos;identifiant technique du Hub
     /// </summary>
@@ -53,11 +61,6 @@ public partial class AccountEntity
     /// L&apos;&apos;entité est-elle activé
     /// </summary>
     public bool IsActive { get; set; }
-
-    /// <summary>
-    /// La source de création de l&apos;&apos;entité
-    /// </summary>
-    public string SourceAccountNumber { get; set; }
 
     /// <summary>
     /// Le code du secteur
@@ -153,6 +156,8 @@ public partial class AccountEntity
     /// Le nombre d&apos;&apos;employés de l&apos;&apos;entité
     /// </summary>
     public int? StaffSize { get; set; }
+
+    public string SourceName { get; set; }
 
     /// <summary>
     /// L&apos;&apos;identifiant de l&apos;&apos;utilisateur ou du système qui a crée l&apos;&apos;entité

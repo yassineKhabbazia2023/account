@@ -72,6 +72,8 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(150)
                 .IsUnicode(false)
                 .HasComment("Type d''activité");
+            entity.Property(e => e.BillingEmail).HasMaxLength(255);
+            entity.Property(e => e.BillingFax).HasMaxLength(50);
             entity.Property(e => e.CommercialName)
                 .HasMaxLength(255)
                 .HasComment("Le  nom commercial de l''entité");
@@ -81,9 +83,10 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("L''identifiant de l''utilisateur ou du système qui a crée l''entité");
             entity.Property(e => e.CreationDate).HasComment("La date de création");
+            entity.Property(e => e.DeliveryEmail).HasMaxLength(255);
+            entity.Property(e => e.DeliveryFax).HasMaxLength(50);
             entity.Property(e => e.Email)
-                .IsRequired()
-                .HasMaxLength(100)
+                .HasMaxLength(255)
                 .HasComment("L''adresse mail de l''entité");
             entity.Property(e => e.FiscalExerciseDuration).HasComment("La durée de l''exercice fiscale");
             entity.Property(e => e.FiscalExerciseStartDate).HasComment("Début Exercice fiscale");
@@ -130,11 +133,9 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(150)
                 .IsUnicode(false)
                 .HasComment("Le Siret");
-            entity.Property(e => e.SourceAccountNumber)
-                .IsRequired()
+            entity.Property(e => e.SourceName)
                 .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasComment("La source de création de l''entité");
+                .IsUnicode(false);
             entity.Property(e => e.StaffSize).HasComment("Le nombre d''employés de l''entité");
             entity.Property(e => e.StaffSizeRange)
                 .HasMaxLength(50)
@@ -193,21 +194,20 @@ public partial class AccountContext : DbContext
                 .HasComment("Le type d''adresse");
             entity.Property(e => e.City)
                 .IsRequired()
-                .HasMaxLength(50)
+                .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasComment("La ville");
             entity.Property(e => e.Country)
                 .IsRequired()
-                .HasMaxLength(50)
+                .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasComment("Le pays");
             entity.Property(e => e.State)
-                .HasMaxLength(50)
+                .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasComment("Le département");
             entity.Property(e => e.ZipCode)
-                .IsRequired()
-                .HasMaxLength(20)
+                .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasComment("Le code postal");
 
