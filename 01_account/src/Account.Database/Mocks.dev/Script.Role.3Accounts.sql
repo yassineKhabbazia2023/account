@@ -1,16 +1,19 @@
 -- Role Collab
-DECLARE @Counter INT = 601
-WHILE @Counter <= 603
+IF (SELECT COUNT(*) FROM [account].[Role] where AccountId in (601, 602, 603)) = 0
 BEGIN
-	INSERT INTO account.Role(ContactId, AccountId, IsFavorite, IsSignatory, IsDelegation)
-	SELECT
-		ContactId,
-		@Counter,
-		0,
-		0,
-		0
-	FROM actor.Contact cnt
-	WHERE cnt.Type = 'Collaborator'
+	DECLARE @Counter INT = 601
+	WHILE @Counter <= 603
+	BEGIN
+		INSERT INTO account.Role(ContactId, AccountId, IsFavorite, IsSignatory, IsDelegation)
+		SELECT
+			ContactId,
+			@Counter,
+			0,
+			0,
+			0
+		FROM actor.Contact cnt
+		WHERE cnt.Type = 'Collaborator'
 
-	SET @Counter = @Counter + 1
+		SET @Counter = @Counter + 1
+	END
 END
