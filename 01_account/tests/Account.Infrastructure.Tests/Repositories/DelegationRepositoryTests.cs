@@ -788,7 +788,7 @@ public class DelegationRepositoryTests
             var delegationStatus = new List<string> { "pending", "enabled", "disabled" };
             for (var i = 1; i <= 10; i++)
             {
-                var delegateeId = _fixture.Create<int>();
+                var delegateeId = _fixture.Create<int>() + i;
                 await context.ContactEntity.AddAsync(new ContactEntity
                 {
                     ContactId = delegateeId,
