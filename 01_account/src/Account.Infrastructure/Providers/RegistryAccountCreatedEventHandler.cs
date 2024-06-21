@@ -36,27 +36,19 @@ public class RegistryAccountCreatedEventHandler : IEventHandler
             return;
         }
 
-        try
+        var @event = JsonConvert.DeserializeObject<RegistryAccountCreatedEvent>(message);
+        _logger.LogInformation("Consommation de l'event type: {EventType}, Id: {Id}",
+       @event?.EventType,
+       @event?.Data?.AccountGlobalUniqueIdentifier);
+
+        if (@event?.Data == null || @event?.Data.AccountGlobalUniqueIdentifier == default(Guid))
         {
-            var @event = JsonConvert.DeserializeObject<RegistryAccountCreatedEvent>(message);
-            _logger.LogInformation("Consommation de l'event type: {EventType}, Id: {Id}",
-           @event?.EventType,
-           @event?.Data?.AccountGlobalUniqueIdentifier);
-
-            if (@event?.Data == null || @event?.Data.AccountGlobalUniqueIdentifier == default(Guid))
-            {
-                return;
-            }
-
-            var createdAccount = await _accountEventRepository.CreateAccountAsync(@event!.Data);
-            _logger.LogInformation("L'entité avec l'identifiant suivant: {AccountId} vient d'être créée.", createdAccount.AccountId);
-
-            await _accountEventPublisher.PublishAccountCreatedEventAsync(createdAccount);
+            return;
         }
-        catch (Exception ex)
-        {
 
-            throw;
-        }
+        var createdAccount = await _accountEventRepository.CreateAccountAsync(@event!.Data);
+        _logger.LogInformation("L'entité avec l'identifiant suivant: {AccountId} vient d'être créée.", createdAccount.AccountId);
+
+        await _accountEventPublisher.PublishAccountCreatedEventAsync(createdAccount);
     }
 }
