@@ -2,13 +2,9 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Globalization;
 using AutoFixture;
-using Kpmg.ExceptionMiddleware.AdvancedException;
-using Microsoft.Azure.Amqp.Framing;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Pulse.Account.Core.Enum;
-using Pulse.Account.Core.Exceptions;
-using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
@@ -209,7 +205,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers.Events
             var data = fixture.Build<RegistryAccountStateEventData>()
                 .With(x => x.AccountNafIdentifier, "1")
                 .With(x => x.AccountStaffSize, "1")
-                .With(x => x.AccountTurnoverSlice, "1")
+                .With(x => x.Turnover, "0.1")
                 .With(x => x.DeploymentStatus, "1")
                 .Create();
 
@@ -238,7 +234,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers.Events
             Assert.Equal(data.AccountStaffSizeSlice, result.StaffSizeRange);
             Assert.Equal(data.AccountDeliveryFax, result.DeliveryFax);
             Assert.Equal(data.AccountBillingFax, result.BillingFax);
-            Assert.Equal(data.AccountTurnoverSlice, result.Turnover.ToString());
+            Assert.Equal(decimal.Parse(data.Turnover!, CultureInfo.InvariantCulture), result.Turnover);
             Assert.Equal(data.AccountRegimeFiscal, result.FiscalSystem);
             Assert.Equal(data.AccountTypeTenueComptable, result.AccountingMethod);
             Assert.Equal(data.AccountFormeJuridique, result.LegalForm);

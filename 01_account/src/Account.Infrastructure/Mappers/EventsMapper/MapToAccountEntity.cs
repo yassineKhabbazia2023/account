@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Globalization;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
@@ -149,7 +150,7 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                 StaffSizeRange = eventData.AccountStaffSizeSlice,
                 DeliveryFax = eventData.AccountDeliveryFax,
                 BillingFax = eventData.AccountBillingFax,
-                Turnover = decimal.TryParse(eventData.AccountTurnoverSlice, out decimal turnover) ? turnover : 0,
+                Turnover = decimal.TryParse(eventData.Turnover, CultureInfo.InvariantCulture,  out decimal turnover) ? turnover : 0.0M,
                 FiscalSystem = eventData.AccountRegimeFiscal,
                 AccountingMethod = eventData.AccountTypeTenueComptable,
                 LegalForm = eventData.AccountFormeJuridique,
@@ -176,12 +177,12 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                 new PhoneEntity
                 {
                     Type = PhoneType.Delivery.ToString(),
-                    PhoneNumber = "012345679"
+                    PhoneNumber = eventData.DeliveryPhone
                 },
                 new PhoneEntity
                 {
                     Type = PhoneType.Billing.ToString(),
-                    PhoneNumber = "012345679"
+                    PhoneNumber = eventData.BillingPhone
                 }
             };
         }
