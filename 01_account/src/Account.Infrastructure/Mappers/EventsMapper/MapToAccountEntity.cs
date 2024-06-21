@@ -13,7 +13,7 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
 {
     public static class MapToAccountEntity
     {
-        public static void ToAccountEntity(this AccountEntity source, AccountEntity destination)
+        public static void ToAccountEntity(this AccountEntity destination, AccountEntity source)
         {
             source.AccountGlobalUniqueId = destination.AccountGlobalUniqueId;
             source.AccountNumber = destination.AccountNumber;

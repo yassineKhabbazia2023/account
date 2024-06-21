@@ -164,7 +164,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers.Events
             };
 
             // Act
-            source!.ToAccountEntity(destination);
+            destination!.ToAccountEntity(source);
 
             // Assert
             Assert.Equal(destination.LegalName, source.LegalName);

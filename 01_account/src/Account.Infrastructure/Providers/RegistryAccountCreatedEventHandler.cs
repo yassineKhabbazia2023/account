@@ -4,12 +4,10 @@
 
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.IntegrationEvents;
-using Pulse.Account.Infrastructure.Mappers.EventsMapper;
-using Pulse.Account.Core.Interfaces;
-using Microsoft.Azure.Amqp;
 
 namespace Pulse.Account.Infrastructure.Providers;
 
