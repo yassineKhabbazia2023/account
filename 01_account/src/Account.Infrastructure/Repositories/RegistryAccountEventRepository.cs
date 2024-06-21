@@ -11,6 +11,7 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
+using Pulse.Account.Infrastructure.Mappers.EventsMapper;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
 
@@ -28,24 +29,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
         public async Task<AccountDetail> CreateAccountAsync(RegistryAccountCreatedEventData eventData)
         {
-            var et = new AccountEntity
-            {
-                AccountGlobalUniqueId = eventData.Id,
-                AccountNumber = eventData.AccountNumber,
-                CreationDate = DateTime.UtcNow,
-                LegalName = eventData.LegalName,
-                CreatedBy = "Unknown",
-                Email = "Unknown",
-            };
-
-            et.DeploymentEntity = new List<DeploymentEntity> 
-            {
-                new DeploymentEntity
-                {
-                    DeploymentDate = DateTime.UtcNow,
-                    Status = (int)DeploymentStatus.ToDeploy,
-                }
-            };
+            var et = eventData.ToAccountEntity();
 
             _context.AccountEntity.Add(et);
             await _context.SaveChangesAsync();
@@ -88,37 +72,25 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             var existingAccount = await _context.AccountEntity
                 .Include(a => a.DeploymentEntity)
-                .FirstOrDefaultAsync(a => a.AccountGlobalUniqueId == eventData.Id);
+                .Include(a => a.AddressEntity)
+                .Include(a => a.PhoneEntity)
+                .FirstOrDefaultAsync(a => a.AccountGlobalUniqueId == eventData.AccountGlobalUniqueIdentifier);
 
             if (existingAccount == null)
             {
                 throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
             }
 
-            existingAccount.AccountNumber = eventData.AccountNumber;
-            existingAccount.UpdatedDate = DateTime.UtcNow;
-
-            var deploymentStatus = (int)Enum.Parse(typeof(DeploymentStatus), eventData.DeploymentStatus!);
-            var deploymentEntity = existingAccount.DeploymentEntity?.FirstOrDefault();
-
-            if (deploymentEntity == null)
+            var newAccount = eventData.ToAccountEntity();
+            newAccount.ToAccountEntity(existingAccount);
+            try
             {
-                existingAccount.DeploymentEntity = new List<DeploymentEntity>
-                {
-                    new DeploymentEntity
-                    {
-                        DeploymentDate = DateTime.UtcNow,
-                        Status = deploymentStatus,
-                    }
-                };
+                await _context.SaveChangesAsync();
             }
-            else
+            catch (Exception ex)
             {
-                deploymentEntity.Status = deploymentStatus;
-                deploymentEntity.DeploymentDate = DateTime.UtcNow;
+                throw ex;
             }
-
-            await _context.SaveChangesAsync();
 
             return existingAccount.MapToAccountDetail() !;
         }

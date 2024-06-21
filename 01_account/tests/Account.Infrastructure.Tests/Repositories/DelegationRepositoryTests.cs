@@ -61,16 +61,17 @@ public class DelegationRepositoryTests
             var tDelegator = _fixture.Build<ContactEntity>()
                 .With(c => c.ContactId, 123)
                 .Create();
-            var tDelegatee = _fixture.Create<ContactEntity>();
+            var tDelegatee = _fixture.Build<ContactEntity>()
+                .With(c => c.ContactId, 456)
+                .Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
-            await context.SaveChangesAsync();
 
             // Create Role for Delegator
             var roleDelegator = _fixture.Build<RoleEntity>()
                 .With(c => c.Account, tAccount)
                 .With(c => c.AccountId, tAccount.AccountId)
                 .With(c => c.Contact, tDelegator)
-                .With(c => c.ContactId, 123)
+                .With(c => c.ContactId, tDelegator.ContactId)
                 .Create();
             context.RoleEntity.Add(roleDelegator);
             await context.SaveChangesAsync();
@@ -788,7 +789,7 @@ public class DelegationRepositoryTests
             var delegationStatus = new List<string> { "pending", "enabled", "disabled" };
             for (var i = 1; i <= 10; i++)
             {
-                var delegateeId = _fixture.Create<int>();
+                var delegateeId = _fixture.Create<int>() + i;
                 await context.ContactEntity.AddAsync(new ContactEntity
                 {
                     ContactId = delegateeId,
@@ -1018,7 +1019,7 @@ public class DelegationRepositoryTests
 
         var repository = new DelegationRepository(context);
 
-        var result = new List<Role>();
+        var result = new List<Core.Models.Role>();
         repository.GetAutomaticDelegations(delegation.DelegatorId, accounts.Select(a => a.AccountId), result);
 
         Assert.NotEmpty(result);

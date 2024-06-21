@@ -45,7 +45,7 @@ public class RegistryAccountUpdatedEventHandlerTests
             (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
 
         var handler = new RegistryAccountUpdatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
-        var message = "{\"EventType\":\"RegistryAccountUpdatedEvent\",\"Data\":{\"Id\": \"" + Guid.NewGuid().ToString() + "\",\"LegalName\":\"John Doe\"}}";
+        var message = "{\"EventType\":\"RegistryAccountUpdatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\": \"" + Guid.NewGuid().ToString() + "\",\"LegalName\":\"John Doe\"}}";
 
         // Act
         await handler.HandleAsync(message);

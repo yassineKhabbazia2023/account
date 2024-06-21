@@ -65,7 +65,7 @@ namespace Pulse.Account.API.Configuration
             {
                 ServiceBusNamespace = brokerSettings.ServiceBusNamespace,
                 ManagedIdentityClientId = brokerSettings.ManagedIdentityClientId,
-                PushTopicNames = brokerSettings.PushTopicName,
+                PushTopicNames = brokerSettings.PushTopicName
             };
 
             if (brokerSettings?.PullTopics?.Any() == true)
@@ -78,6 +78,7 @@ namespace Pulse.Account.API.Configuration
 
             services.AddScoped<IContactEventRepository, ContactEventRepository>();
             services.AddScoped<IRegistryAccountEventRepository, RegistryAccountEventRepository>();
+            services.AddScoped<IRegistryRoleEventRepository, RegistryRoleEventRepository>();
             services.AddScoped<IAccountEventRepository, AccountEventRepository>();
             services.AddScoped<IRoleEventRepository, RoleEventRepository>();
             services.AddScoped<IDelegationEventRepository, DelegationEventRepository>();
@@ -87,6 +88,8 @@ namespace Pulse.Account.API.Configuration
             services.AddKeyedScoped<IEventHandler, RegistryAccountCreatedEventHandler>(nameof(RegistryAccountCreatedEvent));
             services.AddKeyedScoped<IEventHandler, RegistryAccountUpdatedEventHandler>(nameof(RegistryAccountUpdatedEvent));
             services.AddKeyedScoped<IEventHandler, RegistryAccountRemovedEventHandler>(nameof(RegistryAccountRemovedEvent));
+            services.AddKeyedScoped<IEventHandler, RegistryRoleCreatedEventHandler>(nameof(RegistryRoleCreatedEvent));
+            services.AddKeyedScoped<IEventHandler, RegistryRoleRemovedEventHandler>(nameof(RegistryRoleRemovedEvent));
 
             services.AddScoped<IAccountEventPublisher, AccountEventPublisher>();
             services.AddScoped<IRoleEventPublisher, RoleEventPublisher>();
