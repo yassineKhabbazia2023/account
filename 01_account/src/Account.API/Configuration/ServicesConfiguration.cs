@@ -65,8 +65,7 @@ namespace Pulse.Account.API.Configuration
             {
                 ServiceBusNamespace = brokerSettings.ServiceBusNamespace,
                 ManagedIdentityClientId = brokerSettings.ManagedIdentityClientId,
-                PushTopicNames = brokerSettings.PushTopicName,
-                ServiceBusConnectionString = brokerSettings.ServiceBusNamespace
+                PushTopicNames = brokerSettings.PushTopicName
             };
 
             if (brokerSettings?.PullTopics?.Any() == true)
