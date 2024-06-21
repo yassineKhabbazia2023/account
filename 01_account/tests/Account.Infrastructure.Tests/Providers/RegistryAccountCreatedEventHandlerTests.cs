@@ -44,7 +44,7 @@ public class RegistryAccountCreatedEventHandlerTests
             (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
 
         var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
-        var message = "{\"EventType\":\"RegistryAccountCreatedEvent\",\"Data\":{\"Id\": \"" + Guid.NewGuid().ToString() + "\",\"LegalName\":\"John Doe\"}}";
+        var message = "{\"EventType\":\"RegistryAccountCreatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\": \"" + Guid.NewGuid().ToString() + "\",\"LegalName\":\"John Doe\"}}";
 
         // Act
         await handler.HandleAsync(message);
