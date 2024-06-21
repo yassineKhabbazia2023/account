@@ -9,6 +9,7 @@ using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.IntegrationEvents;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
 using Pulse.Account.Core.Interfaces;
+using Microsoft.Azure.Amqp;
 
 namespace Pulse.Account.Infrastructure.Providers;
 
@@ -35,19 +36,27 @@ public class RegistryAccountCreatedEventHandler : IEventHandler
             return;
         }
 
-        var @event = JsonConvert.DeserializeObject<RegistryAccountCreatedEvent>(message);
-        _logger.LogInformation("Consommation de l'event type: {EventType}, Id: {Id}",
-            @event?.EventType,
-            @event?.Data?.Id);
-
-        if (@event?.Data == null || @event?.Data.Id == default(Guid))
+        try
         {
-            return;
+            var @event = JsonConvert.DeserializeObject<RegistryAccountCreatedEvent>(message);
+            _logger.LogInformation("Consommation de l'event type: {EventType}, Id: {Id}",
+           @event?.EventType,
+           @event?.Data?.AccountGlobalUniqueIdentifier);
+
+            if (@event?.Data == null || @event?.Data.AccountGlobalUniqueIdentifier == default(Guid))
+            {
+                return;
+            }
+
+            var createdAccount = await _accountEventRepository.CreateAccountAsync(@event!.Data);
+            _logger.LogInformation("L'entité avec l'identifiant suivant: {AccountId} vient d'être créée.", createdAccount.AccountId);
+
+            await _accountEventPublisher.PublishAccountCreatedEventAsync(createdAccount);
         }
+        catch (Exception ex)
+        {
 
-        var createdAccount = await _accountEventRepository.CreateAccountAsync(@event!.Data);
-        _logger.LogInformation("L'entité avec l'identifiant suivant: {AccountId} vient d'être créée.", createdAccount.AccountId);
-
-        await _accountEventPublisher.PublishAccountCreatedEventAsync(createdAccount);
+            throw;
+        }
     }
 }

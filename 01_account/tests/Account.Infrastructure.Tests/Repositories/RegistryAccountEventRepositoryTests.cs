@@ -16,15 +16,15 @@ public class RegistryAccountEventRepositoryTests
 {
     private readonly RegistryAccountCreatedEventData _accountCreatedData = new RegistryAccountCreatedEventData
     {
-        Id = Guid.NewGuid(),
+        AccountGlobalUniqueIdentifier = Guid.NewGuid(),
         AccountNumber = "69696969",
         DeploymentStatus = DeploymentStatus.ToDeploy.ToString(),
-        LegalName = "Johny Pizza ?"
+        AccountLegalName = "Johny Pizza ?"
     };
 
     private readonly RegistryAccountUpdatedEventData _accountUpdatedEventData = new RegistryAccountUpdatedEventData
     {
-        Id = Guid.NewGuid(),
+        AccountGlobalUniqueIdentifier = Guid.NewGuid(),
         AccountNumber = "69696969",
         DeploymentStatus = DeploymentStatus.ToDeploy.ToString(),
     };
@@ -68,7 +68,7 @@ public class RegistryAccountEventRepositoryTests
 
         using var context = new AccountContext(options);
         var repository = new RegistryAccountEventRepository(context);
-        _accountEntity.AccountGlobalUniqueId = _accountUpdatedEventData.Id;
+        _accountEntity.AccountGlobalUniqueId = _accountUpdatedEventData.AccountGlobalUniqueIdentifier;
         await context.AccountEntity.AddAsync(_accountEntity);
         await context.SaveChangesAsync();
 
@@ -92,12 +92,12 @@ public class RegistryAccountEventRepositoryTests
 
         using var context = new AccountContext(options);
         var repository = new RegistryAccountEventRepository(context);
-        _accountEntity.AccountGlobalUniqueId = _accountUpdatedEventData.Id;
+        _accountEntity.AccountGlobalUniqueId = _accountUpdatedEventData.AccountGlobalUniqueIdentifier;
         await context.AccountEntity.AddAsync(_accountEntity);
         await context.SaveChangesAsync();
 
         // Act
-        await repository.RemoveAccountAsync(_accountUpdatedEventData.Id);
+        await repository.RemoveAccountAsync(_accountUpdatedEventData.AccountGlobalUniqueIdentifier);
         var removedAccount = await context.AccountEntity.FirstOrDefaultAsync();
         var removedAccountDetail = removedAccount!.MapToAccountDetail();
 

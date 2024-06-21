@@ -37,9 +37,9 @@ public class RegistryAccountUpdatedEventHandler : IEventHandler
         var @event = JsonConvert.DeserializeObject<RegistryAccountUpdatedEvent>(message);
         _logger.LogInformation("Consommation de l'event type: {EventType}, Id: {Id}",
             @event?.EventType,
-            @event?.Data?.Id);
+            @event?.Data?.AccountGlobalUniqueIdentifier);
 
-        if (@event?.Data == null || @event?.Data.Id == default(Guid))
+        if (@event?.Data == null || @event?.Data.AccountGlobalUniqueIdentifier == default(Guid))
         {
             return;
         }

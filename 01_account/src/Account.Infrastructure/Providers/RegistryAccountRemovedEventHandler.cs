@@ -38,14 +38,14 @@ public class RegistryAccountRemovedEventHandler : IEventHandler
         var @event = JsonConvert.DeserializeObject<RegistryAccountRemovedEvent>(message);
         _logger.LogInformation("Consommation de l'event type: {EventType}, Id: {Id}",
             @event?.EventType,
-            @event?.Data?.Id);
+            @event?.Data?.AccountGlobalUniqueIdentifier);
 
-        if (@event?.Data == null || @event.Data.Id == default(Guid))
+        if (@event?.Data == null || @event.Data.AccountGlobalUniqueIdentifier == default(Guid))
         {
             return;
         }
 
-        var removedAccountId = await _accountEventRepository.RemoveAccountAsync(@event.Data.Id);
+        var removedAccountId = await _accountEventRepository.RemoveAccountAsync(@event.Data.AccountGlobalUniqueIdentifier);
         _logger.LogInformation("L'entité avec l'identifiant suivant: {AccountId} vient d'être supprimée.", removedAccountId);
 
         await _accountEventPublisher.PublishAccountRemovedEventAsync(removedAccountId);
