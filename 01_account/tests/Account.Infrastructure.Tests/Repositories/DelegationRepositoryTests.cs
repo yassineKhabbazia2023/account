@@ -1018,7 +1018,7 @@ public class DelegationRepositoryTests
 
         var repository = new DelegationRepository(context);
 
-        var result = new List<Role>();
+        var result = new List<Core.Models.Role>();
         repository.GetAutomaticDelegations(delegation.DelegatorId, accounts.Select(a => a.AccountId), result);
 
         Assert.NotEmpty(result);
