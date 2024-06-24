@@ -219,6 +219,85 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
+        public async Task GetAccountList_ReturnOnlyAccountActive()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var contactId = 123;
+                var resultExpected = new List<AccountModel>();
+                var contactMock = _fixture.Build<ContactEntity>()
+                                               .Without(c => c.DelegationEntityDelegatee)
+                                               .Without(c => c.DelegationEntityDelegator)
+                                               .Without(c => c.RoleEntity)
+                                               .Without(c => c.ContactGlobalUniqueId)
+                                               .With(c => c.ContactId, contactId)
+                                               .Create();
+
+                for (int i = 0; i < 3; i++)
+                {
+                    var accountMock = _fixture.Build<AccountEntity>()
+                                                   .Without(a => a.Delegation)
+                                                   .Without(a => a.RoleEntity)
+                                                   .Without(a => a.DeploymentEntity)
+                                                   .Create();
+
+                    var roleMock = _fixture.Build<RoleEntity>()
+                                           .With(e => e.ContactId, contactMock.ContactId)
+                                           .With(e => e.Contact, contactMock)
+                                           .With(e => e.AccountId, accountMock.AccountId)
+                                           .With(e => e.Account, accountMock)
+                                           .Create();
+
+                    accountMock.RoleEntity.Add(roleMock);
+
+                    context.AccountEntity.Add(accountMock);
+                    context.SaveChanges();
+
+                    resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId) !);
+                }
+
+                var accountMockInactive = _fixture.Build<AccountEntity>()
+                                                  .With(a => a.IsActive, false)
+                                                  .Without(a => a.Delegation)
+                                                  .Without(a => a.RoleEntity)
+                                                  .Without(a => a.DeploymentEntity)
+                                                  .Create();
+                resultExpected.Add(accountMockInactive.MapToAccount(contactMock.ContactId) !);
+
+                var accountRepository = new AccountRepository(context);
+
+                Paging<AccountModel> accountPaging = new Paging<AccountModel>()
+                {
+                    CurrentPage = 1,
+                    Items = resultExpected!,
+                    TotalItems = resultExpected.Count,
+                    TotalPage = Paginator.GetTotalPages(resultExpected.Count, 1)
+                };
+                var searchAccountCriteria = new SearchAccountCriteria
+                {
+                    ContactId = contactId
+                };
+                var pagination = new Pagination
+                {
+                    PageNumber = 1,
+                    PageSize = 1
+                };
+
+                // Act
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, pagination);
+
+                // Assert
+                var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
+                var accountReceived = JsonConvert.SerializeObject(accounts.Items?.FirstOrDefault());
+                Assert.Contains(accountReceived, accountExpect);
+                Assert.Equal(accountPaging.TotalPage - 1, accounts.TotalPage);
+                Assert.Equal(accountPaging.TotalItems - 1, accounts.TotalItems);
+                Assert.Equal(accountPaging.CurrentPage, accounts.CurrentPage);
+            }
+        }
+
+        [Fact]
         public async Task GetAccountList_When_No_Rows_Found_Should_Return_Empty_List()
         {
             using (var context = new AccountContext(_dbContextOptions))
