@@ -183,7 +183,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     context.AccountEntity.Add(accountMock);
                     context.SaveChanges();
 
-                    resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId) !);
+                    resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId)!);
                 }
 
                 var accountRepository = new AccountRepository(context);
@@ -234,36 +234,40 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                                                .With(c => c.ContactId, contactId)
                                                .Create();
 
-                for (int i = 0; i < 3; i++)
-                {
-                    var accountMock = _fixture.Build<AccountEntity>()
-                                                   .Without(a => a.Delegation)
-                                                   .Without(a => a.RoleEntity)
-                                                   .Without(a => a.DeploymentEntity)
-                                                   .Create();
+                var deploymentMockActive = _fixture.Build<DeploymentEntity>()
+                    .With(a => a.Status, 1)
+                    .Create();
 
-                    var roleMock = _fixture.Build<RoleEntity>()
-                                           .With(e => e.ContactId, contactMock.ContactId)
-                                           .With(e => e.Contact, contactMock)
-                                           .With(e => e.AccountId, accountMock.AccountId)
-                                           .With(e => e.Account, accountMock)
-                                           .Create();
+                var accountMock = _fixture.Build<AccountEntity>()
+                                               .Without(a => a.Delegation)
+                                               .Without(a => a.RoleEntity)
+                                               .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploymentMockActive })
+                                               .Create();
 
-                    accountMock.RoleEntity.Add(roleMock);
+                var roleMock = _fixture.Build<RoleEntity>()
+                                       .With(e => e.ContactId, contactMock.ContactId)
+                                       .With(e => e.Contact, contactMock)
+                                       .With(e => e.AccountId, accountMock.AccountId)
+                                       .With(e => e.Account, accountMock)
+                                       .Create();
 
-                    context.AccountEntity.Add(accountMock);
-                    context.SaveChanges();
+                accountMock.RoleEntity.Add(roleMock);
 
-                    resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId) !);
-                }
+                context.AccountEntity.Add(accountMock);
+
+                resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId)!);
+
+                var deploymentMock = _fixture.Build<DeploymentEntity>()
+                    .With(a => a.Status, 4)
+                    .Create();
 
                 var accountMockInactive = _fixture.Build<AccountEntity>()
-                                                  .With(a => a.IsActive, false)
                                                   .Without(a => a.Delegation)
                                                   .Without(a => a.RoleEntity)
-                                                  .Without(a => a.DeploymentEntity)
+                                                  .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploymentMock })
                                                   .Create();
-                resultExpected.Add(accountMockInactive.MapToAccount(contactMock.ContactId) !);
+                context.AccountEntity.Add(accountMockInactive);
+                context.SaveChanges();
 
                 var accountRepository = new AccountRepository(context);
 
@@ -291,8 +295,8 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
                 var accountReceived = JsonConvert.SerializeObject(accounts.Items?.FirstOrDefault());
                 Assert.Contains(accountReceived, accountExpect);
-                Assert.Equal(accountPaging.TotalPage - 1, accounts.TotalPage);
-                Assert.Equal(accountPaging.TotalItems - 1, accounts.TotalItems);
+                Assert.Equal(accountPaging.TotalPage, accounts.TotalPage);
+                Assert.Equal(accountPaging.TotalItems, accounts.TotalItems);
                 Assert.Equal(accountPaging.CurrentPage, accounts.CurrentPage);
             }
         }
@@ -307,7 +311,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var accountPaging = new Paging<AccountModel>()
                 {
                     CurrentPage = 1,
-                    Items = Enumerable.Empty<AccountModel>() !,
+                    Items = Enumerable.Empty<AccountModel>()!,
                     TotalItems = 0,
                     TotalPage = 1
                 };
@@ -482,10 +486,10 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                                        .With(e => e.Account, accountMock)
                                        .Create();
 
-                if (type == null || contactMock.Type == type.ToString() !.ToLower())
+                if (type == null || contactMock.Type == type.ToString()!.ToLower())
                 {
                     contactMock.Type = type.ToString();
-                    resultExpected.Add(contactMock.MapToContact() !);
+                    resultExpected.Add(contactMock.MapToContact()!);
                 }
 
                 context.RoleEntity.Add(roleMock);
@@ -597,7 +601,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                     resultExpected.AddRange(accountsMock[i].RoleEntity
                         .Where(x => x.Contact.Type == "customer")
-                        .Select(x => x.Contact.ToContact() !));
+                        .Select(x => x.Contact.ToContact()!));
                 }
 
                 var accountRepository = new AccountRepository(context);
