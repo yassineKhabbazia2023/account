@@ -165,10 +165,13 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 for (int i = 0; i < 3; i++)
                 {
+                    var deploimentEntityMock = _fixture.Build<DeploymentEntity>()
+                        .With(a => a.Status, 1)
+                        .Create();
                     var accountMock = _fixture.Build<AccountEntity>()
                                                    .Without(a => a.Delegation)
                                                    .Without(a => a.RoleEntity)
-                                                   .Without(a => a.DeploymentEntity)
+                                                   .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploimentEntityMock })
                                                    .Create();
 
                     var roleMock = _fixture.Build<RoleEntity>()

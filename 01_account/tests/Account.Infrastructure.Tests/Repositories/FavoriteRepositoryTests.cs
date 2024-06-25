@@ -10,6 +10,7 @@ using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
 using Pulse.Account.Core.Models;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Pulse.Account.Core.Enum;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories
 {
@@ -56,6 +57,38 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var accountExpect = JsonConvert.SerializeObject(expectedAccount);
                 var accountReceived = JsonConvert.SerializeObject(accounts.FirstOrDefault());
                 Assert.Contains(accountReceived, accountExpect);
+            }
+        }
+
+        [Fact]
+        public async Task GetAccountsFavoriteAsync_Should_ReturnsOnlyActiveAccountResultAsync()
+        {
+            using (var context = new AccountContext(_options))
+            {
+                // Arrange
+                var roleMock = _fixture.Build<RoleEntity>()
+                    .Without(x => x.Account)
+                    .Without(x => x.Contact)
+                    .With(x => x.IsFavorite, true)
+                    .With(x => x.ContactId, 123)
+                    .Create();
+                var deploymentMock = _fixture.Build<DeploymentEntity>()
+                    .Without(x => x.Account)
+                    .With(x => x.Status, 1)
+                    .Create();
+                var accountsModel = _fixture.Build<AccountEntity>()
+                    .With(x => x.RoleEntity, new List<RoleEntity> { roleMock })
+                    .With(x => x.DeploymentEntity, new List<DeploymentEntity> { deploymentMock })
+                    .Create();
+                context.AccountEntity.Add(accountsModel);
+                await context.SaveChangesAsync();
+                var favoriteRepository = new FavoriteRepository(context);
+
+                // Act
+                var accounts = await favoriteRepository.GetAccountFavoritesByContactIdAsync(123);
+
+                // Assert
+                Assert.Single(accounts);
             }
         }
 
