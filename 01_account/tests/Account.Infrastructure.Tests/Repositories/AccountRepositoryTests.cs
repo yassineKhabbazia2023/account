@@ -165,10 +165,13 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 for (int i = 0; i < 3; i++)
                 {
+                    var deploimentEntityMock = _fixture.Build<DeploymentEntity>()
+                        .With(a => a.Status, 1)
+                        .Create();
                     var accountMock = _fixture.Build<AccountEntity>()
                                                    .Without(a => a.Delegation)
                                                    .Without(a => a.RoleEntity)
-                                                   .Without(a => a.DeploymentEntity)
+                                                   .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploimentEntityMock })
                                                    .Create();
 
                     var roleMock = _fixture.Build<RoleEntity>()
@@ -183,7 +186,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                     context.AccountEntity.Add(accountMock);
                     context.SaveChanges();
 
-                    resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId) !);
+                    resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId)!);
                 }
 
                 var accountRepository = new AccountRepository(context);
@@ -219,6 +222,89 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
+        public async Task GetAccountList_ReturnOnlyAccountActive()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var contactId = 123;
+                var resultExpected = new List<AccountModel>();
+                var contactMock = _fixture.Build<ContactEntity>()
+                                               .Without(c => c.DelegationEntityDelegatee)
+                                               .Without(c => c.DelegationEntityDelegator)
+                                               .Without(c => c.RoleEntity)
+                                               .Without(c => c.ContactGlobalUniqueId)
+                                               .With(c => c.ContactId, contactId)
+                                               .Create();
+
+                var deploymentMockActive = _fixture.Build<DeploymentEntity>()
+                    .With(a => a.Status, 1)
+                    .Create();
+
+                var accountMock = _fixture.Build<AccountEntity>()
+                                               .Without(a => a.Delegation)
+                                               .Without(a => a.RoleEntity)
+                                               .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploymentMockActive })
+                                               .Create();
+
+                var roleMock = _fixture.Build<RoleEntity>()
+                                       .With(e => e.ContactId, contactMock.ContactId)
+                                       .With(e => e.Contact, contactMock)
+                                       .With(e => e.AccountId, accountMock.AccountId)
+                                       .With(e => e.Account, accountMock)
+                                       .Create();
+
+                accountMock.RoleEntity.Add(roleMock);
+
+                context.AccountEntity.Add(accountMock);
+
+                resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId)!);
+
+                var deploymentMock = _fixture.Build<DeploymentEntity>()
+                    .With(a => a.Status, 4)
+                    .Create();
+
+                var accountMockInactive = _fixture.Build<AccountEntity>()
+                                                  .Without(a => a.Delegation)
+                                                  .Without(a => a.RoleEntity)
+                                                  .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploymentMock })
+                                                  .Create();
+                context.AccountEntity.Add(accountMockInactive);
+                context.SaveChanges();
+
+                var accountRepository = new AccountRepository(context);
+
+                Paging<AccountModel> accountPaging = new Paging<AccountModel>()
+                {
+                    CurrentPage = 1,
+                    Items = resultExpected!,
+                    TotalItems = resultExpected.Count,
+                    TotalPage = Paginator.GetTotalPages(resultExpected.Count, 1)
+                };
+                var searchAccountCriteria = new SearchAccountCriteria
+                {
+                    ContactId = contactId
+                };
+                var pagination = new Pagination
+                {
+                    PageNumber = 1,
+                    PageSize = 1
+                };
+
+                // Act
+                var accounts = await accountRepository.GetAccountsAsync(searchAccountCriteria, pagination);
+
+                // Assert
+                var accountExpect = JsonConvert.SerializeObject(accountPaging.Items);
+                var accountReceived = JsonConvert.SerializeObject(accounts.Items?.FirstOrDefault());
+                Assert.Contains(accountReceived, accountExpect);
+                Assert.Equal(accountPaging.TotalPage, accounts.TotalPage);
+                Assert.Equal(accountPaging.TotalItems, accounts.TotalItems);
+                Assert.Equal(accountPaging.CurrentPage, accounts.CurrentPage);
+            }
+        }
+
+        [Fact]
         public async Task GetAccountList_When_No_Rows_Found_Should_Return_Empty_List()
         {
             using (var context = new AccountContext(_dbContextOptions))
@@ -228,7 +314,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 var accountPaging = new Paging<AccountModel>()
                 {
                     CurrentPage = 1,
-                    Items = Enumerable.Empty<AccountModel>() !,
+                    Items = Enumerable.Empty<AccountModel>()!,
                     TotalItems = 0,
                     TotalPage = 1
                 };
@@ -403,10 +489,10 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                                        .With(e => e.Account, accountMock)
                                        .Create();
 
-                if (type == null || contactMock.Type == type.ToString() !.ToLower())
+                if (type == null || contactMock.Type == type.ToString()!.ToLower())
                 {
                     contactMock.Type = type.ToString();
-                    resultExpected.Add(contactMock.MapToContact() !);
+                    resultExpected.Add(contactMock.MapToContact()!);
                 }
 
                 context.RoleEntity.Add(roleMock);
@@ -518,7 +604,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                     resultExpected.AddRange(accountsMock[i].RoleEntity
                         .Where(x => x.Contact.Type == "customer")
-                        .Select(x => x.Contact.ToContact() !));
+                        .Select(x => x.Contact.ToContact()!));
                 }
 
                 var accountRepository = new AccountRepository(context);

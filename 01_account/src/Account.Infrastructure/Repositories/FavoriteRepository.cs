@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -39,7 +40,8 @@ namespace Pulse.Account.Infrastructure.Repositories
             {
                 var accountFavorite = await _accountContext.RoleEntity
                     .Include(role => role.Account)
-                    .Where(role => role.ContactId == contactId && role.IsFavorite == true)
+                    .Where(role => role.ContactId == contactId && role.IsFavorite == true
+                        && role.Account.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked)
                     .Select(entity => new AccountFavorite()
                     {
                         AccountId = entity.AccountId,

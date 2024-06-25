@@ -51,7 +51,7 @@ public class ContactUpdatedEventHandler : IEventHandler
 
         var accountEntity = _accountEventRepository.GetAccountBySignatory(contactEntity!.ContactId);
 
-        if (accountEntity != null && accountEntity.Any())
+        if (accountEntity != null && accountEntity.Count != 0)
         {
             var contactStatus = _contactEventRepository.GetContactById(contactEntity.ContactId)!.Status;
             int deploymentStatus = 0;
