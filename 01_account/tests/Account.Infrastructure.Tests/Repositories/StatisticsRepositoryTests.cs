@@ -53,32 +53,73 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                         Status = 4,
                     }
                 };
+
                 var roles = new List<RoleEntity>
                 {
                     new()
                     {
                         ContactId = 1,
-                        AccountId = 1
+                        AccountId = 6,
+                        Account = new AccountEntity()
+                        {
+                            AccountId = 6,
+                            IsActive = true,
+                            AccountNumber = "123",
+                            CreatedBy = "test@test.fr",
+                            LegalName = "Account 6"
+                        },
                     },
                     new()
                     {
                         ContactId = 2,
-                        AccountId = 1
+                        AccountId = 1,
+                        Account = new AccountEntity()
+                        {
+                            AccountId = 1,
+                            IsActive = true,
+                            AccountNumber = "456",
+                            CreatedBy = "test@test.fr",
+                            LegalName = "Account 1"
+                        },
                     },
                     new()
                     {
                         ContactId = 2,
-                        AccountId = 2
+                        AccountId = 2,
+                        Account = new AccountEntity()
+                        {
+                            AccountId = 2,
+                            IsActive = true,
+                            AccountNumber = "789",
+                            CreatedBy = "test@test.fr",
+                            LegalName = "Account 2"
+                        },
                     },
                     new()
                     {
                         ContactId = 2,
-                        AccountId = 3
+                        AccountId = 3,
+                        Account = new AccountEntity()
+                        {
+                            AccountId = 3,
+                            IsActive = true,
+                            AccountNumber = "910",
+                            CreatedBy = "test@test.fr",
+                            LegalName = "Account 3"
+                        },
                     },
                     new()
                     {
                         ContactId = 2,
-                        AccountId = 4
+                        AccountId = 4,
+                        Account = new AccountEntity()
+                        {
+                            AccountId = 4,
+                            IsActive = true,
+                            AccountNumber = "112",
+                            CreatedBy = "test@test.fr",
+                            LegalName = "Account 4"
+                        },
                     }
                 };
                 var contacts = new List<ContactEntity>
