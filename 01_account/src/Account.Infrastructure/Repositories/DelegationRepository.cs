@@ -231,6 +231,12 @@ public class DelegationRepository : IDelegationRepository
         {
             accountIds = await _accountContext.RoleEntity
                             .Where(r => r.ContactId == delegatorId)
+                            .Include(r => r.Contact)
+                            .Where(r => r.Contact.Status != ContactStatus.Removed.ToString())
+                            .Include(r => r.Account)
+                            .ThenInclude(a => a.DeploymentEntity)
+                            .AsNoTracking()
+                            .Where(r => r.Account.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked)
                             .Select(a => a.AccountId)
                             .ToListAsync();
         });
