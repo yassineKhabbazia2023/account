@@ -937,23 +937,64 @@ public class DelegationRepositoryTests
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var contactId = 1;
+            var contact = new ContactEntity
+            {
+                ContactId = 1,
+                Email = "jp@kpmg.fr",
+                FirstName = "Jean",
+                LastName = "Pierre",
+                PersonaName = "Collaborator",
+                Type = "collaborator",
+                Status = "Declared"
+            };
+            context.ContactEntity.Add(contact);
+
+            var deployment1 = new DeploymentEntity
+            {
+                AccountId = 1,
+                Status = 1
+            };
+            var deployment2 = new DeploymentEntity
+            {
+                AccountId = 2,
+                Status = 4
+            };
+            context.DeploymentEntity.AddRange(new List<DeploymentEntity> { deployment1, deployment2 });
+
+            var account1 = new AccountEntity
+            {
+                AccountId = 1,
+                AccountNumber = "1",
+                LegalName = "legal",
+                CreatedBy = "moi",
+                DeploymentEntity = new List<DeploymentEntity> { deployment1 }
+            };
+            var account2 = new AccountEntity
+            {
+                AccountId = 2,
+                AccountNumber = "2",
+                LegalName = "illegal",
+                CreatedBy = "moi",
+                DeploymentEntity = new List<DeploymentEntity> { deployment2 }
+            };
+            context.AccountEntity.AddRange(new List<AccountEntity> { account1, account2 });
+
             var roles = new List<RoleEntity>
             {
                 new()
                 {
-                    AccountId = 1,
-                    ContactId = contactId
+                    AccountId = account1.AccountId,
+                    ContactId = contact.ContactId
                 },
                 new()
                 {
-                    AccountId = 2,
-                    ContactId = contactId
+                    AccountId = account2.AccountId,
+                    ContactId = contact.ContactId
                 },
                 new()
                 {
                     AccountId = 3,
-                    ContactId = contactId
+                    ContactId = 2
                 }
             };
 
@@ -962,15 +1003,11 @@ public class DelegationRepositoryTests
 
             var repository = new DelegationRepository(context);
 
-            var result = await repository.GetAccountIdsForFullDelegationAsync(contactId);
+            var result = await repository.GetAccountIdsForFullDelegationAsync(contact.ContactId);
 
             result.Should().NotBeNull();
-            result.Should().HaveCount(roles.Count());
-
-            for (int i = 0; i < roles.Count(); i++)
-            {
-                result.ElementAt(i).Should().Be(roles.ElementAt(i).AccountId);
-            }
+            result.Should().ContainSingle();
+            result.First().Should().Be(roles.First().AccountId);
         }
     }
 
