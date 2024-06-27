@@ -90,8 +90,23 @@ namespace Account.Api.Tests.Controllers
                 PageSize = 4,
             };
 
+            var expected = new Paging<AccountModel>
+            {
+                Items = new List<AccountModel>
+                {
+                    account.MapToAccount() !
+                },
+                CurrentPage = pagination.PageNumber,
+                TotalItems = pagination.PageSize,
+                TotalPage = 1,
+            };
+
+            var service = new Mock<IAccountService>();
+            service.Setup(x => x.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>())).ReturnsAsync(expected);
+            var controller = new AccountController(service.Object);
+
             // Act
-            var accounts = await _accountController.GetAccountsAsync(searchAccountCriteria, pagination);
+            var accounts = await controller.GetAccountsAsync(searchAccountCriteria, pagination);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
