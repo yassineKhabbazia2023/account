@@ -7,6 +7,7 @@ using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Crypto.Prng;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
@@ -126,6 +127,11 @@ public class RolesRepositoryTests
             IsSignatory = false,
         };
 
+        var deployment = new DeploymentEntity
+        {
+            Status = 1
+        };
+
         using var accountContext = new AccountContext(_dbContextOptions);
 
         accountContext.AccountEntity.Add(new AccountEntity
@@ -135,6 +141,7 @@ public class RolesRepositoryTests
             CreatedBy = "UnitTest@kpmg.fr",
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
+            DeploymentEntity = new List<DeploymentEntity> { deployment }
         });
         accountContext.ContactEntity.Add(new ContactEntity
         {
@@ -226,6 +233,11 @@ public class RolesRepositoryTests
             IsSignatory = false,
         };
 
+        var deployment = new DeploymentEntity
+        {
+            Status = 1
+        };
+
         using var accountContext = new AccountContext(_dbContextOptions);
 
         accountContext.AccountEntity.Add(new AccountEntity
@@ -235,6 +247,7 @@ public class RolesRepositoryTests
             CreatedBy = "UnitTest@kpmg.fr",
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
+            DeploymentEntity = new List<DeploymentEntity> { deployment }
         });
 
         await accountContext.SaveChangesAsync();
