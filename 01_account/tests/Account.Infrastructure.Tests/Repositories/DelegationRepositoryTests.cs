@@ -739,7 +739,7 @@ public class DelegationRepositoryTests
 
                 await context.DelegationEntity.AddRangeAsync(tDelegation);
 
-                expectedDelegationsResult.Add(tDelegation.ToDelegation() !);
+                expectedDelegationsResult.Add(tDelegation.ToDelegation()!);
             }
 
             await context.SaveChangesAsync();
@@ -770,18 +770,11 @@ public class DelegationRepositoryTests
                 PageSize = 10
             };
             var contactId = 10;
-            await context.ContactEntity.AddAsync(new ContactEntity
-            {
-                ContactId = contactId,
-                Email = $"Contact-mail-{contactId}@kpmg.fr",
-                FirstName = $"Contact-FN-{contactId}",
-                LastName = $"Contact-LT-{contactId}",
-                Type = "customer",
-                Status = "Declared",
-                PersonaName = "Collaborateur ESC",
-                Office = "Paris",
-                CreationDate = DateTime.UtcNow,
-            });
+            await context.ContactEntity.AddAsync(_fixture.Build<ContactEntity>()
+                .With(a => a.ContactId, contactId)
+                .Without(a => a.DelegationEntityDelegatee)
+                .Without(a => a.DelegationEntityDelegator)
+                .Create());
             await context.SaveChangesAsync();
 
             var expectedDelegationsResult = new List<Delegation>();
@@ -803,24 +796,23 @@ public class DelegationRepositoryTests
                     CreationDate = DateTime.UtcNow,
                 });
 
-                await context.SaveChangesAsync();
-
                 Random random = new Random();
                 int randomStatusindex = random.Next(delegationStatus.Count);
 
                 // Try create a delegation
                 var tDelegation = new DelegationEntity
                 {
+                    DelegationId = _fixture.Create<int>() + i,
                     StartDate = DateTime.UtcNow,
                     EndDate = DateTime.UtcNow.AddMonths(i),
                     DelegatorId = contactId,
                     DelegateeId = delegateeId,
                     Status = delegationStatus[randomStatusindex],
                     Note = $"Note de {contactId}",
-                    Account = _fixture.CreateMany<AccountEntity>(3).ToList()
+                    Account = _fixture.Build<AccountEntity>().Without(a => a.Delegation).CreateMany(3).ToList()
                 };
 
-                await context.DelegationEntity.AddRangeAsync(tDelegation);
+                await context.DelegationEntity.AddRangeAsync(new List<DelegationEntity> { tDelegation });
 
                 expectedDelegationsResult.Add(tDelegation.ToDelegation()!);
             }
