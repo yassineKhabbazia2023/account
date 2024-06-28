@@ -55,6 +55,8 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 accountsModel.First().RoleEntity.First().Contact.FirstName = "FirstUser";
                 accountsModel.First().RoleEntity.First().Contact.LastName = "LastUser";
                 accountsModel.First().RoleEntity.First().Contact.Email = "firstLastUser@test.fr";
+                accountsModel.First().Hub.HubId = 1;
+                accountsModel.First().Hub.HubName = "Hubname";
                 context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
 

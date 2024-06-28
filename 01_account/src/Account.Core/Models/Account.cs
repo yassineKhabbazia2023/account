@@ -21,5 +21,7 @@ namespace Pulse.Account.Core.Models
         public Contact? Signatory { get; set; }
 
         public Deployment? Deployment { get; set; }
+
+        public Hub? Hub { get; set; }
     }
 }

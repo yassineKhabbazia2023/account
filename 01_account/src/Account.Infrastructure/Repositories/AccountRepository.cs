@@ -239,6 +239,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                             .ThenInclude(r => r.Contact)
                             .Include(a => a.AddressEntity)
                             .Include(x => x.DeploymentEntity)
+                            .Include(x => x.Hub)
                             .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId) && a.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked)
                             .OrderBy(a => a.LegalName);
         }
