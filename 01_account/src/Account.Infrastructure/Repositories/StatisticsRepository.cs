@@ -49,7 +49,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                         deployment => deployment.AccountId,
                         role => role.AccountId,
                         (deployment, role) => new { deployment, role })
-                    .Where(x => x.role.ContactId == contactId)
+                    .Where(x => x.role.ContactId == contactId && x.role.Account.IsActive)
                     .GroupBy(x => x.deployment.Status)
                     .Select(s => new { Status = s.Key, Count = s.Select(d => d.deployment.Status).Count() });
 

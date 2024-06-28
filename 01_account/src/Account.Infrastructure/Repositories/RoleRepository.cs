@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -103,12 +104,13 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            if (!_accountContext.AccountEntity.Any(x => x.AccountId == role.AccountId))
+            if (!_accountContext.AccountEntity.Include(a => a.DeploymentEntity)
+                .Any(x => x.AccountId == role.AccountId && x.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked))
             {
                 throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, role.AccountId));
             }
 
-            if (!_accountContext.ContactEntity.Any(x => x.ContactId == role.ContactId))
+            if (!_accountContext.ContactEntity.Any(x => x.ContactId == role.ContactId && x.Status != ContactStatus.Removed.ToString()))
             {
                 throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
             }
