@@ -49,7 +49,9 @@ public class RolesRepositoryTests
                 PageSize = 4
             };
 
-            var accountsEntity = _fixture.Create<List<AccountEntity>>();
+            var accountsEntity = _fixture.Build<AccountEntity>()
+                .Without(x => x.Hub)
+                .CreateMany(3);
             context.AccountEntity.AddRange(accountsEntity);
             context.SaveChanges();
 
