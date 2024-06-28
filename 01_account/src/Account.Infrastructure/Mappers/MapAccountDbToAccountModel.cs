@@ -70,6 +70,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                     Address = source.MapToAddressDelivery(),
                     Signatory = signatory?.Contact.MapToContact(),
                     Deployment = source.MapToDeployment(),
+                    Hub = source.MapToHub()
                 };
         }
 
