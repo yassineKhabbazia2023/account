@@ -664,7 +664,12 @@ public class DelegationRepositoryTests
         int totalPage)
     {
         // Arrange
-        using (var context = new AccountContext(_dbContextOptions))
+        var dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
+          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+          .EnableSensitiveDataLogging()
+          .Options;
+
+        using (var context = new AccountContext(dbContextOptions))
         {
             // Create Account
             var pagination = new Pagination
@@ -761,7 +766,12 @@ public class DelegationRepositoryTests
     public async Task GetContactDelegationsHistoryAsync_WithContactIdIsValid_ShouldReturnDelegations()
     {
         // Arrange
-        using (var context = new AccountContext(_dbContextOptions))
+        var dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
+          .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+          .EnableSensitiveDataLogging()
+          .Options;
+
+        using (var context = new AccountContext(dbContextOptions))
         {
             // Create Account
             var pagination = new Pagination
