@@ -784,6 +784,7 @@ public class DelegationRepositoryTests
                 .With(a => a.ContactId, contactId)
                 .Without(a => a.DelegationEntityDelegatee)
                 .Without(a => a.DelegationEntityDelegator)
+                .Without(a => a.RoleEntity)
                 .Create());
             await context.SaveChangesAsync();
 
@@ -819,7 +820,7 @@ public class DelegationRepositoryTests
                     DelegateeId = delegateeId,
                     Status = delegationStatus[randomStatusindex],
                     Note = $"Note de {contactId}",
-                    Account = _fixture.Build<AccountEntity>().Without(a => a.Delegation).CreateMany(3).ToList()
+                    Account = _fixture.Build<AccountEntity>().Without(a => a.Delegation).Without(a => a.RoleEntity).CreateMany(3).ToList()
                 };
 
                 await context.DelegationEntity.AddRangeAsync(new List<DelegationEntity> { tDelegation });
