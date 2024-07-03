@@ -61,8 +61,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                     query = from n in query
                             where n.LegalName.ToLower().Contains(criteria.Search)
                                   || n.AccountNumber.ToLower().Contains(criteria.Search)
-                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.ToLower().Contains(criteria.Search)
-                                                      || role.Contact.LastName.ToLower().Contains(criteria.Search)
+                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (($"{role.Contact.FirstName} {role.Contact.LastName}").ToLower().Contains(criteria.Search.ToLower())
                                                       || role.Contact.Email.ToLower().Contains(criteria.Search)))
                             select n;
                 }
