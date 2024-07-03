@@ -26,10 +26,21 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         public void MapToAccount_ShouldReturnAccountModel()
         {
             // Arrange
-            var addressEntity = _fixture.Build<AddressEntity>().With(a => a.AddressType, AddressType.delivery.ToString()).Create();
+            var addressEntity = _fixture.Build<AddressEntity>()
+                .With(a => a.AddressType, AddressType.delivery.ToString())
+                .Create();
+            var contactEntity = _fixture.Build<ContactEntity>()
+                .With(c => c.Type, "1")
+                .Create();
+            var roleEntity = _fixture.Build<RoleEntity>()
+                .With(c => c.Contact, contactEntity)
+                .Create();
             var addressList = new List<AddressEntity>();
             addressList!.Add(addressEntity);
-            var tAccountFixture = _fixture.Build<AccountEntity>().With(a => a.AddressEntity, addressList).Create();
+            var tAccountFixture = _fixture.Build<AccountEntity>()
+                .With(a => a.AddressEntity, addressList)
+                .With(a => a.RoleEntity, new List<RoleEntity> { roleEntity })
+                .Create();
             var expectedAccount = new Core.Models.Account();
             expectedAccount.LegalName = tAccountFixture.LegalName;
             expectedAccount.AccountId = tAccountFixture.AccountId;
