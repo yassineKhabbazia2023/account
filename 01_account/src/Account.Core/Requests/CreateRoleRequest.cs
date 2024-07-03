@@ -2,13 +2,21 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Text.Json.Serialization;
+
 namespace Pulse.Account.Core.Requests
 {
     public class CreateRoleRequest
     {
         public int AccountId { get; set; }
 
+        [JsonIgnore]
+        public Guid? AccountGlobalUniqueId { get; set; }
+
         public int ContactId { get; set; }
+
+        [JsonIgnore]
+        public Guid? ContactGlobalUniqueId { get; set; }
 
         public bool? IsSignatory { get; set; }
 

@@ -26,8 +26,6 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             var contact = await _accountContext.ContactEntity
                 .AsNoTracking()
-                .Include(c => c.RoleEntity)
-                .ThenInclude(r => r.Account)
                 .FirstOrDefaultAsync(c => c.ContactId == contactId);
 
             if (contact == null)
