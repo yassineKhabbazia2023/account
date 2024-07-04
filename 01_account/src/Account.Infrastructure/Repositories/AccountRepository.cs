@@ -93,7 +93,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
             if (account == null)
             {
-                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
             }
 
             return account.MapToAccountDetail();
@@ -118,7 +118,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
             if (account == null)
             {
-                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
             }
 
             return account.MapToAccountDetail();
@@ -132,7 +132,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 var existingAccount = await _accountContext.AccountEntity.SingleAsync(x => x.AccountId == accountId);
                 if (existingAccount == null)
                 {
-                    throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                    throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
                 }
 
                 existingAccount.MapToUpdatedAccount(accountDetail);

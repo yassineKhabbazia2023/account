@@ -30,7 +30,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
             if (contact == null)
             {
-                throw new NotFoundException(Errors.NotFoundContactCode, Errors.NotFoundContactMessage);
+                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
             }
 
             return contact;

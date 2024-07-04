@@ -74,7 +74,7 @@ public class RoleRepository : IRoleRepository
         {
             if (!_accountContext.AccountEntity.Any(x => x.AccountId == accountId))
             {
-                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
             }
 
             var result = await _accountContext.RoleEntity

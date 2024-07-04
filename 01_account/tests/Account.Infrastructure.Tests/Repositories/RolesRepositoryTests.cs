@@ -109,10 +109,10 @@ public class RolesRepositoryTests
     {
         var repository = new RoleRepository(new AccountContext(_dbContextOptions));
 
-        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.GetSignatoryAsync(It.IsAny<int>()));
+        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.GetSignatoryAsync(999));
 
         Assert.Equal(Errors.NotFoundAccountCode, result.Code);
-        Assert.Equal(Errors.NotFoundAccountMessage, result.Message);
+        Assert.Equal(string.Format(Errors.NotFoundAccountMessage, 999), result.Message);
     }
 
     [Fact]
