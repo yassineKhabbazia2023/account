@@ -99,8 +99,8 @@ public class ContactCreatedEventHandlerTests
         // Arrange
         var loggerMock = new Mock<ILogger<ContactCreatedEventHandler>>();
         var repositoryMock = new Mock<IContactEventRepository>();
-        var roleEventRepositoryMock = new Mock<IRoleEventRepository>(MockBehavior.Strict);
-        var roleEventPublisherMock = new Mock<IRoleEventPublisher>(MockBehavior.Strict);
+        var roleEventRepositoryMock = new Mock<IRoleEventRepository>();
+        var roleEventPublisherMock = new Mock<IRoleEventPublisher>();
 
         loggerMock.Setup(x => x.Log(
             It.IsAny<LogLevel>(),
