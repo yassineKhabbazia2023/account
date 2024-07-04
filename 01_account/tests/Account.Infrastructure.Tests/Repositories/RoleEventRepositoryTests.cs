@@ -4,6 +4,8 @@
 
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -13,6 +15,8 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
 public class RoleEventRepositoryTests
 {
+    private readonly Mock<ILogger<RoleEventRepository>> _loggerMock = new();
+
     [Fact]
     public async Task DeleteContactRolesAsync_ShouldDeleteAllContactRoles()
     {
@@ -21,7 +25,7 @@ public class RoleEventRepositoryTests
                     .Options;
 
         using var context = new AccountContext(options);
-        var repository = new RoleEventRepository(context);
+        var repository = new RoleEventRepository(context, _loggerMock.Object);
         var role1 = new RoleEntity
         {
             ContactId = 1,
@@ -55,7 +59,7 @@ public class RoleEventRepositoryTests
                     .Options;
 
         using var context = new AccountContext(options);
-        var repository = new RoleEventRepository(context);
+        var repository = new RoleEventRepository(context, _loggerMock.Object);
 
         var account = new AccountEntity
         {
@@ -134,7 +138,7 @@ public class RoleEventRepositoryTests
                     .Options;
 
         using var context = new AccountContext(options);
-        var repository = new RoleEventRepository(context);
+        var repository = new RoleEventRepository(context, _loggerMock.Object);
 
         var account = new AccountEntity
         {
@@ -201,5 +205,47 @@ public class RoleEventRepositoryTests
         var result = await repository.CreateRoleForAutomaticDelegations(delegator.ContactId, account.AccountId);
 
         Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task CreateRoleForNewContact_ShouldCreateRole()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                    .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                    .Options;
+
+        using var context = new AccountContext(options);
+        var repository = new RoleEventRepository(context, _loggerMock.Object);
+
+        var account = new AccountEntity
+        {
+            AccountId = 1,
+            AccountGlobalUniqueId = default,
+            AccountNumber = "1234",
+            LegalName = "legal",
+            CreatedBy = "pas oim"
+        };
+        context.AccountEntity.Add(account);
+
+        var contact = new ContactEntity
+        {
+            ContactId = 1,
+            ContactGlobalUniqueId = default,
+            FirstName = "jean",
+            LastName = "pierre",
+            Email = "jp@kpmg.fr",
+            PersonaName = "collaborator",
+            Type = "collaborator"
+        };
+        context.ContactEntity.Add(contact);
+
+        await context.SaveChangesAsync();
+
+        var result = await repository.CreateRoleForNewContact(contact.ContactId, account.AccountNumber);
+
+        Assert.NotNull(result);
+
+        Assert.Equal(contact.ContactId, result.ContactId);
+        Assert.Equal(account.AccountId, result.AccountId);
     }
 }

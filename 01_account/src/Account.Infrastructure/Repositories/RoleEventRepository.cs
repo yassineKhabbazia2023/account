@@ -3,6 +3,8 @@
 // </copyright>
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
@@ -17,10 +19,13 @@ public class RoleEventRepository : IRoleEventRepository
 {
     private readonly AccountContext _accountContext;
 
-    public RoleEventRepository(AccountContext accountContext)
+    private readonly ILogger<RoleEventRepository> _logger;
+
+    public RoleEventRepository(AccountContext accountContext, ILogger<RoleEventRepository> logger)
     {
         _accountContext = accountContext;
         _accountContext.HandleEFCoreFailure();
+        _logger = logger;
     }
 
     public async Task<IEnumerable<CreateRoleRequest>> CreateRoleForAutomaticDelegations(int delegatorId, int accountId)
@@ -99,5 +104,34 @@ public class RoleEventRepository : IRoleEventRepository
         };
 
         return rolesCreated;
+    }
+
+    public async Task<CreateRoleRequest?> CreateRoleForNewContact(int contactId, string accountNumber)
+    {
+        var accountEntity = _accountContext.AccountEntity.FirstOrDefault(a => a.AccountNumber == accountNumber);
+
+        if (accountEntity == null)
+        {
+            _logger.LogDebug($"Account with following account number was not found: {accountNumber}");
+            return null!;
+        }
+
+        var role = new RoleEntity
+        {
+            AccountId = accountEntity.AccountId,
+            ContactId = contactId,
+        };
+
+        _accountContext.RoleEntity.Add(role);
+        await _accountContext.SaveChangesAsync();
+
+        return new CreateRoleRequest
+        {
+            ContactId = contactId,
+            AccountId = role.AccountId,
+            IsSignatory = false,
+            IsFavorite = false,
+            IsDelegation = true
+        };
     }
 }

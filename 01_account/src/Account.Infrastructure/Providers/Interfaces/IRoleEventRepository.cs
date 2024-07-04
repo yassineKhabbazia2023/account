@@ -12,4 +12,6 @@ public interface IRoleEventRepository
     Task<IEnumerable<RoleEntity>> DeleteContactRolesAsync(int contactId);
 
     Task<IEnumerable<CreateRoleRequest>> CreateRoleForAutomaticDelegations(int delegatorId, int accountIds);
+
+    Task<CreateRoleRequest?> CreateRoleForNewContact(int contactId, string accountNumber);
 }
