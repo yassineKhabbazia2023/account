@@ -120,6 +120,9 @@ public class RoleEventRepository : IRoleEventRepository
         {
             AccountId = accountEntity.AccountId,
             ContactId = contactId,
+            IsSignatory = false,
+            IsDelegation = false,
+            IsFavorite = false,
         };
 
         _accountContext.RoleEntity.Add(role);
