@@ -49,19 +49,36 @@ public class RolesRepositoryTests
                 PageSize = 4
             };
 
+            var contactEntity = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, "1")
+                                            .With(c => c.FirstName, "firstUser")
+                                            .With(c => c.LastName, "lastUser")
+                                            .With(c => c.Email, "firstLastUser@test.fr")
+                                            .Create();
+            var roleEntity = _fixture.Build<RoleEntity>()
+                                            .With(r => r.Contact, contactEntity)
+                                            .With(r => r.IsSignatory, true)
+                                            .CreateMany(1);
             var accountsEntity = _fixture.Build<AccountEntity>()
-                .Without(x => x.Hub)
-                .CreateMany(3);
+                .With(a => a.RoleEntity, roleEntity.ToList())
+                .CreateMany(1);
+            var accountId = accountsEntity.First().AccountId;
             context.AccountEntity.AddRange(accountsEntity);
             context.SaveChanges();
 
             var rolesRepository = new RoleRepository(context);
-            var contactId = accountsEntity.First().RoleEntity.First().ContactId;
+            var contactId = accountsEntity.First(a => a.AccountId == accountId).RoleEntity.First().ContactId;
 
-            var accountObjects = accountsEntity
-                                    .SelectMany(item => item.RoleEntity)
-                                    .Where(x => x.ContactId == contactId)
-                                    .Select(x => x.Account.MapToAccount(contactId));
+            var accountObjects = context.AccountEntity
+                                                        .AsNoTracking()
+                                                        .Include(x => x.RoleEntity)
+                                                        .ThenInclude(r => r.Contact)
+                                                        .Include(a => a.AddressEntity)
+                                                        .Include(x => x.DeploymentEntity)
+                                                        .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
+                                                        .OrderBy(x => x.LegalName)
+                                                        .Select(x => x.MapToAccount(contactId));
+            ;
 
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
             {

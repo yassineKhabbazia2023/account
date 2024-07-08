@@ -56,7 +56,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 return null;
             }
 
-            var signatory = source.RoleEntity?.FirstOrDefault(r => r.IsSignatory == true);
+            var signatory = source.RoleEntity?.FirstOrDefault(r => r.IsSignatory == true && int.Parse(r.Contact.Type) != (int)ContactType.Collaborator);
             var currentContact = source.RoleEntity?.FirstOrDefault(r => r.ContactId == contactId);
 
             return
