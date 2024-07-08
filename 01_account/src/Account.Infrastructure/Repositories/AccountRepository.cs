@@ -61,8 +61,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                     query = from n in query
                             where n.LegalName.ToLower().Contains(criteria.Search)
                                   || n.AccountNumber.ToLower().Contains(criteria.Search)
-                                  || n.RoleEntity.Any(role => role.IsSignatory == true && (role.Contact.FirstName.ToLower().Contains(criteria.Search)
-                                                      || role.Contact.LastName.ToLower().Contains(criteria.Search)
+                                  || n.RoleEntity.Any(role => role.IsSignatory == true && ((role.Contact.FirstName + " " + role.Contact.LastName).ToLower().Contains(criteria.Search)
                                                       || role.Contact.Email.ToLower().Contains(criteria.Search)))
                             select n;
                 }
@@ -94,7 +93,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
             if (account == null)
             {
-                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
             }
 
             return account.MapToAccountDetail();
@@ -119,7 +118,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
             if (account == null)
             {
-                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
             }
 
             return account.MapToAccountDetail();
@@ -133,7 +132,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 var existingAccount = await _accountContext.AccountEntity.SingleAsync(x => x.AccountId == accountId);
                 if (existingAccount == null)
                 {
-                    throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                    throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
                 }
 
                 existingAccount.MapToUpdatedAccount(accountDetail);

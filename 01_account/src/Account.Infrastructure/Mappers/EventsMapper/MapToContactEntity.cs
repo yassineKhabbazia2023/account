@@ -3,7 +3,6 @@
 // </copyright>
 
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Back.Events.IntegrationEvents;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
 
 namespace Pulse.Account.Infrastructure.Mappers.EventsMapper;

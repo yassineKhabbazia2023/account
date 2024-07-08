@@ -7,8 +7,6 @@ using Pulse.Back.Events.IntegrationEvents.EventsData;
 using Pulse.Back.Events.IntegrationEvents;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Requests;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
-using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Infrastructure.Interfaces;
 
 namespace Pulse.Account.Infrastructure.Providers
@@ -33,11 +31,11 @@ namespace Pulse.Account.Infrastructure.Providers
                 return;
             }
 
-            var contact = await _contactRepository.GetContactAsync(roleRequest.ContactId);
+            roleRequest.AccountGlobalUniqueId = roleRequest.AccountGlobalUniqueId ??
+                (await _accountRepository.GetAccountAsync(roleRequest.AccountId)) !.AccountGlobalUniqueId;
 
-            var account = contact.RoleEntity
-                .FirstOrDefault(r =>
-                    r.AccountId == roleRequest.AccountId)?.Account ?? throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+            roleRequest.ContactGlobalUniqueId = roleRequest.ContactGlobalUniqueId ??
+                (await _contactRepository.GetContactAsync(roleRequest.ContactId)).ContactGlobalUniqueId;
 
             var data = new RoleCreatedEventData
             {
@@ -46,8 +44,8 @@ namespace Pulse.Account.Infrastructure.Providers
                 IsDelegation = roleRequest.IsDelegation,
                 IsFavorite = roleRequest.IsFavorite,
                 IsSignatory = roleRequest.IsSignatory,
-                AccountGlobalUniqueId = account!.AccountGlobalUniqueId,
-                ContactGlobalUniqueId = contact!.ContactGlobalUniqueId
+                AccountGlobalUniqueId = (Guid)roleRequest.AccountGlobalUniqueId!,
+                ContactGlobalUniqueId = (Guid)roleRequest.ContactGlobalUniqueId!
             };
 
             await _eventPublisher.PublishAsync(new RoleCreatedEvent(data));
