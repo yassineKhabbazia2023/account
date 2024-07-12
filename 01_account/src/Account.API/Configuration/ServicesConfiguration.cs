@@ -90,6 +90,7 @@ namespace Pulse.Account.API.Configuration
             services.AddKeyedScoped<IEventHandler, RegistryAccountRemovedEventHandler>(nameof(RegistryAccountRemovedEvent));
             services.AddKeyedScoped<IEventHandler, RegistryRoleCreatedEventHandler>(nameof(RegistryRoleCreatedEvent));
             services.AddKeyedScoped<IEventHandler, RegistryRoleRemovedEventHandler>(nameof(RegistryRoleRemovedEvent));
+            services.AddKeyedScoped<IEventHandler, RoleCreatedEventHandler>(nameof(RoleCreatedEvent));
 
             services.AddScoped<IAccountEventPublisher, AccountEventPublisher>();
             services.AddScoped<IRoleEventPublisher, RoleEventPublisher>();

@@ -77,7 +77,7 @@ public class RolesService : IRolesService
             throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
         }
 
-        if (role.IsSignatory!.Value)
+        if (role.IsSignatory.HasValue && role.IsSignatory.Value)
         {
             var signatory = await _rolesRepository.GetSignatoryAsync(accountId);
             if (signatory.Count() == 1)

@@ -48,24 +48,34 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             using (var context = new AccountContext(_dbContextOptions))
             {
                 // Arrange
-                var accountsModel = _fixture.Create<List<AccountEntity>>();
-                accountsModel.First().AddressEntity.First().AddressType = AddressType.delivery.ToString();
-                accountsModel.First().AccountNumber = "199900046522";
-                accountsModel.First().LegalName = "Test SCA";
-                accountsModel.First().RoleEntity.First().Contact.FirstName = "FirstUser";
-                accountsModel.First().RoleEntity.First().Contact.LastName = "LastUser";
-                accountsModel.First().RoleEntity.First().Contact.Email = "firstLastUser@test.fr";
+                var contactEntity = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, "1")
+                                            .With(c => c.FirstName, "firstUser")
+                                            .With(c => c.LastName, "lastUser")
+                                            .With(c => c.Email, "firstLastUser@test.fr")
+                                            .Create();
+                var roleEntity = _fixture.Build<RoleEntity>()
+                                                .With(r => r.Contact, contactEntity)
+                                                .With(r => r.IsSignatory, true)
+                                                .CreateMany(1);
+                var accountsModel = _fixture.Build<AccountEntity>()
+                    .With(a => a.RoleEntity, roleEntity.ToList())
+                    .With(a => a.AccountNumber, "199900046522")
+                    .With(a => a.LegalName, "test scA")
+                    .With(a => a.Hub, new HubEntity { HubId = 1, HubName = "HubName" })
+                    .Create();
+                accountsModel.AddressEntity.First().AddressType = AddressType.delivery.ToString();
                 context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
 
                 var accountRepository = new AccountRepository(context);
-                var contactId = accountsModel.Select(account => account.RoleEntity.Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
-                var accountObject = accountsModel.Select(item => item.MapToAccount(contactId)) ?? Enumerable.Empty<AccountModel>();
+                var contactId = accountsModel.RoleEntity.Select(role => role.ContactId).FirstOrDefault();
+                var accountObject = accountsModel.MapToAccount(contactId);
                 Paging<AccountModel> accountPaging = new Paging<AccountModel>()
                 {
                     CurrentPage = 1,
-                    Items = accountObject!,
-                    TotalItems = accountObject.Count(),
+                    Items = new List<AccountModel> { accountObject! },
+                    TotalItems = 1,
                     TotalPage = 1
                 };
                 var searchAccountCriteria = new SearchAccountCriteria
@@ -95,25 +105,33 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             // Arrange
             using (var context = new AccountContext(_dbContextOptions))
             {
-                var accountsModel = _fixture.Create<List<AccountEntity>>();
-                accountsModel.First().AddressEntity.First().AddressType = AddressType.delivery.ToString();
-                accountsModel.First().AccountNumber = "199900046522";
-                accountsModel.First().DeploymentEntity.First().Status = 1;
-                accountsModel.First().LegalName = "Test SCA";
-                accountsModel.First().RoleEntity.First().Contact.FirstName = "FirstUser";
-                accountsModel.First().RoleEntity.First().Contact.LastName = "LastUser";
-                accountsModel.First().RoleEntity.First().Contact.Email = "firstLastUser@test.fr";
+                var contactEntity = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, "1")
+                                            .Create();
+                var roleEntity = _fixture.Build<RoleEntity>()
+                                                .With(r => r.Contact, contactEntity)
+                                                .CreateMany(1);
+                var accountsModel = _fixture.Build<AccountEntity>()
+                    .With(a => a.RoleEntity, roleEntity.ToList())
+                    .Create();
+                accountsModel.AddressEntity.First().AddressType = AddressType.delivery.ToString();
+                accountsModel.AccountNumber = "199900046522";
+                accountsModel.DeploymentEntity.First().Status = 1;
+                accountsModel.LegalName = "Test SCA";
+                accountsModel.RoleEntity.First().Contact.FirstName = "FirstUser";
+                accountsModel.RoleEntity.First().Contact.LastName = "LastUser";
+                accountsModel.RoleEntity.First().Contact.Email = "firstLastUser@test.fr";
                 context.AccountEntity.AddRange(accountsModel);
                 await context.SaveChangesAsync();
 
                 var accountRepository = new AccountRepository(context);
-                var contactId = accountsModel.Select(account => account.RoleEntity.Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
-                var accountObject = accountsModel.Select(item => item.MapToAccount(contactId)) ?? Enumerable.Empty<AccountModel>();
+                var contactId = accountsModel.RoleEntity.Select(role => role.ContactId).FirstOrDefault();
+                var accountObject = accountsModel.MapToAccount(contactId);
                 Paging<AccountModel> accountPaging = new Paging<AccountModel>()
                 {
                     CurrentPage = 1,
-                    Items = accountObject!,
-                    TotalItems = accountObject.Count(),
+                    Items = new List<AccountModel> { accountObject! },
+                    TotalItems = 1,
                     TotalPage = 1
                 };
                 Paging<AccountModel> accountPagingEmpty = new Paging<AccountModel>()
@@ -161,6 +179,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                                                .Without(c => c.RoleEntity)
                                                .Without(c => c.ContactGlobalUniqueId)
                                                .With(c => c.ContactId, contactId)
+                                               .With(c => c.Type, "1")
                                                .Create();
 
                 for (int i = 0; i < 3; i++)
@@ -235,6 +254,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                                                .Without(c => c.RoleEntity)
                                                .Without(c => c.ContactGlobalUniqueId)
                                                .With(c => c.ContactId, contactId)
+                                               .With(c => c.Type, "1")
                                                .Create();
 
                 var deploymentMockActive = _fixture.Build<DeploymentEntity>()

@@ -56,7 +56,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 return null;
             }
 
-            var signatory = source.RoleEntity?.FirstOrDefault(r => r.IsSignatory == true);
+            var signatory = source.RoleEntity?.FirstOrDefault(r => r.IsSignatory == true && r.Contact.Type != ContactType.Collaborator.ToString());
             var currentContact = source.RoleEntity?.FirstOrDefault(r => r.ContactId == contactId);
 
             return
@@ -70,6 +70,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                     Address = source.MapToAddressDelivery(),
                     Signatory = signatory?.Contact.MapToContact(),
                     Deployment = source.MapToDeployment(),
+                    Hub = source.MapToHub()
                 };
         }
 

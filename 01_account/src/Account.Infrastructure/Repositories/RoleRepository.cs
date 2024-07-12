@@ -26,12 +26,10 @@ public class RoleRepository : IRoleRepository
 {
     private readonly AccountContext _accountContext;
     private readonly AsyncRetryPolicy _retryPolicy;
-    private readonly IDelegationRepository _delegationRepository;
 
-    public RoleRepository(AccountContext accountContext, IDelegationRepository delegationRepository)
+    public RoleRepository(AccountContext accountContext)
     {
         _accountContext = accountContext;
-        _delegationRepository = delegationRepository;
 
         _retryPolicy = Policy
                 .Handle<SqlException>()
@@ -76,7 +74,7 @@ public class RoleRepository : IRoleRepository
         {
             if (!_accountContext.AccountEntity.Any(x => x.AccountId == accountId))
             {
-                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
             }
 
             var result = await _accountContext.RoleEntity
@@ -104,13 +102,13 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            if (!_accountContext.AccountEntity.Include(a => a.DeploymentEntity)
-                .Any(x => x.AccountId == role.AccountId && x.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked))
+            if (!await _accountContext.AccountEntity.Include(a => a.DeploymentEntity)
+                .AnyAsync(x => x.AccountId == role.AccountId && x.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked))
             {
                 throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, role.AccountId));
             }
 
-            if (!_accountContext.ContactEntity.Any(x => x.ContactId == role.ContactId && x.Status != ContactStatus.Removed.ToString()))
+            if (!await _accountContext.ContactEntity.AnyAsync(x => x.ContactId == role.ContactId && x.Status != ContactStatus.Removed.ToString()))
             {
                 throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
             }
@@ -120,11 +118,13 @@ public class RoleRepository : IRoleRepository
                 throw new BadRequestException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, role.ContactId, role.AccountId));
             }
 
-            var roleDb = role.MapRoleToRoleDb();
-            _accountContext.RoleEntity.Add(roleDb);
+            var roles = new List<Role> { role.MapCreateRoleRequestToRole() };
+            var roleEntities = roles.MapRolesToRolesDb();
 
-            var roles = new List<Role> { roleDb.MapToRole() };
-            _delegationRepository.GetAutomaticDelegations(role.ContactId, new List<int> { role.AccountId }, roles);
+            if (roleEntities.Any())
+            {
+                await _accountContext.RoleEntity.AddRangeAsync(roleEntities);
+            }
 
             await _accountContext.SaveChangesAsync();
 

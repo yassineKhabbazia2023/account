@@ -34,8 +34,14 @@ namespace Pulse.Account.Infrastructure.Mappers
                 AccountId = role.AccountId,
                 ContactId = role.ContactId,
                 IsFavorite = role.IsFavorite,
-                IsSignatory = role.IsSignatory
+                IsSignatory = role.IsSignatory,
+                IsDelegation = role.IsDelegation,
             };
+        }
+
+        public static IEnumerable<RoleEntity> MapRolesToRolesDb(this IEnumerable<Role>? roles)
+        {
+            return roles?.Select(r => r.MapRoleToRoleDb()) ?? Enumerable.Empty<RoleEntity>();
         }
     }
 }

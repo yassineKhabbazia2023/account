@@ -41,7 +41,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             var accountToRemove = _context.AccountEntity.Include(a => a.DeploymentEntity).FirstOrDefault(a => a.AccountGlobalUniqueId == accountGlobalUniqueIdentifier);
             if (accountToRemove == null)
             {
-                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountGlobalUniqueIdentifier));
             }
 
             var deploymentEntity = accountToRemove.DeploymentEntity?.FirstOrDefault();
@@ -78,7 +78,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
             if (existingAccount == null)
             {
-                throw new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage);
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, eventData.AccountGlobalUniqueIdentifier));
             }
 
             var newAccount = eventData.ToAccountEntity();

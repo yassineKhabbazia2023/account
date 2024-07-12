@@ -1,5 +1,6 @@
 -- Role Collab
-IF (SELECT COUNT(*) FROM [account].[Role] where AccountId in (601, 602, 603)) = 0
+IF (SELECT COUNT(*) FROM [account].[Role] r JOIN [actor].[Contact] c ON c.ContactId = r.ContactId 
+	where r.AccountId in (601, 602, 603) AND c.Type = 'Collaborator') = 0
 BEGIN
 	DECLARE @Counter INT = 601
 	WHILE @Counter <= 603
