@@ -1,0 +1,28 @@
+<!-- 
+	MSBuild files for all the Social projects which contains common properties
+-->
+
+<Project>
+
+	<!-- Common properties for all projects -->
+	<PropertyGroup>
+		<Authors>Pulse</Authors>
+		<Company>Pulse</Company>
+		<Copyright>Copyright (C) 2023 Pulse</Copyright>
+		<Product>Pulse</Product>
+	</PropertyGroup>
+
+	<!-- Common NuGet packages for all projects -->
+	<ItemGroup>
+		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<!-- Common C# analyzers files -->
+	<ItemGroup>
+		<AdditionalFiles Include="..\..\stylecop.json" Link="stylecop.json" />
+		<None Include="..\..\.editorconfig" Link=".editorconfig" />
+	</ItemGroup>
+</Project>

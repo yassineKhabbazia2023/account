@@ -1,0 +1,4 @@
+﻿CREATE SCHEMA [account]
+GO
+CREATE SCHEMA [actor]
+GO
