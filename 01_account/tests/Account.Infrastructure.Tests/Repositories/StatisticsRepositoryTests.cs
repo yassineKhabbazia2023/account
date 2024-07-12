@@ -161,7 +161,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 Assert.Equal(1, result.AccountToDeploy);
                 Assert.Equal(1, result.AccountConnected);
                 Assert.Equal(1, result.AccountInProgress);
-                Assert.Equal(1, result.AccountRevoked);
+                Assert.Equal(0, result.AccountRevoked);
                 Assert.Equal(0, result.ContactInvited);
                 Assert.Equal(0, result.ContactDeclared);
                 Assert.Equal(1, result.ContactConnected);

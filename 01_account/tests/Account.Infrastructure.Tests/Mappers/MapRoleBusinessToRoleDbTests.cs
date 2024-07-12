@@ -53,4 +53,34 @@ public class MapRoleBusinessToRoleDbTests
         // Assert
         Assert.Equivalent(expected, result);
     }
+
+    [Fact]
+    public void MapRolesToRolesDb_ShouldMapRolesToRoleEntities()
+    {
+        var roles = _fixture.CreateMany<Core.Models.Role>();
+
+        var results = roles.MapRolesToRolesDb();
+
+        Assert.NotNull(results);
+        Assert.Equal(roles.Count(), results.Count());
+
+        for (int i = 0; i < roles.Count(); i++)
+        {
+            var role = roles.ElementAt(i);
+            var result = results.ElementAt(i);
+
+            Assert.Equal(role.ContactId, result.ContactId);
+            Assert.Equal(role.AccountId, result.AccountId);
+            Assert.Equal(role.IsSignatory, result.IsSignatory);
+            Assert.Equal(role.IsFavorite, result.IsFavorite);
+            Assert.Equal(role.IsDelegation, result.IsDelegation);
+        }
+    }
+
+    [Fact]
+    public void MapRolesToRolesDb_WithNullSource_ShouldReturnEmptyList()
+    {
+        var result = MapRoleBusinessToRoleDb.MapRolesToRolesDb(null);
+        Assert.Empty(result);
+    }
 }

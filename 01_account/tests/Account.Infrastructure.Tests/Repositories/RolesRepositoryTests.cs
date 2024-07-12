@@ -49,17 +49,36 @@ public class RolesRepositoryTests
                 PageSize = 4
             };
 
-            var accountsEntity = _fixture.Create<List<AccountEntity>>();
+            var contactEntity = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, "1")
+                                            .With(c => c.FirstName, "firstUser")
+                                            .With(c => c.LastName, "lastUser")
+                                            .With(c => c.Email, "firstLastUser@test.fr")
+                                            .Create();
+            var roleEntity = _fixture.Build<RoleEntity>()
+                                            .With(r => r.Contact, contactEntity)
+                                            .With(r => r.IsSignatory, true)
+                                            .CreateMany(1);
+            var accountsEntity = _fixture.Build<AccountEntity>()
+                .With(a => a.RoleEntity, roleEntity.ToList())
+                .CreateMany(1);
+            var accountId = accountsEntity.First().AccountId;
             context.AccountEntity.AddRange(accountsEntity);
             context.SaveChanges();
 
-            var rolesRepository = new RoleRepository(context, null!);
-            var contactId = accountsEntity.First().RoleEntity.First().ContactId;
+            var rolesRepository = new RoleRepository(context);
+            var contactId = accountsEntity.First(a => a.AccountId == accountId).RoleEntity.First().ContactId;
 
-            var accountObjects = accountsEntity
-                                    .SelectMany(item => item.RoleEntity)
-                                    .Where(x => x.ContactId == contactId)
-                                    .Select(x => x.Account.MapToAccount(contactId));
+            var accountObjects = context.AccountEntity
+                                                        .AsNoTracking()
+                                                        .Include(x => x.RoleEntity)
+                                                        .ThenInclude(r => r.Contact)
+                                                        .Include(a => a.AddressEntity)
+                                                        .Include(x => x.DeploymentEntity)
+                                                        .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
+                                                        .OrderBy(x => x.LegalName)
+                                                        .Select(x => x.MapToAccount(contactId));
+            ;
 
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
             {
@@ -89,7 +108,7 @@ public class RolesRepositoryTests
             context.AccountEntity.AddRange(accountsMock);
             context.SaveChanges();
 
-            var rolesRepository = new RoleRepository(context, null!);
+            var rolesRepository = new RoleRepository(context);
             var data = accountsMock.First().RoleEntity.Where(r => r.IsSignatory!.Value).ToList();
             var resultExpected = new List<Contact>();
             resultExpected.AddRange(data.MapToContacts());
@@ -105,12 +124,12 @@ public class RolesRepositoryTests
     [Fact]
     public async Task GetSignatoryAsync_WithNotExistingAccountId_ShouldThrowNotFoundException()
     {
-        var repository = new RoleRepository(new AccountContext(_dbContextOptions), null!);
+        var repository = new RoleRepository(new AccountContext(_dbContextOptions));
 
-        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.GetSignatoryAsync(It.IsAny<int>()));
+        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.GetSignatoryAsync(999));
 
         Assert.Equal(Errors.NotFoundAccountCode, result.Code);
-        Assert.Equal(Errors.NotFoundAccountMessage, result.Message);
+        Assert.Equal(string.Format(Errors.NotFoundAccountMessage, 999), result.Message);
     }
 
     [Fact]
@@ -168,8 +187,7 @@ public class RolesRepositoryTests
 
         await accountContext.SaveChangesAsync();
 
-        var delegationRepository = new Mock<IDelegationRepository>();
-        var rolesRepository = new RoleRepository(accountContext, delegationRepository.Object);
+        var rolesRepository = new RoleRepository(accountContext);
 
         // Act
         var result = await rolesRepository.CreateRoleAsync(roleRequest);
@@ -209,7 +227,7 @@ public class RolesRepositoryTests
 
         await accountContext.SaveChangesAsync();
 
-        var rolesRepository = new RoleRepository(accountContext, null!);
+        var rolesRepository = new RoleRepository(accountContext);
 
         // Act
         Func<Task> action = async () => await rolesRepository.CreateRoleAsync(roleRequest);
@@ -252,7 +270,7 @@ public class RolesRepositoryTests
 
         await accountContext.SaveChangesAsync();
 
-        var rolesRepository = new RoleRepository(accountContext, null!);
+        var rolesRepository = new RoleRepository(accountContext);
 
         // Act
         Func<Task> action = async () => await rolesRepository.CreateRoleAsync(roleRequest);
@@ -273,7 +291,7 @@ public class RolesRepositoryTests
             context.RoleEntity.Add(roleMock);
             context.SaveChanges();
 
-            var rolesRepository = new RoleRepository(context, null!);
+            var rolesRepository = new RoleRepository(context);
 
             // Act
             await rolesRepository.UpdateRoleSignatoryAsync(roleMock.AccountId, roleMock.ContactId, false);
@@ -293,7 +311,7 @@ public class RolesRepositoryTests
         // Arrange
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var rolesRepository = new RoleRepository(context, null!);
+            var rolesRepository = new RoleRepository(context);
 
             // Act
             Task RoleUpdate() => rolesRepository.UpdateRoleSignatoryAsync(1, 1, false);
@@ -315,7 +333,7 @@ public class RolesRepositoryTests
             context.ContactEntity.AddRange(contactMock);
             await context.SaveChangesAsync();
 
-            var roleRepository = new RoleRepository(context, new Mock<IDelegationRepository>().Object);
+            var roleRepository = new RoleRepository(context);
             await roleRepository.CreateRoleAsync(new CreateRoleRequest
             {
                 AccountId = accountMock.AccountId,
