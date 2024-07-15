@@ -132,7 +132,7 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                 AccountGlobalUniqueId = eventData.AccountGlobalUniqueIdentifier,
                 AccountNumber = eventData.AccountNumber,
                 CreationDate = eventData.AccountInsertedDate!.Value,
-                UpdatedDate = eventData.AccountUpdatedDate!.Value,
+                UpdatedDate = eventData.AccountUpdatedDate,
                 LegalName = eventData.AccountLegalName,
                 CreatedBy = eventData.CreatedBy,
                 ModifiedBy = eventData.ModifiedBy,
@@ -146,17 +146,17 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                 TaxationSystem = eventData.AccountTaxationSystem,
                 SourceName = eventData.AccountSourceName,
                 Isin = eventData.AccountISIN,
-                StaffSize = int.TryParse(eventData.AccountStaffSize!, out int staffSize) ? staffSize : 0,
+                StaffSize = int.TryParse(eventData.AccountStaffSize!, out int staffSize) ? staffSize : null,
                 StaffSizeRange = eventData.AccountStaffSizeSlice,
                 DeliveryFax = eventData.AccountDeliveryFax,
                 BillingFax = eventData.AccountBillingFax,
-                Turnover = decimal.TryParse(eventData.Turnover, CultureInfo.InvariantCulture,  out decimal turnover) ? turnover : 0.0M,
+                Turnover = decimal.TryParse(eventData.Turnover, CultureInfo.InvariantCulture,  out decimal turnover) ? turnover : null,
                 FiscalSystem = eventData.AccountRegimeFiscal,
                 AccountingMethod = eventData.AccountTypeTenueComptable,
                 LegalForm = eventData.AccountFormeJuridique,
                 LegalFormCode = eventData.AccountCodeFormeJuridique,
                 Siret = eventData.AccountRegisterIdentification1,
-                NafId = int.TryParse(eventData.AccountNafIdentifier, out int nafId) ? nafId : throw new BadRequestException(Errors.BadRequestNafIdCode, Errors.BadRequestNafIdMessage),
+                NafId = int.TryParse(eventData.AccountNafIdentifier, out int nafId) ? nafId : null,
                 IsActive = eventData.AccountFlagESCActif,
                 ActivityType = eventData.AccountEscCategory
             };
@@ -172,26 +172,35 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
 
         private static List<PhoneEntity> ToPhoneEntities(this RegistryAccountStateEventData eventData)
         {
-            return new List<PhoneEntity>
+            var result = new List<PhoneEntity>();
+            if (eventData.BillingPhone != null)
             {
-                new PhoneEntity
-                {
-                    Type = PhoneType.Delivery.ToString(),
-                    PhoneNumber = eventData.DeliveryPhone
-                },
-                new PhoneEntity
+                result.Add(new PhoneEntity
                 {
                     Type = PhoneType.Billing.ToString(),
                     PhoneNumber = eventData.BillingPhone
-                }
-            };
+                });
+            }
+
+            if (eventData.DeliveryPhone != null)
+            {
+                result.Add(new PhoneEntity
+                {
+                    Type = PhoneType.Delivery.ToString(),
+                    PhoneNumber = eventData.DeliveryPhone
+                });
+            }
+
+            return result;
         }
 
         private static List<AddressEntity> ToAddressEntities(this RegistryAccountStateEventData eventData)
         {
-            return new List<AddressEntity>
+            var result = new List<AddressEntity>();
+
+            if (eventData.DeliveryCity != null)
             {
-                new AddressEntity
+                result.Add(new AddressEntity
                 {
                     AddressLine1 = eventData.DeliveryAddressLine1,
                     AddressLine2 = eventData.DeliveryAddressLine2,
@@ -201,8 +210,12 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                     Country = eventData.DeliveryCountry,
                     AddressType = AddressType.delivery.ToString(),
                     State = eventData.DeliveryState
-                },
-                new AddressEntity
+                });
+            }
+
+            if (eventData.BillingCity != null)
+            {
+                result.Add(new AddressEntity
                 {
                     AddressLine1 = eventData.BillingAddressLine1,
                     AddressLine2 = eventData.BillingAddressLine2,
@@ -212,8 +225,10 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                     Country = eventData.BillingCountry,
                     AddressType = AddressType.billing.ToString(),
                     State = eventData.BillingState
-                }
-            };
+                });
+            }
+
+            return result;
         }
 
         private static List<DeploymentEntity> ToDeploymentEntities(this RegistryAccountStateEventData eventData)
