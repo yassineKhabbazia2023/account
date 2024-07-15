@@ -116,7 +116,7 @@ namespace Pulse.Account.API.Controllers
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<Contact>>> GetAssociatedContactsAsync(int contactId,
             [FromQuery] GetAssociatedContactsRequest request,
-            Pagination? pagination)
+            [FromQuery] Pagination? pagination)
         {
             var result = await _accountService.GetAssociatedContactsAsync(contactId, request, pagination);
             return Ok(result);
