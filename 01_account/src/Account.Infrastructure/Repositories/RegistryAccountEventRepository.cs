@@ -82,15 +82,8 @@ namespace Pulse.Account.Infrastructure.Repositories
             }
 
             var newAccount = eventData.ToAccountEntity();
-            newAccount.ToAccountEntity(existingAccount);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            existingAccount.ToAccountEntity(newAccount);
+            await _context.SaveChangesAsync();
 
             return existingAccount.MapToAccountDetail() !;
         }

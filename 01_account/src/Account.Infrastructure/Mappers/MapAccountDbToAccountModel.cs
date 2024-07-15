@@ -196,7 +196,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 return new Address();
             }
 
-            var address = tAccount.AddressEntity.FirstOrDefault(address => address.AddressType.ToLower() == AddressType.delivery.ToString().ToLower());
+            var address = tAccount.AddressEntity.FirstOrDefault(address => address.AddressType.ToLower() == AddressType.Delivery.ToString().ToLower());
 
             return address == null ? new Address() : new Address
             {

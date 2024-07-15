@@ -15,57 +15,57 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
     {
         public static void ToAccountEntity(this AccountEntity destination, AccountEntity source)
         {
-            source.AccountGlobalUniqueId = destination.AccountGlobalUniqueId;
-            source.AccountNumber = destination.AccountNumber;
-            source.CreationDate = destination.CreationDate;
-            source.UpdatedDate = destination.UpdatedDate;
-            source.LegalName = destination.LegalName;
-            source.CreatedBy = destination.CreatedBy;
-            source.ModifiedBy = destination.ModifiedBy;
-            source.CommercialName = destination.CommercialName;
-            source.AccountType = destination.AccountType;
-            source.Email = destination.Email;
-            source.SectorCode = destination.SectorCode;
-            source.Vatintra = destination.Vatintra;
-            source.DeliveryEmail = destination.DeliveryEmail;
-            source.BillingEmail = destination.BillingEmail;
-            source.TaxationSystem = destination.TaxationSystem;
-            source.SourceName = destination.SourceName;
-            source.Isin = destination.Isin;
-            source.StaffSize = destination.StaffSize;
-            source.StaffSizeRange = destination.StaffSizeRange;
-            source.DeliveryFax = destination.DeliveryFax;
-            source.BillingFax = destination.BillingFax;
-            source.Turnover = destination.Turnover;
-            source.FiscalSystem = destination.FiscalSystem;
-            source.AccountingMethod = destination.AccountingMethod;
-            source.LegalForm = destination.LegalForm;
-            source.LegalFormCode = destination.LegalFormCode;
-            source.Siret = destination.Siret;
-            source.NafId = destination.NafId;
-            source.IsActive = destination.IsActive;
-            source.ActivityType = destination.ActivityType;
-            source.ToDeploymentEntity(destination);
-            source.ToAddressEntity(destination);
-            source.ToPhoneEntity(destination);
+            destination.AccountGlobalUniqueId = source.AccountGlobalUniqueId;
+            destination.AccountNumber = source.AccountNumber;
+            destination.CreationDate = source.CreationDate;
+            destination.UpdatedDate = source.UpdatedDate;
+            destination.LegalName = source.LegalName;
+            destination.CreatedBy = source.CreatedBy;
+            destination.ModifiedBy = source.ModifiedBy;
+            destination.CommercialName = source.CommercialName;
+            destination.AccountType = source.AccountType;
+            destination.Email = source.Email;
+            destination.SectorCode = source.SectorCode;
+            destination.Vatintra = source.Vatintra;
+            destination.DeliveryEmail = source.DeliveryEmail;
+            destination.BillingEmail = source.BillingEmail;
+            destination.TaxationSystem = source.TaxationSystem;
+            destination.SourceName = source.SourceName;
+            destination.Isin = source.Isin;
+            destination.StaffSize = source.StaffSize;
+            destination.StaffSizeRange = source.StaffSizeRange;
+            destination.DeliveryFax = source.DeliveryFax;
+            destination.BillingFax = source.BillingFax;
+            destination.Turnover = source.Turnover;
+            destination.FiscalSystem = source.FiscalSystem;
+            destination.AccountingMethod = source.AccountingMethod;
+            destination.LegalForm = source.LegalForm;
+            destination.LegalFormCode = source.LegalFormCode;
+            destination.Siret = source.Siret;
+            destination.NafId = source.NafId;
+            destination.IsActive = source.IsActive;
+            destination.ActivityType = source.ActivityType;
+            destination.ToDeploymentEntity(source);
+            destination.ToAddressEntity(source);
+            destination.ToPhoneEntity(source);
         }
 
-        private static void ToDeploymentEntity(this AccountEntity source, AccountEntity destination)
+        private static void ToDeploymentEntity(this AccountEntity destination, AccountEntity source)
         {
-            var deployment = source.DeploymentEntity.FirstOrDefault();
-            var deploymentNew = destination.DeploymentEntity.FirstOrDefault();
+            var deployment = destination.DeploymentEntity.FirstOrDefault();
+            var deploymentNew = source.DeploymentEntity.FirstOrDefault();
 
             deployment!.DeploymentDate = deploymentNew!.DeploymentDate;
             deployment!.Status = deploymentNew!.Status;
         }
 
-        private static void ToPhoneEntity(this AccountEntity source, AccountEntity destination)
+        private static void ToPhoneEntity(this AccountEntity destination, AccountEntity source)
         {
-            var phoneDelivery = source.PhoneEntity.FirstOrDefault(x => x.Type == PhoneType.Delivery.ToString());
-            var phoneBilling = source.PhoneEntity.FirstOrDefault(x => x.Type == PhoneType.Billing.ToString());
+            var phoneDelivery = destination.PhoneEntity.FirstOrDefault(x => x.Type == PhoneType.Delivery.ToString());
+            var phoneBilling = destination.PhoneEntity.FirstOrDefault(x => x.Type == PhoneType.Billing.ToString());
 
-            var phoneDeliveryNew = destination.PhoneEntity.FirstOrDefault(x => x.Type == PhoneType.Delivery.ToString());
-            var phoneBillingNew = destination.PhoneEntity.FirstOrDefault(x => x.Type == PhoneType.Billing.ToString());
+            var phoneDeliveryNew = source.PhoneEntity.FirstOrDefault(x => x.Type == PhoneType.Delivery.ToString());
+            var phoneBillingNew = source.PhoneEntity.FirstOrDefault(x => x.Type == PhoneType.Billing.ToString());
 
             if (phoneDeliveryNew != null)
             {
@@ -94,30 +94,30 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
             }
         }
 
-        private static void ToAddressEntity(this AccountEntity source, AccountEntity destination)
+        private static void ToAddressEntity(this AccountEntity destination, AccountEntity source)
         {
-            var addressDelivery = source.AddressEntity.FirstOrDefault(x => x.AddressType == AddressType.delivery.ToString());
-            var addressDeliveryNew = destination.AddressEntity.FirstOrDefault(x => x.AddressType == AddressType.delivery.ToString());
+            var addressDelivery = destination.AddressEntity.FirstOrDefault(x => AddressType.Delivery.ToString().Equals(x.AddressType, StringComparison.InvariantCultureIgnoreCase));
+            var addressDeliveryNew = source.AddressEntity.FirstOrDefault(x => AddressType.Delivery.ToString().Equals(x.AddressType, StringComparison.InvariantCultureIgnoreCase));
 
-            var addressBilling = source.AddressEntity.FirstOrDefault(x => x.AddressType == AddressType.billing.ToString());
-            var addressBillingNew = destination.AddressEntity.FirstOrDefault(x => x.AddressType == AddressType.billing.ToString());
+            var addressBilling = destination.AddressEntity.FirstOrDefault(x => AddressType.Billing.ToString().Equals(x.AddressType, StringComparison.InvariantCultureIgnoreCase));
+            var addressBillingNew = source.AddressEntity.FirstOrDefault(x => AddressType.Billing.ToString().Equals(x.AddressType, StringComparison.InvariantCultureIgnoreCase));
 
             addressDelivery!.ToAddressEntity(addressDeliveryNew!);
             addressBilling!.ToAddressEntity(addressBillingNew!);
         }
 
-        private static void ToAddressEntity(this AddressEntity source, AddressEntity destination)
+        private static void ToAddressEntity(this AddressEntity destination, AddressEntity source)
         {
-            source.City = destination.City;
-            source.Country = destination.Country;
-            source.AddressLine1 = destination.AddressLine1;
-            source.AddressLine2 = destination.AddressLine2;
-            source.AddressLine3 = destination.AddressLine3;
-            source.City = destination.City;
-            source.ZipCode = destination.ZipCode;
-            source.Country = destination.Country;
-            source.AddressType = destination.AddressType;
-            source.State = destination.State;
+            destination.City = source.City;
+            destination.Country = source.Country;
+            destination.AddressLine1 = source.AddressLine1;
+            destination.AddressLine2 = source.AddressLine2;
+            destination.AddressLine3 = source.AddressLine3;
+            destination.City = source.City;
+            destination.ZipCode = source.ZipCode;
+            destination.Country = source.Country;
+            destination.AddressType = source.AddressType;
+            destination.State = source.State;
         }
 
         public static AccountEntity ToAccountEntity(this RegistryAccountStateEventData eventData)
@@ -208,7 +208,7 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                     City = eventData.DeliveryCity,
                     ZipCode = eventData.DeliveryZipCode,
                     Country = eventData.DeliveryCountry,
-                    AddressType = AddressType.delivery.ToString(),
+                    AddressType = AddressType.Delivery.ToString(),
                     State = eventData.DeliveryState
                 });
             }
@@ -223,7 +223,7 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                     City = eventData.BillingCity,
                     ZipCode = eventData.BillingZipCode,
                     Country = eventData.BillingCountry,
-                    AddressType = AddressType.billing.ToString(),
+                    AddressType = AddressType.Billing.ToString(),
                     State = eventData.BillingState
                 });
             }
