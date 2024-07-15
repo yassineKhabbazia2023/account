@@ -13,7 +13,7 @@ namespace Pulse.Account.Infrastructure.Mappers
     {
         public static Paging<Core.Models.Account> MapToPaginAccounts(
             this ICollection<AccountEntity> source,
-            int contactId,
+            int? contactId,
             int pageNumber,
             int totalRows,
             int totalPageCalcul)
@@ -44,12 +44,12 @@ namespace Pulse.Account.Infrastructure.Mappers
              };
         }
 
-        public static IEnumerable<Core.Models.Account> MapToAccounts(this ICollection<AccountEntity> source, int contactId)
+        public static IEnumerable<Core.Models.Account> MapToAccounts(this ICollection<AccountEntity> source, int? contactId)
         {
             return source?.Select(a => a.MapToAccount(contactId) !) ?? Enumerable.Empty<Core.Models.Account>();
         }
 
-        public static Core.Models.Account? MapToAccount(this AccountEntity source, int contactId)
+        public static Core.Models.Account? MapToAccount(this AccountEntity source, int? contactId)
         {
             if (source == null)
             {
