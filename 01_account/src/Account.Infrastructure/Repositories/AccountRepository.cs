@@ -230,17 +230,23 @@ namespace Pulse.Account.Infrastructure.Repositories
             });
         }
 
-        private IQueryable<AccountEntity> GetAccountQueryByContactId(int contactId)
+        private IQueryable<AccountEntity> GetAccountQueryByContactId(int? contactId)
         {
-            return _accountContext.AccountEntity
+            IQueryable<AccountEntity> query = _accountContext.AccountEntity
                             .AsNoTracking()
                             .Include(x => x.RoleEntity)
                             .ThenInclude(r => r.Contact)
                             .Include(a => a.AddressEntity)
                             .Include(x => x.DeploymentEntity)
                             .Include(x => x.Hub)
-                            .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId) && a.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked)
-                            .OrderBy(a => a.LegalName);
+                            .Where(a => a.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked);
+
+            if(contactId != null)
+            {
+                query = query.Where(a => a.RoleEntity.Any(r => r.ContactId == contactId));
+            }
+
+            return query.OrderBy(a => a.LegalName);
         }
 
         private IQueryable<ContactEntity> GetContactEntitiesByAccountId(int accountId)
