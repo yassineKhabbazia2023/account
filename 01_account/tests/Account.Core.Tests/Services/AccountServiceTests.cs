@@ -84,6 +84,68 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         [Fact]
+        public async Task GetAllAccountsAsync_NotEmptyPageNumberAndPageSize_ShouldReturnsAccounts()
+        {
+            var accountMocked = _fixture.Create<Paging<AccountModel>>();
+            _accountRepository.Setup(repository =>
+                    repository.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>()))
+                .ReturnsAsync(accountMocked);
+
+            var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4
+            };
+
+            // Act
+            var accounts = await accountService.GetAllAccountsAsync("123456789", pagination)
+            ;
+
+            // Assert
+            Assert.Equal(accountMocked, accounts);
+        }
+
+        [Fact]
+        public async Task GetAllAccountsAsync_EmptyPageNumberAndPageSize_ShouldReturnsAccounts()
+        {
+            var accountMocked = _fixture.Create<Paging<AccountModel>>();
+            _accountRepository.Setup(repository =>
+                    repository.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>()))
+                .ReturnsAsync(accountMocked);
+
+            var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
+
+            // Act
+            var accounts = await accountService.GetAllAccountsAsync("123456789", null!);
+
+            // Assert
+            Assert.Equal(accountMocked, accounts);
+        }
+
+        [Fact]
+        public async Task GetAllAccountsAsync_EmptyAccountNumber_ShouldReturnsAccounts()
+        {
+            var accountMocked = _fixture.Create<Paging<AccountModel>>();
+            _accountRepository.Setup(repository =>
+                    repository.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>()))
+                .ReturnsAsync(accountMocked);
+
+            var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4
+            };
+
+            // Act
+            var accounts = await accountService.GetAllAccountsAsync(null, pagination);
+
+            // Assert
+            Assert.Equal(accountMocked, accounts);
+        }
+
+        [Fact]
         public async Task Should_GetAccountDetail_ReturnsOkResultAsync()
         {
             // Arrange

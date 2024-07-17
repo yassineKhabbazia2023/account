@@ -33,6 +33,15 @@ namespace Pulse.Account.Core.Services
             return await _accountRepository.GetAccountsAsync(criteria, pagination);
         }
 
+        public async Task<Paging<Models.Account>> GetAllAccountsAsync(string? accountNumber, Pagination? pagination)
+        {
+            pagination = pagination ?? new Pagination();
+            pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
+            pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
+
+            return await _accountRepository.GetAllAccountsAsync(accountNumber, pagination);
+        }
+
         public async Task<AccountDetail?> GetAccountAsync(int accountId)
         {
             return await _accountRepository.GetAccountAsync(accountId);

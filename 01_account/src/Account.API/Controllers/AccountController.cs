@@ -47,6 +47,24 @@ namespace Pulse.Account.API.Controllers
         }
 
         /// <summary>
+        /// Lister toutes les entités morales de la BD.
+        /// </summary>
+        /// <param name="accountNumber">AccountNumber de l'entité morale.</param>
+        /// <param name="pagination">Paramètres de pagination.</param>
+        /// <returns>Liste d'entités morales.</returns>
+        [HttpGet("all")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<AccountModel>))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Paging<AccountModel>>> GetAllAccountsAsync(string? accountNumber,
+            [FromQuery] Pagination? pagination)
+        {
+            var result = await _accountService.GetAllAccountsAsync(accountNumber, pagination);
+
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Récupérer les informations détaillées d'une entité morale.
         /// </summary>
         /// <param name="accountId">ID de l'entité morale.</param>

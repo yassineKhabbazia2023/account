@@ -240,6 +240,90 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             }
         }
 
+        [Theory]
+        [InlineData(15)]
+        public async Task GetAllAccounts_Should_ReturnsOkResultAsync(int pageSize)
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var resultExpected = new List<AccountModel>();
+                var mockedContacts = _fixture.Build<ContactEntity>()
+                                               .Without(c => c.DelegationEntityDelegatee)
+                                               .Without(c => c.DelegationEntityDelegator)
+                                               .Without(c => c.RoleEntity)
+                                               .Without(c => c.ContactGlobalUniqueId)
+                                               .With(c => c.Type, "1")
+                                               .CreateMany(2)
+                                               .ToList();
+                for (int i = 0; i < 3; i++)
+                {
+                    var deploimentEntityMock = _fixture.Build<DeploymentEntity>()
+                        .With(a => a.Status, 1)
+                        .Create();
+                    var accountMock = _fixture.Build<AccountEntity>()
+                                                   .Without(a => a.Delegation)
+                                                   .Without(a => a.RoleEntity)
+                                                   .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploimentEntityMock })
+                                                   .Create();
+                    var firstRoleMock = _fixture.Build<RoleEntity>()
+                                           .With(e => e.ContactId, mockedContacts[0].ContactId)
+                                           .With(e => e.Contact, mockedContacts[0])
+                                           .With(e => e.AccountId, accountMock.AccountId)
+                                           .With(e => e.Account, accountMock)
+                                           .Create();
+                    accountMock.RoleEntity.Add(firstRoleMock);
+                    context.AccountEntity.Add(accountMock);
+                    context.SaveChanges();
+                    resultExpected.Add(accountMock.MapToAccount(mockedContacts[0].ContactId)!);
+                }
+
+                for (int i = 0; i < 3; i++)
+                {
+                    var deploimentEntityMock = _fixture.Build<DeploymentEntity>()
+                        .With(a => a.Status, 1)
+                        .Create();
+                    var accountMock = _fixture.Build<AccountEntity>()
+                                                   .Without(a => a.Delegation)
+                                                   .Without(a => a.RoleEntity)
+                                                   .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploimentEntityMock })
+                                                   .Create();
+                    var secondRoleMock = _fixture.Build<RoleEntity>()
+                                           .With(e => e.ContactId, mockedContacts[1].ContactId)
+                                           .With(e => e.Contact, mockedContacts[1])
+                                           .With(e => e.AccountId, accountMock.AccountId)
+                                           .With(e => e.Account, accountMock)
+                                           .Create();
+                    accountMock.RoleEntity.Add(secondRoleMock);
+                    context.AccountEntity.Add(accountMock);
+                    context.SaveChanges();
+                    resultExpected.Add(accountMock.MapToAccount(mockedContacts[0].ContactId)!);
+                }
+
+                var accountRepository = new AccountRepository(context);
+                Paging<AccountModel> accountPaging = new Paging<AccountModel>()
+                {
+                    CurrentPage = 1,
+                    Items = resultExpected!,
+                    TotalItems = resultExpected.Count,
+                    TotalPage = Paginator.GetTotalPages(resultExpected.Count, pageSize)
+                };
+                var pagination = new Pagination
+                {
+                    PageNumber = 1,
+                    PageSize = pageSize
+                };
+
+                // Act
+                var accounts = await accountRepository.GetAllAccountsAsync(null, pagination);
+
+                // Assert
+                Assert.Equal(accountPaging.TotalPage, accounts.TotalPage);
+                Assert.Equal(accountPaging.TotalItems, accounts.TotalItems);
+                Assert.Equal(accountPaging.CurrentPage, accounts.CurrentPage);
+            }
+        }
+
         [Fact]
         public async Task GetAccountList_ReturnOnlyAccountActive()
         {

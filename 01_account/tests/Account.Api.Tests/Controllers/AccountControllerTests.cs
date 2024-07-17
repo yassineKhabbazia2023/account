@@ -114,6 +114,40 @@ namespace Account.Api.Tests.Controllers
         }
 
         [Fact]
+        public async Task Should_GetAllAccounts_ReturnsOkResultAsync()
+        {
+            // Arrange
+            var account = _context.AccountEntity.First();
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4,
+            };
+
+            var expected = new Paging<AccountModel>
+            {
+                Items = new List<AccountModel>
+                {
+                    account.MapToAccount() !
+                },
+                CurrentPage = pagination.PageNumber,
+                TotalItems = pagination.PageSize,
+                TotalPage = 1,
+            };
+
+            var service = new Mock<IAccountService>();
+            service.Setup(x => x.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>())).ReturnsAsync(expected);
+            var controller = new AccountController(service.Object);
+
+            // Act
+            var accounts = await controller.GetAllAccountsAsync(account.AccountNumber, pagination);
+            var resultAccounts = accounts?.Result as OkObjectResult;
+
+            // Assert
+            Assert.Equal(account.AccountId, resultAccounts!.Value.As<Paging<AccountModel>>().Items!.First().AccountId);
+        }
+
+        [Fact]
         public async Task Should_GetAccountDetail_ReturnsOkResultAsync()
         {
             // Arrange
