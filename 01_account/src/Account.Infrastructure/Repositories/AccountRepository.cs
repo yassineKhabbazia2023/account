@@ -81,6 +81,34 @@ namespace Pulse.Account.Infrastructure.Repositories
             });
         }
 
+        public async Task<Paging<AccountModel>> GetAllAccountsAsync(string? accountNumber, Pagination pagination)
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                IQueryable<AccountEntity> query = GetAccountQueryByContactId(null);
+
+                if (!string.IsNullOrWhiteSpace(accountNumber))
+                {
+                    query = from n in query
+                            where n.AccountNumber.Contains(accountNumber)
+                            select n;
+                }
+
+                var totalItems = await query.CountAsync();
+                var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+
+                query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
+                query = query.Take(pagination.PageSize);
+
+                return MapAccountDbToAccountModel.MapToPaginAccounts(
+                    await query.ToListAsync(),
+                    null,
+                    pagination.PageNumber,
+                    totalItems,
+                    totalPages);
+            });
+        }
+
         public async Task<AccountDetail?> GetAccountAsync(int accountId)
         {
             AccountEntity? account = null;
@@ -241,7 +269,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                             .Include(x => x.Hub)
                             .Where(a => a.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked);
 
-            if(contactId != null)
+            if (contactId != null)
             {
                 query = query.Where(a => a.RoleEntity.Any(r => r.ContactId == contactId));
             }
