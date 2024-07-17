@@ -12,6 +12,7 @@ namespace Pulse.Account.Core.Requests
 
         public int? DeploymentStatus { get; set; }
 
-        public int? ContactId { get; set; }
+        [Required]
+        public int ContactId { get; set; }
     }
 }
