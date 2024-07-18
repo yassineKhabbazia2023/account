@@ -46,33 +46,28 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             var deployments = _accountContext.DeploymentEntity
                 .AsNoTracking()
-                .Include(d => d.Account)
-                .ThenInclude(d => d.DeploymentEntity)
-                .OrderByDescending(d => d.Status)
                 .Where(d => d.Status != (int)DeploymentStatus.Revoked);
 
             if (criteria.DeploymentStatus.HasValue)
             {
-                deployments = deployments.Where(dp => dp.Equals(criteria.DeploymentStatus.Value));
+                deployments = deployments.Where(dp => (int)dp.Status == criteria.DeploymentStatus.Value);
             }
 
-            var query = deployments.Where(d => !deployments.Any(d2 => d2.AccountId == d.AccountId && d2.Status > d.Status))
-                .Include(d => d.Account).ThenInclude(a => a.RoleEntity.Where(r => r.IsSignatory == true))
+            var query = deployments.Select(d => d.Account).Distinct().Include(a => a.RoleEntity.Where(r => r.IsSignatory == true))
                     .ThenInclude(r => r.Contact)
-                    .OrderBy(d => d.Account.LegalName)
-                    .Distinct();
-            query = query.Where(d => d.Account.RoleEntity.Any(r => r.ContactId == criteria.ContactId));
+                    .Where(a => a.RoleEntity.Any(r => r.ContactId == criteria.ContactId))
+                    .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(criteria.Search))
             {
                 criteria.Search = criteria.Search.ToLowerInvariant();
-                query = query.Include(d => d.Account).ThenInclude(a => a.RoleEntity.Where(r => r.IsSignatory == true))
-                    .Where(q => q.Account.LegalName.ToLower().Contains(criteria.Search) || q.Account.AccountNumber.Contains(criteria.Search) ||
-                q.Account.RoleEntity.Any(role => role.IsSignatory == true && ((role.Contact.FirstName + " " + role.Contact.LastName).ToLower().Contains(criteria.Search)
+                query = query
+                    .Where(q => q.LegalName.ToLower().Contains(criteria.Search) || q.AccountNumber.Contains(criteria.Search) ||
+                q.RoleEntity.Any(role => role.IsSignatory == true && ((role.Contact.FirstName + " " + role.Contact.LastName).ToLower().Contains(criteria.Search)
                                                   || role.Contact.Email.ToLower().Contains(criteria.Search))));
             }
 
-            query = query.OrderBy(q => q.Account.LegalName);
+            query = query.OrderBy(q => q.LegalName);
 
             var totalItems = await query.CountAsync();
             var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
@@ -80,10 +75,10 @@ namespace Pulse.Account.Infrastructure.Repositories
             query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
             query = query.Take(pagination.PageSize);
 
-            query = query.Include(d => d.Account).ThenInclude(a => a.AddressEntity);
+            query = query.Include(a => a.AddressEntity).Include(a => a.DeploymentEntity);
 
             return MapAccountDbToAccountModel.MapToPaginAccounts(
-                await query.Select(d => d.Account).ToListAsync(),
+                await query.ToListAsync(),
                 criteria.ContactId,
                 pagination.PageNumber,
                 totalItems,
