@@ -139,7 +139,7 @@ public class DelegationRepositoryTests
             // Create Contacts
             var tDelegator = _fixture.Create<ContactEntity>();
             var tDelegatee = _fixture.Build<ContactEntity>()
-                .With(c => c.ContactId, 123)
+                .With(c => c.ContactId, 124)
                 .Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
@@ -149,7 +149,7 @@ public class DelegationRepositoryTests
                 .With(r => r.Account, tAccount)
                 .With(r => r.Contact, tDelegatee)
                 .With(r => r.AccountId, tAccount.AccountId)
-                .With(r => r.ContactId, 123)
+                .With(r => r.ContactId, 124)
                 .Create();
             context.RoleEntity.Add(existingRole);
             await context.SaveChangesAsync();
@@ -173,7 +173,7 @@ public class DelegationRepositoryTests
                 {
                     new()
                     {
-                        DelegateeId = 123,
+                        DelegateeId = 124,
                         StartDate = DateTime.UtcNow,
                         Status = "enabled",
                         IsRoleToCreate = true,
@@ -187,7 +187,7 @@ public class DelegationRepositoryTests
                 new()
                 {
                     AccountId = tAccount.AccountId,
-                    ContactId = 123,
+                    ContactId = 124,
                     IsFavorite = false,
                     IsSignatory = false,
                     IsDelegation = true,
@@ -199,12 +199,12 @@ public class DelegationRepositoryTests
             var createdDelegation = await context
                 .DelegationEntity
                 .FirstOrDefaultAsync(d => d.DelegatorId == tDelegator.ContactId
-                && d.DelegateeId == 123
+                && d.DelegateeId == 124
                 && d.Account.FirstOrDefault(a => a.AccountId == tAccount.AccountId) != null);
 
             Assert.NotNull(createdDelegation);
 
-            var createdRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == 123);
+            var createdRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == 124);
             createdRole.Should().NotBeNull();
             createdRole.Should().BeEquivalentTo(existingRole);
         }

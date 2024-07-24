@@ -2,12 +2,8 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
-using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
 
@@ -15,25 +11,17 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
 {
     public static class MapToRoleEntity
     {
-        public static RoleEntity ToRoleEntity(this RegistryRoleCreatedEventData eventData, AccountContext accountContext)
+        public static RoleEntity ToRoleEntity(this RegistryRoleCreatedEventData eventData, int accountId, int contactId)
         {
             if (eventData == null)
             {
                 return null!;
             }
 
-            var account = accountContext.AccountEntity.FirstOrDefault(x => x.AccountGlobalUniqueId == eventData.AccountId);
-            var contact = accountContext.ContactEntity.FirstOrDefault(x => x.ContactGlobalUniqueId == eventData.ContactId);
-
-            if (account == null || contact == null)
-            {
-                throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, eventData.ContactId, eventData.AccountId));
-            }
-
             return new RoleEntity
             {
-                AccountId = account.AccountId,
-                ContactId = contact.ContactId,
+                AccountId = accountId,
+                ContactId = contactId,
                 IsFavorite = eventData.IsFavorite,
                 IsSignatory = eventData.RoleSignatory,
             };

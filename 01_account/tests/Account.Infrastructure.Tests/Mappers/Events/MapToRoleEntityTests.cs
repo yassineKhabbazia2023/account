@@ -3,11 +3,7 @@
 // </copyright>
 
 using AutoFixture;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
-using Microsoft.EntityFrameworkCore;
-using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Requests;
-using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
@@ -26,7 +22,7 @@ public class MapToRoleEntityTests
     }
 
     [Fact]
-    public async Task ToRoleEntity_MapsCorrectly()
+    public void ToRoleEntity_MapsCorrectly()
     {
         // Arrange
         var source = new RegistryRoleCreatedEventData
@@ -39,75 +35,24 @@ public class MapToRoleEntityTests
             RoleDelegataireEmail = "delegataire@email.fr",
             RoleSignatory = false
         };
-
-        DbContextOptions<AccountContext> dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-
-        using var context = new AccountContext(dbContextOptions);
-
-        context.AccountEntity.Add(new AccountEntity()
-        {
-            AccountGlobalUniqueId = source.AccountId,
-            AccountNumber = "19890827",
-            CreatedBy = "created By Me",
-            LegalName = "Test legalname",
-            AccountId = 123
-        });
-
-        context.ContactEntity.Add(new ContactEntity()
-        {
-            ContactGlobalUniqueId = source.ContactId,
-            Email = source.Email,
-            FirstName = "Test firstname",
-            LastName = "Test lastname",
-            PersonaName = "Test persona",
-            Type = "Test type",
-            ContactId = 123
-        });
-
-        await context.SaveChangesAsync();
-
-        var contactSource = context.ContactEntity.First(c => c.ContactGlobalUniqueId == source.ContactId);
-        var accountSource = context.AccountEntity.First(c => c.AccountGlobalUniqueId == source.AccountId);
+        int accountId = 1;
+        int contactId = 2;
 
         // Act
-        var result = source.ToRoleEntity(context);
+        var result = source.ToRoleEntity(accountId, contactId);
 
         // Assert
-        Assert.Equal(contactSource.ContactId, result.ContactId);
-        Assert.Equal(accountSource.AccountId, result.AccountId);
+        Assert.Equal(contactId, result.ContactId);
+        Assert.Equal(accountId, result.AccountId);
         Assert.Equal(source.IsFavorite, result.IsFavorite);
         Assert.Equal(source.RoleSignatory, result.IsSignatory);
     }
 
     [Fact]
-    public void ToRoleEntity_Throw_Exception()
+    public void ToRoleEntity_WithNullRegistryRoleCreatedEventData_ShouldReturnNull()
     {
-        // Arrange
-        var source = new RegistryRoleCreatedEventData
-        {
-            AccountId = Guid.NewGuid(),
-            AccountNumber = "1289090",
-            ContactId = Guid.NewGuid(),
-            Email = "email@test.fr",
-            IsFavorite = true,
-            RoleDelegataireEmail = "delegataire@email.fr",
-            RoleSignatory = false
-        };
-
-        DbContextOptions<AccountContext> dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-
-        using var context = new AccountContext(dbContextOptions);
-
-        // Act
-        Func<RoleEntity> action = () => source.ToRoleEntity(context);
-
-        // Assert
-        var exception = Assert.Throws<NotFoundException>(() => action());
-        Assert.Equal(string.Format(Errors.NotFoundRoleMessage, source.ContactId, source.AccountId), exception.Message);
+        var result = MapToRoleEntity.ToRoleEntity(null!, 1, 2);
+        Assert.Null(result);
     }
 
     [Fact]

@@ -247,7 +247,7 @@ public class DelegationRepository : IDelegationRepository
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            var dbIds = await _accountContext.ContactEntity.Select(c => c.ContactId).ToListAsync();
+            var dbIds = await _accountContext.ContactEntity.AsNoTracking().Select(c => c.ContactId).ToListAsync();
             missingIds = contactIds.Except(dbIds).ToList();
         });
 
@@ -281,7 +281,7 @@ public class DelegationRepository : IDelegationRepository
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            var dbIds = await _accountContext.AccountEntity.Select(a => a.AccountId).ToListAsync();
+            var dbIds = await _accountContext.AccountEntity.AsNoTracking().Select(a => a.AccountId).ToListAsync();
             missingIds = accountIds.Except(dbIds).ToList();
         });
 
