@@ -14,7 +14,7 @@ namespace Pulse.Account.Infrastructure
     {
         public string? ConnectionString { get; set; }
 
-        internal void Validate()
+        public void Validate()
         {
             if (string.IsNullOrWhiteSpace(this.ConnectionString!))
             {

@@ -3,6 +3,7 @@
 // </copyright>
 
 using AutoFixture;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
@@ -21,7 +22,7 @@ public class MapRoleBusinessToRoleDbTests
     }
 
     [Fact]
-    public void MapRoleToRoleDb_WithNullRole_ReturnsNull()
+    public void MapRoleRequestToRoleDb_WithNullRole_ReturnsNull()
     {
         // Arrange
         CreateRoleRequest? role = null;
@@ -81,6 +82,87 @@ public class MapRoleBusinessToRoleDbTests
     public void MapRolesToRolesDb_WithNullSource_ShouldReturnEmptyList()
     {
         var result = MapRoleBusinessToRoleDb.MapRolesToRolesDb(null);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void MapRolesToRoleDb_WithNullSource_ShouldReturnEmptyList()
+    {
+        // Arrange
+        IEnumerable<CreateRoleRequest> roles = null;
+
+        // Act
+        var result = roles.MapRolesToRoleDb();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void MapRolesToRoleDb_WithValidRoles_ShouldMapCorrectly()
+    {
+        // Arrange
+        var roles = _fixture.CreateMany<CreateRoleRequest>(3).ToList();
+
+        // Act
+        var result = roles.MapRolesToRoleDb();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(roles.Count, result.Count());
+        for (int i = 0; i < roles.Count; i++)
+        {
+            var role = roles[i];
+            var mappedRole = result.ElementAt(i);
+            Assert.Equal(role.AccountId, mappedRole.AccountId);
+            Assert.Equal(role.ContactId, mappedRole.ContactId);
+            Assert.Equal(role.IsFavorite, mappedRole.IsFavorite);
+            Assert.Equal(role.IsSignatory, mappedRole.IsSignatory);
+            Assert.Equal(role.IsDelegation, mappedRole.IsDelegation);
+        }
+    }
+
+    [Fact]
+    public void MapRoleToRoleDb_WithNullRole_ReturnsNull()
+    {
+        // Arrange
+        Pulse.Account.Core.Models.Role role = null;
+
+        // Act
+        var result = role.MapRoleToRoleDb();
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void MapRoleToRoleDb_WithValidRole_ShouldMapCorrectly()
+    {
+        // Arrange
+        var role = _fixture.Create<Pulse.Account.Core.Models.Role>();
+
+        // Act
+        var result = role.MapRoleToRoleDb();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(role.AccountId, result.AccountId);
+        Assert.Equal(role.ContactId, result.ContactId);
+        Assert.Equal(role.IsFavorite, result.IsFavorite);
+        Assert.Equal(role.IsSignatory, result.IsSignatory);
+        Assert.Equal(role.IsDelegation, result.IsDelegation);
+    }
+
+    [Fact]
+    public void MapRolesToRolesDb_WithEmptyList_ShouldReturnEmptyList()
+    {
+        // Arrange
+        var roles = new List<Pulse.Account.Core.Models.Role>();
+
+        // Act
+        var result = roles.MapRolesToRolesDb();
+
+        // Assert
         Assert.Empty(result);
     }
 }

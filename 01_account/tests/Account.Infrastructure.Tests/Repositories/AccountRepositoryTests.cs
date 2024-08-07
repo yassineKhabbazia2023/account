@@ -3,8 +3,10 @@
 // </copyright>
 
 using AutoFixture;
+using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json;
@@ -703,6 +705,126 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
                 // Assert
                 await Assert.ThrowsAsync<NotFoundException>(ContactAdmin);
+            }
+        }
+
+        [Fact]
+        public async Task GetAccountsAsync_WithDeploymentStatus_ShouldFilterResults()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var deploymentStatus = DeploymentStatus.Connected;
+                var contactId = 123;
+                var accountRepository = new AccountRepository(context);
+
+                // Add test data with different deployment statuses
+                // ... (add test data setup here)
+
+                var searchCriteria = new SearchAccountCriteria
+                {
+                    DeploymentStatus = (int)deploymentStatus,
+                    ContactId = contactId
+                };
+                var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+                // Act
+                var result = await accountRepository.GetAccountsAsync(searchCriteria, pagination);
+
+                // Assert
+                Assert.All(result.Items, item => Assert.Equal((int)deploymentStatus, item.Deployment.Status));
+            }
+        }
+
+        [Fact]
+        public async Task GetAllAccountsAsync_WithAccountNumber_ShouldFilterResults()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var accountNumber = "123456";
+                var accountRepository = new AccountRepository(context);
+
+                // Add test data with different account numbers
+                // ... (add test data setup here)
+
+                var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+                // Act
+                var result = await accountRepository.GetAllAccountsAsync(accountNumber, pagination);
+
+                // Assert
+                Assert.All(result.Items, item => Assert.Contains(accountNumber, item.AccountNumber));
+            }
+        }
+
+        [Fact]
+        public async Task UpdateAccountAsync_WithNonExistentAccount_ShouldThrowNotFoundException()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var accountRepository = new AccountRepository(context);
+                var nonExistentAccountId = 9999;
+                var accountDetail = new AccountDetail { AccountId = nonExistentAccountId };
+
+                // Act & Assert
+                await Assert.ThrowsAsync<System.InvalidOperationException>(() =>
+                    accountRepository.UpdateAccountAsync(nonExistentAccountId, accountDetail));
+            }
+        }
+
+        [Fact]
+        public async Task GetContactsAccountAsync_WithSearchCriteria_ShouldFilterResults()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var accountId = 1;
+                var searchTerm = "John";
+                var accountRepository = new AccountRepository(context);
+
+                // Add test data with different contact names
+                // ... (add test data setup here)
+
+                var criteria = new SearchContactsAccountCriteria { Search = searchTerm };
+                var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+                // Act
+                var result = await accountRepository.GetContactsAccountAsync(accountId, criteria, pagination);
+
+                // Assert
+                Assert.All(result.Items, item =>
+                    Assert.Contains(searchTerm, $"{item.FirstName} {item.LastName} {item.Email} {item.PersonaName} {item.Office}", StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        [Fact]
+        public async Task GetAssociatedContactsAsync_WithSearch_ShouldFilterResults()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                // Arrange
+                var contactId = 1;
+                var searchTerm = "Jane";
+                var accountRepository = new AccountRepository(context);
+
+                // Add test data with different associated contacts
+                // ... (add test data setup here)
+
+                var request = new GetAssociatedContactsRequest
+                {
+                    Search = searchTerm,
+                    ContactType = ContactType.Customer
+                };
+                var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+                // Act
+                var action = async () => await accountRepository.GetAssociatedContactsAsync(contactId, request, pagination);
+
+
+                // Assert
+                await action.Should().ThrowAsync<Kpmg.ExceptionMiddleware.AdvancedExceptions.NotFoundException>();
             }
         }
     }
