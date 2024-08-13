@@ -50,7 +50,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
             if (criteria.DeploymentStatus.HasValue)
             {
-                deployments = deployments.Where(dp => (int)dp.Status == criteria.DeploymentStatus.Value);
+                deployments = deployments.Where(dp => dp.Status == criteria.DeploymentStatus.Value);
             }
 
             var query = deployments.Select(d => d.Account).Distinct().Include(a => a.RoleEntity.Where(r => r.IsSignatory == true))
@@ -70,17 +70,17 @@ namespace Pulse.Account.Infrastructure.Repositories
             query = query.OrderBy(q => q.LegalName);
 
             var totalItems = await query.CountAsync();
-            var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+            var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
 
-            query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
-            query = query.Take(pagination.PageSize);
+            query = query.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
+            query = query.Take(pagination!.PageSize);
 
             query = query.Include(a => a.AddressEntity).Include(a => a.DeploymentEntity);
 
             return MapAccountDbToAccountModel.MapToPaginAccounts(
                 await query.ToListAsync(),
                 criteria.ContactId,
-                pagination.PageNumber,
+                pagination!.PageNumber,
                 totalItems,
                 totalPages);
         }
@@ -99,15 +99,15 @@ namespace Pulse.Account.Infrastructure.Repositories
                 }
 
                 var totalItems = await query.CountAsync();
-                var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+                var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
 
-                query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
-                query = query.Take(pagination.PageSize);
+                query = query.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
+                query = query.Take(pagination!.PageSize);
 
                 return MapAccountDbToAccountModel.MapToPaginAccounts(
                     await query.ToListAsync(),
                     null,
-                    pagination.PageNumber,
+                    pagination!.PageNumber,
                     totalItems,
                     totalPages);
             });
@@ -195,7 +195,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                             select n;
                 }
 
-                if (criteria.Type != null && System.Enum.IsDefined(typeof(ContactType), criteria.Type))
+                if (criteria.Type != null && Enum.IsDefined(typeof(ContactType), criteria.Type))
                 {
                     query = query.Where(x => x.Type.Equals(criteria.Type.ToString()));
                 }
@@ -204,10 +204,10 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 var totalItems = await query.CountAsync();
 
-                var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+                var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
 
-                query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
-                query = query.Take(pagination.PageSize);
+                query = query.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
+                query = query.Take(pagination!.PageSize);
 
                 var result = await query.ToListAsync();
                 if (result == null)
@@ -218,7 +218,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 var contacts = result.Select(c => c.MapToContact());
 
                 return contacts!.MapToPagingContact(
-                    pagination.PageNumber,
+                    pagination!.PageNumber,
                     totalItems,
                     totalPages);
             });
@@ -250,15 +250,15 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 query = query.GroupBy(x => x.ContactId).Select(g => g.First());
                 var totalItems = await query.CountAsync();
-                var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+                var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
 
-                query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
-                query = query.Take(pagination.PageSize);
+                query = query.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
+                query = query.Take(pagination!.PageSize);
 
                 return (await query
                         .ToListAsync())
                         .MapToContacts()
-                        .MapToPagingContact(pagination.PageNumber, totalItems, totalPages);
+                        .MapToPagingContact(pagination!.PageNumber, totalItems, totalPages);
             });
         }
 

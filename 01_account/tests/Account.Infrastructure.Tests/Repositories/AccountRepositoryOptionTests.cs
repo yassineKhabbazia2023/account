@@ -2,10 +2,9 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-namespace Pulse.Account.Infrastructure.Tests.Repositories;
-using System;
-using Xunit;
 using FluentAssertions;
+
+namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
 public class AccountRepositoryOptionsTests
 {
@@ -36,13 +35,14 @@ public class AccountRepositoryOptionsTests
         options.Invoking(o => o.Validate()).Should().NotThrow();
     }
 
-    [Fact]
-    public void Validate_WithNullConnectionString_ShouldThrowInvalidOperationException()
+    [Theory]
+    [MemberData(nameof(ConnectionString))]
+    public void Validate_WithNullOrEmptyOrWithSpaceConnectionString_ShouldThrowInvalidOperationException(string connectionString)
     {
         // Arrange
         var options = new AccountRepositoryOptions
         {
-            ConnectionString = null
+            ConnectionString = connectionString
         };
 
         // Act & Assert
@@ -51,33 +51,10 @@ public class AccountRepositoryOptionsTests
                .WithMessage("Instance of AccountRepositoryOptions is invalid, ConnectionString is null or empty.");
     }
 
-    [Fact]
-    public void Validate_WithEmptyConnectionString_ShouldThrowInvalidOperationException()
+    public static TheoryData<string> ConnectionString => new()
     {
-        // Arrange
-        var options = new AccountRepositoryOptions
-        {
-            ConnectionString = ""
-        };
-
-        // Act & Assert
-        options.Invoking(o => o.Validate())
-               .Should().Throw<InvalidOperationException>()
-               .WithMessage("Instance of AccountRepositoryOptions is invalid, ConnectionString is null or empty.");
-    }
-
-    [Fact]
-    public void Validate_WithWhitespaceConnectionString_ShouldThrowInvalidOperationException()
-    {
-        // Arrange
-        var options = new AccountRepositoryOptions
-        {
-            ConnectionString = "   "
-        };
-
-        // Act & Assert
-        options.Invoking(o => o.Validate())
-               .Should().Throw<InvalidOperationException>()
-               .WithMessage("Instance of AccountRepositoryOptions is invalid, ConnectionString is null or empty.");
-    }
+        null!,
+        string.Empty,
+        "                  "
+    };
 }

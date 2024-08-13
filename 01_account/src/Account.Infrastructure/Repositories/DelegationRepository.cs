@@ -269,10 +269,7 @@ public class DelegationRepository : IDelegationRepository
 
     private async Task<IEnumerable<AccountEntity>> GetAccounts(IEnumerable<int> accountIds)
     {
-        var accountEntities = new List<AccountEntity>();
-        accountEntities = await _accountContext.AccountEntity.Where(a => accountIds.Contains(a.AccountId)).ToListAsync();
-
-        return accountEntities;
+        return await _accountContext.AccountEntity.Where(a => accountIds.Contains(a.AccountId)).ToListAsync();
     }
 
     private async Task<IEnumerable<int>> CheckExistingAccountsAsync(IEnumerable<int> accountIds)

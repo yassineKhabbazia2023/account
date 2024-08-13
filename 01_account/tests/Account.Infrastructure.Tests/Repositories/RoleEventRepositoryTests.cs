@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -15,8 +14,6 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
 public class RoleEventRepositoryTests
 {
-    private readonly Mock<ILogger<RoleEventRepository>> _loggerMock = new();
-
     [Fact]
     public async Task DeleteContactRolesAsync_ShouldDeleteAllContactRoles()
     {
@@ -25,7 +22,7 @@ public class RoleEventRepositoryTests
                     .Options;
 
         using var context = new AccountContext(options);
-        var repository = new RoleEventRepository(context, _loggerMock.Object);
+        var repository = new RoleEventRepository(context);
         var role1 = new RoleEntity
         {
             ContactId = 1,
@@ -59,7 +56,7 @@ public class RoleEventRepositoryTests
                     .Options;
 
         using var context = new AccountContext(options);
-        var repository = new RoleEventRepository(context, _loggerMock.Object);
+        var repository = new RoleEventRepository(context);
 
         var account = new AccountEntity
         {
@@ -115,7 +112,7 @@ public class RoleEventRepositoryTests
         context.DelegationEntity.Add(delegation);
         await context.SaveChangesAsync();
 
-        var result = await repository.CreateRoleForAutomaticDelegations(delegator.ContactId, account.AccountId);
+        var result = await repository.CreateRoleForAutomaticDelegationsAsync(delegator.ContactId, account.AccountId);
 
         Assert.NotEmpty(result);
         Assert.Single(result);
@@ -138,7 +135,7 @@ public class RoleEventRepositoryTests
                     .Options;
 
         using var context = new AccountContext(options);
-        var repository = new RoleEventRepository(context, _loggerMock.Object);
+        var repository = new RoleEventRepository(context);
 
         var account = new AccountEntity
         {
@@ -202,7 +199,7 @@ public class RoleEventRepositoryTests
         context.DelegationEntity.Add(delegation);
         await context.SaveChangesAsync();
 
-        var result = await repository.CreateRoleForAutomaticDelegations(delegator.ContactId, account.AccountId);
+        var result = await repository.CreateRoleForAutomaticDelegationsAsync(delegator.ContactId, account.AccountId);
 
         Assert.Empty(result);
     }
@@ -215,7 +212,7 @@ public class RoleEventRepositoryTests
                     .Options;
 
         using var context = new AccountContext(options);
-        var repository = new RoleEventRepository(context, _loggerMock.Object);
+        var repository = new RoleEventRepository(context);
 
         var account = new AccountEntity
         {
@@ -241,11 +238,53 @@ public class RoleEventRepositoryTests
 
         await context.SaveChangesAsync();
 
-        var result = await repository.CreateRoleForNewContact(contact.ContactId, account.AccountNumber);
+        var result = await repository.CreateRoleForNewContactAsync(contact.ContactId, account.AccountId);
 
         Assert.NotNull(result);
 
         Assert.Equal(contact.ContactId, result.ContactId);
         Assert.Equal(account.AccountId, result.AccountId);
+    }
+
+    [Fact]
+    public async Task DoesRoleExist_WithExistingRole_ShouldReturnTrue()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                    .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                    .Options;
+
+        using var context = new AccountContext(options);
+        var role = new RoleEntity
+        {
+            AccountId = 1,
+            ContactId = 1,
+            IsSignatory = true,
+            IsFavorite = true,
+            IsDelegation = false
+        };
+        context.RoleEntity.Add(role);
+        await context.SaveChangesAsync();
+
+        var repository = new RoleEventRepository(context);
+
+        var result = await repository.DoesRoleExistAsync(1, 1);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task DoesRoleExist_WithNoExistingRole_ShouldReturnFalse()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                    .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                    .Options;
+
+        using var context = new AccountContext(options);
+
+        var repository = new RoleEventRepository(context);
+
+        var result = await repository.DoesRoleExistAsync(1, 1);
+
+        Assert.False(result);
     }
 }

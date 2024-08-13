@@ -49,7 +49,7 @@ public class RoleCreatedEventHandler : IEventHandler
 
         var role = roleEvent!.Data.ToRole();
 
-        var rolesCreated = await _roleEventRepository.CreateRoleForAutomaticDelegations(role.ContactId, role.AccountId);
+        var rolesCreated = await _roleEventRepository.CreateRoleForAutomaticDelegationsAsync(role.ContactId, role.AccountId);
 
         _logger.LogInformation("L'event n°{EventId} type: {EventType}, contactId: {ContactId}, accountId: {AccountId} a été consommé",
                 roleEvent?.EventId,

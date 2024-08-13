@@ -56,4 +56,9 @@ public class AccountEventRepository : IAccountEventRepository
                     .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId && r.IsSignatory == true))
                     .ToList();
     }
+
+    public async Task<AccountEntity> GetAccountByNumberAsync(string accountNumber)
+    {
+        return await _accountContext.AccountEntity.FirstAsync(a => a.AccountNumber == accountNumber);
+    }
 }

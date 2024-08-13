@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using AutoFixture;
 using Moq;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
@@ -11,7 +10,6 @@ using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Interfaces;
 using Pulse.Account.Infrastructure.Providers;
-using Pulse.Account.Infrastructure.Repositories;
 using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.IntegrationEvents;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
@@ -20,15 +18,6 @@ namespace Pulse.Account.Infrastructure.Tests.Providers;
 
 public class RoleEventPublisherTests
 {
-    private readonly Fixture _fixture;
-
-    public RoleEventPublisherTests()
-    {
-        _fixture = new Fixture();
-        _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
-        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-    }
-
     [Fact]
     public async Task PublishRoleCreatedEventAsync_Should_PublishEvent()
     {
@@ -116,7 +105,6 @@ public class RoleEventPublisherTests
     public async Task PublishRoleDeletedEventAsync_Should_PublishEvent()
     {
         // Arrange
-        // Arrange
         var contact = new ContactEntity
         {
             ContactId = 1,
@@ -187,11 +175,11 @@ public class RoleEventPublisherTests
         var publisherMock = new Mock<IEventPublisher>();
         var roleEventPublisher = new RoleEventPublisher(publisherMock.Object, contactRepository.Object, accountRepository.Object);
 
-        // act 
+        // act
         await roleEventPublisher.PublishRoleUpdatedEventAsync(accountId, contactId, isSignatory);
 
         // arrange
-        publisherMock.Verify(x => x.PublishAsync(It.IsAny<RoleUpdatedEvent>(), null, null), Times.Once);
+        publisherMock.Verify(x => x.PublishAsync(It.IsAny<RoleUpdatedEvent>(), null!, null!), Times.Once);
     }
 
 }

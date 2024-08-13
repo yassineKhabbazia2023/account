@@ -112,4 +112,45 @@ public class AccountEventRepositoryTests
         Assert.Equal(modifiedDeploymentEntity.DeploymentId, updatedDeployment.DeploymentId);
         Assert.Equal(modifiedDeploymentEntity.Status, updatedDeployment.Status);
     }
+
+    [Fact]
+    public async Task GetAccountByNumberAsync_ShouldReturnAccount()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using var context = new AccountContext(options);
+
+        var accountNumber = "number";
+        var account = _fixture.Build<AccountEntity>()
+            .With(a => a.AccountNumber, accountNumber)
+            .Create();
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        var repository = new AccountEventRepository(context);
+
+        var result = await repository.GetAccountByNumberAsync(accountNumber);
+
+        Assert.NotNull(result);
+        Assert.Equivalent(account, result);
+    }
+
+    [Fact]
+    public async Task GetAccountByNumberAsync_WithNoExistingAccount_ShouldThrowInvalidOperationException()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using var context = new AccountContext(options);
+
+        var repository = new AccountEventRepository(context);
+
+        var result = await Assert.ThrowsAsync<InvalidOperationException>(async () => await repository.GetAccountByNumberAsync(string.Empty));
+
+        Assert.NotNull(result);
+        Assert.Equal("Sequence contains no elements", result.Message);
+    }
 }

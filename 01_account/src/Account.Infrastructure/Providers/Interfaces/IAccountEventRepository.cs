@@ -11,4 +11,6 @@ public interface IAccountEventRepository
     Task<IEnumerable<int>> UpdateAccountStatusByContactAsync(IEnumerable<int> accountIds, int deploymentStatus);
 
     List<AccountEntity> GetAccountBySignatory(int contactId);
+
+    Task<AccountEntity> GetAccountByNumberAsync(string accountNumber);
 }

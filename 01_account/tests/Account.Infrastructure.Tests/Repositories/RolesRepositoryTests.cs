@@ -7,10 +7,8 @@ using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Crypto.Prng;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
-using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
@@ -78,7 +76,6 @@ public class RolesRepositoryTests
                                                         .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
                                                         .OrderBy(x => x.LegalName)
                                                         .Select(x => x.MapToAccount(contactId));
-            ;
 
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
             {

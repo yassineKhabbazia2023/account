@@ -39,14 +39,21 @@ public class RegistryAccountCreatedEventHandler : IEventHandler
        @event?.EventType,
        @event?.Data?.AccountGlobalUniqueIdentifier);
 
-        if (@event?.Data == null || @event?.Data.AccountGlobalUniqueIdentifier == default(Guid))
+        if (@event?.Data == null || @event.Data.AccountGlobalUniqueIdentifier == default)
         {
             return;
         }
 
-        var createdAccount = await _accountEventRepository.CreateAccountAsync(@event!.Data);
-        _logger.LogInformation("L'entité avec l'identifiant suivant: {AccountId} vient d'être créée.", createdAccount.AccountId);
+        if (!await _accountEventRepository.DoesAccountExistAsync(@event.Data.AccountGlobalUniqueIdentifier))
+        {
+            var createdAccount = await _accountEventRepository.CreateAccountAsync(@event.Data);
+            _logger.LogInformation("L'entité avec l'identifiant suivant: {AccountId} vient d'être créée.", createdAccount.AccountId);
 
-        await _accountEventPublisher.PublishAccountCreatedEventAsync(createdAccount);
+            await _accountEventPublisher.PublishAccountCreatedEventAsync(createdAccount);
+        }
+        else
+        {
+            _logger.LogWarning("L'entité avec l'identifiant global suivant: {AccountId} existe déjà.", @event.Data.AccountGlobalUniqueIdentifier);
+        }
     }
 }

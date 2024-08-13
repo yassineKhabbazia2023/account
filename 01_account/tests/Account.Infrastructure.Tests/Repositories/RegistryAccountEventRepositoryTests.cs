@@ -5,7 +5,6 @@
 using AutoFixture;
 using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
-using Microsoft.Azure.Amqp.Framing;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Infrastructure.Context;
@@ -136,56 +135,7 @@ public class RegistryAccountEventRepositoryTests
                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                .Options;
 
-        RegistryAccountUpdatedEventData eventData = new RegistryAccountUpdatedEventData()
-        {
-            AccountGlobalUniqueIdentifier = Guid.NewGuid(),
-            AccountLegalName = "Acme Corporation",
-            AccountFlagESCActif = true,
-            DeploymentStatus = "Active",
-            AccountCommercialName = "Acme Corp",
-            AccountType = "Corporation",
-            AccountEmail = "info@acmecorp.com",
-            AccountNafIdentifier = "6202A",
-            AccountSectorCode = "IT",
-            AccountTaxeValeurAjoutee = "FR12345678901",
-            AccountDeliveryEmail = "delivery@acmecorp.com",
-            AccountBillingEmail = "billing@acmecorp.com",
-            AccountTaxationSystem = "Standard",
-            AccountSourceName = "CRM",
-            AccountISIN = "US0378331005",
-            AccountRegisterIdentification1 = "123456789",
-            AccountStaffSize = "250",
-            AccountDeliveryFax = "+33123456789",
-            AccountBillingFax = "+33987654321",
-            Turnover = "10000000",
-            AccountRegimeFiscal = "IS",
-            AccountTypeTenueComptable = "Full",
-            AccountFormeJuridique = "SA",
-            AccountStaffSizeSlice = "100-499",
-            AccountEscCategory = "Large",
-            AccountCodeFormeJuridique = "5599",
-            AccountInsertedDate = DateTime.Now.AddYears(-2),
-            AccountUpdatedDate = DateTime.Now,
-            CreatedBy = "John Doe",
-            ModifiedBy = "Jane Smith",
-            DeliveryAddressLine1 = "123 Delivery Street",
-            DeliveryAddressLine2 = "Suite 100",
-            DeliveryAddressLine3 = "Floor 2",
-            DeliveryCity = "Paris",
-            DeliveryZipCode = "75001",
-            DeliveryCountry = "France",
-            DeliveryState = "Île-de-France",
-            BillingAddressLine1 = "456 Billing Avenue",
-            BillingAddressLine2 = "Building B",
-            BillingAddressLine3 = "Floor 3",
-            BillingCity = "Lyon",
-            BillingZipCode = "69001",
-            BillingCountry = "France",
-            BillingState = "Auvergne-Rhône-Alpes",
-            DeploymentDate = DateTime.Now.AddMonths(-6),
-            DeliveryPhone = "+33123456780",
-            BillingPhone = "+33987654320"
-        };
+        var eventData = new RegistryAccountUpdatedEventData();
 
         using var context = new AccountContext(options);
         AccountEntity account = new AccountEntity()
@@ -199,10 +149,51 @@ public class RegistryAccountEventRepositoryTests
         context.SaveChanges();
         var repository = new RegistryAccountEventRepository(context);
 
-        // act 
+        // act
         var action = async () => await repository.UpdateAccountAsync(eventData);
 
         await action.Should().ThrowAsync<NotFoundException>();
+    }
 
+    [Fact]
+    public async Task DoesAccountExist_WithExistingAccount_ShouldReturnTrue()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+               .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+               .Options;
+        using var context = new AccountContext(options);
+
+        var account = new AccountEntity()
+        {
+            AccountId = 2,
+            AccountGlobalUniqueId = Guid.NewGuid(),
+            AccountNumber = "number",
+            LegalName = "legal",
+            Email = "email@kpmg.fr",
+            CreatedBy = "moi"
+        };
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        var result = await repository.DoesAccountExistAsync(account.AccountGlobalUniqueId);
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DoesAccountExist_WithNoExistingAccount_ShouldReturnFalse()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+               .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+               .Options;
+        using var context = new AccountContext(options);
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        var result = await repository.DoesAccountExistAsync(Guid.NewGuid());
+
+        result.Should().BeFalse();
     }
 }

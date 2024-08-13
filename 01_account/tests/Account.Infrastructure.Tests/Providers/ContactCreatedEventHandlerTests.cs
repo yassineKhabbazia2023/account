@@ -30,7 +30,11 @@ public class ContactCreatedEventHandlerTests
             It.IsAny<Exception?>(),
             (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
 
-        var handler = new ContactCreatedEventHandler(loggerMock.Object, repositoryMock.Object, roleEventRepositoryMock.Object, roleEventPublisherMock.Object);
+        var handler = new ContactCreatedEventHandler(loggerMock.Object,
+            repositoryMock.Object,
+            roleEventRepositoryMock.Object,
+            null!,
+            roleEventPublisherMock.Object);
         var message = "{\"EventType\":\"ContactCreatedEvent\",\"Data\":{\"ContactId\":123,\"FirstName\":\"John Doe\"}}";
 
         // Act
@@ -44,11 +48,8 @@ public class ContactCreatedEventHandlerTests
     public async Task HandleAsync_WithNullMessage_ShouldNotCreateContact()
     {
         // Arrange
-        var loggerMock = new Mock<ILogger<ContactCreatedEventHandler>>();
         var repositoryMock = new Mock<IContactEventRepository>();
-        var roleEventRepositoryMock = new Mock<IRoleEventRepository>();
-        var roleEventPublisherMock = new Mock<IRoleEventPublisher>();
-        var handler = new ContactCreatedEventHandler(loggerMock.Object, repositoryMock.Object, roleEventRepositoryMock.Object, roleEventPublisherMock.Object);
+        var handler = new ContactCreatedEventHandler(null!, repositoryMock.Object, null!, null!, null!);
 
         // Act
         await handler.HandleAsync(null!);
@@ -63,9 +64,7 @@ public class ContactCreatedEventHandlerTests
         // Arrange
         var loggerMock = new Mock<ILogger<ContactCreatedEventHandler>>();
         var repositoryMock = new Mock<IContactEventRepository>();
-        var roleEventRepositoryMock = new Mock<IRoleEventRepository>();
-        var roleEventPublisherMock = new Mock<IRoleEventPublisher>();
-        var handler = new ContactCreatedEventHandler(loggerMock.Object, repositoryMock.Object, roleEventRepositoryMock.Object, roleEventPublisherMock.Object);
+        var handler = new ContactCreatedEventHandler(loggerMock.Object, repositoryMock.Object, null!, null!, null!);
         var message = "{\"EventType\":\"ContactCreatedEvent\",\"Data\":{\"FirstName\":\"John Doe\"}}";
 
         // Act
@@ -81,9 +80,7 @@ public class ContactCreatedEventHandlerTests
         // Arrange
         var loggerMock = new Mock<ILogger<ContactCreatedEventHandler>>();
         var repositoryMock = new Mock<IContactEventRepository>();
-        var roleEventRepositoryMock = new Mock<IRoleEventRepository>();
-        var roleEventPublisherMock = new Mock<IRoleEventPublisher>();
-        var handler = new ContactCreatedEventHandler(loggerMock.Object, repositoryMock.Object, roleEventRepositoryMock.Object, roleEventPublisherMock.Object);
+        var handler = new ContactCreatedEventHandler(loggerMock.Object, repositoryMock.Object, null!, null!, null!);
         var message = "{\"EventType\":\"ContactCreatedEvent\"}";
 
         // Act
@@ -101,6 +98,7 @@ public class ContactCreatedEventHandlerTests
         var repositoryMock = new Mock<IContactEventRepository>();
         var roleEventRepositoryMock = new Mock<IRoleEventRepository>();
         var roleEventPublisherMock = new Mock<IRoleEventPublisher>();
+        var accountEventRepositoryMock = new Mock<IAccountEventRepository>();
 
         loggerMock.Setup(x => x.Log(
             It.IsAny<LogLevel>(),
@@ -109,7 +107,7 @@ public class ContactCreatedEventHandlerTests
             It.IsAny<Exception?>(),
             (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
 
-        roleEventRepositoryMock.Setup(r => r.CreateRoleForNewContact(It.IsAny<int>(), It.IsAny<string>()))
+        roleEventRepositoryMock.Setup(r => r.CreateRoleForNewContactAsync(It.IsAny<int>(), It.IsAny<int>()))
             .ReturnsAsync(new CreateRoleRequest
             {
                 AccountId = 1,
@@ -119,7 +117,20 @@ public class ContactCreatedEventHandlerTests
         roleEventPublisherMock.Setup(r => r.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()))
             .Verifiable();
 
-        var handler = new ContactCreatedEventHandler(loggerMock.Object, repositoryMock.Object, roleEventRepositoryMock.Object, roleEventPublisherMock.Object);
+        accountEventRepositoryMock.Setup(x => x.GetAccountByNumberAsync(It.IsAny<string>())).ReturnsAsync(new AccountEntity
+        {
+            AccountId = 1,
+            AccountGlobalUniqueId = Guid.NewGuid(),
+            AccountNumber = "number",
+            LegalName = "name",
+            Email = "email",
+        });
+
+        var handler = new ContactCreatedEventHandler(loggerMock.Object,
+            repositoryMock.Object,
+            roleEventRepositoryMock.Object,
+            accountEventRepositoryMock.Object,
+            roleEventPublisherMock.Object);
         var message = "{\"EventType\":\"ContactCreatedEvent\",\"Data\":{\"ContactId\":123,\"FirstName\":\"John Doe\",\"AccountNumber\":\"69696969\"}}";
 
         // Act
