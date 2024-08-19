@@ -96,6 +96,27 @@ public class RolesRepositoryTests
     }
 
     [Fact]
+    public async Task GetContactRolesAsync_WithNotExistingContactId_ShouldThrowNotFoundException()
+    {
+        using (var accountContext = new AccountContext(_dbContextOptions))
+        {
+            var contactId = 999;
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 15
+            };
+
+            var repository = new RoleRepository(accountContext);
+
+            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.GetContactRolesAsync(contactId, pagination));
+
+            Assert.Equal(Errors.NotFoundContactCode, result.Code);
+            Assert.Equal(string.Format(Errors.NotFoundContactMessage, contactId), result.Message);
+        }
+    }
+
+    [Fact]
     public async Task GetSignatoryAsync_ShouldReturnCorrect()
     {
         // Arrange

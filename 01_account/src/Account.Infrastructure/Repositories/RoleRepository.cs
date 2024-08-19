@@ -42,6 +42,11 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
+            if (!_accountContext.ContactEntity.Any(x => x.ContactId == contactId))
+            {
+                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
+            }
+
             IQueryable<AccountEntity> query = _accountContext.AccountEntity
                                                         .AsNoTracking()
                                                         .Include(x => x.RoleEntity)
