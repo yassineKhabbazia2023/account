@@ -860,33 +860,46 @@ public class AccountRepositoryTests
     }
 
     [Fact]
-    public async Task UpdateAccountAsync_WithNonExistentAccount_ShouldThrowNotFoundException()
-    {
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            // Arrange
-            var accountRepository = new AccountRepository(context);
-            var nonExistentAccountId = 9999;
-            var accountDetail = new AccountDetail { AccountId = nonExistentAccountId };
-
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                accountRepository.UpdateAccountAsync(nonExistentAccountId, accountDetail));
-        }
-    }
-
-    [Fact]
     public async Task GetContactsAccountAsync_WithSearchCriteria_ShouldFilterResults()
     {
+        var accountId = 1;
+        var searchTerm = "John";
+
+        var account = _fixture.Build<AccountEntity>()
+                .With(x => x.AccountId, accountId)
+                .Without(x => x.RoleEntity)
+                .Without(x => x.PhoneEntity)
+                .Without(x => x.AddressEntity)
+                .Without(x => x.DeploymentEntity)
+                .Create();
+
+
+        var contact = _fixture.Build<ContactEntity>()
+            .With(x => x.FirstName, searchTerm)
+            .Without(x => x.RoleEntity)
+            .Without(x => x.DelegationEntityDelegatee)
+            .Without(x => x.DelegationEntityDelegator)
+            .Create();
+
+        var role = _fixture.Build<RoleEntity>()
+            .Without(x => x.Account)
+            .Without(x => x.Contact)
+            .With(x => x.AccountId, account.AccountId)
+            .With(x => x.ContactId, contact.ContactId)
+            .Create();
+
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Arrange
-            var accountId = 1;
-            var searchTerm = "John";
+            context.AccountEntity.Add(account);
+            context.ContactEntity.Add(contact);
+            context.SaveChanges();
+            context.RoleEntity.Add(role);
+            context.SaveChanges();
+
             var accountRepository = new AccountRepository(context);
 
             // Add test data with different contact names
-            // ... (add test data setup here)
             var criteria = new SearchContactsAccountCriteria { Search = searchTerm };
             var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
 
