@@ -2,10 +2,15 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Security.Principal;
+using AutoFixture;
+using FluentAssertions;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Pulse.Account.Core.Enum;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
@@ -46,6 +51,45 @@ public class RoleEventRepositoryTests
         var result = await repository.DeleteContactRolesAsync(1);
 
         Assert.Equal(2, result.Count());
+    }
+
+    [Fact]
+    public async Task CreateRoleAsync_ShouldThrowBadRequest_IfRoleAlreadyExists()
+    {
+        var fixture = new Fixture();
+        fixture.Behaviors.Remove(new ThrowingRecursionBehavior());
+        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+        var role = new RoleEntity { AccountId = 1, ContactId = 2 };
+
+        var account = fixture.Build<AccountEntity>()
+            .With(x => x.AccountId, 1)
+            .Without(x => x.RoleEntity)
+            .Create();
+
+        var contact = fixture.Build<ContactEntity>()
+            .With(x => x.ContactId, 2)
+            .Without(x => x.RoleEntity)
+            .Create();
+
+        var dbOptions = new DbContextOptionsBuilder<AccountContext>().
+            UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+
+        CreateRoleRequest createRoleRequest = new CreateRoleRequest { AccountId = account.AccountId, ContactId = contact.ContactId };
+
+        using (var context = new AccountContext(dbOptions))
+        {
+            context.ContactEntity.Add(contact);
+            context.AccountEntity.Add(account);
+            context.SaveChanges();
+            context.RoleEntity.Add(role);
+            context.SaveChanges();
+
+            var repos = new RoleRepository(context);
+            var action = async () => await repos.CreateRoleAsync(createRoleRequest);
+
+            await action.Should().ThrowAsync<BadRequestException>();
+        }
     }
 
     [Fact]
@@ -117,7 +161,7 @@ public class RoleEventRepositoryTests
         Assert.NotEmpty(result);
         Assert.Single(result);
 
-        var data = result.FirstOrDefault() !;
+        var data = result.FirstOrDefault()!;
         Assert.Equal(delegatee.ContactId, data.ContactId);
         Assert.Equal(delegatee.ContactGlobalUniqueId, data.ContactGlobalUniqueId);
         Assert.Equal(account.AccountId, data.AccountId);

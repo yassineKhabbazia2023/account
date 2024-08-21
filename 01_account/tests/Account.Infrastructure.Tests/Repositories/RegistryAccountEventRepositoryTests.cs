@@ -28,6 +28,58 @@ public class RegistryAccountEventRepositoryTests
     };
 
     [Fact]
+    public async Task RemoveAccountAsync_ShouldThrowNotFoundException_IfAccountIdDoesNotExists()
+    {
+        Guid accountGUI = Guid.NewGuid();
+
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using (var context = new AccountContext(options))
+        {
+            var action = async () => await new RegistryAccountEventRepository(context).RemoveAccountAsync(accountGUI);
+
+            await action.Should().ThrowAsync<NotFoundException>();
+        }
+    }
+
+    [Fact]
+    public async Task RemoveAccountAsync_ShouldChangeDeploymentStatus_IfDeploymentIsNotNull()
+    {
+        var fixture = new Fixture();
+        fixture.Behaviors.Remove(new ThrowingRecursionBehavior());
+        fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+        List<DeploymentEntity> deploymentEntities = new List<DeploymentEntity>();
+        deploymentEntities.Add(new DeploymentEntity { AccountId = 1, DeploymentDate = DateTime.Now, DeploymentId = 1, Status = (int)DeploymentStatus.Connected });
+        Guid accountGUID = Guid.NewGuid();
+        AccountEntity accountEntity = fixture.Build<AccountEntity>()
+            .With(x => x.AccountGlobalUniqueId, accountGUID)
+            .With(x => x.AccountId, 1)
+            .With(x => x.DeploymentEntity, deploymentEntities)
+            .Create();
+
+        var options = new DbContextOptionsBuilder<AccountContext>()
+               .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+               .Options;
+
+        using (var context = new AccountContext(options))
+        {
+            context.AccountEntity.Add(accountEntity);
+            context.SaveChanges();
+
+            var accountId = await new RegistryAccountEventRepository(context).RemoveAccountAsync(accountGUID);
+
+            var deploymentAfterDelete = context.AccountEntity.Include(x => x.DeploymentEntity).Where(x => x.AccountId == accountId).FirstOrDefault();
+
+            deploymentAfterDelete.Should().NotBeNull();
+            deploymentAfterDelete.DeploymentEntity.Count.Should().Be(1);
+            deploymentAfterDelete.DeploymentEntity.FirstOrDefault()?.Status.Should().Be((int)DeploymentStatus.Revoked);
+        }
+    }
+
+    [Fact]
     public async Task CreateAccountAsync_WithAccountData_ShouldCreateAccount()
     {
         // Arrange

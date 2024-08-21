@@ -161,7 +161,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             AccountDetail? toReturn = null!;
             await _retryPolicy.ExecuteAsync(async () =>
             {
-                var existingAccount = await _accountContext.AccountEntity.SingleAsync(x => x.AccountId == accountId);
+                var existingAccount = await _accountContext.AccountEntity.FirstOrDefaultAsync(x => x.AccountId == accountId);
                 if (existingAccount == null)
                 {
                     throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
@@ -210,7 +210,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 query = query.Take(pagination!.PageSize);
 
                 var result = await query.ToListAsync();
-                if (result == null)
+                if (result.Count() == 0)
                 {
                     throw new NotFoundException(Errors.NotFoundContactsCode, Errors.NotFoundContactsMessage);
                 }
@@ -237,7 +237,8 @@ namespace Pulse.Account.Infrastructure.Repositories
                 var query = _accountContext.RoleEntity
                         .AsNoTracking()
                         .Include(x => x.Contact)
-                        .Where(x => accountIds.Contains(x.AccountId) && x.Contact.Type == request.ContactType.ToString().ToLower());
+                        .Where(x => accountIds.Contains(x.AccountId)
+                        && x.Contact.Type.ToLower() == request.ContactType.ToString().ToLower());
 
                 if (!request.Search.IsNullOrEmpty())
                 {

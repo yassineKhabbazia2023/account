@@ -9,6 +9,7 @@ using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Models;
@@ -225,7 +226,7 @@ public class AccountRepositoryTests
                 accountMock.RoleEntity.Add(firstRoleMock);
                 context.AccountEntity.Add(accountMock);
                 context.SaveChanges();
-                resultExpected.Add(accountMock.MapToAccount(mockedContacts[0].ContactId) !);
+                resultExpected.Add(accountMock.MapToAccount(mockedContacts[0].ContactId)!);
             }
 
             for (int i = 0; i < 3; i++)
@@ -247,7 +248,7 @@ public class AccountRepositoryTests
                 accountMock.RoleEntity.Add(secondRoleMock);
                 context.AccountEntity.Add(accountMock);
                 context.SaveChanges();
-                resultExpected.Add(accountMock.MapToAccount(mockedContacts[0].ContactId) !);
+                resultExpected.Add(accountMock.MapToAccount(mockedContacts[0].ContactId)!);
             }
 
             var accountRepository = new AccountRepository(context);
@@ -312,7 +313,7 @@ public class AccountRepositoryTests
 
             context.AccountEntity.Add(accountMock);
 
-            resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId) !);
+            resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId)!);
 
             var deploymentMock = _fixture.Build<DeploymentEntity>()
                 .With(a => a.Status, 4)
@@ -473,6 +474,46 @@ public class AccountRepositoryTests
     }
 
     [Fact]
+    public async Task UpdateAccount_ShouldThrowNotFoundException_IfAccountIsNotFound()
+    {
+        int accountId = -1;
+
+        AccountDetail accountDetail = _fixture.Build<AccountDetail>().Create();
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Arrange
+            var accountRepository = new AccountRepository(context);
+
+            var action = async () => await accountRepository.UpdateAccountAsync(accountId, accountDetail);
+
+            await action.Should().ThrowAsync<NotFoundException>();
+        }
+    }
+
+    [Fact]
+    public async Task GetContactsAccountAsync_ShouldThrowNotFoundEXception_IfQueryResultIsNull()
+    {
+        int accountId = -1;
+        SearchContactsAccountCriteria criteria = _fixture.Build<SearchContactsAccountCriteria>()
+            .With(x => x.Sorting, new Sorting { Field = SortingConstants.NAME, Descending = true })
+            .Create();
+        Pagination pagination = _fixture.Build<Pagination>()
+            .With(x => x.PageNumber, 1)
+            .With(x => x.PageSize, 15)
+            .Create();
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Arrange
+            var accountRepository = new AccountRepository(context);
+
+            var action = async () => await accountRepository.GetContactsAccountAsync(accountId, criteria, pagination);
+
+            await action.Should().ThrowAsync<NotFoundException>();
+        }
+
+    }
+
+    [Fact]
     public async Task UpdateAccount_Should_ReturnsOkResultAsync()
     {
         using (var context = new AccountContext(_dbContextOptions))
@@ -540,10 +581,10 @@ public class AccountRepositoryTests
                                     .With(e => e.Account, accountMock)
                                     .Create();
 
-            if (type == null || contactMock.Type == type.ToString() !.ToLower())
+            if (type == null || contactMock.Type == type.ToString()!.ToLower())
             {
                 contactMock.Type = type.ToString();
-                resultExpected.Add(contactMock.MapToContact() !);
+                resultExpected.Add(contactMock.MapToContact()!);
             }
 
             context.RoleEntity.Add(roleMock);
@@ -655,7 +696,7 @@ public class AccountRepositoryTests
 
                 resultExpected.AddRange(accountsMock[i].RoleEntity
                     .Where(x => x.Contact.Type == "customer")
-                    .Select(x => x.Contact.ToContact() !));
+                    .Select(x => x.Contact.ToContact()!));
             }
 
             var accountRepository = new AccountRepository(context);
@@ -672,6 +713,69 @@ public class AccountRepositoryTests
 
             // Assert
             Assert.Equivalent(expected, contactByAdmin.Items?.Select(x => x.ContactId));
+        }
+    }
+
+    [Fact]
+    public async Task GetAssociatedContactsAsync_ShouldThrowNotFoundException_IfQueryGetAccountByContactIsEmpty()
+    {
+        int contactId = -1;
+        GetAssociatedContactsRequest request = new GetAssociatedContactsRequest() { ContactType = ContactType.Customer, Search = string.Empty };
+        Pagination pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var accountRepository = new AccountRepository(context);
+            var action = async () => await accountRepository.GetAssociatedContactsAsync(contactId, request, pagination);
+
+            await action.Should().ThrowAsync<NotFoundException>();
+        }
+    }
+
+    [Fact]
+    public async Task GetAssociatedContactsAsync_ShouldSearchQueryFirstLastPersonaName_IfRequestSearchIsNotEmpty()
+    {
+        AccountEntity accountEntity = _fixture.Build<AccountEntity>()
+            .With(x => x.AccountId, 1)
+            .Without(x => x.RoleEntity)
+            .Without(x => x.PhoneEntity)
+            .Without(x => x.Delegation)
+            .Create();
+        List<ContactEntity> contacts = _fixture.Build<ContactEntity>()
+            .Without(x => x.RoleEntity)
+            .Without(x => x.DelegationEntityDelegatee)
+            .Without(x => x.DelegationEntityDelegator)
+            .With(x => x.Type, ContactType.Collaborator.ToString())
+            .CreateMany(10).ToList();
+
+        List<RoleEntity> roles = new List<RoleEntity>();
+        foreach (var contact in contacts)
+        {
+            RoleEntity role = new RoleEntity { AccountId = 1, ContactId = contact.ContactId };
+            roles.Add(role);
+        }
+
+        int contactId = contacts.FirstOrDefault().ContactId;
+        string contactName = contacts.FirstOrDefault().FirstName;
+
+        var request = new GetAssociatedContactsRequest { ContactType = ContactType.Collaborator, Search = contactName };
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            context.AccountEntity.Add(accountEntity);
+            context.SaveChanges();
+            context.ContactEntity.AddRange(contacts);
+            context.SaveChanges();
+            context.RoleEntity.AddRange(roles);
+            context.SaveChanges();
+
+            var repos = new AccountRepository(context);
+            var result = await repos.GetAssociatedContactsAsync(contacts.FirstOrDefault().ContactId, request, pagination);
+
+            request.Search.Should().NotBeEmpty();
+            request.Search.Should().BeEquivalentTo(contactName);
+            result.Items.Count().Should().BeGreaterThan(0);
         }
     }
 
@@ -756,33 +860,46 @@ public class AccountRepositoryTests
     }
 
     [Fact]
-    public async Task UpdateAccountAsync_WithNonExistentAccount_ShouldThrowNotFoundException()
-    {
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            // Arrange
-            var accountRepository = new AccountRepository(context);
-            var nonExistentAccountId = 9999;
-            var accountDetail = new AccountDetail { AccountId = nonExistentAccountId };
-
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                accountRepository.UpdateAccountAsync(nonExistentAccountId, accountDetail));
-        }
-    }
-
-    [Fact]
     public async Task GetContactsAccountAsync_WithSearchCriteria_ShouldFilterResults()
     {
+        var accountId = 1;
+        var searchTerm = "John";
+
+        var account = _fixture.Build<AccountEntity>()
+                .With(x => x.AccountId, accountId)
+                .Without(x => x.RoleEntity)
+                .Without(x => x.PhoneEntity)
+                .Without(x => x.AddressEntity)
+                .Without(x => x.DeploymentEntity)
+                .Create();
+
+
+        var contact = _fixture.Build<ContactEntity>()
+            .With(x => x.FirstName, searchTerm)
+            .Without(x => x.RoleEntity)
+            .Without(x => x.DelegationEntityDelegatee)
+            .Without(x => x.DelegationEntityDelegator)
+            .Create();
+
+        var role = _fixture.Build<RoleEntity>()
+            .Without(x => x.Account)
+            .Without(x => x.Contact)
+            .With(x => x.AccountId, account.AccountId)
+            .With(x => x.ContactId, contact.ContactId)
+            .Create();
+
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Arrange
-            var accountId = 1;
-            var searchTerm = "John";
+            context.AccountEntity.Add(account);
+            context.ContactEntity.Add(contact);
+            context.SaveChanges();
+            context.RoleEntity.Add(role);
+            context.SaveChanges();
+
             var accountRepository = new AccountRepository(context);
 
             // Add test data with different contact names
-            // ... (add test data setup here)
             var criteria = new SearchContactsAccountCriteria { Search = searchTerm };
             var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
 

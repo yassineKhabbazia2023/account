@@ -75,22 +75,31 @@ public class RegistryRoleEventRepositoryTests
         var account = _fixture.Build<AccountEntity>()
             .With(a => a.AccountId, 1)
             .Without(a => a.RoleEntity)
+            .Without(x => x.PhoneEntity)
+            .Without(x => x.AddressEntity)
+            .Without(x => x.DeploymentEntity)
             .Create();
-        context.AccountEntity.Add(account);
+
         var contact = _fixture.Build<ContactEntity>()
             .With(c => c.ContactId, 1)
-            .Without(c => c.RoleEntity)
+            .Without(x => x.RoleEntity)
+            .Without(x => x.DelegationEntityDelegatee)
+            .Without(x => x.DelegationEntityDelegator)
             .Create();
-        context.ContactEntity.Add(contact);
-        await context.SaveChangesAsync();
+
+
         var role = _fixture.Build<RoleEntity>()
             .With(r => r.AccountId, 1)
             .With(r => r.ContactId, 1)
-            .With(r => r.Account, account)
-            .With(r => r.Contact, contact)
+            .Without(r => r.Account)
+            .Without(r => r.Contact)
             .Create();
+
+        context.AccountEntity.Add(account);
+        context.ContactEntity.Add(contact);
+        context.SaveChanges();
         context.RoleEntity.Add(role);
-        await context.SaveChangesAsync();
+        context.SaveChanges();
 
         var data = _fixture.Build<RegistryRoleRemovedEventData>()
             .With(r => r.AccountId, account.AccountGlobalUniqueId)

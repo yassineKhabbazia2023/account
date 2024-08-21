@@ -16,6 +16,7 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
@@ -34,6 +35,90 @@ public class DelegationRepositoryTests
           .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
           .EnableSensitiveDataLogging()
           .Options;
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_ShouldThrowNotFoundException_WhenNoExistingContactsFound()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+      .UseInMemoryDatabase(Guid.NewGuid().ToString())
+      .Options;
+
+        CreateDelegationRequest createDelegationRequest = _fixture
+            .Build<CreateDelegationRequest>()
+            .Create();
+
+        List<CreateRoleRequest> roleRequestList = _fixture
+            .Build<CreateRoleRequest>()
+            .CreateMany(3)
+            .ToList();
+
+        using (var context = new AccountContext(options))
+        {
+            var repos = new DelegationRepository(context);
+
+            var action = async () => await repos.CreateDelegationAsync(createDelegationRequest, roleRequestList);
+
+            var exception = await action.Should().ThrowAsync<NotFoundException>();
+
+            exception.WithMessage(Errors.NotFoundContactsMessage);
+            exception.Which.Code.Should().Be(Errors.NotFoundContactsCode);
+        }
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_ShouldThrowNotFoundException_WhenNoExistingAccountsFound()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+      .UseInMemoryDatabase(Guid.NewGuid().ToString())
+      .Options;
+
+        CreateDelegationRequest createDelegationRequest = _fixture
+            .Build<CreateDelegationRequest>()
+            .Create();
+
+        List<CreateRoleRequest> roleRequestList = _fixture
+            .Build<CreateRoleRequest>()
+            .CreateMany(3)
+            .ToList();
+
+        List<ContactEntity> contactEntities = new List<ContactEntity>();
+
+        foreach (var item in createDelegationRequest.DelegationDetails)
+        {
+            ContactEntity contact = _fixture.Build<ContactEntity>()
+                .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleEntity)
+                .With(x => x.ContactId, item.DelegateeId)
+                .Create();
+
+            contactEntities.Add(contact);
+        }
+
+        var contactDelegator = _fixture.Build<ContactEntity>()
+            .With(x => x.ContactId, createDelegationRequest.DelegatorId)
+            .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleEntity)
+            .Create();
+
+        contactEntities.Add(contactDelegator);
+
+        using (var context = new AccountContext(options))
+        {
+            context.ContactEntity.AddRange(contactEntities);
+            context.SaveChanges();
+
+            var repos = new DelegationRepository(context);
+
+            var action = async () => await repos.CreateDelegationAsync(createDelegationRequest, roleRequestList);
+
+            var exception = await action.Should().ThrowAsync<NotFoundException>();
+
+            exception.WithMessage(Errors.NotFoundAccountsMessage);
+            exception.Which.Code.Should().Be(Errors.NotFoundAccountsCode);
+        }
     }
 
     [Fact]
