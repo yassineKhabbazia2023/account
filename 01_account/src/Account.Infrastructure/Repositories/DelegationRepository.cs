@@ -287,11 +287,9 @@ public class DelegationRepository : IDelegationRepository
 
     private async Task<DelegationEntity> GetDelegationAsync(int delegationId)
     {
-        DelegationEntity? tDelegation = null;
-
-        await _retryPolicy.ExecuteAsync(async () =>
+        DelegationEntity? tDelegation = await _retryPolicy.ExecuteAsync(async () =>
         {
-            tDelegation = await _accountContext.DelegationEntity
+            return await _accountContext.DelegationEntity
                 .Include(d => d.Account)
                 .FirstOrDefaultAsync(d => d.DelegationId == delegationId);
         });

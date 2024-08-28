@@ -115,10 +115,9 @@ namespace Pulse.Account.Infrastructure.Repositories
 
         public async Task<AccountDetail?> GetAccountAsync(int accountId)
         {
-            AccountEntity? account = null;
-            await _retryPolicy.ExecuteAsync(async () =>
+            AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>
             {
-                account = await _accountContext.AccountEntity
+                return await _accountContext.AccountEntity
                        .AsNoTracking()
                        .FirstOrDefaultAsync(a => a.AccountId == accountId);
             });
@@ -133,10 +132,9 @@ namespace Pulse.Account.Infrastructure.Repositories
 
         public async Task<AccountDetail?> GetAccountDetailAsync(int accountId)
         {
-            AccountEntity? account = null;
-            await _retryPolicy.ExecuteAsync(async () =>
+            AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>
             {
-                account = await _accountContext.AccountEntity
+                return await _accountContext.AccountEntity
                        .AsNoTracking()
                        .Include(x => x.RoleEntity)
                        .ThenInclude(r => r.Contact)
