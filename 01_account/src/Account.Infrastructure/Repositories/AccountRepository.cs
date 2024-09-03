@@ -53,7 +53,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 deployments = deployments.Where(dp => dp.Status == criteria.DeploymentStatus.Value);
             }
 
-            var query = deployments.Select(d => d.Account).Distinct().Include(a => a.RoleEntity.Where(r => r.IsSignatory == true))
+            var query = deployments.Select(d => d.Account).Distinct().Include(a => a.RoleEntity)
                     .ThenInclude(r => r.Contact)
                     .Where(a => a.RoleEntity.Any(r => r.ContactId == criteria.ContactId))
                     .AsQueryable();
