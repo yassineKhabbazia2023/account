@@ -390,4 +390,172 @@ public class RolesRepositoryTests
             Assert.Equal(rolesBefore.TotalItems - 1, roles.TotalItems);
         }
     }
+
+    [Fact]
+    public async Task CheckRoleExistsAsync_ShouldReturnFalse_IfContactDoesNotExist()
+    {
+        // Arrange: Initialize the context
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var contactEntity = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, "2")
+                                            .With(c => c.FirstName, "firstUser")
+                                            .With(c => c.LastName, "lastUser")
+                                            .With(c => c.Email, "firstLastUser@test.fr")
+                                            .Create();
+            var roleEntity = _fixture.Build<RoleEntity>()
+                                            .With(r => r.Contact, contactEntity)
+                                            .With(r => r.IsSignatory, true)
+                                            .CreateMany(1);
+            var accountsEntity = _fixture.Build<AccountEntity>()
+                .With(a => a.RoleEntity, roleEntity.ToList())
+                .CreateMany(1);
+
+            context.AccountEntity.AddRange(accountsEntity);
+            context.SaveChanges();
+
+            var rolesRepository = new RoleRepository(context);
+
+            // Act: Call the CheckRoleExistsAsync method with the defined inputs
+            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(contactEntity.ContactId, null, "notfound@test.fr");
+
+            // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
+            Assert.False(contactHasRoleOnAccount);
+        }
+    }
+
+    [Fact]
+    public async Task CheckRoleExistsAsync_ShouldReturnTrue_IfContactHasRoleOnSpecifiedAccount()
+    {
+        // Arrange: Initialize the context
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var firstCustomer = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, "2")
+                                            .With(c => c.FirstName, "Test1")
+                                            .With(c => c.LastName, "Test1")
+                                            .With(c => c.Email, "test1@test.fr")
+                                            .Create();
+            var secondCustomer = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, "2")
+                                            .With(c => c.FirstName, "Test2")
+                                            .With(c => c.LastName, "Test2")
+                                            .With(c => c.Email, "test2@test.fr")
+                                            .Create();
+            var firstRoleEntity = _fixture.Build<RoleEntity>()
+                                            .With(r => r.Contact, firstCustomer)
+                                            .With(r => r.IsSignatory, true)
+                                            .CreateMany(1);
+            var secondRoleEntity = _fixture.Build<RoleEntity>()
+                                            .With(r => r.Contact, secondCustomer)
+                                            .CreateMany(1);
+
+            var accountsEntity = _fixture.Build<AccountEntity>()
+                .With(a => a.RoleEntity, firstRoleEntity.Concat(secondRoleEntity).ToList())
+                .CreateMany(1);
+            var accountId = accountsEntity.First().AccountId;
+
+            context.AccountEntity.AddRange(accountsEntity);
+            context.SaveChanges();
+
+            var rolesRepository = new RoleRepository(context);
+
+            // Act: Call the CheckRoleExistsAsync method with the defined inputs
+            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, accountId, secondCustomer.Email);
+
+            // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
+            Assert.True(contactHasRoleOnAccount);
+        }
+    }
+
+    [Fact]
+    public async Task CheckRoleExistsAsync_ShouldReturnTrue_IfContactHasRoleOnAccountOfPrimaryContact()
+    {
+        // Arrange: Initialize the context
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var firstCustomer = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, "2")
+                                            .With(c => c.FirstName, "Test1")
+                                            .With(c => c.LastName, "Test1")
+                                            .With(c => c.Email, "test1@test.fr")
+                                            .Create();
+            var secondCustomer = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, "2")
+                                            .With(c => c.FirstName, "Test2")
+                                            .With(c => c.LastName, "Test2")
+                                            .With(c => c.Email, "test2@test.fr")
+                                            .Create();
+            var firstRoleEntity = _fixture.Build<RoleEntity>()
+                                            .With(r => r.Contact, firstCustomer)
+                                            .With(r => r.IsSignatory, true)
+                                            .CreateMany(1);
+            var secondRoleEntity = _fixture.Build<RoleEntity>()
+                                            .With(r => r.Contact, secondCustomer)
+                                            .CreateMany(1);
+
+            var firstAccount = _fixture.Build<AccountEntity>()
+                .With(a => a.RoleEntity, firstRoleEntity.Concat(secondRoleEntity).ToList())
+                .CreateMany(1);
+
+            context.AccountEntity.AddRange(firstAccount);
+            context.SaveChanges();
+
+            var rolesRepository = new RoleRepository(context);
+
+            // Act: Call the CheckRoleExistsAsync method with the defined inputs
+            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, null, secondCustomer.Email);
+
+            // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
+            Assert.True(contactHasRoleOnAccount);
+        }
+    }
+
+    [Fact]
+    public async Task CheckRoleExistsAsync_ShouldReturnFalse_IfContactHasRoleOnDifferentAccount()
+    {
+        // Arrange: Initialize the context
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var firstCustomer = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, "2")
+                                            .With(c => c.FirstName, "Test1")
+                                            .With(c => c.LastName, "Test1")
+                                            .With(c => c.Email, "test1@test.fr")
+                                            .Create();
+            var secondCustomer = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, "2")
+                                            .With(c => c.FirstName, "Test2")
+                                            .With(c => c.LastName, "Test2")
+                                            .With(c => c.Email, "test2@test.fr")
+                                            .Create();
+            var firstRoleEntity = _fixture.Build<RoleEntity>()
+                                            .With(r => r.Contact, firstCustomer)
+                                            .With(r => r.IsSignatory, true)
+                                            .CreateMany(1);
+            var secondRoleEntity = _fixture.Build<RoleEntity>()
+                                            .With(r => r.Contact, secondCustomer)
+                                            .CreateMany(1);
+
+            var firstAccount = _fixture.Build<AccountEntity>()
+                .With(a => a.RoleEntity, firstRoleEntity.Concat(secondRoleEntity).ToList())
+                .CreateMany(1);
+            var secondAccount = _fixture.Build<AccountEntity>()
+                .With(a => a.RoleEntity, firstRoleEntity.ToList())
+                .CreateMany(1);
+            var accountId = secondAccount.First().AccountId;
+
+            context.AccountEntity.AddRange(firstAccount);
+            context.AccountEntity.AddRange(secondAccount);
+            context.SaveChanges();
+
+            var rolesRepository = new RoleRepository(context);
+
+            // Act: Call the CheckRoleExistsAsync method with the defined inputs
+            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, accountId, secondCustomer.Email);
+
+            // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
+            Assert.False(contactHasRoleOnAccount);
+        }
+    }
 }

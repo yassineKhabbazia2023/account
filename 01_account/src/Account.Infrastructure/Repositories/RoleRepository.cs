@@ -173,4 +173,33 @@ public class RoleRepository : IRoleRepository
             await _accountContext.SaveChangesAsync();
         });
     }
+
+    public async Task<bool> CheckRoleExistsAsync(int contactId, int? accountId, string email)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var contactToCheck = _accountContext.ContactEntity.FirstOrDefault(x => x.Email.Contains(email));
+
+            // Check if the contact exists
+            if (contactToCheck is null)
+            {
+                return false;
+            }
+
+            IQueryable<AccountEntity> query = _accountContext.AccountEntity
+                                                    .AsNoTracking()
+                                                    .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
+                                                    .Where(a => a.RoleEntity.Any(r => r.ContactId == contactToCheck.ContactId));
+
+            // Add the accountId filter if it's not null
+            if (accountId is not null)
+            {
+                query = query.Where(a => a.AccountId == accountId);
+            }
+
+            var totalRows = await query.CountAsync();
+
+            return totalRows > 0;
+        });
+    }
 }

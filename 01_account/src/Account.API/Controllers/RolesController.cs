@@ -109,4 +109,22 @@ public class RolesController : ControllerBase
         await _rolesService.DeleteRoleAsync(accountId, contactId);
         return Ok();
     }
+
+    /// <summary>
+    /// Vérifier si un contact a un rôle sur l’account/les accounts auxquels l’utilisateur connecté a accès.
+    /// </summary>
+    /// <param name="contactId">Identifiant de l'utilisateur.</param>
+    /// <param name="accountId">Identifiant de l'entitié morale.</param>
+    /// <param name="email">L'email de l'utilisateur.</param>
+    /// <returns>http 200.</returns>
+    [HttpGet("check/{contactId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> CheckRoleExists([FromRoute] int contactId, [FromQuery] int? accountId, [FromQuery] string email)
+    {
+        var contactHasRoleOnAccount = await _rolesService.CheckRoleExistsAsync(contactId, accountId, email);
+
+        return Ok(contactHasRoleOnAccount);
+    }
 }

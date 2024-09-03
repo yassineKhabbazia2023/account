@@ -260,4 +260,20 @@ public class RolesServiceTests
         await Assert.ThrowsAsync<BadRequestException>(DeleteRole);
         _rolePublisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
+
+    [Fact]
+    public async Task CheckRoleExistsAsync_ReturnsOkResultAsync()
+    {
+        // Arrange
+        var rolesRepository = new Mock<IRoleRepository>();
+        rolesRepository.Setup(repository => repository.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(true);
+        var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _logger!.Object);
+
+        // Act
+        var contactHasRoleOnAccount = await rolesService.CheckRoleExistsAsync(1, 1, "test@test.fr");
+
+        // Assert
+        rolesRepository.Verify(x => x.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()));
+        Assert.True(contactHasRoleOnAccount);
+    }
 }
