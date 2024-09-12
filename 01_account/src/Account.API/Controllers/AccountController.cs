@@ -128,7 +128,7 @@ namespace Pulse.Account.API.Controllers
         /// <param name="request">Paramètre de la requête.</param>
         /// <param name="pagination">Paramètres de pagination.</param>
         /// <returns>La liste des contacts rattachés aux entités d'un contact admin.</returns>
-        [HttpGet("contacts/{contactId}")]
+        [HttpGet("contacts")]
         [ProducesResponseType(typeof(IEnumerable<Contact>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]

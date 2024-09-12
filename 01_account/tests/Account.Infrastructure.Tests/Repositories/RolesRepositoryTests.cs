@@ -216,6 +216,73 @@ public class RolesRepositoryTests
     }
 
     [Fact]
+    public async Task CreateRoleAsync_UsingValidEmail_ShouldReturnRolesCreated()
+    {
+        // Arrange
+        const int accountId = 123;
+        const int contactId = 456;
+        var roleRequest = new CreateRoleRequest
+        {
+            AccountId = accountId,
+            ContactId = 0,
+            Email = "Contact-mail@kpmg.fr",
+            IsFavorite = true,
+            IsSignatory = false,
+        };
+
+        var deployment = new DeploymentEntity
+        {
+            Status = 1
+        };
+
+        using var accountContext = new AccountContext(_dbContextOptions);
+
+        accountContext.AccountEntity.Add(new AccountEntity
+        {
+            AccountId = accountId,
+            AccountNumber = "00001114455",
+            CreatedBy = "UnitTest@kpmg.fr",
+            Email = "account-mail@kpmg.fr",
+            LegalName = "Pulse",
+            DeploymentEntity = new List<DeploymentEntity> { deployment }
+        });
+        accountContext.ContactEntity.Add(new ContactEntity
+        {
+            ContactId = contactId,
+            Email = "Contact-mail@kpmg.fr",
+            FirstName = "Contact-FN",
+            LastName = "Contact-LT",
+            Type = "customer",
+            Status = "Declared",
+            PersonaName = "Collaborateur ESC",
+            Office = "Paris",
+            CreationDate = DateTime.UtcNow,
+        });
+
+        accountContext.DelegationEntity.Add(new DelegationEntity
+        {
+            DelegatorId = contactId,
+            DelegateeId = 2,
+            StartDate = DateTime.UtcNow,
+            CreationDate = DateTime.UtcNow,
+            IsAutomaticDelegation = true,
+            Status = "enabled"
+        });
+
+        await accountContext.SaveChangesAsync();
+
+        var rolesRepository = new RoleRepository(accountContext);
+
+        // Act
+        var result = await rolesRepository.CreateRoleAsync(roleRequest);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Single(result);
+        Assert.Equal(contactId, result.First().ContactId);
+    }
+
+    [Fact]
     public async Task CreateRoleAsync_WithInValidAccount_ShouldThrowsNotFoundException()
     {
         // Arrange

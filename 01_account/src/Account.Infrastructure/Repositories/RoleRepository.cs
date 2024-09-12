@@ -107,6 +107,17 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
+            if (!string.IsNullOrWhiteSpace(role.Email))
+            {
+                var contactId = _accountContext.ContactEntity
+                        .AsNoTracking()
+                        .Where(c => c.Email.Equals(role.Email))
+                        .Select(c => c.ContactId)
+                        .FirstOrDefault();
+
+                role.ContactId = contactId;
+            }
+
             if (!await _accountContext.AccountEntity.Include(a => a.DeploymentEntity)
                 .AnyAsync(x => x.AccountId == role.AccountId && x.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked))
             {
