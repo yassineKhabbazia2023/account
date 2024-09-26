@@ -71,4 +71,9 @@ public class ContactEventRepository : IContactEventRepository
                     .AsNoTracking()
                     .FirstOrDefault(c => c.ContactId == contactId);
     }
+
+    public async Task<bool> DoesContactExistAsync(int contactId)
+    {
+        return await _accountContext.ContactEntity.AnyAsync(c => c.ContactId == contactId);
+    }
 }

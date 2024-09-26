@@ -16,6 +16,7 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
@@ -34,6 +35,90 @@ public class DelegationRepositoryTests
           .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
           .EnableSensitiveDataLogging()
           .Options;
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_ShouldThrowNotFoundException_WhenNoExistingContactsFound()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+      .UseInMemoryDatabase(Guid.NewGuid().ToString())
+      .Options;
+
+        CreateDelegationRequest createDelegationRequest = _fixture
+            .Build<CreateDelegationRequest>()
+            .Create();
+
+        List<CreateRoleRequest> roleRequestList = _fixture
+            .Build<CreateRoleRequest>()
+            .CreateMany(3)
+            .ToList();
+
+        using (var context = new AccountContext(options))
+        {
+            var repos = new DelegationRepository(context);
+
+            var action = async () => await repos.CreateDelegationAsync(createDelegationRequest, roleRequestList);
+
+            var exception = await action.Should().ThrowAsync<NotFoundException>();
+
+            exception.WithMessage(Errors.NotFoundContactsMessage);
+            exception.Which.Code.Should().Be(Errors.NotFoundContactsCode);
+        }
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_ShouldThrowNotFoundException_WhenNoExistingAccountsFound()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+      .UseInMemoryDatabase(Guid.NewGuid().ToString())
+      .Options;
+
+        CreateDelegationRequest createDelegationRequest = _fixture
+            .Build<CreateDelegationRequest>()
+            .Create();
+
+        List<CreateRoleRequest> roleRequestList = _fixture
+            .Build<CreateRoleRequest>()
+            .CreateMany(3)
+            .ToList();
+
+        List<ContactEntity> contactEntities = new List<ContactEntity>();
+
+        foreach (var item in createDelegationRequest.DelegationDetails)
+        {
+            ContactEntity contact = _fixture.Build<ContactEntity>()
+                .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleEntity)
+                .With(x => x.ContactId, item.DelegateeId)
+                .Create();
+
+            contactEntities.Add(contact);
+        }
+
+        var contactDelegator = _fixture.Build<ContactEntity>()
+            .With(x => x.ContactId, createDelegationRequest.DelegatorId)
+            .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleEntity)
+            .Create();
+
+        contactEntities.Add(contactDelegator);
+
+        using (var context = new AccountContext(options))
+        {
+            context.ContactEntity.AddRange(contactEntities);
+            context.SaveChanges();
+
+            var repos = new DelegationRepository(context);
+
+            var action = async () => await repos.CreateDelegationAsync(createDelegationRequest, roleRequestList);
+
+            var exception = await action.Should().ThrowAsync<NotFoundException>();
+
+            exception.WithMessage(Errors.NotFoundAccountsMessage);
+            exception.Which.Code.Should().Be(Errors.NotFoundAccountsCode);
+        }
     }
 
     [Fact]
@@ -139,7 +224,7 @@ public class DelegationRepositoryTests
             // Create Contacts
             var tDelegator = _fixture.Create<ContactEntity>();
             var tDelegatee = _fixture.Build<ContactEntity>()
-                .With(c => c.ContactId, 123)
+                .With(c => c.ContactId, 124)
                 .Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
@@ -149,7 +234,7 @@ public class DelegationRepositoryTests
                 .With(r => r.Account, tAccount)
                 .With(r => r.Contact, tDelegatee)
                 .With(r => r.AccountId, tAccount.AccountId)
-                .With(r => r.ContactId, 123)
+                .With(r => r.ContactId, 124)
                 .Create();
             context.RoleEntity.Add(existingRole);
             await context.SaveChangesAsync();
@@ -173,7 +258,7 @@ public class DelegationRepositoryTests
                 {
                     new()
                     {
-                        DelegateeId = 123,
+                        DelegateeId = 124,
                         StartDate = DateTime.UtcNow,
                         Status = "enabled",
                         IsRoleToCreate = true,
@@ -187,7 +272,7 @@ public class DelegationRepositoryTests
                 new()
                 {
                     AccountId = tAccount.AccountId,
-                    ContactId = 123,
+                    ContactId = 124,
                     IsFavorite = false,
                     IsSignatory = false,
                     IsDelegation = true,
@@ -199,12 +284,12 @@ public class DelegationRepositoryTests
             var createdDelegation = await context
                 .DelegationEntity
                 .FirstOrDefaultAsync(d => d.DelegatorId == tDelegator.ContactId
-                && d.DelegateeId == 123
+                && d.DelegateeId == 124
                 && d.Account.FirstOrDefault(a => a.AccountId == tAccount.AccountId) != null);
 
             Assert.NotNull(createdDelegation);
 
-            var createdRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == 123);
+            var createdRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == 124);
             createdRole.Should().NotBeNull();
             createdRole.Should().BeEquivalentTo(existingRole);
         }

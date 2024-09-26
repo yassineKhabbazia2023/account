@@ -91,6 +91,11 @@ public class RolesService : IRolesService
         await PublishRoleDeletedEvent(accountId, contactId);
     }
 
+    public async Task<bool> CheckRoleExistsAsync(int contactId, int? accountId, string email)
+    {
+        return await _rolesRepository.CheckRoleExistsAsync(contactId, accountId, email);
+    }
+
     private async Task PublishRoleCreatedEvent(CreateRoleRequest role)
     {
         _logger.LogInformation("RoleService: Start send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);

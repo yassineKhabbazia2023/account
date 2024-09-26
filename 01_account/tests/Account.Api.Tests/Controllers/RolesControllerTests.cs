@@ -183,5 +183,22 @@ namespace Account.Api.Tests.Controllers
             // Assert
             await Assert.ThrowsAsync<BadRequestException>(DeleteRole);
         }
+
+        [Fact]
+        public async Task CheckRoleExists_Should_ReturnOkResultAsync()
+        {
+            // Arrange
+            var roleService = new Mock<IRolesService>();
+            roleService.Setup(service => service.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), "test@test.fr"))
+                .Returns(Task.FromResult(true));
+            var roleController = new RolesController(roleService.Object);
+
+            // Act
+            var contactHasRoleOnAccount = await roleController.CheckRoleExists(1, 1, "test@test.fr");
+
+            // Assert
+            roleService.Verify(x => x.CheckRoleExistsAsync(1, 1, "test@test.fr"), Times.Once);
+            Assert.Equal(true, (contactHasRoleOnAccount as OkObjectResult)?.Value);
+        }
     }
 }

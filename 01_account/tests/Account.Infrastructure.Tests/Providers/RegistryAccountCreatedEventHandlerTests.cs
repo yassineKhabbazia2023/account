@@ -31,7 +31,7 @@ public class RegistryAccountCreatedEventHandlerTests
     {
         // Arrange
         var loggerMock = new Mock<ILogger<RegistryAccountCreatedEventHandler>>();
-        var repositoryMock = new Mock<IRegistryAccountEventRepository>(MockBehavior.Strict);
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>();
         repositoryMock.Setup(r => r.CreateAccountAsync(It.IsAny<RegistryAccountCreatedEventData>())) !
         .ReturnsAsync(_accountEntity.MapToAccountDetail());
         var publisherMock = new Mock<IAccountEventPublisher>();

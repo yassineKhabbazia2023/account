@@ -15,4 +15,6 @@ public interface IContactEventRepository
     Task RemoveContactAsync(int contactId);
 
     ContactEntity? GetContactById(int contactId);
+
+    Task<bool> DoesContactExistAsync(int contactId);
 }

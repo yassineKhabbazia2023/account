@@ -42,6 +42,11 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
+            if (!_accountContext.ContactEntity.Any(x => x.ContactId == contactId))
+            {
+                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
+            }
+
             IQueryable<AccountEntity> query = _accountContext.AccountEntity
                                                         .AsNoTracking()
                                                         .Include(x => x.RoleEntity)
@@ -102,6 +107,17 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
+            if (!string.IsNullOrWhiteSpace(role.Email))
+            {
+                var contactId = _accountContext.ContactEntity
+                        .AsNoTracking()
+                        .Where(c => c.Email.Equals(role.Email))
+                        .Select(c => c.ContactId)
+                        .FirstOrDefault();
+
+                role.ContactId = contactId;
+            }
+
             if (!await _accountContext.AccountEntity.Include(a => a.DeploymentEntity)
                 .AnyAsync(x => x.AccountId == role.AccountId && x.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked))
             {
@@ -166,6 +182,35 @@ public class RoleRepository : IRoleRepository
 
             _accountContext.Remove(role!);
             await _accountContext.SaveChangesAsync();
+        });
+    }
+
+    public async Task<bool> CheckRoleExistsAsync(int contactId, int? accountId, string email)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var contactToCheck = _accountContext.ContactEntity.FirstOrDefault(x => x.Email.Contains(email));
+
+            // Check if the contact exists
+            if (contactToCheck is null)
+            {
+                return false;
+            }
+
+            IQueryable<AccountEntity> query = _accountContext.AccountEntity
+                                                    .AsNoTracking()
+                                                    .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
+                                                    .Where(a => a.RoleEntity.Any(r => r.ContactId == contactToCheck.ContactId));
+
+            // Add the accountId filter if it's not null
+            if (accountId is not null)
+            {
+                query = query.Where(a => a.AccountId == accountId);
+            }
+
+            var totalRows = await query.CountAsync();
+
+            return totalRows > 0;
         });
     }
 }

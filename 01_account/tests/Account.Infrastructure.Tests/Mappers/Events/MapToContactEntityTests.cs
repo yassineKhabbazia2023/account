@@ -3,7 +3,9 @@
 // </copyright>
 
 using System;
+using FluentAssertions;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
 using Xunit;
@@ -96,5 +98,54 @@ public class MapToContactEntityTests
         Assert.Equal(updatedContact.CreationDate, updatedContact.CreationDate);
         Assert.NotNull(updatedContact.LastUpdateDate);
         Assert.NotEqual(existingContact.LastUpdateDate, updatedContact.LastUpdateDate);
+    }
+
+    [Fact]
+    public void ToContactEntity_ReturnNull_IfContactStateEventDataIsNull()
+    {
+        // arrange
+        ContactStateEventData source = null;
+
+        // act 
+        var result = source.ToContactEntity();
+
+        // arrange
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void ToContactEntity_BothSourceAndDestinationNull_ShouldNotThrowException()
+    {
+        // Arrange
+        ContactEntity source = null;
+        ContactEntity destination = null;
+
+        // Act & Assert
+        var exception = Record.Exception(() => source.ToContactEntity(destination));
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ToContactEntity_SourceNull_ShouldNotThrowException()
+    {
+        // Arrange
+        ContactEntity source = null;
+        var destination = new ContactEntity();
+
+        // Act & Assert
+        var exception = Record.Exception(() => source.ToContactEntity(destination));
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ToContactEntity_DestinationNull_ShouldNotThrowException()
+    {
+        // Arrange
+        var source = new ContactEntity();
+        ContactEntity destination = null;
+
+        // Act & Assert
+        var exception = Record.Exception(() => source.ToContactEntity(destination));
+        Assert.Null(exception);
     }
 }

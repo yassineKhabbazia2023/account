@@ -29,7 +29,7 @@ public class RoleCreatedEventHandlerTests
         var roles = _fixture.CreateMany<CreateRoleRequest>(3);
         var message = "{\"EventType\":\"RoleCreatedEvent\",\"Data\":{\"ContactId\":123, \"AccountId\":456}}";
         var eventRepository = new Mock<IRoleEventRepository>();
-        eventRepository.Setup(r => r.CreateRoleForAutomaticDelegations(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(roles);
+        eventRepository.Setup(r => r.CreateRoleForAutomaticDelegationsAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(roles);
         var publisher = new Mock<IRoleEventPublisher>();
 
         var handler = new RoleCreatedEventHandler(_logger.Object, eventRepository.Object, publisher.Object);
@@ -49,12 +49,12 @@ public class RoleCreatedEventHandlerTests
         publisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
     }
 
-    public static IEnumerable<object[]> Messages()
+    public static TheoryData<string> Messages => new()
     {
-        yield return new object[] { null! };
-        yield return new object[] { string.Empty };
-        yield return new object[] { "{\"EventType\":\"RoleCreatedEvent\"}" };
-        yield return new object[] { "{\"EventType\":\"RoleCreatedEvent\",\"Data\":{\"ContactId\":0, \"AccountId\":456}}" };
-        yield return new object[] { "{\"EventType\":\"RoleCreatedEvent\",\"Data\":{\"ContactId\":123, \"AccountId\":-2}}" };
-    }
+        null!,
+        string.Empty,
+        "{\"EventType\":\"RoleCreatedEvent\"}",
+        "{\"EventType\":\"RoleCreatedEvent\",\"Data\":{\"ContactId\":0, \"AccountId\":456}}",
+        "{\"EventType\":\"RoleCreatedEvent\",\"Data\":{\"ContactId\":123, \"AccountId\":-2}}"
+    };
 }

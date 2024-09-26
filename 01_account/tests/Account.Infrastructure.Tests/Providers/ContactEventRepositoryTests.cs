@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Infrastructure.Context;
@@ -111,7 +110,7 @@ public class ContactEventRepositoryTests
     }
 
     [Fact]
-    public async Task RevokeContactAsync_WithContactData_ShouldCreateContact()
+    public async Task RemoveContactAsync_WithContactData_ShouldCreateContact()
     {
         var options = new DbContextOptionsBuilder<AccountContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
@@ -144,5 +143,82 @@ public class ContactEventRepositoryTests
         Assert.NotNull(updatedContact);
         Assert.Equal(ContactStatus.Removed.ToString(), updatedContact.Status);
         Assert.NotNull(updatedContact.LastUpdateDate);
+    }
+
+    [Fact]
+    public async Task GetContactById_ShouldReturnContact()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using var context = new AccountContext(options);
+
+        var contact = new ContactEntity
+        {
+            ContactId = 2,
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            FirstName = "Jean",
+            LastName = "Pierre",
+            Email = "jeanpierre@kpmg.fr",
+            PersonaName = "collaborator",
+            Status = ContactStatus.Connected.ToString(),
+            Type = "collaborator",
+            CreationDate = DateTime.UtcNow
+        };
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+
+        var repository = new ContactEventRepository(context);
+
+        var result = repository.GetContactById(2);
+
+        Assert.NotNull(result);
+        Assert.Equivalent(contact, result);
+    }
+
+    [Fact]
+    public async Task DoesContactExistAsync_WithExistingContact_ShouldReturnTrue()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using var context = new AccountContext(options);
+
+        var contact = new ContactEntity
+        {
+            ContactId = 3,
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            FirstName = "Jean",
+            LastName = "Pierre",
+            Email = "jeanpierre@kpmg.fr",
+            PersonaName = "collaborator",
+            Type = "collaborator",
+        };
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+
+        var repository = new ContactEventRepository(context);
+
+        var result = await repository.DoesContactExistAsync(3);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task DoesContactExistAsync_WithNoExistingContact_ShouldReturnFalse()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using var context = new AccountContext(options);
+
+        var repository = new ContactEventRepository(context);
+
+        var result = await repository.DoesContactExistAsync(3);
+
+        Assert.False(result);
     }
 }

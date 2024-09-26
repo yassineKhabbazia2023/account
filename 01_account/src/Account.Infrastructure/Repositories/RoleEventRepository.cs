@@ -3,8 +3,6 @@
 // </copyright>
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Client;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
@@ -19,16 +17,13 @@ public class RoleEventRepository : IRoleEventRepository
 {
     private readonly AccountContext _accountContext;
 
-    private readonly ILogger<RoleEventRepository> _logger;
-
-    public RoleEventRepository(AccountContext accountContext, ILogger<RoleEventRepository> logger)
+    public RoleEventRepository(AccountContext accountContext)
     {
         _accountContext = accountContext;
         _accountContext.HandleEFCoreFailure();
-        _logger = logger;
     }
 
-    public async Task<IEnumerable<CreateRoleRequest>> CreateRoleForAutomaticDelegations(int delegatorId, int accountId)
+    public async Task<IEnumerable<CreateRoleRequest>> CreateRoleForAutomaticDelegationsAsync(int delegatorId, int accountId)
     {
         var rolesToCreate = await GetAutomaticDelegations(delegatorId, accountId);
 
@@ -106,19 +101,11 @@ public class RoleEventRepository : IRoleEventRepository
         return rolesCreated;
     }
 
-    public async Task<CreateRoleRequest?> CreateRoleForNewContact(int contactId, string accountNumber)
+    public async Task<CreateRoleRequest?> CreateRoleForNewContactAsync(int contactId, int accountId)
     {
-        var accountEntity = _accountContext.AccountEntity.FirstOrDefault(a => a.AccountNumber == accountNumber);
-
-        if (accountEntity == null)
-        {
-            _logger.LogDebug($"Account with following account number was not found: {accountNumber}");
-            return null!;
-        }
-
         var role = new RoleEntity
         {
-            AccountId = accountEntity.AccountId,
+            AccountId = accountId,
             ContactId = contactId,
             IsSignatory = false,
             IsDelegation = false,
@@ -131,10 +118,15 @@ public class RoleEventRepository : IRoleEventRepository
         return new CreateRoleRequest
         {
             ContactId = contactId,
-            AccountId = role.AccountId,
+            AccountId = accountId,
             IsSignatory = false,
             IsFavorite = false,
             IsDelegation = true
         };
+    }
+
+    public async Task<bool> DoesRoleExistAsync(int contactId, int accountId)
+    {
+        return await _accountContext.RoleEntity.AnyAsync(r => r.ContactId == contactId && r.AccountId == accountId);
     }
 }

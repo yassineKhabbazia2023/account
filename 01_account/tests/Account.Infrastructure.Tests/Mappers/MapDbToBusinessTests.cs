@@ -27,7 +27,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         {
             // Arrange
             var addressEntity = _fixture.Build<AddressEntity>()
-                .With(a => a.AddressType, AddressType.delivery.ToString())
+                .With(a => a.AddressType, AddressType.Delivery.ToString())
                 .Create();
             var contactEntity = _fixture.Build<ContactEntity>()
                 .With(c => c.Type, "1")

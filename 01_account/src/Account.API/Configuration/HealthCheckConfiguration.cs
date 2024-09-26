@@ -2,11 +2,13 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Diagnostics.CodeAnalysis;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace Pulse.Account.API.Configuration
 {
+    [ExcludeFromCodeCoverage]
     public static class HealthCheckConfiguration
     {
         public static void UseHealthcheckUI(IApplicationBuilder app)

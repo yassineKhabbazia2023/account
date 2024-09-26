@@ -65,7 +65,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers.Events
                         ZipCode = "deliveryZipCode",
                         Country = "deliveryCountry",
                         State = "deliveryState",
-                        AddressType = AddressType.delivery.ToString()
+                        AddressType = AddressType.Delivery.ToString()
                     },
                     new AddressEntity
                     {
@@ -76,7 +76,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers.Events
                         ZipCode = "billingZipCOde",
                         Country = "billingCountry",
                         State = "billingState",
-                        AddressType = AddressType.billing.ToString()
+                        AddressType = AddressType.Billing.ToString()
                     }
                 },
                 PhoneEntity = new List<PhoneEntity>
@@ -138,7 +138,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers.Events
                         ZipCode = "deliveryZipCode2",
                         Country = "deliveryCountry2",
                         State = "deliveryState2",
-                        AddressType = AddressType.delivery.ToString()
+                        AddressType = AddressType.Delivery.ToString()
                     },
                     new AddressEntity
                     {
@@ -149,7 +149,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers.Events
                         ZipCode = "billingZipCOde2",
                         Country = "billingCountry2",
                         State = "billingState2",
-                        AddressType = AddressType.billing.ToString()
+                        AddressType = AddressType.Billing.ToString()
                     }
                 },
                 PhoneEntity = new List<PhoneEntity> {
@@ -244,20 +244,20 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers.Events
             Assert.Equal(data.AccountFlagESCActif, result.IsActive);
             Assert.Equal(data.AccountEscCategory, result.ActivityType);
             Assert.Equal(data.DeploymentStatus, result.DeploymentEntity.First().Status.ToString());
-            Assert.Equal(data.BillingAddressLine1, result.AddressEntity.First(x => x.AddressType == AddressType.billing.ToString()).AddressLine1);
-            Assert.Equal(data.BillingAddressLine2, result.AddressEntity.First(x => x.AddressType == AddressType.billing.ToString()).AddressLine2);
-            Assert.Equal(data.BillingAddressLine3, result.AddressEntity.First(x => x.AddressType == AddressType.billing.ToString()).AddressLine3);
-            Assert.Equal(data.BillingZipCode, result.AddressEntity.First(x => x.AddressType == AddressType.billing.ToString()).ZipCode);
-            Assert.Equal(data.BillingCity, result.AddressEntity.First(x => x.AddressType == AddressType.billing.ToString()).City);
-            Assert.Equal(data.BillingCountry, result.AddressEntity.First(x => x.AddressType == AddressType.billing.ToString()).Country);
-            Assert.Equal(data.BillingState, result.AddressEntity.First(x => x.AddressType == AddressType.billing.ToString()).State);
-            Assert.Equal(data.DeliveryAddressLine1, result.AddressEntity.First(x => x.AddressType == AddressType.delivery.ToString()).AddressLine1);
-            Assert.Equal(data.DeliveryAddressLine2, result.AddressEntity.First(x => x.AddressType == AddressType.delivery.ToString()).AddressLine2);
-            Assert.Equal(data.DeliveryAddressLine3, result.AddressEntity.First(x => x.AddressType == AddressType.delivery.ToString()).AddressLine3);
-            Assert.Equal(data.DeliveryZipCode, result.AddressEntity.First(x => x.AddressType == AddressType.delivery.ToString()).ZipCode);
-            Assert.Equal(data.DeliveryCity, result.AddressEntity.First(x => x.AddressType == AddressType.delivery.ToString()).City);
-            Assert.Equal(data.DeliveryCountry, result.AddressEntity.First(x => x.AddressType == AddressType.delivery.ToString()).Country);
-            Assert.Equal(data.DeliveryState, result.AddressEntity.First(x => x.AddressType == AddressType.delivery.ToString()).State);
+            Assert.Equal(data.BillingAddressLine1, result.AddressEntity.First(x => x.AddressType == AddressType.Billing.ToString()).AddressLine1);
+            Assert.Equal(data.BillingAddressLine2, result.AddressEntity.First(x => x.AddressType == AddressType.Billing.ToString()).AddressLine2);
+            Assert.Equal(data.BillingAddressLine3, result.AddressEntity.First(x => x.AddressType == AddressType.Billing.ToString()).AddressLine3);
+            Assert.Equal(data.BillingZipCode, result.AddressEntity.First(x => x.AddressType == AddressType.Billing.ToString()).ZipCode);
+            Assert.Equal(data.BillingCity, result.AddressEntity.First(x => x.AddressType == AddressType.Billing.ToString()).City);
+            Assert.Equal(data.BillingCountry, result.AddressEntity.First(x => x.AddressType == AddressType.Billing.ToString()).Country);
+            Assert.Equal(data.BillingState, result.AddressEntity.First(x => x.AddressType == AddressType.Billing.ToString()).State);
+            Assert.Equal(data.DeliveryAddressLine1, result.AddressEntity.First(x => x.AddressType == AddressType.Delivery.ToString()).AddressLine1);
+            Assert.Equal(data.DeliveryAddressLine2, result.AddressEntity.First(x => x.AddressType == AddressType.Delivery.ToString()).AddressLine2);
+            Assert.Equal(data.DeliveryAddressLine3, result.AddressEntity.First(x => x.AddressType == AddressType.Delivery.ToString()).AddressLine3);
+            Assert.Equal(data.DeliveryZipCode, result.AddressEntity.First(x => x.AddressType == AddressType.Delivery.ToString()).ZipCode);
+            Assert.Equal(data.DeliveryCity, result.AddressEntity.First(x => x.AddressType == AddressType.Delivery.ToString()).City);
+            Assert.Equal(data.DeliveryCountry, result.AddressEntity.First(x => x.AddressType == AddressType.Delivery.ToString()).Country);
+            Assert.Equal(data.DeliveryState, result.AddressEntity.First(x => x.AddressType == AddressType.Delivery.ToString()).State);
         }
     }
 }

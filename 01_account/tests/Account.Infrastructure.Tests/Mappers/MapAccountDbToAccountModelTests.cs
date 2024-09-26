@@ -1,0 +1,755 @@
+﻿// <copyright file="MapAccountDbToAccountModelTests.cs" company="Pulse">
+// Copyright (c) Pulse. All rights reserved.
+// </copyright>
+
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Moq;
+using Pulse.Account.Core.Enum;
+using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Mappers;
+
+namespace Pulse.Account.Infrastructure.Tests.Mappers;
+
+public class MapAccountDbToAccountModelTests
+{
+
+    [Fact]
+    public void MapToPaginAccounts_ShouldMapCorrectly()
+    {
+        // Arrange
+
+        var contactEntity = new ContactEntity
+        {
+            Type = "1",
+            FirstName = "firstUser",
+            LastName = "lastUser",
+            Email = "firstLastUser@test.fr",
+            CreationDate = DateTime.Now,
+            PersonaName = "toto",
+        };
+
+        var roleEntity = new List<RoleEntity>
+                {
+                    new()
+                    {
+                        IsSignatory = true,
+                        Contact = contactEntity,
+                    }
+                };
+
+        var firstAccountEntity = new AccountEntity
+        {
+            RoleEntity = roleEntity,
+            AccountNumber = "199900046522",
+            LegalName = "test scA",
+            Hub = new HubEntity { HubId = 1, HubName = "HubName" },
+            CreatedBy = "me",
+        };
+
+        var secondAccountEntity = new AccountEntity
+        {
+            RoleEntity = roleEntity,
+            AccountNumber = "9876200046522",
+            LegalName = "test scA",
+            Hub = new HubEntity { HubId = 1, HubName = "HubName" },
+            CreatedBy = "me",
+        };
+
+        var firstAccountModel = new Core.Models.Account()
+        {
+            AccountNumber = "199900046522",
+            LegalName = "test scA",
+            Hub = new Hub() { HubId = 1, HubName = "HubName" }
+        };
+
+        var secondAccountModel = new Core.Models.Account()
+        {
+            AccountNumber = "9876200046522",
+            LegalName = "test scA",
+            Hub = new Hub { HubId = 1, HubName = "HubName" },
+        };
+
+        var source = new List<AccountEntity>
+        {
+            firstAccountEntity, secondAccountEntity
+        };
+        int? contactId = 123;
+        int pageNumber = 1;
+        int totalRows = 10;
+        int totalPageCalcul = 2;
+
+        // Mock the MapToAccounts extension method
+        var mockMapper = new Mock<IAccountMapper>();
+        mockMapper.Setup(m => m.MapToAccounts(It.IsAny<ICollection<AccountEntity>>(), It.IsAny<int?>()))
+            .Returns(new List<Core.Models.Account>
+            {
+              firstAccountModel,
+              secondAccountModel
+            });
+
+        // Act
+        var result = source.MapToPaginAccounts(contactId, pageNumber, totalRows, totalPageCalcul);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().BeOfType<Paging<Core.Models.Account>>();
+        result.CurrentPage.Should().Be(pageNumber);
+        result.TotalItems.Should().Be(totalRows);
+        result.TotalPage.Should().Be(totalPageCalcul);
+        result.Items.Should().NotBeNull();
+        result.Items.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void MapToPagingContact_ShouldMapCorrectly()
+    {
+        // arrange
+        Contact firstContact = new Contact()
+        {
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            ContactId = 1,
+            CreationDate = DateTime.UtcNow,
+            Email = "mdibeh@hakouna.com",
+            FirstName = "Marc",
+            LastName = "Dibeh",
+            Type = "Client",
+            Status = "Active",
+            PersonaName = "HakounaMatata"
+        };
+
+        Contact secondContact = new Contact()
+        {
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            ContactId = 1,
+            CreationDate = DateTime.UtcNow,
+            Email = "koli@haj.fr",
+            FirstName = "Jaji",
+            LastName = "dajaja",
+            Type = "Client",
+            Status = "Active",
+            PersonaName = "HakounaMatata"
+        };
+        List<Contact> contacts = new List<Contact>()
+    {
+        firstContact, secondContact
+    };
+
+        // act
+        var result = contacts.MapToPagingContact(1, 2, 2);
+
+        var pagingContact = new Paging<Contact>()
+        {
+            Items = contacts,
+            CurrentPage = 1,
+            TotalItems = 2,
+            TotalPage = 2
+        };
+        // assert
+        result.Should().NotBeNull();
+        result.Should().BeOfType<Paging<Contact>>();
+        result.Should().BeEquivalentTo(pagingContact);
+    }
+
+    [Fact]
+    public void MapToContact_ShouldMapCorrectly()
+    {
+        // arrange
+        var contactEntity = new ContactEntity
+        {
+            ContactId = 1,
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            Office = "PULSE",
+            FirstName = "firstUser",
+            LastName = "lastUser",
+            Email = "firstLastUser@test.fr",
+            CreationDate = DateTime.Now,
+            PersonaName = "toto",
+            Status = "Active"
+        };
+
+        // act
+        var contact = contactEntity.MapToContact();
+
+        // assert
+        contact.Should().NotBeNull();
+        contact.Should().BeOfType<Contact>();
+        contact?.Status.Should().Be(contactEntity.Status);
+        contact?.ContactId.Should().Be(contactEntity.ContactId);
+        contact?.ContactGlobalUniqueId.Should().Be(contactEntity.ContactGlobalUniqueId);
+        contact?.Office.Should().BeEquivalentTo(contactEntity.Office);
+        contact?.FirstName.Should().BeEquivalentTo(contactEntity.FirstName);
+        contact?.LastName.Should().BeEquivalentTo(contactEntity.LastName);
+        contact?.Email.Should().BeEquivalentTo(contactEntity.Email);
+        contact?.CreationDate.Should().Be(contactEntity.CreationDate);
+        contact?.PersonaName.Should().BeEquivalentTo(contactEntity.PersonaName);
+    }
+
+    [Fact]
+    public void MapToDeployment_ShouldReturnDefaultDeplymentIfDeploymentEntityIsNull()
+    {
+        // arrange
+        var accountEntity = new AccountEntity
+        {
+            DeploymentEntity = null,
+            AccountNumber = "199900046522",
+            LegalName = "test scA",
+            Hub = new HubEntity { HubId = 1, HubName = "HubName" },
+            CreatedBy = "me",
+        };
+
+        // act
+        var deployment = accountEntity.MapToDeployment();
+
+        deployment.Should().BeEquivalentTo(new Deployment());
+    }
+
+    [Fact]
+    public void MapToDeployment_ShouldMapCorrectly()
+    {
+        // arrange
+        var firstDeployment = new DeploymentEntity() { Status = 1, DeploymentDate = DateTime.UtcNow, DeploymentId = 1 };
+        var secondDeployment = new DeploymentEntity() { DeploymentId = 2, DeploymentDate = DateTime.UtcNow };
+        List<DeploymentEntity> deploymentEntities = new List<DeploymentEntity>()
+        {
+           firstDeployment, secondDeployment
+        };
+        var accountEntity = new AccountEntity
+        {
+            DeploymentEntity = deploymentEntities,
+            AccountNumber = "199900046522",
+            LegalName = "test scA",
+            Hub = new HubEntity { HubId = 1, HubName = "HubName" },
+            CreatedBy = "me",
+        };
+
+        // act
+        var deployment = accountEntity.MapToDeployment();
+
+        deployment.Should().NotBeNull();
+        deployment?.Status.Should().Be(firstDeployment.Status);
+        deployment?.DeploymentDate.Should().Be(firstDeployment.DeploymentDate);
+        deployment?.DeploymentId.Should().Be(firstDeployment.DeploymentId);
+    }
+
+    [Fact]
+    public void MapToUpdatedAccount_ShouldUpdateExistingAccountCorrectly()
+    {
+        // Arrange
+        var existingAccount = new AccountEntity
+        {
+            AccountId = 1,
+            DeploymentEntity = new List<DeploymentEntity>()
+        };
+
+        var accountDetail = new AccountDetail
+        {
+            Legal = new Legal { StaffSizeRange = "10-50" },
+            Accounting = new Accounting
+            {
+                FiscalExerciseStartDate = new DateTime(2023, 1, 1),
+                FiscalExerciseDuration = 12,
+                AccountingType = "Type1",
+                FiscalSystem = "System1",
+                TaxationSystem = "Tax1",
+                ActivityType = "Activity1",
+                ActivityDescription = "Description1"
+            },
+            Deployment = new Deployment
+            {
+                DeploymentDate = new DateTime(2023, 6, 1),
+                Status = 1
+            },
+            Hub = new Hub { HubId = 5 },
+            Vat = new Vat { System = "VatSystem1", Type = "VatType1" }
+        };
+
+        // Act
+        existingAccount.MapToUpdatedAccount(accountDetail);
+
+        // Assert
+        existingAccount.StaffSizeRange.Should().Be("10-50");
+        existingAccount.FiscalExerciseStartDate.Should().Be(new DateTime(2023, 1, 1));
+        existingAccount.FiscalExerciseDuration.Should().Be(12);
+        existingAccount.AccountingMethod.Should().Be("Type1");
+        existingAccount.FiscalSystem.Should().Be("System1");
+        existingAccount.TaxationSystem.Should().Be("Tax1");
+        existingAccount.ActivityType.Should().Be("Activity1");
+        existingAccount.ActivityDescription.Should().Be("Description1");
+
+        existingAccount.DeploymentEntity.Should().NotBeNull();
+        existingAccount.DeploymentEntity.Should().HaveCount(1);
+        var deployment = existingAccount.DeploymentEntity.First();
+        deployment.AccountId.Should().Be(1);
+        deployment.DeploymentDate.Should().Be(new DateTime(2023, 6, 1));
+        deployment.Status.Should().Be(1);
+
+        existingAccount.HubId.Should().Be(5);
+        existingAccount.Vat.Should().Be("VatSystem1");
+        existingAccount.Vattype.Should().Be("VatType1");
+    }
+
+    [Fact]
+    public void MapToUpdatedAccount_WithNullProperties_ShouldNotUpdateCorrespondingFields()
+    {
+        // Arrange
+        var existingAccount = new AccountEntity
+        {
+            AccountId = 1,
+            StaffSizeRange = "Original",
+            FiscalExerciseStartDate = new DateTime(2022, 1, 1),
+            DeploymentEntity = new List<DeploymentEntity>()
+        };
+
+        var accountDetail = new AccountDetail
+        {
+            Legal = null,
+            Accounting = null,
+            Deployment = null,
+            Hub = null,
+            Vat = null
+        };
+
+        // Act
+        existingAccount.MapToUpdatedAccount(accountDetail);
+
+        // Assert
+        existingAccount.StaffSizeRange.Should().Be("Original");
+        existingAccount.FiscalExerciseStartDate.Should().Be(new DateTime(2022, 1, 1));
+        existingAccount.DeploymentEntity.Should().BeEmpty();
+        existingAccount.HubId.Should().BeNull();
+        existingAccount.Vat.Should().BeNull();
+        existingAccount.Vattype.Should().BeNull();
+    }
+
+    [Fact]
+    public void MapToUpdatedAccount_WithExistingDeployment_ShouldUpdateExistingDeployment()
+    {
+        // Arrange
+        var existingAccount = new AccountEntity
+        {
+            AccountId = 1,
+            DeploymentEntity = new List<DeploymentEntity>
+            {
+                new DeploymentEntity
+                {
+                    AccountId = 1,
+                    DeploymentDate = new DateTime(2022, 1, 1),
+                    Status = -1
+                }
+            }
+        };
+
+        var accountDetail = new AccountDetail
+        {
+            Deployment = new Deployment
+            {
+                DeploymentDate = new DateTime(2023, 6, 1),
+                Status = 1
+            }
+        };
+
+        // Act
+        existingAccount.MapToUpdatedAccount(accountDetail);
+
+        // Assert
+        existingAccount.DeploymentEntity.Should().HaveCount(1);
+        var deployment = existingAccount.DeploymentEntity.First();
+        deployment.AccountId.Should().Be(1);
+        deployment.DeploymentDate.Should().Be(new DateTime(2023, 6, 1));
+        deployment.Status.Should().Be(1);
+    }
+    [Fact]
+    public void InitStatistic_WithValidData_ShouldReturnCorrectStatistics()
+    {
+        var countByAccountStatus = new Dictionary<int, int>
+        {
+            { 1, 10 },
+            { 2, 20 },
+            { 3, 30 },
+            { 4, 40 }
+        };
+
+        var countByContactStatus = new Dictionary<string, int>
+        {
+            { ContactStatus.Connected.ToString(), 50 },
+            { ContactStatus.Declared.ToString(), 60 },
+            { ContactStatus.Invited.ToString(), 70 }
+        };
+
+        // Act
+        var result = MapAccountDbToAccountModel.InitStatistic(countByAccountStatus, countByContactStatus);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.AccountToDeploy.Should().Be(10);
+        result.AccountInProgress.Should().Be(20);
+        result.AccountConnected.Should().Be(30);
+        result.AccountRevoked.Should().Be(40);
+        result.ContactConnected.Should().Be(50);
+        result.ContactDeclared.Should().Be(60);
+        result.ContactInvited.Should().Be(70);
+    }
+
+    [Fact]
+    public void InitStatistic_WithMissingData_ShouldReturnZeroForMissingValues()
+    {
+        // Arrange
+        var countByAccountStatus = new Dictionary<int, int>
+        {
+            { 1, 10 },
+            { 3, 30 }
+        };
+
+        var countByContactStatus = new Dictionary<string, int>
+        {
+            { ContactStatus.Connected.ToString(), 50 },
+            { ContactStatus.Invited.ToString(), 70 }
+        };
+
+        // Act
+        var result = MapAccountDbToAccountModel.InitStatistic(countByAccountStatus, countByContactStatus);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.AccountToDeploy.Should().Be(10);
+        result.AccountInProgress.Should().Be(0);
+        result.AccountConnected.Should().Be(30);
+        result.AccountRevoked.Should().Be(0);
+        result.ContactConnected.Should().Be(50);
+        result.ContactDeclared.Should().Be(0);
+        result.ContactInvited.Should().Be(70);
+    }
+
+    [Fact]
+    public void InitStatistic_WithNullDictionaries_ShouldReturnZeroForAllValues()
+    {
+        // Act
+        var result = MapAccountDbToAccountModel.InitStatistic(null, null);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.AccountToDeploy.Should().Be(0);
+        result.AccountInProgress.Should().Be(0);
+        result.AccountConnected.Should().Be(0);
+        result.AccountRevoked.Should().Be(0);
+        result.ContactConnected.Should().Be(0);
+        result.ContactDeclared.Should().Be(0);
+        result.ContactInvited.Should().Be(0);
+    }
+
+    [Fact]
+    public void InitStatistic_WithEmptyDictionaries_ShouldReturnZeroForAllValues()
+    {
+        // Arrange
+        var countByAccountStatus = new Dictionary<int, int>();
+        var countByContactStatus = new Dictionary<string, int>();
+
+        // Act
+        var result = MapAccountDbToAccountModel.InitStatistic(countByAccountStatus, countByContactStatus);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.AccountToDeploy.Should().Be(0);
+        result.AccountInProgress.Should().Be(0);
+        result.AccountConnected.Should().Be(0);
+        result.AccountRevoked.Should().Be(0);
+        result.ContactConnected.Should().Be(0);
+        result.ContactDeclared.Should().Be(0);
+        result.ContactInvited.Should().Be(0);
+    }
+
+
+    [Fact]
+    public void UpdateDeploymentToEntity_WithNullDeploymentEntity_ShouldCreateNewDeploymentEntity()
+    {
+        // Arrange
+        var deployment = new Deployment { Status = 1 };
+        var account = new AccountEntity { DeploymentEntity = null };
+
+        // Act
+        deployment.UpdateDeploymentToEntity(account);
+
+        // Assert
+        account.DeploymentEntity.ToList().Should().NotBeNull();
+        account.DeploymentEntity.ToList().Should().HaveCount(1);
+        account.DeploymentEntity.ToArray().FirstOrDefault()?.Status.Should().Be(1);
+        account.DeploymentEntity.ToArray().FirstOrDefault()?.DeploymentDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
+    public void UpdateDeploymentToEntity_WithExistingDeploymentEntity_ShouldUpdateExistingEntity()
+    {
+        // Arrange
+        var deployment = new Deployment { Status = 1 };
+        var account = new AccountEntity
+        {
+            DeploymentEntity = new List<DeploymentEntity>
+            {
+                new DeploymentEntity
+                {
+                    Status = 1,
+                    DeploymentDate = DateTime.UtcNow.AddDays(-1)
+                }
+            }
+        };
+
+        // Act
+        deployment.UpdateDeploymentToEntity(account);
+
+        // Assert
+        account.DeploymentEntity.Should().HaveCount(1);
+        account.DeploymentEntity.ToArray().FirstOrDefault()?.Status.Should().Be(1);
+        account.DeploymentEntity.ToArray().FirstOrDefault()?.DeploymentDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
+    public void UpdateDeploymentToEntity_WithMultipleExistingDeploymentEntities_ShouldUpdateFirstEntity()
+    {
+        // Arrange
+        var deployment = new Deployment { Status = 0 };
+        var account = new AccountEntity
+        {
+            DeploymentEntity = new List<DeploymentEntity>
+            {
+                new DeploymentEntity
+                {
+                    Status = 1,
+                    DeploymentDate = DateTime.UtcNow.AddDays(-2)
+                },
+                new DeploymentEntity
+                {
+                    Status = 2,
+                    DeploymentDate = DateTime.UtcNow.AddDays(-1)
+                }
+            }
+        };
+
+        // Act
+        deployment.UpdateDeploymentToEntity(account);
+
+        // Assert
+        account.DeploymentEntity.Should().HaveCount(2);
+        account.DeploymentEntity.ToArray().FirstOrDefault()?.Status.Should().Be(0);
+        account.DeploymentEntity.ToArray().FirstOrDefault()?.DeploymentDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        account.DeploymentEntity.ToArray()[1].Status.Should().Be(2);
+        account.DeploymentEntity.ToArray()[1]?.DeploymentDate.Should().BeCloseTo(DateTime.UtcNow.AddDays(-1), TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
+    public void MapToAccounts_WithNullSource_ShouldReturnEmptyEnumerable()
+    {
+        // Arrange
+        ICollection<AccountEntity> source = null;
+        int? contactId = 1;
+
+        // Act
+        var result = MapAccountDbToAccountModel.MapToAccounts(source, contactId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void MapToAccounts_WithValidSource_ShouldMapCorrectly()
+    {
+        // Arrange
+        var source = new List<AccountEntity>
+        {
+            new AccountEntity { AccountId = 1, AccountNumber = "123" },
+            new AccountEntity { AccountId = 2, AccountNumber = "456" }
+        };
+        int? contactId = 1;
+
+        // Act
+        var result = MapAccountDbToAccountModel.MapToAccounts(source, contactId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+        result.ElementAt(0).AccountId.Should().Be(1);
+        result.ElementAt(1).AccountId.Should().Be(2);
+    }
+
+    [Fact]
+    public void MapToAccount_WithNullSource_ShouldReturnNull()
+    {
+        // Arrange
+        AccountEntity source = null;
+        int? contactId = 1;
+
+        // Act
+        var result = MapAccountDbToAccountModel.MapToAccount(source, contactId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void MapToAccount_WithValidSource_ShouldMapCorrectly()
+    {
+        // Arrange
+        var source = new AccountEntity
+        {
+            AccountId = 1,
+            AccountGlobalUniqueId = Guid.NewGuid(),
+            AccountNumber = "123",
+            LegalName = "Test Company",
+            RoleEntity = new List<RoleEntity>
+            {
+                new RoleEntity
+                {
+                    IsSignatory = true,
+                    Contact = new ContactEntity { Type = "Client" }
+                }
+            },
+            AddressEntity = new List<AddressEntity>
+            {
+                new AddressEntity { AddressType = "Delivery" }
+            },
+            DeploymentEntity = new List<DeploymentEntity>
+            {
+                new DeploymentEntity { Status = 1 }
+            },
+            Hub = new HubEntity { HubId = 1, HubName = "Test Hub" }
+        };
+        int? contactId = 1;
+
+        // Act
+        var result = MapAccountDbToAccountModel.MapToAccount(source, contactId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.AccountId.Should().Be(1);
+        result.AccountGlobalUniqueId.Should().Be(source.AccountGlobalUniqueId);
+        result.AccountNumber.Should().Be("123");
+        result.LegalName.Should().Be("Test Company");
+        result.Signatory.Should().NotBeNull();
+        result.Address.Should().NotBeNull();
+        result.Deployment.Should().NotBeNull();
+        result.Hub.Should().NotBeNull();
+        result.Hub.HubId.Should().Be(1);
+        result.Hub.HubName.Should().Be("Test Hub");
+    }
+
+    [Fact]
+    public void MapToAccountDetail_WithNullSource_ShouldReturnNull()
+    {
+        // Arrange
+        AccountEntity source = null;
+
+        // Act
+        var result = MapAccountDbToAccountModel.MapToAccountDetail(source);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void MapToAccountDetail_WithValidSource_ShouldMapCorrectly()
+    {
+        // Arrange
+        var source = new AccountEntity
+        {
+            AccountId = 1,
+            AccountGlobalUniqueId = Guid.NewGuid(),
+            AccountNumber = "123",
+            IconName = "icon.png",
+            IsActive = true,
+            Email = "test@example.com",
+            StaffSize = 50,
+            CommercialName = "Test Corp",
+            Vat = "VAT123",
+            Vatintra = "VATINTRA123",
+            Vattype = "TYPE1",
+            AddressEntity = new List<AddressEntity>(),
+            PhoneEntity = new List<PhoneEntity>(),
+            Hub = new HubEntity { HubId = 1, HubName = "Test Hub" },
+            DeploymentEntity = new List<DeploymentEntity> { new DeploymentEntity { Status = 1 } }
+        };
+
+        // Act
+        var result = MapAccountDbToAccountModel.MapToAccountDetail(source);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.AccountId.Should().Be(1);
+        result.AccountGlobalUniqueId.Should().Be(source.AccountGlobalUniqueId);
+        result.AccountNumber.Should().Be("123");
+        result.IconName.Should().Be("icon.png");
+        result.IsActive.Should().BeTrue();
+        result.Email.Should().Be("test@example.com");
+        result.EmployeeCount.Should().Be(50);
+        result.CommercialName.Should().Be("Test Corp");
+        result.Vat.Should().NotBeNull();
+        result.Vat.System.Should().Be("VAT123");
+        result.Vat.Intra.Should().Be("VATINTRA123");
+        result.Vat.Type.Should().Be("TYPE1");
+        result.Address.Should().NotBeNull();
+        result.Phone.Should().NotBeNull();
+        result.Hub.Should().NotBeNull();
+        result.Deployment.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void MapToStatistics_WithNullDictionaries_ShouldReturnZeroValues()
+    {
+        // Arrange
+        Dictionary<int, int> countByAccountStatus = null;
+        Dictionary<string, int> countByContactStatus = null;
+
+        // Act
+        var result = MapAccountDbToAccountModel.MapToStatistics(countByAccountStatus, countByContactStatus);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.AccountToDeploy.Should().Be(0);
+        result.AccountInProgress.Should().Be(0);
+        result.AccountConnected.Should().Be(0);
+        result.AccountRevoked.Should().Be(0);
+        result.ContactConnected.Should().Be(0);
+        result.ContactDeclared.Should().Be(0);
+        result.ContactInvited.Should().Be(0);
+    }
+
+    [Fact]
+    public void MapToStatistics_WithValidDictionaries_ShouldMapCorrectly()
+    {
+        // Arrange
+        var countByAccountStatus = new Dictionary<int, int>
+        {
+            { 1, 10 },
+            { 2, 20 },
+            { 3, 30 },
+            { 4, 40 }
+        };
+        var countByContactStatus = new Dictionary<string, int>
+        {
+            { ContactStatus.Connected.ToString(), 50 },
+            { ContactStatus.Declared.ToString(), 60 },
+            { ContactStatus.Invited.ToString(), 70 }
+        };
+
+        // Act
+        var result = MapAccountDbToAccountModel.MapToStatistics(countByAccountStatus, countByContactStatus);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.AccountToDeploy.Should().Be(10);
+        result.AccountInProgress.Should().Be(20);
+        result.AccountConnected.Should().Be(30);
+        result.AccountRevoked.Should().Be(40);
+        result.ContactConnected.Should().Be(50);
+        result.ContactDeclared.Should().Be(60);
+        result.ContactInvited.Should().Be(70);
+    }
+
+    // This interface is added to make the MapToAccounts method mockable
+    public interface IAccountMapper
+    {
+        ICollection<Core.Models.Account> MapToAccounts(ICollection<AccountEntity> source, int? contactId);
+    }
+}

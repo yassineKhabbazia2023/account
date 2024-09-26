@@ -29,7 +29,7 @@ public class RegistryRoleCreatedEventHandlerTests
     {
         // Arrange
         var loggerMock = new Mock<ILogger<RegistryRoleCreatedEventHandler>>();
-        var repositoryMock = new Mock<IRegistryRoleEventRepository>(MockBehavior.Strict);
+        var repositoryMock = new Mock<IRegistryRoleEventRepository>();
         repositoryMock.Setup(r => r.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>()))
         .ReturnsAsync(_roleEntity.ToCreateRoleRequest());
         var publisherMock = new Mock<IRoleEventPublisher>();
@@ -41,7 +41,9 @@ public class RegistryRoleCreatedEventHandlerTests
             It.IsAny<Exception?>(),
             (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
 
-        var handler = new RegistryRoleCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var roleRepo = new Mock<IRoleRepository>();
+
+        var handler = new RegistryRoleCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, roleRepo.Object);
         var message = "{\"EventType\":\"RegistryRoleCreatedEvent\",\"Data\":{\"AccountId\": \"" + Guid.NewGuid().ToString() + "\",\"ContactId\": \"" + Guid.NewGuid().ToString() + "\",\"Email\":\"test@email.fr\"}}";
 
         // Act
@@ -61,7 +63,7 @@ public class RegistryRoleCreatedEventHandlerTests
         repositoryMock.Setup(r => r.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>())) !
         .ReturnsAsync(_roleEntity.ToCreateRoleRequest());
         var publisherMock = new Mock<IRoleEventPublisher>();
-        var handler = new RegistryRoleCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var handler = new RegistryRoleCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, null!);
 
         // Act
         await handler.HandleAsync(null!);
@@ -80,10 +82,37 @@ public class RegistryRoleCreatedEventHandlerTests
         repositoryMock.Setup(r => r.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>())) !
         .ReturnsAsync(_roleEntity.ToCreateRoleRequest());
         var publisherMock = new Mock<IRoleEventPublisher>();
-        var handler = new RegistryRoleCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var handler = new RegistryRoleCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, null!);
         var message = "{\"EventType\":\"RegistryRoleCreatedEvent\"}";
 
         // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(repo => repo.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>()), Times.Never);
+        publisherMock.Verify(p => p.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithExistingRole_ShouldNotCreateRole()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryRoleCreatedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryRoleEventRepository>();
+        var publisherMock = new Mock<IRoleEventPublisher>();
+
+        var role = new Account.Core.Models.Role
+        {
+            AccountId = 1,
+            ContactId = 2
+        };
+        var roleRepo = new Mock<IRoleRepository>();
+        roleRepo.Setup(x => x.GetContactRoleAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(role);
+
+        var handler = new RegistryRoleCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, roleRepo.Object);
+
+        // Act
+        var message = "{\"EventType\":\"RegistryRoleCreatedEvent\",\"Data\":{\"AccountId\": \"" + Guid.NewGuid().ToString() + "\",\"ContactId\": \"" + Guid.NewGuid().ToString() + "\",\"Email\":\"test@email.fr\"}}";
         await handler.HandleAsync(message);
 
         // Assert

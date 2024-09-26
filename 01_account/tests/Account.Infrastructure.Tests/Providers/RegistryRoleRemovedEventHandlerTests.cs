@@ -8,6 +8,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Account.Infrastructure.Providers;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
+using Pulse.Back.Events.IntegrationEvents;
 
 namespace Pulse.Role.Infrastructure.Tests.Providers;
 
@@ -19,6 +20,7 @@ public class RegistryRoleRemovedEventHandlerTests
         // Arrange
         var loggerMock = new Mock<ILogger<RegistryRoleRemovedEventHandler>>();
         var repositoryMock = new Mock<IRegistryRoleEventRepository>();
+        repositoryMock.Setup(x => x.RemoveRoleAsync(It.IsAny<RegistryRoleRemovedEventData>())).ReturnsAsync((1, 1));
         var publisherMock = new Mock<IRoleEventPublisher>();
 
         loggerMock.Setup(x => x.Log(
@@ -37,6 +39,33 @@ public class RegistryRoleRemovedEventHandlerTests
         // Assert
         repositoryMock.Verify(repo => repo.RemoveRoleAsync(It.IsAny<RegistryRoleRemovedEventData>()), Times.Once);
         publisherMock.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithNoRole_ShouldRemovesRole_And_NotPublishEvent()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryRoleRemovedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryRoleEventRepository>();
+        repositoryMock.Setup(x => x.RemoveRoleAsync(It.IsAny<RegistryRoleRemovedEventData>())).ReturnsAsync((0, 0));
+        var publisherMock = new Mock<IRoleEventPublisher>();
+
+        loggerMock.Setup(x => x.Log(
+            It.IsAny<LogLevel>(),
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception?>(),
+            (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
+
+        var handler = new RegistryRoleRemovedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var message = "{\"EventType\":\"RegistryRoleRemovedEvent\",\"Data\":{\"AccountId\": \"" + Guid.NewGuid().ToString() + "\",\"ContactId\": \"" + Guid.NewGuid().ToString() + "\",\"Email\":\"test@email.fr\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(repo => repo.RemoveRoleAsync(It.IsAny<RegistryRoleRemovedEventData>()), Times.Once);
+        publisherMock.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
 
     [Fact]

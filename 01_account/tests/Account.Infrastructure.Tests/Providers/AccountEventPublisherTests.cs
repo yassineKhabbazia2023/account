@@ -4,9 +4,11 @@
 
 using AutoFixture;
 using Moq;
+using Org.BouncyCastle.Asn1.Crmf;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Providers;
 using Pulse.Back.Events.Abstractions;
+using Pulse.Back.Events.IntegrationEvents;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
 
 namespace Pulse.Account.Infrastructure.Tests.Providers
@@ -63,6 +65,30 @@ namespace Pulse.Account.Infrastructure.Tests.Providers
 
             // Assert
             publisherMock.Verify(p => p.PublishAsync(It.IsAny<BaseEvent<AccountRemovedEventData>>(), null!, null), Times.Once);
+        }
+
+        [Fact]
+        public async Task PublishAccountCreatedStateAsync_ShouldDoNothingIfAccountIsNull()
+        {
+            var publisherMock = new Mock<IEventPublisher>();
+            var accountEventPublisher = new AccountEventPublisher(publisherMock.Object);
+            AccountDetail account = null;
+
+            await accountEventPublisher.PublishAccountCreatedEventAsync(account);
+
+            publisherMock.Verify(x => x.PublishAsync(It.IsAny<BaseEvent<AccountStateEventData>>(), null, null), Times.Never);
+        }
+
+        [Fact]
+        public async Task PublishAccountUpdatedEventAsync_ShouldDoNothing_IfAccountIsNull()
+        {
+            var publisherMock = new Mock<IEventPublisher>();
+            var accountEventPublisher = new AccountEventPublisher(publisherMock.Object);
+            AccountDetail account = null;
+
+            await accountEventPublisher.PublishAccountUpdatedEventAsync(account);
+
+            publisherMock.Verify(x => x.PublishAsync(It.IsAny<BaseEvent<AccountStateEventData>>(), null, null), Times.Never);
         }
     }
 }

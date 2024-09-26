@@ -46,9 +46,17 @@ namespace Pulse.Account.Infrastructure.Providers
             }
 
             var (accountId, contactId) = await _roleEventRepository.RemoveRoleAsync(@event!.Data);
-            _logger.LogInformation("L'entité avec l'identifiant suivant: AccountId: {AccountId}, ContactId: {ContactId} vient d'être mise à jour.", accountId, contactId);
 
-            await _roleEventPublisher.PublishRoleDeletedEventAsync(accountId, contactId);
+            if (accountId == 0 || contactId == 0)
+            {
+                _logger.LogWarning($"Le rôle n'existe pas dans la base.");
+            }
+            else
+            {
+                _logger.LogInformation($"L'entité avec l'identifiant suivant: AccountId: {accountId}, ContactId: {contactId} vient d'être supprimé.");
+
+                await _roleEventPublisher.PublishRoleDeletedEventAsync(accountId, contactId);
+            }
         }
     }
 }

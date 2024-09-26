@@ -247,7 +247,7 @@ public class DelegationRepository : IDelegationRepository
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            var dbIds = await _accountContext.ContactEntity.Select(c => c.ContactId).ToListAsync();
+            var dbIds = await _accountContext.ContactEntity.AsNoTracking().Select(c => c.ContactId).ToListAsync();
             missingIds = contactIds.Except(dbIds).ToList();
         });
 
@@ -269,10 +269,7 @@ public class DelegationRepository : IDelegationRepository
 
     private async Task<IEnumerable<AccountEntity>> GetAccounts(IEnumerable<int> accountIds)
     {
-        var accountEntities = new List<AccountEntity>();
-        accountEntities = await _accountContext.AccountEntity.Where(a => accountIds.Contains(a.AccountId)).ToListAsync();
-
-        return accountEntities;
+        return await _accountContext.AccountEntity.Where(a => accountIds.Contains(a.AccountId)).ToListAsync();
     }
 
     private async Task<IEnumerable<int>> CheckExistingAccountsAsync(IEnumerable<int> accountIds)
@@ -281,7 +278,7 @@ public class DelegationRepository : IDelegationRepository
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            var dbIds = await _accountContext.AccountEntity.Select(a => a.AccountId).ToListAsync();
+            var dbIds = await _accountContext.AccountEntity.AsNoTracking().Select(a => a.AccountId).ToListAsync();
             missingIds = accountIds.Except(dbIds).ToList();
         });
 
@@ -290,11 +287,9 @@ public class DelegationRepository : IDelegationRepository
 
     private async Task<DelegationEntity> GetDelegationAsync(int delegationId)
     {
-        DelegationEntity? tDelegation = null;
-
-        await _retryPolicy.ExecuteAsync(async () =>
+        DelegationEntity? tDelegation = await _retryPolicy.ExecuteAsync(async () =>
         {
-            tDelegation = await _accountContext.DelegationEntity
+            return await _accountContext.DelegationEntity
                 .Include(d => d.Account)
                 .FirstOrDefaultAsync(d => d.DelegationId == delegationId);
         });

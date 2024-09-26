@@ -44,38 +44,70 @@ namespace Pulse.Account.Infrastructure.Repositories
 
         public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination)
         {
+            var deployments = _accountContext.DeploymentEntity
+                .AsNoTracking()
+                .Where(d => d.Status != (int)DeploymentStatus.Revoked);
+
+            if (criteria.DeploymentStatus.HasValue)
+            {
+                deployments = deployments.Where(dp => dp.Status == criteria.DeploymentStatus.Value);
+            }
+
+            var query = deployments.Select(d => d.Account).Distinct().Include(a => a.RoleEntity)
+                    .ThenInclude(r => r.Contact)
+                    .Where(a => a.RoleEntity.Any(r => r.ContactId == criteria.ContactId))
+                    .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(criteria.Search))
+            {
+                criteria.Search = criteria.Search.ToLowerInvariant();
+                query = query
+                    .Where(q => q.LegalName.ToLower().Contains(criteria.Search) || q.AccountNumber.Contains(criteria.Search) ||
+                q.RoleEntity.Any(role => role.IsSignatory == true && ((role.Contact.FirstName + " " + role.Contact.LastName).ToLower().Contains(criteria.Search)
+                                                  || role.Contact.Email.ToLower().Contains(criteria.Search))));
+            }
+
+            query = query.OrderBy(q => q.LegalName);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
+
+            query = query.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
+            query = query.Take(pagination!.PageSize);
+
+            query = query.Include(a => a.AddressEntity).Include(a => a.DeploymentEntity);
+
+            return MapAccountDbToAccountModel.MapToPaginAccounts(
+                await query.ToListAsync(),
+                criteria.ContactId,
+                pagination!.PageNumber,
+                totalItems,
+                totalPages);
+        }
+
+        public async Task<Paging<AccountModel>> GetAllAccountsAsync(string? accountNumber, Pagination pagination)
+        {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                IQueryable<AccountEntity> query = GetAccountQueryByContactId(criteria.ContactId);
+                IQueryable<AccountEntity> query = GetAccountQueryByContactId(null);
 
-                if (criteria.DeploymentStatus != null)
+                if (!string.IsNullOrWhiteSpace(accountNumber))
                 {
                     query = from n in query
-                            where n.DeploymentEntity.Any(dp => dp.Status.Equals(criteria.DeploymentStatus))
-                            select n;
-                }
-
-                if (!string.IsNullOrWhiteSpace(criteria.Search))
-                {
-                    criteria.Search = criteria.Search.ToLowerInvariant();
-                    query = from n in query
-                            where n.LegalName.ToLower().Contains(criteria.Search)
-                                  || n.AccountNumber.ToLower().Contains(criteria.Search)
-                                  || n.RoleEntity.Any(role => role.IsSignatory == true && ((role.Contact.FirstName + " " + role.Contact.LastName).ToLower().Contains(criteria.Search)
-                                                      || role.Contact.Email.ToLower().Contains(criteria.Search)))
+                            where n.AccountNumber.Contains(accountNumber)
                             select n;
                 }
 
                 var totalItems = await query.CountAsync();
-                var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+                var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
 
-                query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
-                query = query.Take(pagination.PageSize);
+                query = query.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
+                query = query.Take(pagination!.PageSize);
 
                 return MapAccountDbToAccountModel.MapToPaginAccounts(
                     await query.ToListAsync(),
-                    criteria.ContactId,
-                    pagination.PageNumber,
+                    null,
+                    pagination!.PageNumber,
                     totalItems,
                     totalPages);
             });
@@ -83,10 +115,9 @@ namespace Pulse.Account.Infrastructure.Repositories
 
         public async Task<AccountDetail?> GetAccountAsync(int accountId)
         {
-            AccountEntity? account = null;
-            await _retryPolicy.ExecuteAsync(async () =>
+            AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>
             {
-                account = await _accountContext.AccountEntity
+                return await _accountContext.AccountEntity
                        .AsNoTracking()
                        .FirstOrDefaultAsync(a => a.AccountId == accountId);
             });
@@ -101,10 +132,9 @@ namespace Pulse.Account.Infrastructure.Repositories
 
         public async Task<AccountDetail?> GetAccountDetailAsync(int accountId)
         {
-            AccountEntity? account = null;
-            await _retryPolicy.ExecuteAsync(async () =>
+            AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>
             {
-                account = await _accountContext.AccountEntity
+                return await _accountContext.AccountEntity
                        .AsNoTracking()
                        .Include(x => x.RoleEntity)
                        .ThenInclude(r => r.Contact)
@@ -129,7 +159,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             AccountDetail? toReturn = null!;
             await _retryPolicy.ExecuteAsync(async () =>
             {
-                var existingAccount = await _accountContext.AccountEntity.SingleAsync(x => x.AccountId == accountId);
+                var existingAccount = await _accountContext.AccountEntity.FirstOrDefaultAsync(x => x.AccountId == accountId);
                 if (existingAccount == null)
                 {
                     throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
@@ -163,7 +193,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                             select n;
                 }
 
-                if (criteria.Type != null && System.Enum.IsDefined(typeof(ContactType), criteria.Type))
+                if (criteria.Type != null && Enum.IsDefined(typeof(ContactType), criteria.Type))
                 {
                     query = query.Where(x => x.Type.Equals(criteria.Type.ToString()));
                 }
@@ -172,13 +202,13 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 var totalItems = await query.CountAsync();
 
-                var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+                var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
 
-                query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
-                query = query.Take(pagination.PageSize);
+                query = query.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
+                query = query.Take(pagination!.PageSize);
 
                 var result = await query.ToListAsync();
-                if (result == null)
+                if (result.Count() == 0)
                 {
                     throw new NotFoundException(Errors.NotFoundContactsCode, Errors.NotFoundContactsMessage);
                 }
@@ -186,7 +216,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 var contacts = result.Select(c => c.MapToContact());
 
                 return contacts!.MapToPagingContact(
-                    pagination.PageNumber,
+                    pagination!.PageNumber,
                     totalItems,
                     totalPages);
             });
@@ -205,7 +235,8 @@ namespace Pulse.Account.Infrastructure.Repositories
                 var query = _accountContext.RoleEntity
                         .AsNoTracking()
                         .Include(x => x.Contact)
-                        .Where(x => accountIds.Contains(x.AccountId) && x.Contact.Type == request.ContactType.ToString().ToLower());
+                        .Where(x => accountIds.Contains(x.AccountId)
+                        && x.Contact.Type.ToLower() == request.ContactType.ToString().ToLower());
 
                 if (!request.Search.IsNullOrEmpty())
                 {
@@ -218,29 +249,35 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 query = query.GroupBy(x => x.ContactId).Select(g => g.First());
                 var totalItems = await query.CountAsync();
-                var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+                var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
 
-                query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
-                query = query.Take(pagination.PageSize);
+                query = query.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
+                query = query.Take(pagination!.PageSize);
 
                 return (await query
                         .ToListAsync())
                         .MapToContacts()
-                        .MapToPagingContact(pagination.PageNumber, totalItems, totalPages);
+                        .MapToPagingContact(pagination!.PageNumber, totalItems, totalPages);
             });
         }
 
-        private IQueryable<AccountEntity> GetAccountQueryByContactId(int contactId)
+        private IQueryable<AccountEntity> GetAccountQueryByContactId(int? contactId)
         {
-            return _accountContext.AccountEntity
-                            .AsNoTracking()
+            IQueryable<AccountEntity> query = _accountContext.AccountEntity
                             .Include(x => x.RoleEntity)
                             .ThenInclude(r => r.Contact)
                             .Include(a => a.AddressEntity)
                             .Include(x => x.DeploymentEntity)
                             .Include(x => x.Hub)
-                            .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId) && a.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked)
-                            .OrderBy(a => a.LegalName);
+                            .AsNoTracking()
+                            .Where(a => a.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked);
+
+            if (contactId != null)
+            {
+                query = query.Where(a => a.RoleEntity.Any(r => r.ContactId == contactId));
+            }
+
+            return query.OrderBy(a => a.LegalName);
         }
 
         private IQueryable<ContactEntity> GetContactEntitiesByAccountId(int accountId)

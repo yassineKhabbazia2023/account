@@ -5,14 +5,15 @@
 using Pulse.Account.Core.Models;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
 
-namespace Pulse.Account.Infrastructure.Providers.Interfaces
+namespace Pulse.Account.Infrastructure.Providers.Interfaces;
+
+public interface IRegistryAccountEventRepository
 {
-    public interface IRegistryAccountEventRepository
-    {
-        public Task<AccountDetail> CreateAccountAsync(RegistryAccountCreatedEventData eventData);
+    public Task<AccountDetail> CreateAccountAsync(RegistryAccountCreatedEventData eventData);
 
-        public Task<AccountDetail> UpdateAccountAsync(RegistryAccountUpdatedEventData eventData);
+    public Task<AccountDetail> UpdateAccountAsync(RegistryAccountUpdatedEventData eventData);
 
-        public Task<int> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier);
-    }
+    public Task<int> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier);
+
+    Task<bool> DoesAccountExistAsync(Guid accountGlobalUniqueId);
 }

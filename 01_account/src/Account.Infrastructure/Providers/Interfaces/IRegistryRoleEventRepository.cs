@@ -3,15 +3,15 @@
 // </copyright>
 
 using Pulse.Account.Core.Requests;
-using Pulse.Account.Infrastructure.Context;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
 
-namespace Pulse.Account.Infrastructure.Providers.Interfaces
-{
-    public interface IRegistryRoleEventRepository
-    {
-        public Task<CreateRoleRequest> CreateRoleAsync(RegistryRoleCreatedEventData eventData);
+namespace Pulse.Account.Infrastructure.Providers.Interfaces;
 
-        public Task<(int, int)> RemoveRoleAsync(RegistryRoleRemovedEventData eventData);
-    }
+public interface IRegistryRoleEventRepository
+{
+    public Task<CreateRoleRequest> CreateRoleAsync(RegistryRoleCreatedEventData eventData);
+
+    public Task<(int, int)> RemoveRoleAsync(RegistryRoleRemovedEventData eventData);
+
+    public Task<(int, int)> GetAccountIdContactIdAsync(Guid accountId, Guid contactId);
 }

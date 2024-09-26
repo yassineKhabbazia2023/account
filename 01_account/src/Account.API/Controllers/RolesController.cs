@@ -36,7 +36,7 @@ public class RolesController : ControllerBase
     /// <param name="contactId">Identification de l'utilisateur connecté.</param>
     /// <param name="pagination">Paramètres de pagination.</param>
     /// <returns>Liste d'entités morales.</returns>
-    [HttpGet("{contactId}")]
+    [HttpGet]
     [ProducesResponseType(typeof(Paging<Core.Models.Account>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
@@ -60,6 +60,24 @@ public class RolesController : ControllerBase
     {
         var result = await _rolesService.GetSignatoryAsync(accountId);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Vérifier si un contact a un rôle sur l’account/les accounts auxquels l’utilisateur connecté a accès.
+    /// </summary>
+    /// <param name="contactId">Identifiant de l'utilisateur.</param>
+    /// <param name="accountId">Identifiant de l'entitié morale.</param>
+    /// <param name="email">L'email de l'utilisateur.</param>
+    /// <returns>http 200.</returns>
+    [HttpGet("check")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> CheckRoleExists([Required] int contactId, int? accountId, [Required] string email)
+    {
+        var contactHasRoleOnAccount = await _rolesService.CheckRoleExistsAsync(contactId, accountId, email);
+
+        return Ok(contactHasRoleOnAccount);
     }
 
     /// <summary>

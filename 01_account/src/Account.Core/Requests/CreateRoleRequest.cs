@@ -15,6 +15,8 @@ namespace Pulse.Account.Core.Requests
 
         public int ContactId { get; set; }
 
+        public string? Email { get; set; }
+
         [JsonIgnore]
         public Guid? ContactGlobalUniqueId { get; set; }
 
