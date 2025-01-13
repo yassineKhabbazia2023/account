@@ -20,7 +20,7 @@ public partial class DeploymentEntity
     /// <summary>
     /// La date à laquelle le déploiement a eu lieu 
     /// </summary>
-    public DateTime DeploymentDate { get; set; }
+    public DateTime? DeploymentDate { get; set; }
 
     /// <summary>
     /// Le statut du déploiement

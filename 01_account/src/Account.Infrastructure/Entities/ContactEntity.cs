@@ -15,7 +15,7 @@ public partial class ContactEntity
     /// <summary>
     /// L&apos;&apos;identifiant global du contact
     /// </summary>
-    public Guid ContactGlobalUniqueId { get; set; }
+    public Guid? ContactGlobalUniqueId { get; set; }
 
     /// <summary>
     /// Le prénom du contact

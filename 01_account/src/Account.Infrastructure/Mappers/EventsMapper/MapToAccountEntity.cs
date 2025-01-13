@@ -127,11 +127,12 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                 return null!;
             }
 
+
             var account = new AccountEntity
             {
                 AccountGlobalUniqueId = eventData.AccountGlobalUniqueIdentifier,
                 AccountNumber = eventData.AccountNumber,
-                CreationDate = eventData.AccountInsertedDate!.Value,
+                CreationDate = eventData.AccountInsertedDate.HasValue ? eventData.AccountInsertedDate.Value : DateTime.UtcNow,
                 UpdatedDate = eventData.AccountUpdatedDate,
                 LegalName = eventData.AccountLegalName,
                 CreatedBy = eventData.CreatedBy,
@@ -150,7 +151,7 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                 StaffSizeRange = eventData.AccountStaffSizeSlice,
                 DeliveryFax = eventData.AccountDeliveryFax,
                 BillingFax = eventData.AccountBillingFax,
-                Turnover = decimal.TryParse(eventData.Turnover, CultureInfo.InvariantCulture,  out decimal turnover) ? turnover : null,
+                Turnover = decimal.TryParse(eventData.Turnover, CultureInfo.InvariantCulture, out decimal turnover) ? turnover : null,
                 FiscalSystem = eventData.AccountRegimeFiscal,
                 AccountingMethod = eventData.AccountTypeTenueComptable,
                 LegalForm = eventData.AccountFormeJuridique,
@@ -160,7 +161,6 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                 IsActive = eventData.AccountFlagESCActif,
                 ActivityType = eventData.AccountEscCategory
             };
-
             account.DeploymentEntity = eventData.ToDeploymentEntities();
 
             account.AddressEntity = eventData.ToAddressEntities();
@@ -168,6 +168,7 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
             account.PhoneEntity = eventData.ToPhoneEntities();
 
             return account;
+
         }
 
         private static List<PhoneEntity> ToPhoneEntities(this RegistryAccountStateEventData eventData)
@@ -237,7 +238,7 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
             {
                 new DeploymentEntity
                 {
-                    DeploymentDate = eventData.DeploymentDate!.Value,
+                    DeploymentDate = eventData.DeploymentDate,
                     Status = int.TryParse(eventData.DeploymentStatus, out int status) ? status : (int)DeploymentStatus.ToDeploy,
                 }
             };

@@ -25,5 +25,7 @@ namespace Pulse.Account.Core.Requests
         public bool? IsFavorite { get; set; }
 
         public bool? IsDelegation { get; set; }
+
+        public int? DelegatorId { get; set; }
     }
 }

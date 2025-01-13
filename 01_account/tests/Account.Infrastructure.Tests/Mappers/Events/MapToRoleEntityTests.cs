@@ -62,7 +62,17 @@ public class MapToRoleEntityTests
         var roleEntity = new RoleEntity
         {
             ContactId = 100,
+            Contact = new ContactEntity
+            {
+                ContactId = 100,
+                ContactGlobalUniqueId = Guid.NewGuid(),
+            },
             AccountId = 122,
+            Account = new AccountEntity
+            {
+                AccountId = 122,
+                AccountGlobalUniqueId = Guid.NewGuid(),
+            },
             IsDelegation = true,
             IsFavorite = true,
             IsSignatory = true
@@ -72,10 +82,20 @@ public class MapToRoleEntityTests
         var createdRole = roleEntity.ToCreateRoleRequest();
 
         // Assert
-        Assert.Equal(createdRole.ContactId, roleEntity.ContactId);
-        Assert.Equal(createdRole.AccountId, roleEntity.AccountId);
-        Assert.Equal(createdRole.IsFavorite, roleEntity.IsFavorite);
-        Assert.Equal(createdRole.IsSignatory, roleEntity.IsSignatory);
+        Assert.Equal(roleEntity.ContactId, createdRole.ContactId);
+        Assert.Equal(roleEntity.AccountId, createdRole.AccountId);
+        Assert.Equal(roleEntity.IsFavorite, createdRole.IsFavorite);
+        Assert.Equal(roleEntity.IsSignatory, createdRole.IsSignatory);
+        Assert.Equal(roleEntity.Contact.ContactGlobalUniqueId, createdRole.ContactGlobalUniqueId);
+        Assert.Equal(roleEntity.Account.AccountGlobalUniqueId, createdRole.AccountGlobalUniqueId);
+    }
+
+    [Fact]
+    public void ToCreateRoleRequest_WithNullSource_ShouldReturnNull()
+    {
+        var result = MapToRoleEntity.ToCreateRoleRequest(null!);
+
+        Assert.Null(result);
     }
 
     [Fact]
@@ -152,5 +172,34 @@ public class MapToRoleEntityTests
     {
         var result = MapToRoleEntity.ToRole(null!);
         Assert.Null(result);
+    }
+
+    [Fact]
+    public void ToCreateRoleRequests_Should_MapRoleEntityListToCreateRoleRequests()
+    {
+        var source = _fixture.CreateMany<RoleEntity>(3);
+        var delegatorId = 8;
+
+        var result = source.ToCreateRoleRequests(delegatorId);
+
+        Assert.NotNull(result);
+        Assert.NotEmpty(result);
+        Assert.Equal(3, result.Count());
+
+        for (var i = 0; i < source.Count(); i++)
+        {
+            var sourceItem = source.ElementAt(i);
+            var resultItem = result.ElementAt(i);
+
+            Assert.Equal(delegatorId, resultItem.DelegatorId);
+        }
+    }
+
+    [Fact]
+    public void ToCreateRoleRequests_WithNullSource_Should_ReturnEmptyList()
+    {
+        var result = MapToRoleEntity.ToCreateRoleRequests(null!, 1);
+
+        Assert.Empty(result);
     }
 }

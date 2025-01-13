@@ -491,7 +491,7 @@ public class AccountRepositoryTests
     }
 
     [Fact]
-    public async Task GetContactsAccountAsync_ShouldThrowNotFoundEXception_IfQueryResultIsNull()
+    public async Task GetContactsAccountAsync_ShouldNotThrowNotFoundEXception_IfQueryResultIsNull()
     {
         int accountId = -1;
         SearchContactsAccountCriteria criteria = _fixture.Build<SearchContactsAccountCriteria>()
@@ -506,11 +506,10 @@ public class AccountRepositoryTests
             // Arrange
             var accountRepository = new AccountRepository(context);
 
-            var action = async () => await accountRepository.GetContactsAccountAsync(accountId, criteria, pagination);
+            var result = await accountRepository.GetContactsAccountAsync(accountId, criteria, pagination);
 
-            await action.Should().ThrowAsync<NotFoundException>();
+            Assert.NotNull(result);
         }
-
     }
 
     [Fact]

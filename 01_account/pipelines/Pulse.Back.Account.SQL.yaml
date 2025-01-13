@@ -11,13 +11,16 @@ parameters:
   displayName: "Technical parameter : don t modify it !"
   type: string
   default: 'standard'
+  values:
+    - standard
+    - onlyDev
 
 resources:
   repositories:
   - repository: Pulse
     name: 'Pulse.Operations.Pipelines'
     type: git
-    ref: 'refs/heads/Release/v2.0'
+    ref: 'refs/heads/Release/v3.0'
 
 extends:
   template: pipelines/templates/platform.back.sql.yaml@Pulse

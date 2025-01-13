@@ -208,10 +208,6 @@ namespace Pulse.Account.Infrastructure.Repositories
                 query = query.Take(pagination!.PageSize);
 
                 var result = await query.ToListAsync();
-                if (result.Count() == 0)
-                {
-                    throw new NotFoundException(Errors.NotFoundContactsCode, Errors.NotFoundContactsMessage);
-                }
 
                 var contacts = result.Select(c => c.MapToContact());
 

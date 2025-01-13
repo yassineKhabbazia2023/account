@@ -52,7 +52,10 @@ public class DelegationService : IDelegationService
         var roles = CreateRoleRequests(delegation).ToList();
         var rolesCreated = await _delegationRepository.CreateDelegationAsync(delegation, roles);
 
-        await Task.WhenAll(rolesCreated.Select(PublishRoleCreatedEvent));
+        List<Task> tasks = new List<Task>();
+        rolesCreated?.ToList().ForEach((roleCreated) => tasks.Add(PublishRoleCreatedEvent(roleCreated)));
+
+        await Task.WhenAll(tasks);
     }
 
     public async Task DeleteDelegationAsync(int delegationId)
@@ -131,7 +134,8 @@ public class DelegationService : IDelegationService
                         ContactId = detail.DelegateeId,
                         IsFavorite = false,
                         IsSignatory = false,
-                        IsDelegation = true
+                        IsDelegation = true,
+                        DelegatorId = delegationRequest.DelegatorId
                     });
                 }
             }
@@ -142,6 +146,7 @@ public class DelegationService : IDelegationService
 
     private async Task PublishRoleCreatedEvent(CreateRoleRequest role)
     {
+
         _logger.LogInformation("DelegationService: Start send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);
 
         await _roleEventPublisher.PublishRoleCreatedEventAsync(role);

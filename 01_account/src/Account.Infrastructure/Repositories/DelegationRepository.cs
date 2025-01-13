@@ -62,7 +62,7 @@ public class DelegationRepository : IDelegationRepository
 
             var accounts = await GetAccounts(delegation.AccountIds!);
             var delegationEntities = delegation.MapDelegationRequestToDelegationsDb(accounts.ToList());
-            var roleEntities = await RemoveExistingRoles(roles.MapRolesToRoleDb());
+            var roleEntities = await RemoveDuplicateRoles(roles.MapRolesToRoleDb());
 
             if (roleEntities.Any())
             {
@@ -72,9 +72,7 @@ public class DelegationRepository : IDelegationRepository
             await _accountContext.DelegationEntity.AddRangeAsync(delegationEntities);
             await _accountContext.SaveChangesAsync();
 
-            var rolesCreated = await GetRolesAsync(roles.Select(r => r.AccountId), roles.Select(r => r.ContactId));
-
-            return rolesCreated.ToCreateRoleRequests();
+            return roleEntities.ToCreateRoleRequests(delegation.DelegatorId);
         });
     }
 
@@ -334,10 +332,10 @@ public class DelegationRepository : IDelegationRepository
         return roles.Except(existingRoles, new RoleComparer());
     }
 
-    private async Task<IEnumerable<RoleEntity>> RemoveExistingRoles(IEnumerable<RoleEntity> roles)
+    private async Task<IEnumerable<RoleEntity>> RemoveDuplicateRoles(IEnumerable<RoleEntity> roles)
     {
-        var accountIds = roles.Select(r => r.AccountId);
-        var contactIds = roles.Select(r => r.ContactId);
+        var accountIds = roles.Select(r => r.AccountId).Distinct();
+        var contactIds = roles.Select(r => r.ContactId).Distinct();
 
         var existingRoles = await _accountContext
             .RoleEntity
@@ -347,18 +345,5 @@ public class DelegationRepository : IDelegationRepository
 
         var rolesToCreate = roles.Except(existingRoles, new RoleComparer());
         return rolesToCreate;
-    }
-
-    private async Task<IEnumerable<RoleEntity>> GetRolesAsync(IEnumerable<int> accountId, IEnumerable<int> contactId)
-    {
-        return await _retryPolicy.ExecuteAsync(async () =>
-        {
-            return await _accountContext.RoleEntity
-                .AsNoTracking()
-                .Include(r => r.Account)
-                .Include(r => r.Contact)
-                .Where(r => accountId.Contains(r.AccountId) && contactId.Contains(r.ContactId))
-                .ToListAsync();
-        });
     }
 }

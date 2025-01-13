@@ -138,7 +138,8 @@ public class ContactEventRepositoryTests
         await repository.RemoveContactAsync(contactId: 1);
 
         // Assert
-        var updatedContact = await context.ContactEntity.FirstOrDefaultAsync();
+        // I have ignored query filters because by default removed entities will not be returned
+        var updatedContact = await context.ContactEntity.IgnoreQueryFilters().FirstOrDefaultAsync();
 
         Assert.NotNull(updatedContact);
         Assert.Equal(ContactStatus.Removed.ToString(), updatedContact.Status);

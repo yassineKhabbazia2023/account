@@ -399,7 +399,7 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.AccountId).HasComment("L''identifiant techique de l''entité");
             entity.Property(e => e.PhoneNumber)
                 .IsRequired()
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasComment("Le numéro de téléphone");
             entity.Property(e => e.Type)

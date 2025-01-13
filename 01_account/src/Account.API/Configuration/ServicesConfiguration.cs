@@ -32,7 +32,7 @@ namespace Pulse.Account.API.Configuration
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IFavoriteRepository, FavoriteRepository>();
             services.AddScoped<IDelegationService, DelegationService>();
-            services.AddScoped<IDelegationRepository, DelegationRepository>();
+            services.AddTransient<IDelegationRepository, DelegationRepository>();
             services.AddScoped<IRolesService, RolesService>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IReferentialService, ReferentialService>();
@@ -104,14 +104,14 @@ namespace Pulse.Account.API.Configuration
             ArgumentNullException.ThrowIfNull(configuration);
             var connectionString = configuration["SqlAccountConnectionString"];
             ArgumentNullException.ThrowIfNullOrEmpty(connectionString);
-            services.AddDbContextPool<AccountContext>(options =>
+            services.AddDbContext<AccountContext>(options =>
             {
                 options.UseSqlServer(connectionString, opt =>
                 {
                     opt.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                     opt.EnableRetryOnFailure(GlobalConstants.RETRYCOUNT, TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN), null);
                 });
-            });
+            }, ServiceLifetime.Transient);
 
             services.AddHealthChecks()
                 .AddSqlServer(connectionString, healthQuery: "SELECT 1;");

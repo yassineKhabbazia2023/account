@@ -1,7 +1,7 @@
 ﻿CREATE TABLE [actor].[Contact]
 (
 	[ContactId]				INT	                NOT NULL,
-	[ContactGlobalUniqueId]	UNIQUEIDENTIFIER	NOT NULL,
+	[ContactGlobalUniqueId]	UNIQUEIDENTIFIER	NULL,
 	[FirstName]				VARCHAR(250)		NOT NULL,
 	[LastName]				VARCHAR(250)		NOT NULL,
 	[Email]     			VARCHAR(250)		NOT NULL,

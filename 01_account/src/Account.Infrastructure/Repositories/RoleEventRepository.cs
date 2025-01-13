@@ -85,7 +85,7 @@ public class RoleEventRepository : IRoleEventRepository
         return rolesToCreate;
     }
 
-    private CreateRoleRequest CreateRoleForDelegation(int contactId, Guid contactGlobalUniqueId, int accountId, Guid accountGlobalUniqueId)
+    private CreateRoleRequest CreateRoleForDelegation(int contactId, Guid? contactGlobalUniqueId, int accountId, Guid accountGlobalUniqueId)
     {
         var rolesCreated = new CreateRoleRequest
         {

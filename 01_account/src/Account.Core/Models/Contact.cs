@@ -11,7 +11,7 @@ public class Contact
     [JsonIgnore]
     public int ContactId { get; set; }
 
-    public Guid ContactGlobalUniqueId { get; set; }
+    public Guid? ContactGlobalUniqueId { get; set; }
 
     public required string FirstName { get; set; }
 

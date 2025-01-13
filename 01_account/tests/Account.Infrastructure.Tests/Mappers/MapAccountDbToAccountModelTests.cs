@@ -716,6 +716,27 @@ public class MapAccountDbToAccountModelTests
     }
 
     [Fact]
+    public void MapToNaf_ShouldMapCorrectly()
+    {
+        // Arrange
+        var nafEntity = new NafEntity()
+        {
+            NafId = 1,
+            NafCode = "code",
+            NafLabel = "label"
+        };
+
+        // Act
+        var result = MapAccountDbToAccountModel.MapToNaf(nafEntity);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.NafId.Should().Be(1);
+        result.NafCode.Should().Be("code");
+        result.NafLabel.Should().Be("label");
+    }
+
+    [Fact]
     public void MapToStatistics_WithValidDictionaries_ShouldMapCorrectly()
     {
         // Arrange

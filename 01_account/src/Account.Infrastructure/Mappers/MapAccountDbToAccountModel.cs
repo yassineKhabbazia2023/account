@@ -295,6 +295,16 @@ namespace Pulse.Account.Infrastructure.Mappers
             return new List<Naf> { naf };
         }
 
+        public static Naf? MapToNaf(this NafEntity nafEntity)
+        {
+            return nafEntity == null ? null : new Naf
+            {
+                NafId = nafEntity.NafId,
+                NafCode = nafEntity.NafCode,
+                NafLabel = nafEntity.NafLabel
+            };
+        }
+
         public static Statistics MapToStatistics(Dictionary<int, int> countByAccountStatus, Dictionary<string, int> countByContactStatus)
         {
             countByAccountStatus = countByAccountStatus == null || countByAccountStatus.Count == 0 ? new Dictionary<int, int>() : countByAccountStatus;

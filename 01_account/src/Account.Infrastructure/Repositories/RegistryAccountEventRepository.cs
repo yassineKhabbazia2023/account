@@ -6,6 +6,7 @@ using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -29,11 +30,14 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
 
     public async Task<AccountDetail> CreateAccountAsync(RegistryAccountCreatedEventData eventData)
     {
-        var et = eventData.ToAccountEntity();
+        var naf = await GetNafByCodeAsync(eventData.AccountNafIdentifier);
+        eventData.AccountNafIdentifier = naf?.NafId.ToString();
 
-        _context.AccountEntity.Add(et);
+        var accountEntity = eventData.ToAccountEntity();
+
+        _context.AccountEntity.Add(accountEntity);
         await _context.SaveChangesAsync();
-        return et.MapToAccountDetail() !;
+        return accountEntity.MapToAccountDetail() !;
     }
 
     public async Task<int> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier)
@@ -70,6 +74,9 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
 
     public async Task<AccountDetail> UpdateAccountAsync(RegistryAccountUpdatedEventData eventData)
     {
+        var naf = await GetNafByCodeAsync(eventData.AccountNafIdentifier);
+        eventData.AccountNafIdentifier = naf?.NafId.ToString();
+
         var existingAccount = await _context.AccountEntity
             .Include(a => a.DeploymentEntity)
             .Include(a => a.AddressEntity)
@@ -91,5 +98,14 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
     public async Task<bool> DoesAccountExistAsync(Guid accountGlobalUniqueId)
     {
         return await _context.AccountEntity.AnyAsync(a => a.AccountGlobalUniqueId == accountGlobalUniqueId);
+    }
+
+    private async Task<Naf?> GetNafByCodeAsync(string? nafCode)
+    {
+        NafEntity? naf = await _context.NafEntity
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.NafCode.Replace(".", string.Empty) == nafCode);
+
+        return naf?.MapToNaf();
     }
 }
