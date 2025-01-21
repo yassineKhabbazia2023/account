@@ -571,6 +571,7 @@ public class AccountRepositoryTests
                                         .Without(c => c.DelegationEntityDelegator)
                                         .Without(c => c.RoleEntity)
                                         .Without(c => c.ContactGlobalUniqueId)
+                                        .With(c => c.IsActive, true)
                                         .Create();
 
             var roleMock = _fixture.Build<RoleEntity>()
@@ -674,6 +675,7 @@ public class AccountRepositoryTests
                                         .Without(c => c.DelegationEntityDelegator)
                                         .Without(c => c.RoleEntity)
                                         .Without(c => c.ContactGlobalUniqueId)
+                                        .With(c => c.IsActive, true)
                                         .Create();
 
             contactAdmin.Type = "customer";
@@ -745,6 +747,7 @@ public class AccountRepositoryTests
             .Without(x => x.DelegationEntityDelegatee)
             .Without(x => x.DelegationEntityDelegator)
             .With(x => x.Type, ContactType.Collaborator.ToString())
+            .With(c => c.IsActive, true)
             .CreateMany(10).ToList();
 
         List<RoleEntity> roles = new List<RoleEntity>();

@@ -70,6 +70,7 @@ public class RoleEventRepositoryTests
         var contact = fixture.Build<ContactEntity>()
             .With(x => x.ContactId, 2)
             .Without(x => x.RoleEntity)
+            .With(c => c.IsActive, true)
             .Create();
 
         var dbOptions = new DbContextOptionsBuilder<AccountContext>().

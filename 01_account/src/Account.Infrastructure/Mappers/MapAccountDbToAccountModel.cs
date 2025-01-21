@@ -130,6 +130,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 Office = tContact.Office,
                 CreationDate = tContact.CreationDate,
                 Type = tContact.Type,
+                IsActive = tContact.IsActive,
             };
         }
 

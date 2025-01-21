@@ -28,4 +28,6 @@ public class Contact
     public string? Office { get; set; }
 
     public DateTime? CreationDate { get; set; }
+
+    public bool IsActive { get; set; }
 }

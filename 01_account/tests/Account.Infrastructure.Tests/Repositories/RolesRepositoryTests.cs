@@ -413,7 +413,9 @@ public class RolesRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             var accountMock = _fixture.Create<AccountEntity>();
-            var contactMock = _fixture.Create<List<ContactEntity>>();
+            var contactMock = _fixture.Build<ContactEntity>()
+                .With(x => x.IsActive, true)
+                .CreateMany();
             context.AccountEntity.Add(accountMock);
             context.ContactEntity.AddRange(contactMock);
             await context.SaveChangesAsync();
@@ -502,12 +504,14 @@ public class RolesRepositoryTests
                                             .With(c => c.FirstName, "Test1")
                                             .With(c => c.LastName, "Test1")
                                             .With(c => c.Email, "test1@test.fr")
+                                            .With(c => c.IsActive, true)
                                             .Create();
             var secondCustomer = _fixture.Build<ContactEntity>()
                                             .With(c => c.Type, "2")
                                             .With(c => c.FirstName, "Test2")
                                             .With(c => c.LastName, "Test2")
                                             .With(c => c.Email, "test2@test.fr")
+                                            .With(c => c.IsActive, true)
                                             .Create();
             var firstRoleEntity = _fixture.Build<RoleEntity>()
                                             .With(r => r.Contact, firstCustomer)
@@ -542,12 +546,14 @@ public class RolesRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             var firstCustomer = _fixture.Build<ContactEntity>()
+                                            .With(c => c.IsActive, true)
                                             .With(c => c.Type, "2")
                                             .With(c => c.FirstName, "Test1")
                                             .With(c => c.LastName, "Test1")
                                             .With(c => c.Email, "test1@test.fr")
                                             .Create();
             var secondCustomer = _fixture.Build<ContactEntity>()
+                                            .With(c => c.IsActive, true)
                                             .With(c => c.Type, "2")
                                             .With(c => c.FirstName, "Test2")
                                             .With(c => c.LastName, "Test2")

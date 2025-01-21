@@ -32,6 +32,7 @@ public class ContactEventRepositoryTests
             Type = "collaborator",
             CreationDate = DateTime.Parse("2024-04-16T09:19:16Z"),
             ContactGlobalUniqueId = Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF"),
+            IsActive = true
         };
 
         // Act
@@ -143,6 +144,7 @@ public class ContactEventRepositoryTests
 
         Assert.NotNull(updatedContact);
         Assert.Equal(ContactStatus.Removed.ToString(), updatedContact.Status);
+        Assert.False(updatedContact.IsActive);
         Assert.NotNull(updatedContact.LastUpdateDate);
     }
 

@@ -26,6 +26,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 PersonaName = source.Contact.PersonaName,
                 Office = source.Contact.Office,
                 CreationDate = source.Contact.CreationDate,
+                IsActive = source.Contact.IsActive
             };
         }
     }

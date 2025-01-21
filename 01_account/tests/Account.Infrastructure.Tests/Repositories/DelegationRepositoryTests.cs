@@ -90,6 +90,7 @@ public class DelegationRepositoryTests
                 .Without(x => x.DelegationEntityDelegatee)
                 .Without(x => x.DelegationEntityDelegator)
                 .Without(x => x.RoleEntity)
+                .With(c => c.IsActive, true)
                 .With(x => x.ContactId, item.DelegateeId)
                 .Create();
 
@@ -124,19 +125,12 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task CreateDelegationAsync_WhenRequestIsValid_ShouldCreateDelegationAndRole()
     {
-        var connection = new SqliteConnection("DataSource=:memory:");
-        connection.Open();
-
-        var options = new DbContextOptionsBuilder<AccountContext>()
-        .UseSqlite(connection)
-        .Options;
+        //var connection = new SqliteConnection("DataSource=:memory:");
+        //connection.Open();
 
         // Run the test against one instance of the context
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
-            context.Database.EnsureCreated();
-            context.Database.ExecuteSqlRaw("PRAGMA foreign_keys = OFF;");
-
             // Create Account
             var tAccount = _fixture.Create<AccountEntity>();
             context.AccountEntity.Add(tAccount);
@@ -145,9 +139,11 @@ public class DelegationRepositoryTests
             // Create Contacts
             var tDelegator = _fixture.Build<ContactEntity>()
                 .With(c => c.ContactId, 123)
+                .With(c => c.IsActive, true)
                 .Create();
             var tDelegatee = _fixture.Build<ContactEntity>()
                 .With(c => c.ContactId, 456)
+                .With(c => c.IsActive, true)
                 .Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
 
@@ -222,8 +218,9 @@ public class DelegationRepositoryTests
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegator = _fixture.Create<ContactEntity>();
+            var tDelegator = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             var tDelegatee = _fixture.Build<ContactEntity>()
+                .With(c => c.IsActive, true)
                 .With(c => c.ContactId, 124)
                 .Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
@@ -379,8 +376,8 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Contacts
-            var tDelegator = _fixture.Create<ContactEntity>();
-            var tDelegatee = _fixture.Create<ContactEntity>();
+            var tDelegator = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
+            var tDelegatee = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
 
@@ -419,8 +416,8 @@ public class DelegationRepositoryTests
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegator = _fixture.Create<ContactEntity>();
-            var tDelegatee = _fixture.Create<ContactEntity>();
+            var tDelegator = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
+            var tDelegatee = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
 
@@ -459,8 +456,8 @@ public class DelegationRepositoryTests
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegator = _fixture.Create<ContactEntity>();
-            var tDelegatee = _fixture.Create<ContactEntity>();
+            var tDelegator = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
+            var tDelegatee = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             await context.ContactEntity.AddRangeAsync(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
 
@@ -509,8 +506,8 @@ public class DelegationRepositoryTests
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegator = _fixture.Create<ContactEntity>();
-            var tDelegatee = _fixture.Create<ContactEntity>();
+            var tDelegator = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
+            var tDelegatee = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             await context.ContactEntity.AddRangeAsync(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
 
@@ -550,9 +547,9 @@ public class DelegationRepositoryTests
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegator = _fixture.Create<ContactEntity>();
-            var tDelegatee = _fixture.Create<ContactEntity>();
-            var anotherDelegatee = _fixture.Create<ContactEntity>();
+            var tDelegator = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
+            var tDelegatee = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
+            var anotherDelegatee = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             await context.ContactEntity.AddRangeAsync(new List<ContactEntity> { tDelegator, tDelegatee, anotherDelegatee });
             await context.SaveChangesAsync();
 
@@ -615,9 +612,9 @@ public class DelegationRepositoryTests
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegator = _fixture.Create<ContactEntity>();
-            var tDelegatee = _fixture.Create<ContactEntity>();
-            var anotherDelegatee = _fixture.Create<ContactEntity>();
+            var tDelegator = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
+            var tDelegatee = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
+            var anotherDelegatee = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             await context.ContactEntity.AddRangeAsync(new List<ContactEntity> { tDelegator, tDelegatee, anotherDelegatee });
             await context.SaveChangesAsync();
 
@@ -669,7 +666,7 @@ public class DelegationRepositoryTests
             context.AccountEntity.AddRange(accounts);
             await context.SaveChangesAsync();
 
-            var contact = _fixture.Create<ContactEntity>();
+            var contact = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             context.ContactEntity.Add(contact);
             await context.SaveChangesAsync();
 

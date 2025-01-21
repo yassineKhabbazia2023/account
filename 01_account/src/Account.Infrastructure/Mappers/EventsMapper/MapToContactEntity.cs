@@ -27,6 +27,7 @@ public static class MapToContactEntity
             PersonaName = source.PersonaName,
             Status = source.Status,
             Type = source.Type,
+            IsActive = source.IsActive,
             CreationDate = source.CreationDate ?? DateTime.UtcNow,
         };
     }
@@ -48,5 +49,6 @@ public static class MapToContactEntity
         destination.Type = source.Type;
         destination.CreationDate = source.CreationDate;
         destination.LastUpdateDate = DateTime.UtcNow;
+        destination.IsActive = source.IsActive;
     }
 }

@@ -37,6 +37,7 @@ public class RegistryRoleEventRepositoryTests
             .Create();
         context.AccountEntity.Add(account);
         var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.IsActive, true)
             .Without(c => c.RoleEntity)
             .Create();
         context.ContactEntity.Add(contact);
@@ -85,6 +86,7 @@ public class RegistryRoleEventRepositoryTests
             .Without(x => x.RoleEntity)
             .Without(x => x.DelegationEntityDelegatee)
             .Without(x => x.DelegationEntityDelegator)
+            .With(c => c.IsActive, true)
             .Create();
 
 
@@ -131,6 +133,7 @@ public class RegistryRoleEventRepositoryTests
             .Create();
         context.AccountEntity.Add(account);
         var contact = _fixture.Build<ContactEntity>()
+             .With(c => c.IsActive, true)
             .Without(c => c.RoleEntity)
             .Create();
         context.ContactEntity.Add(contact);
@@ -165,6 +168,7 @@ public class RegistryRoleEventRepositoryTests
         context.AccountEntity.Add(account);
         var contact = _fixture.Build<ContactEntity>()
             .With(c => c.ContactGlobalUniqueId, contactGlobalUniqueId)
+            .With(c => c.IsActive, true)
             .Create();
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();
@@ -187,7 +191,9 @@ public class RegistryRoleEventRepositoryTests
 
         var account = _fixture.Create<AccountEntity>();
         context.AccountEntity.Add(account);
-        var contact = _fixture.Create<ContactEntity>();
+        var contact = _fixture.Build<ContactEntity>()
+          .With(c => c.IsActive, true)
+          .Create();
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();
 

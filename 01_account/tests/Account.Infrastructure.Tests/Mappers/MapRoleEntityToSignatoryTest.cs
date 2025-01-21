@@ -62,6 +62,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 PersonaName = role.Contact.PersonaName,
                 Office = role.Contact.Office,
                 CreationDate = role.Contact.CreationDate,
+                IsActive = role.Contact.IsActive,
             };
 
             // Act
@@ -88,6 +89,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                     PersonaName = roles!.First().Contact.PersonaName,
                     Office = roles!.First().Contact.Office,
                     CreationDate = roles!.First().Contact.CreationDate,
+                    IsActive = roles!.First().Contact.IsActive
                 }
             };
 
