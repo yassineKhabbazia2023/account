@@ -23,4 +23,6 @@ public interface IRoleRepository
     Task<bool> CheckRoleExistsAsync(int contactId, int? accountId, string email);
 
     Task<Role> GetContactRoleAsync(int accountId, int contactId);
+
+    Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber);
 }

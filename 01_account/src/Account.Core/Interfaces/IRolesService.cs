@@ -21,4 +21,6 @@ public interface IRolesService
     Task DeleteRoleAsync(int accountId, int contactId);
 
     Task<bool> CheckRoleExistsAsync(int contactId, int? accountId, string email);
+
+    Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber);
 }

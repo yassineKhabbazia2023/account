@@ -276,4 +276,20 @@ public class RolesServiceTests
         rolesRepository.Verify(x => x.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()));
         Assert.True(contactHasRoleOnAccount);
     }
+
+    [Fact]
+    public async Task IsContactHasRoleInAccount_ReturnsTrueAsync()
+    {
+        // Arrange
+        var rolesRepository = new Mock<IRoleRepository>();
+        rolesRepository.Setup(repository => repository.IsContactHasRoleOnAccount(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(true);
+        var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _logger!.Object);
+
+        // Act
+        var contactHasRoleOnAccount = await rolesService.IsContactHasRoleOnAccount(1, 1, "accountNumber");
+
+        // Assert
+        rolesRepository.Verify(x => x.IsContactHasRoleOnAccount(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()));
+        Assert.True(contactHasRoleOnAccount);
+    }
 }

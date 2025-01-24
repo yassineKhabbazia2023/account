@@ -68,5 +68,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string BadRequestExistingRoleCode = "ACC021";
         public static readonly string BadRequestExistingRoleMessage = "Le role ContactId {0}/AccountId {1} existe déjà";
+
+        public static readonly string BadRequestAccountIdAndAccountNumberNullCode = "ACC022";
+        public static readonly string BadRequestAccountIdAndAccountNumberNullMessage = "Veuillez fournir au moins l'AccountId ou l'AccountNumber";
     }
 }

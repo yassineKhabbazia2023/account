@@ -96,6 +96,11 @@ public class RolesService : IRolesService
         return await _rolesRepository.CheckRoleExistsAsync(contactId, accountId, email);
     }
 
+    public async Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber)
+    {
+        return await _rolesRepository.IsContactHasRoleOnAccount(contactId, accountId, accountNumber);
+    }
+
     private async Task PublishRoleCreatedEvent(CreateRoleRequest role)
     {
         _logger.LogInformation("RoleService: Start send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);

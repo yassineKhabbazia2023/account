@@ -3,8 +3,11 @@
 // </copyright>
 
 using System.ComponentModel.DataAnnotations;
+using Kpmg.ExceptionMiddleware.AdvancedException;
 using Kpmg.ExceptionMiddleware.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
@@ -76,6 +79,29 @@ public class RolesController : ControllerBase
     public async Task<ActionResult> CheckRoleExists([Required] int contactId, int? accountId, [Required] string email)
     {
         var contactHasRoleOnAccount = await _rolesService.CheckRoleExistsAsync(contactId, accountId, email);
+
+        return Ok(contactHasRoleOnAccount);
+    }
+
+    /// <summary>
+    /// Vérifier si un contact a un rôle sur un account donné.
+    /// </summary>
+    /// <param name="contactId">Identifiant de l'utilisateur.</param>
+    /// <param name="accountId">Identifiant de l'entitié morale.</param>
+    /// <param name="accountNumber">Identifiant fonctionnel de l'entité morale.</param>
+    /// <returns>http 200.</returns>
+    [HttpGet("check-contact-role-on-account")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> IsContactHasRoleOnAccount([Required] int contactId, int? accountId, string? accountNumber)
+    {
+        if(!accountId.HasValue && accountNumber.IsNullOrEmpty())
+        {
+            throw new BadRequestException(Errors.BadRequestAccountIdAndAccountNumberNullCode, Errors.BadRequestAccountIdAndAccountNumberNullMessage);
+        }
+
+        var contactHasRoleOnAccount = await _rolesService.IsContactHasRoleOnAccount(contactId, accountId, accountNumber);
 
         return Ok(contactHasRoleOnAccount);
     }

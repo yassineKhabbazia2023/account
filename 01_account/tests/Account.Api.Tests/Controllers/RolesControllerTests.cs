@@ -200,5 +200,38 @@ namespace Account.Api.Tests.Controllers
             roleService.Verify(x => x.CheckRoleExistsAsync(1, 1, "test@test.fr"), Times.Once);
             Assert.Equal(true, (contactHasRoleOnAccount as OkObjectResult)?.Value);
         }
+
+        [Fact]
+        public async Task IsContactHasRoleOnAccount_Should_ReturnOkResultAsync()
+        {
+            // Arrange
+            var roleService = new Mock<IRolesService>();
+            roleService.Setup(service => service.IsContactHasRoleOnAccount(It.IsAny<int>(), It.IsAny<int>(), null))
+                .Returns(Task.FromResult(true));
+            var roleController = new RolesController(roleService.Object);
+
+            // Act
+            var contactHasRoleOnAccount = await roleController.IsContactHasRoleOnAccount(1, 1, null);
+
+            // Assert
+            roleService.Verify(x => x.IsContactHasRoleOnAccount(1, 1, null), Times.Once);
+            Assert.Equal(true, (contactHasRoleOnAccount as OkObjectResult)?.Value);
+        }
+
+        [Fact]
+        public async Task IsContactHasRoleOnAccount_ShouldThrowBadRequestException()
+        {
+            // Arrange
+            var roleService = new Mock<IRolesService>();
+            roleService.Setup(service => service.IsContactHasRoleOnAccount(It.IsAny<int>(), null, null))
+                .Returns(Task.FromResult(true));
+            var roleController = new RolesController(roleService.Object);
+
+            // Act
+            Task ContactHasRoleOnAccount() => roleController!.IsContactHasRoleOnAccount(1, null, null);
+
+            // Assert
+            await Assert.ThrowsAsync<BadRequestException>(ContactHasRoleOnAccount);
+        }
     }
 }

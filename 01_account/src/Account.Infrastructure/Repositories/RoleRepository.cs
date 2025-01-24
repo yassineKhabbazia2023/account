@@ -213,4 +213,21 @@ public class RoleRepository : IRoleRepository
             return totalRows > 0;
         });
     }
+
+    public async Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            IQueryable<RoleEntity> query = _accountContext.RoleEntity
+                                                    .AsNoTracking()
+                                                    .Where(r => r.ContactId == contactId &&
+                                                                (accountId.HasValue ?
+                                                                r.AccountId == accountId :
+                                                                r.Account.AccountNumber == accountNumber));
+
+            var totalRows = await query.CountAsync();
+
+            return totalRows > 0;
+        });
+    }
 }
