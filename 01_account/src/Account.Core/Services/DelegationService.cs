@@ -52,10 +52,13 @@ public class DelegationService : IDelegationService
         var roles = CreateRoleRequests(delegation).ToList();
         var rolesCreated = await _delegationRepository.CreateDelegationAsync(delegation, roles);
 
-        List<Task> tasks = new List<Task>();
-        rolesCreated?.ToList().ForEach((roleCreated) => tasks.Add(PublishRoleCreatedEvent(roleCreated)));
-
-        await Task.WhenAll(tasks);
+        if (rolesCreated.Any())
+        {
+            rolesCreated.ToList().ForEach(async r =>
+            {
+                await PublishRoleCreatedEvent(r);
+            });
+        }
     }
 
     public async Task DeleteDelegationAsync(int delegationId)

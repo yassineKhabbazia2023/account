@@ -518,7 +518,7 @@ public class DelegationRepositoryTests
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
-                Status = "disabled",
+                Status = "Disabled",
                 Note = "Note",
                 Account = new List<AccountEntity>
                 {
@@ -560,7 +560,7 @@ public class DelegationRepositoryTests
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
-                Status = "pending",
+                Status = "Pending",
                 Note = "Note",
                 Account = new List<AccountEntity>
                 {
@@ -574,7 +574,7 @@ public class DelegationRepositoryTests
                 EndDate = DateTime.UtcNow.AddMonths(15),
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = anotherDelegatee.ContactId,
-                Status = "pending",
+                Status = "Pending",
                 Note = "Note 2",
                 Account = new List<AccountEntity>
                 {
@@ -625,7 +625,7 @@ public class DelegationRepositoryTests
                 EndDate = DateTime.UtcNow.AddMonths(5),
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = tDelegatee.ContactId,
-                Status = "disabled",
+                Status = "Disabled",
                 Note = "Note",
                 Account = new List<AccountEntity>
                 {
@@ -639,7 +639,7 @@ public class DelegationRepositoryTests
                 EndDate = DateTime.UtcNow.AddMonths(15),
                 DelegatorId = tDelegator.ContactId,
                 DelegateeId = anotherDelegatee.ContactId,
-                Status = "disabled",
+                Status = "Disabled",
                 Note = "Note 2",
                 Account = new List<AccountEntity>
                 {
@@ -674,21 +674,21 @@ public class DelegationRepositoryTests
             {
                 Delegatee = contact,
                 StartDate = DateTime.UtcNow,
-                Status = "enabled",
+                Status = "Enabled",
                 Account = accounts.ToList()
             };
             var otherDelegation = new DelegationEntity
             {
                 Delegatee = contact,
                 StartDate = DateTime.UtcNow,
-                Status = "disabled",
+                Status = "Disabled",
                 Account = accounts.ToList()
             };
             var thirdDelegation = new DelegationEntity
             {
                 Delegatee = contact,
                 StartDate = DateTime.UtcNow,
-                Status = "enabled",
+                Status = "Enabled",
                 Account = accounts.Skip(1).ToList()
             };
             context.DelegationEntity.AddRange(new List<DelegationEntity> { delegation, otherDelegation, thirdDelegation });
@@ -773,7 +773,7 @@ public class DelegationRepositoryTests
 
             var expectedDelegationsResult = new List<Delegation>();
 
-            var delegationStatus = new List<string> { "pending", "enabled", "disabled" };
+            var delegationStatus = new List<string> { "Pending", "Enabled", "Disabled" };
             for (var i = 1; i <= 10; i++)
             {
                 var delegatorId = i * 10;
@@ -872,7 +872,7 @@ public class DelegationRepositoryTests
 
             var expectedDelegationsResult = new List<Delegation>();
 
-            var delegationStatus = new List<string> { "pending", "enabled", "disabled" };
+            var delegationStatus = new List<string> { "Pending", "Enabled", "Disabled" };
             for (var i = 1; i <= 10; i++)
             {
                 var delegateeId = _fixture.Create<int>() + i;

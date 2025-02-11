@@ -86,7 +86,7 @@ public class DelegationRepository : IDelegationRepository
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
-                                        .Where(d => d.DelegateeId == delegateeId && !d.Status.Equals(DelegationStatus.Disabled.ToString().ToLower()))
+                                        .Where(d => d.DelegateeId == delegateeId && !d.Status.Equals(DelegationStatus.Disabled.ToString()))
                                         .ToListAsync();
         });
 
@@ -103,7 +103,7 @@ public class DelegationRepository : IDelegationRepository
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)
-                                        .Where(d => d.DelegatorId == delegatorId && d.DelegateeId == delegateeId && !d.Status.Equals(DelegationStatus.Disabled.ToString().ToLower()))
+                                        .Where(d => d.DelegatorId == delegatorId && d.DelegateeId == delegateeId && !d.Status.Equals(DelegationStatus.Disabled.ToString()))
                                         .ToListAsync();
         });
 
@@ -150,12 +150,12 @@ public class DelegationRepository : IDelegationRepository
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                search = search.ToLowerInvariant().Trim();
+                search = search.Trim();
                 query = from d in query
-                        where d.Delegator.LastName.ToLower().Contains(search) ||
-                        d.Delegatee.LastName.ToLower().Contains(search) ||
-                        d.Delegator.FirstName.ToLower().Contains(search) ||
-                        d.Delegatee.FirstName.ToLower().Contains(search)
+                        where d.Delegator.LastName.Contains(search) ||
+                        d.Delegatee.LastName.Contains(search) ||
+                        d.Delegator.FirstName.Contains(search) ||
+                        d.Delegatee.FirstName.Contains(search)
                         select d;
             }
 
@@ -311,7 +311,7 @@ public class DelegationRepository : IDelegationRepository
         {
             existingDelegations = await _accountContext.DelegationEntity
                 .Include(d => d.Account)
-                .Where(d => d.DelegationId != delegationEntity.DelegationId && d.Status.Equals(DelegationStatus.Enabled.ToString().ToLower())
+                .Where(d => d.DelegationId != delegationEntity.DelegationId && d.Status.Equals(DelegationStatus.Enabled.ToString())
                     && d.DelegateeId == delegationEntity.DelegateeId && d.Account.Any(a => accountIds.Contains(a.AccountId)))
                 .ToListAsync();
 

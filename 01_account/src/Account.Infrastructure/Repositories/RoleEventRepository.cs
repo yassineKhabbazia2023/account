@@ -61,7 +61,7 @@ public class RoleEventRepository : IRoleEventRepository
                                         .Include(d => d.Delegatee)
                                         .ThenInclude(delegatee => delegatee.RoleEntity)
                                         .Where(d => d.DelegatorId == delegatorId
-                                            && !d.Status.Equals(DelegationStatus.Disabled.ToString().ToLower())
+                                            && !d.Status.Equals(DelegationStatus.Disabled.ToString())
                                             && d.IsAutomaticDelegation)
                                         .ToListAsync();
 
