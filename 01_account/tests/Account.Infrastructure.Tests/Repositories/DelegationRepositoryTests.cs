@@ -5,7 +5,6 @@
 using AutoFixture;
 using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedExceptions;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Pulse.Account.Core.Enum;
@@ -16,7 +15,6 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
@@ -125,9 +123,6 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task CreateDelegationAsync_WhenRequestIsValid_ShouldCreateDelegationAndRole()
     {
-        //var connection = new SqliteConnection("DataSource=:memory:");
-        //connection.Open();
-
         // Run the test against one instance of the context
         using (var context = new AccountContext(_dbContextOptions))
         {
@@ -1120,5 +1115,68 @@ public class DelegationRepositoryTests
             result.Should().NotBeNull();
             result.Should().BeEmpty();
         }
+    }
+
+    [Theory]
+    [MemberData(nameof(Contacts))]
+    public async Task IsClient_ShouldReturnTrue_IfContactIdsListContainsClient(IEnumerable<int> contactIds)
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var collab1 = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 1)
+            .With(c => c.Type, ContactType.Collaborator.ToString())
+            .Create();
+        var collab2 = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 2)
+            .With(c => c.Type, ContactType.Collaborator.ToString())
+            .Create();
+        var client1 = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 3)
+            .With(c => c.Type, ContactType.Customer.ToString())
+            .Create();
+        var client2 = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 4)
+            .With(c => c.Type, ContactType.Customer.ToString())
+            .Create();
+        context.ContactEntity.AddRange(new List<ContactEntity> { collab1, collab1, client1, client2 });
+        await context.SaveChangesAsync();
+
+        var repository = new DelegationRepository(context);
+
+        var result = await repository.IsClient(contactIds);
+
+        Assert.True(result);
+    }
+
+    public static IEnumerable<object[]> Contacts()
+    {
+        yield return new object[] { new List<int> { 1, 3 } };
+        yield return new object[] { new List<int> { 3, 2 } };
+        yield return new object[] { new List<int> { 3, 4 } };
+        yield return new object[] { new List<int> { 4, 3 } };
+    }
+
+    [Fact]
+    public async Task IsClient_WithNoClient_ShouldReturnFalse()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var collab1 = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 1)
+            .With(c => c.Type, ContactType.Collaborator.ToString())
+            .Create();
+        var collab2 = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 2)
+            .With(c => c.Type, ContactType.Collaborator.ToString())
+            .Create();
+        context.ContactEntity.AddRange(new List<ContactEntity> { collab1, collab1 });
+        await context.SaveChangesAsync();
+
+        var repository = new DelegationRepository(context);
+
+        var result = await repository.IsClient(new List<int> { 1, 2 });
+
+        Assert.False(result);
     }
 }

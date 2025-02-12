@@ -37,6 +37,14 @@ public class DelegationService : IDelegationService
             throw new BadRequestException(Errors.CreateDelegationCode, Errors.CreateDelegationMessage);
         }
 
+        var contactList = delegation.DelegationDetails.Select(d => d.DelegateeId).ToList();
+        contactList.Add(delegation.DelegatorId);
+
+        if (await _delegationRepository.IsClient(contactList))
+        {
+            throw new BadRequestException(Errors.BadRequestClientCannotDelegateCode, Errors.BadRequestClientCannotDelegateMessage);
+        }
+
         delegation.DelegationDetails.SetDelegationInformation();
 
         if (!DelegationValidation.ValidateEndDateDelegation(delegation.DelegationDetails))

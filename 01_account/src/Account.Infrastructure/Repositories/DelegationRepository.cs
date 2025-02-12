@@ -346,4 +346,12 @@ public class DelegationRepository : IDelegationRepository
         var rolesToCreate = roles.Except(existingRoles, new RoleComparer());
         return rolesToCreate;
     }
+
+    public async Task<bool> IsClient(IEnumerable<int> contactIds)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            return await _accountContext.ContactEntity.AnyAsync(c => contactIds.Contains(c.ContactId) && c.Type == ContactType.Customer.ToString());
+        });
+    }
 }

@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;

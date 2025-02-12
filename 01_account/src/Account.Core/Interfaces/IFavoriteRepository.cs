@@ -3,7 +3,6 @@
 // </copyright>
 
 using Pulse.Account.Core.Models;
-using Pulse.Account.Core.Models.Utils;
 
 namespace Pulse.Account.Core.Interfaces
 {

@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System;
 using AutoFixture;
 using FluentAssertions;
 using Kpmg.ExceptionMiddleware.AdvancedException;
@@ -72,8 +73,8 @@ public class DelegationServiceTest
 
         // Assert
         var exception = Assert.ThrowsAsync<BadRequestException>(act);
-        Assert.Equal(Errors.CreateDelegationMessage, exception.Result.Message);
-        Assert.Equal(Errors.CreateDelegationCode, exception.Result.Code);
+        Assert.Equal("Impossible de créer une délégation : les informations fournies dans la requête sont incorrectes.", exception.Result.Message);
+        Assert.Equal("ACC003", exception.Result.Code);
     }
 
     [Fact]
@@ -88,15 +89,32 @@ public class DelegationServiceTest
             .With(p => p.DelegationDetails, details)
             .Create();
 
-        var service = new DelegationService(null!, null!, null!);
+        _repository.Setup(x => x.IsClient(It.IsAny<IEnumerable<int>>())).ReturnsAsync(false);
+
+        var service = new DelegationService(_repository.Object, null!, null!);
 
         // Act
         var act = async () => await service.CreateDelegationAsync(createDelegation);
 
         // Assert
         var exception = Assert.ThrowsAsync<BadRequestException>(act);
-        Assert.Equal(Errors.DelegationEndDateInvalidMessage, exception.Result.Message);
-        Assert.Equal(Errors.DelegationEndDateInvalidCode, exception.Result.Code);
+        Assert.Equal("Impossible de créer une délégation : La date de début de la délégation ne peut pas être supérieur à la date de fin.", exception.Result.Message);
+        Assert.Equal("ACC007", exception.Result.Code);
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_ShouldThrowBadRequestException_IfRequestContainsClient()
+    {
+        var createDelegation = _fixture.Create<CreateDelegationRequest>();
+        _repository.Setup(x => x.IsClient(It.IsAny<IEnumerable<int>>())).ReturnsAsync(true);
+
+        var service = new DelegationService(_repository.Object, null!, null!);
+
+        var act = async () => await service.CreateDelegationAsync(createDelegation);
+
+        var result = Assert.ThrowsAsync<BadRequestException>(act);
+        Assert.Equal("ACC023", result.Result.Code);
+        Assert.Equal("Un client ne peut pas émettre ou recevoir de délégation", result.Result.Message);
     }
 
     [Fact]

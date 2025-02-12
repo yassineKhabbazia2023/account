@@ -27,4 +27,6 @@ public interface IDelegationRepository
     Task<IEnumerable<int>> GetAccountIdsForFullDelegationAsync(int delegatorId);
 
     Task<Paging<Delegation>> GetContactDelegationsHistoryAsync(int contactId, Pagination pagination, bool sortAscending);
+
+    Task<bool> IsClient(IEnumerable<int> contactIds);
 }

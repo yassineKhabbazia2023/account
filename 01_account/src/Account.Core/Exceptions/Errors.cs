@@ -71,5 +71,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string BadRequestAccountIdAndAccountNumberNullCode = "ACC022";
         public static readonly string BadRequestAccountIdAndAccountNumberNullMessage = "Veuillez fournir au moins l'AccountId ou l'AccountNumber";
+
+        public static readonly string BadRequestClientCannotDelegateCode = "ACC023";
+        public static readonly string BadRequestClientCannotDelegateMessage = "Un client ne peut pas émettre ou recevoir de délégation";
     }
 }
