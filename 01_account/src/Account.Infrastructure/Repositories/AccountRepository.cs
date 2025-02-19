@@ -60,11 +60,10 @@ namespace Pulse.Account.Infrastructure.Repositories
 
             if (!string.IsNullOrWhiteSpace(criteria.Search))
             {
-                criteria.Search = criteria.Search.ToLowerInvariant();
                 query = query
-                    .Where(q => q.LegalName.ToLower().Contains(criteria.Search) || q.AccountNumber.Contains(criteria.Search) ||
-                q.RoleEntity.Any(role => role.IsSignatory == true && ((role.Contact.FirstName + " " + role.Contact.LastName).ToLower().Contains(criteria.Search)
-                                                  || role.Contact.Email.ToLower().Contains(criteria.Search))));
+                    .Where(q => q.LegalName.Contains(criteria.Search) || q.AccountNumber.Contains(criteria.Search) ||
+                q.RoleEntity.Any(role => role.IsSignatory == true && ((role.Contact.FirstName + " " + role.Contact.LastName).Contains(criteria.Search)
+                                                  || role.Contact.Email.Contains(criteria.Search))));
             }
 
             query = query.OrderBy(q => q.LegalName);
@@ -182,14 +181,13 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 if (!string.IsNullOrWhiteSpace(criteria.Search))
                 {
-                    var search = criteria.Search.ToLowerInvariant();
                     query = from n in query
-                            where n.Email.ToLower().Contains(search)
-                                  || n.FirstName.ToLower().Contains(search)
-                                  || n.LastName.ToLower().Contains(search)
-                                  || n.PersonaName.ToLower().Contains(search)
-                                  || ((n.Office != null && n.Office.ToLower().Contains(search))
-                                  || (!string.IsNullOrWhiteSpace(n.Status) && n.Status.ToLower().Contains(search)))
+                            where n.Email.Contains(criteria.Search)
+                                  || n.FirstName.Contains(criteria.Search)
+                                  || n.LastName.Contains(criteria.Search)
+                                  || n.PersonaName.Contains(criteria.Search)
+                                  || ((n.Office != null && n.Office.Contains(criteria.Search))
+                                  || (!string.IsNullOrWhiteSpace(n.Status) && n.Status.Contains(criteria.Search)))
                             select n;
                 }
 
@@ -232,15 +230,15 @@ namespace Pulse.Account.Infrastructure.Repositories
                         .AsNoTracking()
                         .Include(x => x.Contact)
                         .Where(x => accountIds.Contains(x.AccountId)
-                        && x.Contact.Type.ToLower() == request.ContactType.ToString().ToLower());
+                        && x.Contact.Type == request.ContactType.ToString());
 
                 if (!request.Search.IsNullOrEmpty())
                 {
-                    query = query.Where(role => role.Contact.Email.ToLower().Contains(request.Search!.ToLower())
-                                                                || role.Contact.FirstName.ToLower().Contains(request.Search.ToLower())
-                                                                || role.Contact.LastName.ToLower().Contains(request.Search.ToLower())
-                                                                || role.Contact.PersonaName.ToLower().Contains(request.Search.ToLower())
-                                                                || (role.Contact.Office != null && role.Contact.Office.ToLower().Contains(request.Search.ToLower())));
+                    query = query.Where(role => role.Contact.Email.Contains(request.Search!)
+                                                                || role.Contact.FirstName.Contains(request.Search)
+                                                                || role.Contact.LastName.Contains(request.Search)
+                                                                || role.Contact.PersonaName.Contains(request.Search)
+                                                                || (role.Contact.Office != null && role.Contact.Office.Contains(request.Search)));
                 }
 
                 query = query.GroupBy(x => x.ContactId).Select(g => g.First());

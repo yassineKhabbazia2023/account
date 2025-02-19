@@ -227,7 +227,7 @@ public class DelegationRepository : IDelegationRepository
             accountIds = await _accountContext.RoleEntity
                             .Where(r => r.ContactId == delegatorId)
                             .Include(r => r.Contact)
-                            .Where(r => r.Contact.Status != ContactStatus.Removed.ToString())
+                            .Where(r => r.Contact.IsActive)
                             .Include(r => r.Account)
                             .ThenInclude(a => a.DeploymentEntity)
                             .AsNoTracking()

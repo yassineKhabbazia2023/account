@@ -19,6 +19,7 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
+using Pulse.Account.Infrastructure.Tests.Context;
 using Pulse.Account.Infrastructure.Tests.Helpers;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
@@ -41,13 +42,13 @@ public class AccountRepositoryTests
 
     [Theory]
     [InlineData("199900046522")]
-    [InlineData("test scA")]
+    [InlineData("test sca")]
     [InlineData("firstuser")]
     [InlineData("lastuser")]
     [InlineData("firstlastuser@test.fr")]
     public async Task GetAccountListSearch_Should_ReturnsOkResultAsync(string criteria)
     {
-        using (var context = new AccountContext(_dbContextOptions))
+        using (var context = new TestAccountContext(_dbContextOptions))
         {
             // Arrange
             var contactEntity = new ContactEntity
@@ -73,7 +74,7 @@ public class AccountRepositoryTests
             {
                 RoleEntity = roleEntity,
                 AccountNumber = "199900046522",
-                LegalName = "test scA",
+                LegalName = "test sca",
                 Hub = new HubEntity { HubId = 1, HubName = "HubName" },
                 CreatedBy = "me",
             };
@@ -669,18 +670,25 @@ public class AccountRepositoryTests
                 PageSize = 999
             };
             var resultExpected = new List<Contact>();
-            var accountsMock = _fixture.Create<List<AccountEntity>>();
+            var deploymentMock = _fixture.Build<DeploymentEntity>()
+                                        .Without(d => d.Account)
+                                        .CreateMany(1)
+                                        .ToList();
+            var accountsMock = _fixture.Build<AccountEntity>()
+                                        .Without(a => a.RoleEntity)
+                                        .Without(a => a.Delegation)
+                                        .With(a => a.DeploymentEntity, deploymentMock)
+                                        .CreateMany(1)
+                                        .ToList();
             var contactAdmin = _fixture.Build<ContactEntity>()
                                         .Without(c => c.DelegationEntityDelegatee)
                                         .Without(c => c.DelegationEntityDelegator)
                                         .Without(c => c.RoleEntity)
-                                        .Without(c => c.ContactGlobalUniqueId)
                                         .With(c => c.IsActive, true)
+                                        .With(c => c.Type, ContactType.Customer.ToString())
                                         .Create();
 
-            contactAdmin.Type = "customer";
             context.AccountEntity.AddRange(accountsMock);
-            context.SaveChanges();
 
             for (int i = 0; i < accountsMock.Count; i++)
             {
@@ -693,12 +701,13 @@ public class AccountRepositoryTests
                 };
 
                 context.RoleEntity.Add(roleMock);
-                context.SaveChanges();
 
                 resultExpected.AddRange(accountsMock[i].RoleEntity
-                    .Where(x => x.Contact.Type == "customer")
+                    .Where(x => x.Contact.Type == ContactType.Customer.ToString())
                     .Select(x => x.Contact.ToContact()!));
             }
+
+            context.SaveChanges();
 
             var accountRepository = new AccountRepository(context);
 

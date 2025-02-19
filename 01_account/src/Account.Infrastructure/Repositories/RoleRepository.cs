@@ -124,7 +124,7 @@ public class RoleRepository : IRoleRepository
                 throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, role.AccountId));
             }
 
-            if (!await _accountContext.ContactEntity.AnyAsync(x => x.ContactId == role.ContactId && x.Status != ContactStatus.Removed.ToString()))
+            if (!await _accountContext.ContactEntity.AnyAsync(x => x.ContactId == role.ContactId && x.IsActive))
             {
                 throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
             }
