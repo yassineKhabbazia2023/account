@@ -3,13 +3,13 @@
 // </copyright>
 
 using AutoFixture;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
 

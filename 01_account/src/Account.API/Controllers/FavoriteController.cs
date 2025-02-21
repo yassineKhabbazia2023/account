@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.ExceptionMiddleware.Model;
 
 namespace Pulse.Account.API.Controllers
 {
@@ -27,8 +28,8 @@ namespace Pulse.Account.API.Controllers
         /// <returns>Liste des entités morales favorites.</returns>
         [HttpGet("favorites")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountFavorite>))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
         public async Task<ActionResult<IReadOnlyCollection<AccountFavorite>>> GetAccountFavoritesByContactIdAsync([Required] int contactId)
         {
             var result = await _favoriteService.GetAccountFavoritesByContactIdAsync(contactId);
@@ -45,8 +46,8 @@ namespace Pulse.Account.API.Controllers
         /// <returns>OK si la mise à jour s'est bien déroulée.</returns>
         [HttpPatch("favorites")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
         public async Task<ActionResult> SetFavoriteAsync([Required] int accountId, [Required] int contactId, [Required] bool isFavorite)
         {
             await _favoriteService.SetFavoriteAsync(accountId, contactId, isFavorite);

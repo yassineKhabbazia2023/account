@@ -5,7 +5,6 @@
 using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Moq;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
@@ -14,6 +13,7 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
+using Pulse.ExceptionMiddleware.Exceptions;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Core.Tests.Services

@@ -11,6 +11,9 @@ using Pulse.Account.Infrastructure.Interfaces;
 using Pulse.Account.Infrastructure.Context;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Pulse.Account.Infrastructure.Entities;
+using Pulse.ExceptionMiddleware.Exceptions;
+using Pulse.Account.Core.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Providers
 {
@@ -31,44 +34,51 @@ namespace Pulse.Account.Infrastructure.Providers
 
         public async Task PublishRoleCreatedEventAsync(CreateRoleRequest roleRequest)
         {
-                if (roleRequest is null)
-                {
-                    return;
-                }
+            if (roleRequest is null)
+            {
+                return;
+            }
 
-                var scope = _serviceScope.CreateScope();
-                var context = scope.ServiceProvider.GetRequiredService<AccountContext>();
+            var scope = _serviceScope.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<AccountContext>();
 
-                var selectedAccount = await context.AccountEntity.AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.AccountId == roleRequest.AccountId);
+            var selectedAccount = await context.AccountEntity.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.AccountId == roleRequest.AccountId);
 
-                var selectedContact = await context.ContactEntity.AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.ContactId == roleRequest.ContactId);
+            var selectedContact = await context.ContactEntity.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ContactId == roleRequest.ContactId);
 
-                ArgumentNullException.ThrowIfNull(selectedAccount, nameof(selectedAccount));
-                ArgumentNullException.ThrowIfNull(selectedContact,nameof(selectedContact));
+            if (selectedAccount == default(AccountEntity))
+            {
+                throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, roleRequest.AccountId));
+            }
 
-                roleRequest.AccountGlobalUniqueId = roleRequest.AccountGlobalUniqueId ??
-                   selectedAccount!.AccountGlobalUniqueId;
+            if (selectedContact == default(ContactEntity))
+            {
+                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, roleRequest.ContactId));
+            }
 
-                roleRequest.ContactGlobalUniqueId = roleRequest.ContactGlobalUniqueId ??
-                    selectedContact!.ContactGlobalUniqueId;
+            roleRequest.AccountGlobalUniqueId = roleRequest.AccountGlobalUniqueId ??
+               selectedAccount!.AccountGlobalUniqueId;
 
-                var data = new RoleCreatedEventData
-                {
-                    AccountId = roleRequest.AccountId,
-                    ContactId = roleRequest.ContactId,
-                    IsDelegation = roleRequest.IsDelegation,
-                    IsFavorite = roleRequest.IsFavorite,
-                    IsSignatory = roleRequest.IsSignatory,
-                    AccountGlobalUniqueId = (Guid)roleRequest.AccountGlobalUniqueId!,
-                    ContactGlobalUniqueId = (Guid)roleRequest.ContactGlobalUniqueId!,
-                    DelegatorContactId = roleRequest.DelegatorId,
-                    AccountNumber = selectedAccount!.AccountNumber,
-                    ContactEmail = selectedContact!.Email
-                };
+            roleRequest.ContactGlobalUniqueId = roleRequest.ContactGlobalUniqueId ??
+                selectedContact!.ContactGlobalUniqueId;
 
-                await _eventPublisher.PublishAsync(new RoleCreatedEvent(data));
+            var data = new RoleCreatedEventData
+            {
+                AccountId = roleRequest.AccountId,
+                ContactId = roleRequest.ContactId,
+                IsDelegation = roleRequest.IsDelegation,
+                IsFavorite = roleRequest.IsFavorite,
+                IsSignatory = roleRequest.IsSignatory,
+                AccountGlobalUniqueId = (Guid)roleRequest.AccountGlobalUniqueId!,
+                ContactGlobalUniqueId = (Guid)roleRequest.ContactGlobalUniqueId!,
+                DelegatorContactId = roleRequest.DelegatorId,
+                AccountNumber = selectedAccount!.AccountNumber,
+                ContactEmail = selectedContact!.Email
+            };
+
+            await _eventPublisher.PublishAsync(new RoleCreatedEvent(data));
         }
 
         public async Task PublishRoleUpdatedEventAsync(int accountId, int contactId, bool isSignatory)

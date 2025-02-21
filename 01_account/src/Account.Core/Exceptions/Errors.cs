@@ -2,6 +2,8 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Microsoft.AspNetCore.Http;
+
 namespace Pulse.Account.Core.Exceptions
 {
     public static class Errors
@@ -74,5 +76,20 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string BadRequestClientCannotDelegateCode = "ACC023";
         public static readonly string BadRequestClientCannotDelegateMessage = "Un client ne peut pas émettre ou recevoir de délégation";
+
+        public static readonly string NotFoundDatabaseConnectionStringCode = "ACC024";
+        public static readonly string NotFoundDataBaseConnectionStringMessage = "Connection String au base de donnée est null ou vide!";
+
+        public static readonly string NotFoundApplicationInsightConnectionStringCode = "ACC025";
+        public static readonly string NotFoundApplicationInsightConnectionStringMessage = "Connection string du application insight est null ou vide";
+
+        public static readonly string RoleNotFoundCode = "ACC026";
+        public static readonly string RoleNotFoundMessage = "le role accountId {0} et contactId {1} est introuvable";
+
+        public static readonly string NullDelegationRequestCode = "ACC027";
+        public static readonly string NullDelegationRequestMessage = "le Delegation request est null";
+
+        public static readonly string NullArgumentCode = "ACC028";
+        public static readonly string NullArgumentMessage = "Argument {0} est null ou vide!";
     }
 }

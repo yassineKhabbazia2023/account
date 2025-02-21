@@ -15,17 +15,20 @@ namespace Pulse.Account.API
             CreateHostBuilder(args).Build().Run();
         }
 
-        private static IHostBuilder CreateHostBuilder(string[] args) =>
-
-            Host.CreateDefaultBuilder(args)
-                .UseSerilog((context, loggerConfiguration) =>
-                {
-                    loggerConfiguration.ReadFrom.Configuration(context.Configuration);
-                })
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>()
-                        .UseDefaultServiceProvider(options => options.ValidateScopes = false);
-                });
+        private static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+            return Host.CreateDefaultBuilder(args)
+                     .UseSerilog((context, loggerConfiguration) =>
+                     {
+                         loggerConfiguration.ReadFrom.Configuration(context.Configuration);
+                         loggerConfiguration.WriteTo.Console();
+                     })
+                  .ConfigureWebHostDefaults(webBuilder =>
+                    {
+                        webBuilder.UseStartup<Startup>()
+                            .UseDefaultServiceProvider(options => options.ValidateScopes = false);
+                    });
+        }
     }
 }

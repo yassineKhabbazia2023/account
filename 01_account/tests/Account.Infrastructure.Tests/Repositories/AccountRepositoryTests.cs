@@ -4,8 +4,6 @@
 
 using AutoFixture;
 using FluentAssertions;
-using Kpmg.ExceptionMiddleware.AdvancedException;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json;
@@ -21,6 +19,7 @@ using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
 using Pulse.Account.Infrastructure.Tests.Context;
 using Pulse.Account.Infrastructure.Tests.Helpers;
+using Pulse.ExceptionMiddleware.Exceptions;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;

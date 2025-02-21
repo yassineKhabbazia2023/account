@@ -9,8 +9,8 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
 using Pulse.Account.Core.Models;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Pulse.Account.Core.Enum;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories
 {

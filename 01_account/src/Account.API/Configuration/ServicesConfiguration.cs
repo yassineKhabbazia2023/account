@@ -3,8 +3,10 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Pulse.Account.API.Configuration.Model;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Exceptions;
@@ -19,6 +21,8 @@ using Pulse.Back.Events;
 using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.Configurations;
 using Pulse.Back.Events.IntegrationEvents;
+using Pulse.ExceptionMiddleware;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.API.Configuration
 {
@@ -48,7 +52,7 @@ namespace Pulse.Account.API.Configuration
 
             if (brokerSettings!.PushTopicName == null || !brokerSettings!.PushTopicName.Any())
             {
-                throw new NullArgumentException(Errors.NotFoundTopicName, Errors.NotFoundTopicName);
+                throw new NullArgumentException(Errors.NotFoundTopicName, Errors.NotFoundTopicNameMessage);
             }
 
             if (string.IsNullOrWhiteSpace(brokerSettings!.ServiceBusNamespace))
@@ -101,9 +105,13 @@ namespace Pulse.Account.API.Configuration
 
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)
         {
-            ArgumentNullException.ThrowIfNull(configuration);
+
             var connectionString = configuration["SqlAccountConnectionString"];
-            ArgumentNullException.ThrowIfNullOrEmpty(connectionString);
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new NullArgumentException(Errors.NotFoundDatabaseConnectionStringCode, Errors.NotFoundDataBaseConnectionStringMessage);
+            }
+
             services.AddDbContext<AccountContext>(options =>
             {
                 options.UseSqlServer(connectionString, opt =>
@@ -122,10 +130,25 @@ namespace Pulse.Account.API.Configuration
             ArgumentNullException.ThrowIfNull(configuration);
             var applicationInsightsConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
 
-            ArgumentNullException.ThrowIfNullOrEmpty(applicationInsightsConnectionString);
+            if (string.IsNullOrEmpty(applicationInsightsConnectionString))
+            {
+                throw new NullArgumentException(
+                    Errors.NullArgumentCode,
+                    string.Format(Errors.NullArgumentMessage, "APPLICATIONINSIGHTS_CONNECTION_STRING"));
+            }
+
             services.AddApplicationInsightsTelemetry(options =>
             {
                 options.ConnectionString = applicationInsightsConnectionString;
+            });
+
+            services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
+
+            // 3) Si on veut injecter TelemetryClient ailleurs
+            services.AddSingleton(provider =>
+            {
+                var telemetryConfig = provider.GetRequiredService<IOptions<TelemetryConfiguration>>().Value;
+                return new TelemetryClient(telemetryConfig);
             });
         }
 

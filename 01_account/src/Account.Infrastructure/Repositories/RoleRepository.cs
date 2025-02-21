@@ -2,8 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Kpmg.ExceptionMiddleware.AdvancedException;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;
@@ -19,6 +17,7 @@ using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -131,7 +130,7 @@ public class RoleRepository : IRoleRepository
 
             if (await GetContactRoleAsync(role.AccountId, role.ContactId) != null)
             {
-                throw new BadRequestException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, role.ContactId, role.AccountId));
+                throw new ConflictException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, role.ContactId, role.AccountId));
             }
 
             var roles = new List<Role> { role.MapCreateRoleRequestToRole() };

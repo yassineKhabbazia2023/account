@@ -2,11 +2,8 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Pulse.Account.Core.Exceptions;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure
 {
@@ -18,7 +15,7 @@ namespace Pulse.Account.Infrastructure
         {
             if (string.IsNullOrWhiteSpace(this.ConnectionString!))
             {
-                throw new InvalidOperationException($"Instance of {nameof(AccountRepositoryOptions)} is invalid, {nameof(AccountRepositoryOptions.ConnectionString)} is null or empty.");
+                throw new NullArgumentException(Errors.NotFoundDatabaseConnectionStringCode, Errors.NotFoundDataBaseConnectionStringMessage);
             }
         }
     }

@@ -3,6 +3,7 @@
 // </copyright>
 
 using FluentAssertions;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
@@ -47,8 +48,8 @@ public class AccountRepositoryOptionsTests
 
         // Act & Assert
         options.Invoking(o => o.Validate())
-               .Should().Throw<InvalidOperationException>()
-               .WithMessage("Instance of AccountRepositoryOptions is invalid, ConnectionString is null or empty.");
+               .Should().Throw<NullArgumentException>()
+               .WithMessage("Connection String au base de donnée est null ou vide!");
     }
 
     public static TheoryData<string> ConnectionString => new()

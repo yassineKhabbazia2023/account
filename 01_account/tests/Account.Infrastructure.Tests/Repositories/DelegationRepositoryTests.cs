@@ -4,8 +4,8 @@
 
 using AutoFixture;
 using FluentAssertions;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Moq;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
@@ -15,6 +15,8 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
+using Pulse.ExceptionMiddleware.Exceptions;
+using InvalidOperationException = Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
@@ -58,6 +60,8 @@ public class DelegationRepositoryTests
             var action = async () => await repos.CreateDelegationAsync(createDelegationRequest, roleRequestList);
 
             var exception = await action.Should().ThrowAsync<NotFoundException>();
+            var contactIds = createDelegationRequest.DelegationDetails.Select(x => x.DelegateeId).ToList();
+            contactIds.Add(createDelegationRequest.DelegatorId);
 
             exception.WithMessage(Errors.NotFoundContactsMessage);
             exception.Which.Code.Should().Be(Errors.NotFoundContactsCode);
@@ -319,10 +323,11 @@ public class DelegationRepositoryTests
                 },
                 AccountIds = new List<int> { tAccount.AccountId }
             };
-
-            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation, null!));
-            Assert.Equal(Errors.NotFoundContactsCode, result.Code);
-            Assert.Equal(Errors.NotFoundContactsMessage, result.Message);
+            var contacts = new List<int> { tDelegatee.ContactId, 0 };
+            var action = async () => await repository.CreateDelegationAsync(createDelegation, null!);
+            var result = await action.Should().ThrowAsync<NotFoundException>();
+            result.Which.Code.Should().Be(Errors.NotFoundContactsCode);
+            result.WithMessage(Errors.NotFoundContactsMessage);
         }
     }
 
@@ -359,9 +364,13 @@ public class DelegationRepositoryTests
                 AccountIds = new List<int> { tAccount.AccountId },
             };
 
-            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation, null!));
-            Assert.Equal(Errors.NotFoundContactsCode, result.Code);
-            Assert.Equal(Errors.NotFoundContactsMessage, result.Message);
+            var contacts = createDelegation.DelegationDetails.Select(x => x.DelegateeId).ToList();
+            contacts.Add(createDelegation.DelegatorId);
+
+            var action = async () => await repository.CreateDelegationAsync(createDelegation, null!);
+            var result = await action.Should().ThrowAsync<NotFoundException>();
+            result.Where(x => x.Code == Errors.NotFoundContactsCode);
+            result.WithMessage(Errors.NotFoundContactsMessage);
         }
     }
 
@@ -434,7 +443,7 @@ public class DelegationRepositoryTests
                 AccountIds = new List<int> { tAccount.AccountId }
             };
 
-            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation, null!));
+            var result = await Assert.ThrowsAsync<InvalidOperationException>(async () => await repository.CreateDelegationAsync(createDelegation, null!));
             Assert.Equal(Errors.DontHaveRightAccountsCode, result.Code);
             Assert.Equal(Errors.DontHaveRightAccountsMessage, result.Message);
         }
@@ -871,7 +880,7 @@ public class DelegationRepositoryTests
             for (var i = 1; i <= 10; i++)
             {
                 var delegateeId = _fixture.Create<int>() + i;
-                await context.ContactEntity.AddAsync(new ContactEntity
+                var contactEntity = new ContactEntity
                 {
                     ContactId = delegateeId,
                     Email = $"Contact-mail-{delegateeId}@kpmg.fr",
@@ -882,7 +891,8 @@ public class DelegationRepositoryTests
                     PersonaName = "Collaborateur ESC",
                     Office = "Paris",
                     CreationDate = DateTime.UtcNow,
-                });
+                };
+                await context.ContactEntity.AddAsync(contactEntity);
 
                 Random random = new Random();
                 int randomStatusindex = random.Next(delegationStatus.Count);
@@ -899,7 +909,6 @@ public class DelegationRepositoryTests
                     Note = $"Note de {contactId}",
                     Account = _fixture.Build<AccountEntity>().Without(a => a.Delegation).Without(a => a.RoleEntity).CreateMany(3).ToList()
                 };
-
                 await context.DelegationEntity.AddRangeAsync(new List<DelegationEntity> { tDelegation });
 
                 expectedDelegationsResult.Add(tDelegation.ToDelegation()!);

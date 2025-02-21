@@ -5,6 +5,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.ExceptionMiddleware.Model;
 
 namespace Pulse.Account.API.Controllers
 {
@@ -26,8 +27,8 @@ namespace Pulse.Account.API.Controllers
         /// <returns>Le nombre de comptes par statut.</returns>
         [HttpGet("statistics")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Statistics))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
         public async Task<ActionResult<Statistics>> GetStatistics([FromQuery] int contactId)
         {
             var result = await _statisticsService.GetStatisticsAsync(contactId);

@@ -5,12 +5,13 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Kpmg.ExceptionMiddleware;
 using Microsoft.IdentityModel.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Pulse.Account.API.Configuration;
 using Pulse.Account.API.Configuration.Model;
+using Pulse.Back.ExceptionMiddleware;
+using Pulse.ExceptionMiddleware;
 
 namespace Pulse.Account.API
 {
@@ -34,7 +35,6 @@ namespace Pulse.Account.API
         {
             ArgumentNullException.ThrowIfNull(_configuration);
             services.AddMemoryCache();
-            services.AddApplicationInsightsTelemetry(_configuration);
             services.AddHsts(options =>
             {
                 options.IncludeSubDomains = true;

@@ -2,8 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Net;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
@@ -12,6 +10,7 @@ using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Account.Api.Tests.Controllers
 {

@@ -7,6 +7,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
+using Pulse.ExceptionMiddleware.Model;
 
 namespace Pulse.Account.API.Controllers;
 
@@ -35,8 +36,8 @@ public class DelegationController : ControllerBase
     /// <returns>Liste de délégations.</returns>
     [HttpGet("{delegateeId}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Delegation>))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult<IReadOnlyCollection<Delegation>>> GetContactDelegationsAsync(int delegateeId)
     {
         var delegations = await _delegationService.GetContactDelegationsAsync(delegateeId);
@@ -51,8 +52,8 @@ public class DelegationController : ControllerBase
     /// <returns>Liste de délégations.</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Delegation>))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult<IReadOnlyCollection<Delegation>>> GetDelegationsAsync([FromQuery] int delegatorId, [FromQuery] int delegateeId)
     {
         var delegations = await _delegationService.GetDelegationsAsync(delegatorId, delegateeId);
@@ -66,8 +67,8 @@ public class DelegationController : ControllerBase
     /// <returns>Un entitier positif si la délégation a été bien ajouter, sinon une valeur 0. </returns>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult> CreateDelegationAsync([FromBody] CreateDelegationRequest delegation)
     {
         await _delegationService.CreateDelegationAsync(delegation);
@@ -82,8 +83,8 @@ public class DelegationController : ControllerBase
     /// <returns>Ok si la suppression s'est bien déroulée.</returns>
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult> DeleteDelegationAsync(int delegationId)
     {
         await _delegationService.DeleteDelegationAsync(delegationId);
@@ -100,8 +101,8 @@ public class DelegationController : ControllerBase
     /// <returns>Liste de délégations.</returns>
     [HttpGet("{accountId}/history")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<Delegation>))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult<Paging<Delegation>>> GetAccountDelegationsHistoryAsync(int accountId,
         string? search,
         [FromQuery] Pagination? pagination)
@@ -119,8 +120,8 @@ public class DelegationController : ControllerBase
     /// <returns>Liste de délégations.</returns>
     [HttpGet("{contactId}/historyDelegation")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<Delegation>))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult<Paging<Delegation>>> GetContactDelegationsHistoryAsync(int contactId,
         [FromQuery] Pagination? pagination,
         bool sortAscending = true)

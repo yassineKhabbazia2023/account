@@ -3,7 +3,6 @@
 // </copyright>
 
 using System.Globalization;
-using Kpmg.ExceptionMiddleware.AdvancedException;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Infrastructure.Entities;

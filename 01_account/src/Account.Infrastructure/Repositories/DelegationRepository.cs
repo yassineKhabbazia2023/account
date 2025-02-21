@@ -3,7 +3,6 @@
 // </copyright>
 
 using System.Data;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Polly;
@@ -20,6 +19,7 @@ using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
 using Pulse.Account.Infrastructure.Utils;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -39,7 +39,11 @@ public class DelegationRepository : IDelegationRepository
 
     public async Task<IEnumerable<CreateRoleRequest>> CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles)
     {
-        ArgumentNullException.ThrowIfNull(delegation);
+        if (delegation == default(CreateDelegationRequest))
+        {
+            throw new BadRequestException(Errors.NullDelegationRequestCode, Errors.NullDelegationRequestMessage);
+        }
+
         var contactsToCheck = delegation.DelegationDetails.Select(d => d.DelegateeId).ToList();
         contactsToCheck.Add(delegation.DelegatorId);
 
@@ -52,12 +56,12 @@ public class DelegationRepository : IDelegationRepository
 
             if (!(await CheckExistingAccountsAsync(delegation.AccountIds!))?.Any() == false)
             {
-                throw new NotFoundException(Errors.NotFoundAccountsCode, Errors.NotFoundAccountsMessage);
+                throw new NotFoundException(Errors.NotFoundAccountsCode, string.Format(Errors.NotFoundAccountsMessage, string.Join(',', delegation.AccountIds)));
             }
 
             if (!await CheckContactHasAccounts(delegation.DelegatorId, delegation.AccountIds!))
             {
-                throw new NotFoundException(Errors.DontHaveRightAccountsCode, Errors.DontHaveRightAccountsMessage);
+                throw new ExceptionMiddleware.Exceptions.InvalidOperationException(Errors.DontHaveRightAccountsCode, Errors.DontHaveRightAccountsMessage);
             }
 
             var accounts = await GetAccounts(delegation.AccountIds!);

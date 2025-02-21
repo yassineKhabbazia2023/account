@@ -5,8 +5,6 @@
 using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
-using Kpmg.ExceptionMiddleware.AdvancedException;
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
@@ -15,6 +13,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Account.Api.Tests.Controllers
 {

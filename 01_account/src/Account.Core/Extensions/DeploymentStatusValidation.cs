@@ -1,10 +1,9 @@
 ﻿// <copyright file="DeploymentStatusValidation.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
-
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Core.Extensions
 {

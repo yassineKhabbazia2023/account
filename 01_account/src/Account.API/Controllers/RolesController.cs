@@ -3,8 +3,6 @@
 // </copyright>
 
 using System.ComponentModel.DataAnnotations;
-using Kpmg.ExceptionMiddleware.AdvancedException;
-using Kpmg.ExceptionMiddleware.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Pulse.Account.Core.Exceptions;
@@ -12,6 +10,8 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
+using Pulse.ExceptionMiddleware.Exceptions;
+using Pulse.ExceptionMiddleware.Model;
 
 namespace Pulse.Account.API.Controllers;
 
@@ -41,8 +41,8 @@ public class RolesController : ControllerBase
     /// <returns>Liste d'entités morales.</returns>
     [HttpGet]
     [ProducesResponseType(typeof(Paging<Core.Models.Account>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult<Paging<Core.Models.Account>>> GetContactRolesAsync(int contactId, [FromQuery] Pagination? pagination)
     {
         var result = await _rolesService.GetContactRolesAsync(contactId, pagination);
@@ -57,8 +57,8 @@ public class RolesController : ControllerBase
     /// <returns>La liste des signataires.</returns>
     [HttpGet("signatory/{accountId}")]
     [ProducesResponseType(typeof(IEnumerable<Contact>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult<IEnumerable<Contact>>> GetSignatoryAsync(int accountId)
     {
         var result = await _rolesService.GetSignatoryAsync(accountId);
@@ -74,8 +74,8 @@ public class RolesController : ControllerBase
     /// <returns>http 200.</returns>
     [HttpGet("check")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult> CheckRoleExists([Required] int contactId, int? accountId, [Required] string email)
     {
         var contactHasRoleOnAccount = await _rolesService.CheckRoleExistsAsync(contactId, accountId, email);
@@ -92,8 +92,8 @@ public class RolesController : ControllerBase
     /// <returns>http 200.</returns>
     [HttpGet("check-contact-role-on-account")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult> IsContactHasRoleOnAccount([Required] int contactId, int? accountId, string? accountNumber)
     {
         if(!accountId.HasValue && accountNumber.IsNullOrEmpty())
@@ -113,8 +113,8 @@ public class RolesController : ControllerBase
     /// <returns>http 201.</returns>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult> CreateRoleAsync(CreateRoleRequest role)
     {
         await _rolesService.CreateRoleAsync(role);
@@ -130,8 +130,8 @@ public class RolesController : ControllerBase
     /// <returns>http 200.</returns>
     [HttpPatch]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult> UpdateRoleSignatoryAsync([Required] int accountId, [Required] int contactId, [Required] bool isSignatory)
     {
         await _rolesService.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
@@ -146,8 +146,8 @@ public class RolesController : ControllerBase
     /// <returns>http 200.</returns>
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(Anomaly), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult> DeleteRoleAsync([Required] int accountId, [Required] int contactId)
     {
         await _rolesService.DeleteRoleAsync(accountId, contactId);

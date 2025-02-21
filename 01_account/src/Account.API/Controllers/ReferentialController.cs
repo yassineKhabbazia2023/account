@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
+using Pulse.ExceptionMiddleware.Model;
 
 namespace Pulse.Account.API.Controllers
 {
@@ -41,7 +42,7 @@ namespace Pulse.Account.API.Controllers
         /// <returns>Liste des NAF.</returns>
         [HttpGet("nafs")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Naf?>))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
         public async Task<ActionResult<IReadOnlyCollection<Naf?>>> GetNafsAsync(string? search, [FromQuery] Pagination? pagination)
         {
             var result = await _referentialService.GetNafsAsync(search, pagination);
@@ -55,7 +56,7 @@ namespace Pulse.Account.API.Controllers
         /// <returns>les information de reference des entités morales.</returns>
         [HttpGet("AccountReferentialInformation")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountReferentialInformation))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
         public ActionResult<AccountReferentialInformation> GetAccountReferentialInformation()
         {
             var result = _referentialService.GetAccountReferentialInformation();

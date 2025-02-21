@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Requests;
@@ -11,6 +10,7 @@ using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 

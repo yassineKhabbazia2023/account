@@ -2,8 +2,8 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Kpmg.ExceptionMiddleware.AdvancedExceptions;
 using Pulse.Account.Core.Extensions;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Core.Tests.Extensions
 {
