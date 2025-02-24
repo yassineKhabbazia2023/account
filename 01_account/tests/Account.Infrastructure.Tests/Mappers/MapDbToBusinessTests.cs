@@ -103,6 +103,8 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 AddressLine3 = address.AddressLine3,
                 ZipCode = address.ZipCode
             });
+            expectedAccount.CreatedBy = tAccountFixture.CreatedBy;
+            expectedAccount.ModifiedBy = tAccountFixture.ModifiedBy;
 
             // Act
             var accountModel = MapAccountDbToAccountModel.MapToAccountDetail(tAccountFixture);
@@ -115,6 +117,8 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             Assert.Equal(expectedAccount.AccountNumber, accountModel.AccountNumber);
             Assert.Equal(expectedAccount.AccountId, accountModel.AccountId);
             Assert.Equal(expectedAccount.AccountGlobalUniqueId, accountModel.AccountGlobalUniqueId);
+            Assert.Equal(expectedAccount.CreatedBy, accountModel.CreatedBy);
+            Assert.Equal(expectedAccount.ModifiedBy, accountModel.ModifiedBy);
         }
 
         [Fact]

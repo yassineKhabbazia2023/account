@@ -112,7 +112,9 @@ namespace Pulse.Account.Infrastructure.Mappers
                 Address = source.MapToAddress(),
                 Phone = source.MapToPhone(),
                 Hub = source.MapToHub(),
-                Deployment = source.MapToDeployment()
+                Deployment = source.MapToDeployment(),
+                CreatedBy = source.CreatedBy,
+                ModifiedBy = source.ModifiedBy
             };
         }
 

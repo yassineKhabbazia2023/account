@@ -35,6 +35,8 @@ namespace Pulse.Account.Infrastructure.Providers
                 LegalName = account.Legal?.LegalName ?? string.Empty,
                 SiretNumber = account?.Legal?.Siret ?? string.Empty,
                 Status = DeploymentStatus.ToDeploy.ToString(),
+                CreatedBy = account.CreatedBy,
+                ModifiedBy = account.ModifiedBy
             };
 
             var @event = new AccountCreatedEvent(eventData);
@@ -56,6 +58,8 @@ namespace Pulse.Account.Infrastructure.Providers
                 LegalName = account.Legal?.LegalName ?? string.Empty,
                 SiretNumber = account.Legal?.Siret ?? string.Empty,
                 Status = ((DeploymentStatus)account.Deployment!.Status).ToString(),
+                CreatedBy = account.CreatedBy,
+                ModifiedBy = account.ModifiedBy
             };
 
             var @event = new AccountUpdatedEvent(eventData);
