@@ -16,15 +16,14 @@
 )
 
 GO
-CREATE NONCLUSTERED INDEX [IX_Contact_Email_LastName_FirstName]
-    ON  [actor].[Contact]([Email] ASC, [LastName] ASC, [FirstName] ASC);
+CREATE NONCLUSTERED INDEX [IX_Contact_Email_LastName_FirstName_IsActive]
+    ON  [actor].[Contact]([Email], [LastName], [FirstName], [IsActive]);
 GO
-CREATE NONCLUSTERED INDEX [IX_Contact_Type]
-    ON  [actor].[Contact]([Type] ASC);
+CREATE NONCLUSTERED INDEX [IX_Contact_Type_IsActive]
+    ON  [actor].[Contact]([Type], [IsActive]);
 GO
-CREATE NONCLUSTERED INDEX [IX_Contact_Status]
-    ON  [actor].[Contact]([Status] ASC);
-
+CREATE NONCLUSTERED INDEX [IX_Contact_Status_IsActive]
+    ON  [actor].[Contact]([Status], [IsActive]);
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'L''identifiant technique',

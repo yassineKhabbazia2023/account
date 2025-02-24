@@ -223,11 +223,11 @@ public partial class AccountContext : DbContext
 
             entity.ToTable("Contact", "actor");
 
-            entity.HasIndex(e => new { e.Email, e.LastName, e.FirstName }, "IX_Contact_Email_LastName_FirstName");
+            entity.HasIndex(e => new { e.Email, e.LastName, e.FirstName, e.IsActive }, "IX_Contact_Email_LastName_FirstName_IsActive");
 
-            entity.HasIndex(e => e.Status, "IX_Contact_Status");
+            entity.HasIndex(e => new { e.Status, e.IsActive }, "IX_Contact_Status_IsActive");
 
-            entity.HasIndex(e => e.Type, "IX_Contact_Type");
+            entity.HasIndex(e => new { e.Type, e.IsActive }, "IX_Contact_Type_IsActive");
 
             entity.Property(e => e.ContactId)
                 .ValueGeneratedNever()
