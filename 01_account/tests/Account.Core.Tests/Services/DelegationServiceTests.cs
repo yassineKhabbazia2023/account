@@ -43,8 +43,6 @@ public class DelegationServiceTest
         var createDelegation = _fixture.Build<CreateDelegationRequest>()
             .With(p => p.DelegationDetails, details)
             .Create();
-        var createRole = _fixture.Build<Role>()
-            .CreateMany();
 
         _repository.Setup(x => x.CreateDelegationAsync(createDelegation, It.IsAny<IEnumerable<CreateRoleRequest>>()))
             .Callback<CreateDelegationRequest, IEnumerable<CreateRoleRequest>>((request, roles) =>
@@ -102,7 +100,7 @@ public class DelegationServiceTest
     }
 
     [Fact]
-    public async Task CreateDelegationAsync_ShouldThrowBadRequestException_IfRequestContainsClient()
+    public void CreateDelegationAsync_ShouldThrowBadRequestException_IfRequestContainsClient()
     {
         var createDelegation = _fixture.Create<CreateDelegationRequest>();
         _repository.Setup(x => x.IsClient(It.IsAny<IEnumerable<int>>())).ReturnsAsync(true);

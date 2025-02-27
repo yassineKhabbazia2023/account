@@ -105,7 +105,6 @@ namespace Pulse.Account.API.Configuration
 
         public static void RegisterDatabase(this IServiceCollection services, IConfiguration configuration)
         {
-
             var connectionString = configuration["SqlAccountConnectionString"];
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -140,15 +139,6 @@ namespace Pulse.Account.API.Configuration
             services.AddApplicationInsightsTelemetry(options =>
             {
                 options.ConnectionString = applicationInsightsConnectionString;
-            });
-
-            services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
-
-            // 3) Si on veut injecter TelemetryClient ailleurs
-            services.AddSingleton(provider =>
-            {
-                var telemetryConfig = provider.GetRequiredService<IOptions<TelemetryConfiguration>>().Value;
-                return new TelemetryClient(telemetryConfig);
             });
         }
 

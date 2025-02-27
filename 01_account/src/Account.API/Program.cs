@@ -17,12 +17,10 @@ namespace Pulse.Account.API
 
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
             return Host.CreateDefaultBuilder(args)
-                     .UseSerilog((context, loggerConfiguration) =>
+                     .ConfigureLogging((context, loggerConfiguration) =>
                      {
-                         loggerConfiguration.ReadFrom.Configuration(context.Configuration);
-                         loggerConfiguration.WriteTo.Console();
+                         loggerConfiguration.AddApplicationInsights();
                      })
                   .ConfigureWebHostDefaults(webBuilder =>
                     {
