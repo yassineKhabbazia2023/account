@@ -36,12 +36,12 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
 
         _context.AccountEntity.Add(accountEntity);
         await _context.SaveChangesAsync();
-        return accountEntity.MapToAccountDetail() !;
+        return accountEntity.MapToAccountDetail()!;
     }
 
     public async Task<int> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier)
     {
-        var accountToRemove = _context.AccountEntity.Include(a => a.DeploymentEntity).FirstOrDefault(a => a.AccountGlobalUniqueId == accountGlobalUniqueIdentifier);
+        var accountToRemove = _context.AccountEntity.FirstOrDefault(a => a.AccountGlobalUniqueId == accountGlobalUniqueIdentifier);
         if (accountToRemove == null)
         {
             throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountGlobalUniqueIdentifier));
@@ -49,22 +49,7 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
 
         var deploymentEntity = accountToRemove.DeploymentEntity?.FirstOrDefault();
 
-        if (deploymentEntity == null)
-        {
-            accountToRemove.DeploymentEntity = new List<DeploymentEntity>
-            {
-                new DeploymentEntity
-                {
-                    DeploymentDate = DateTime.UtcNow,
-                    Status = (int)DeploymentStatus.Revoked,
-                }
-            };
-        }
-        else
-        {
-            deploymentEntity.Status = (int)DeploymentStatus.Revoked;
-            deploymentEntity.DeploymentDate = DateTime.UtcNow;
-        }
+        accountToRemove.IsActive = false;
 
         _context.AccountEntity.Update(accountToRemove);
         await _context.SaveChangesAsync();
@@ -91,7 +76,7 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
         existingAccount.ToAccountEntity(newAccount);
         await _context.SaveChangesAsync();
 
-        return existingAccount.MapToAccountDetail() !;
+        return existingAccount.MapToAccountDetail()!;
     }
 
     public async Task<bool> DoesAccountExistAsync(Guid accountGlobalUniqueId)

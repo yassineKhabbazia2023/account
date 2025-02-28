@@ -83,11 +83,13 @@ public class RoleEventRepositoryTests
             context.SaveChanges();
             context.RoleEntity.Add(role);
             context.SaveChanges();
+            using (var newContext = new AccountContext(dbOptions))
+            {
+                var repos = new RoleRepository(newContext);
+                var action = async () => await repos.CreateRoleAsync(createRoleRequest);
 
-            var repos = new RoleRepository(context);
-            var action = async () => await repos.CreateRoleAsync(createRoleRequest);
-
-            await action.Should().ThrowAsync<ConflictException>();
+                await action.Should().ThrowAsync<ConflictException>();
+            }
         }
     }
 

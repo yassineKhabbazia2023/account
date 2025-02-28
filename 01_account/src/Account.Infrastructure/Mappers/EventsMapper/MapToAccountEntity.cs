@@ -157,7 +157,7 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                 LegalFormCode = eventData.AccountCodeFormeJuridique,
                 Siret = eventData.AccountRegisterIdentification1,
                 NafId = int.TryParse(eventData.AccountNafIdentifier, out int nafId) ? nafId : null,
-                IsActive = eventData.AccountFlagESCActif,
+                IsActive = true,
                 ActivityType = eventData.AccountEscCategory
             };
             account.DeploymentEntity = eventData.ToDeploymentEntities();

@@ -245,12 +245,14 @@ public class DelegationRepositoryTests
             context.RoleEntity.Add(roleDelegator);
             await context.SaveChangesAsync();
 
-            // Try create a delegation
-            var repository = new DelegationRepository(context);
-            var createDelegation = new CreateDelegationRequest()
+            // new context created because it generates a context tracking error
+            using (var newContext = new AccountContext(_dbContextOptions))
             {
-                DelegatorId = tDelegator.ContactId,
-                DelegationDetails = new List<DelegationDetails>
+                var repository = new DelegationRepository(newContext);
+                var createDelegation = new CreateDelegationRequest()
+                {
+                    DelegatorId = tDelegator.ContactId,
+                    DelegationDetails = new List<DelegationDetails>
                 {
                     new()
                     {
@@ -261,9 +263,9 @@ public class DelegationRepositoryTests
                         IsAutomaticDelegation = true
                     },
                 },
-                AccountIds = new List<int> { tAccount.AccountId }
-            };
-            var roles = new List<CreateRoleRequest>
+                    AccountIds = new List<int> { tAccount.AccountId }
+                };
+                var roles = new List<CreateRoleRequest>
             {
                 new()
                 {
@@ -275,19 +277,20 @@ public class DelegationRepositoryTests
                 }
             };
 
-            await repository.CreateDelegationAsync(createDelegation, roles);
+                await repository.CreateDelegationAsync(createDelegation, roles);
 
-            var createdDelegation = await context
-                .DelegationEntity
-                .FirstOrDefaultAsync(d => d.DelegatorId == tDelegator.ContactId
-                && d.DelegateeId == 124
-                && d.Account.FirstOrDefault(a => a.AccountId == tAccount.AccountId) != null);
+                var createdDelegation = await context
+                    .DelegationEntity
+                    .FirstOrDefaultAsync(d => d.DelegatorId == tDelegator.ContactId
+                    && d.DelegateeId == 124
+                    && d.Account.FirstOrDefault(a => a.AccountId == tAccount.AccountId) != null);
 
-            Assert.NotNull(createdDelegation);
+                Assert.NotNull(createdDelegation);
 
-            var createdRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == 124);
-            createdRole.Should().NotBeNull();
-            createdRole.Should().BeEquivalentTo(existingRole);
+                var createdRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == 124);
+                createdRole.Should().NotBeNull();
+                createdRole.Should().BeEquivalentTo(existingRole);
+            }
         }
     }
 
