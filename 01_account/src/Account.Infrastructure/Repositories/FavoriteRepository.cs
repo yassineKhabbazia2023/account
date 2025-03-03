@@ -39,8 +39,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             {
                 var accountFavorite = await _accountContext.RoleEntity
                     .Include(role => role.Account)
-                    .Where(role => role.ContactId == contactId && role.IsFavorite == true
-                        && role.Account.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked)
+                    .Where(role => role.ContactId == contactId && role.IsFavorite == true)
                     .Select(entity => new AccountFavorite()
                     {
                         AccountId = entity.AccountId,

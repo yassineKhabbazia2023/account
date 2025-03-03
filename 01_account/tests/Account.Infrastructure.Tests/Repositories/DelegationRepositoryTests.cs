@@ -774,6 +774,7 @@ public class DelegationRepositoryTests
                 CreatedBy = "UnitTest@kpmg.fr",
                 Email = "account-mail@kpmg.fr",
                 LegalName = "Pulse",
+                IsActive = true
             };
             context.AccountEntity.Add(tAccount);
             await context.SaveChangesAsync();
@@ -1067,7 +1068,8 @@ public class DelegationRepositoryTests
                 AccountNumber = "1",
                 LegalName = "legal",
                 CreatedBy = "moi",
-                DeploymentEntity = new List<DeploymentEntity> { deployment1 }
+                DeploymentEntity = new List<DeploymentEntity> { deployment1 },
+                IsActive = true,
             };
             var account2 = new AccountEntity
             {
@@ -1075,7 +1077,8 @@ public class DelegationRepositoryTests
                 AccountNumber = "2",
                 LegalName = "illegal",
                 CreatedBy = "moi",
-                DeploymentEntity = new List<DeploymentEntity> { deployment2 }
+                DeploymentEntity = new List<DeploymentEntity> { deployment2 },
+                IsActive = true
             };
             context.AccountEntity.AddRange(new List<AccountEntity> { account1, account2 });
 

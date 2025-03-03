@@ -109,7 +109,8 @@ public class RoleEventRepositoryTests
             AccountGlobalUniqueId = default,
             AccountNumber = "1234",
             LegalName = "legal",
-            CreatedBy = "pas oim"
+            CreatedBy = "pas oim",
+            IsActive = true
         };
         context.AccountEntity.Add(account);
 
@@ -188,7 +189,8 @@ public class RoleEventRepositoryTests
             AccountGlobalUniqueId = default,
             AccountNumber = "1234",
             LegalName = "legal",
-            CreatedBy = "oim"
+            CreatedBy = "oim",
+            IsActive = true
         };
         context.AccountEntity.Add(account);
 

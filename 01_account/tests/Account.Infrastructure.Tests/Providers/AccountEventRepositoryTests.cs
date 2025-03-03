@@ -51,6 +51,7 @@ public class AccountEventRepositoryTests
             AccountNumber = "19999999",
             Email = "jhonny@test.com",
             CreatedBy = "test@test.com",
+            IsActive = true
         };
 
         var roleEntity = new RoleEntity

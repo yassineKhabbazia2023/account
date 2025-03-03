@@ -18,6 +18,7 @@ namespace Pulse.Account.Infrastructure.Context
         {
             // accepted status are Invited Connected Remove Declared
             modelBuilder.Entity<ContactEntity>(builder => builder.HasQueryFilter(contact => contact.IsActive));
+            modelBuilder.Entity<AccountEntity>(builder => builder.HasQueryFilter(account => account.IsActive));
         }
     }
 }

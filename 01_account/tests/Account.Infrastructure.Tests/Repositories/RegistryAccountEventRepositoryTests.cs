@@ -137,7 +137,7 @@ public class RegistryAccountEventRepositoryTests
 
         // Act
         await repository.RemoveAccountAsync(data.AccountGlobalUniqueIdentifier);
-        var removedAccount = await context.AccountEntity.FirstOrDefaultAsync();
+        var removedAccount = await context.AccountEntity.IgnoreQueryFilters().FirstOrDefaultAsync();
         var removedAccountDetail = removedAccount!.MapToAccountDetail();
 
         Assert.NotNull(removedAccount);
@@ -188,7 +188,8 @@ public class RegistryAccountEventRepositoryTests
             AccountNumber = "number",
             LegalName = "legal",
             Email = "email@kpmg.fr",
-            CreatedBy = "moi"
+            CreatedBy = "moi",
+            IsActive = true
         };
         context.AccountEntity.Add(account);
         await context.SaveChangesAsync();

@@ -76,6 +76,7 @@ public class AccountRepositoryTests
                 LegalName = "test sca",
                 Hub = new HubEntity { HubId = 1, HubName = "HubName" },
                 CreatedBy = "me",
+                IsActive = true
             };
 
             var deploymentENtity = new DeploymentEntity
@@ -119,7 +120,6 @@ public class AccountRepositoryTests
     [Theory]
     [InlineData(1)]
     [InlineData(2)]
-
     public async Task GetAccountList_Should_ReturnsOkResultAsync(int pageSize)
     {
         using (var context = new AccountContext(_dbContextOptions))
@@ -142,6 +142,7 @@ public class AccountRepositoryTests
                     .With(a => a.Status, 1)
                     .Create();
                 var accountMock = _fixture.Build<AccountEntity>()
+                                                .With(a => a.IsActive, true)
                                                 .Without(a => a.Delegation)
                                                 .Without(a => a.RoleEntity)
                                                 .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploimentEntityMock })
@@ -215,14 +216,17 @@ public class AccountRepositoryTests
                 var accountMock = _fixture.Build<AccountEntity>()
                                                 .Without(a => a.Delegation)
                                                 .Without(a => a.RoleEntity)
+                                                .With(a => a.IsActive, true)
                                                 .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploimentEntityMock })
                                                 .Create();
+
                 var firstRoleMock = _fixture.Build<RoleEntity>()
                                         .With(e => e.ContactId, mockedContacts[0].ContactId)
                                         .With(e => e.Contact, mockedContacts[0])
                                         .With(e => e.AccountId, accountMock.AccountId)
                                         .With(e => e.Account, accountMock)
                                         .Create();
+
                 accountMock.RoleEntity.Add(firstRoleMock);
                 context.AccountEntity.Add(accountMock);
                 context.SaveChanges();
@@ -237,6 +241,7 @@ public class AccountRepositoryTests
                 var accountMock = _fixture.Build<AccountEntity>()
                                                 .Without(a => a.Delegation)
                                                 .Without(a => a.RoleEntity)
+                                                .With(a => a.IsActive, true)
                                                 .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploimentEntityMock })
                                                 .Create();
                 var secondRoleMock = _fixture.Build<RoleEntity>()

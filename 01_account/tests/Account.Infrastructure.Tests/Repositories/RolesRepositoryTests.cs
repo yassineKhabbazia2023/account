@@ -178,7 +178,8 @@ public class RolesRepositoryTests
             CreatedBy = "UnitTest@kpmg.fr",
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
-            DeploymentEntity = new List<DeploymentEntity> { deployment }
+            DeploymentEntity = new List<DeploymentEntity> { deployment },
+            IsActive = true
         });
         accountContext.ContactEntity.Add(new ContactEntity
         {
@@ -244,7 +245,8 @@ public class RolesRepositoryTests
             CreatedBy = "UnitTest@kpmg.fr",
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
-            DeploymentEntity = new List<DeploymentEntity> { deployment }
+            DeploymentEntity = new List<DeploymentEntity> { deployment },
+            IsActive = true
         });
         accountContext.ContactEntity.Add(new ContactEntity
         {
@@ -350,7 +352,8 @@ public class RolesRepositoryTests
             CreatedBy = "UnitTest@kpmg.fr",
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
-            DeploymentEntity = new List<DeploymentEntity> { deployment }
+            DeploymentEntity = new List<DeploymentEntity> { deployment },
+            IsActive = true
         });
 
         await accountContext.SaveChangesAsync();
@@ -523,6 +526,7 @@ public class RolesRepositoryTests
 
             var accountsEntity = _fixture.Build<AccountEntity>()
                 .With(a => a.RoleEntity, firstRoleEntity.Concat(secondRoleEntity).ToList())
+                .With(a => a.IsActive, true)
                 .CreateMany(1);
             var accountId = accountsEntity.First().AccountId;
 
@@ -568,6 +572,7 @@ public class RolesRepositoryTests
                                             .CreateMany(1);
 
             var firstAccount = _fixture.Build<AccountEntity>()
+                .With(a => a.IsActive, true)
                 .With(a => a.RoleEntity, firstRoleEntity.Concat(secondRoleEntity).ToList())
                 .CreateMany(1);
 

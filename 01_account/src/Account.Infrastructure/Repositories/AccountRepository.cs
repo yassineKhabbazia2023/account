@@ -43,19 +43,12 @@ namespace Pulse.Account.Infrastructure.Repositories
 
         public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination)
         {
-            var deployments = _accountContext.DeploymentEntity
+            var query = _accountContext.AccountEntity
                 .AsNoTracking()
-                .Where(d => d.Status != (int)DeploymentStatus.Revoked);
-
-            if (criteria.DeploymentStatus.HasValue)
-            {
-                deployments = deployments.Where(dp => dp.Status == criteria.DeploymentStatus.Value);
-            }
-
-            var query = deployments.Select(d => d.Account).Distinct().Include(a => a.RoleEntity)
-                    .ThenInclude(r => r.Contact)
-                    .Where(a => a.RoleEntity.Any(r => r.ContactId == criteria.ContactId))
-                    .AsQueryable();
+                .Include(a => a.RoleEntity)
+                .ThenInclude(r => r.Contact)
+                .Where(a => a.RoleEntity.Any(r => r.ContactId == criteria.ContactId))
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(criteria.Search))
             {
@@ -262,8 +255,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                             .Include(a => a.AddressEntity)
                             .Include(x => x.DeploymentEntity)
                             .Include(x => x.Hub)
-                            .AsNoTracking()
-                            .Where(a => a.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked);
+                            .AsNoTracking();
 
             if (contactId != null)
             {
