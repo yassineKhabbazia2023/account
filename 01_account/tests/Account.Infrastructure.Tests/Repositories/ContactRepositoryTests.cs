@@ -108,4 +108,26 @@ public class ContactRepositoryTests
             dbContact.Should().BeEquivalentTo(contact);
         }
     }
+
+    [Fact]
+    public async Task GetContactAsync_ShouldReturn_InactiveContactsIfRequested()
+    {
+        var inactiveContacts = _fixture.Build<ContactEntity>().With(x => x.IsActive, false).CreateMany(3);
+
+        var contactId = inactiveContacts.First().ContactId;
+
+        using (var context = new AccountContext(_contextOptions))
+        {
+            context.AddRange(inactiveContacts);
+            context.SaveChanges();
+
+            context.ChangeTracker.Clear();
+
+            var contactRepos = new ContactRepository(context);
+            var result = await contactRepos.GetContactAsync(contactId, searchDeleted: true);
+
+            result.Should().NotBe(null);
+            result.ContactId.Should().Be(contactId);
+        }
+    }
 }

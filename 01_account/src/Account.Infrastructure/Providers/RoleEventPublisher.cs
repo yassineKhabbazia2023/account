@@ -94,7 +94,7 @@ namespace Pulse.Account.Infrastructure.Providers
 
         public async Task PublishRoleDeletedEventAsync(int accountId, int contactId)
         {
-            var contact = await _contactRepository.GetContactAsync(contactId);
+            var contact = await _contactRepository.GetContactAsync(contactId, true);
 
             var account = await _accountRepository.GetAccountAsync(accountId);
 
@@ -116,7 +116,7 @@ namespace Pulse.Account.Infrastructure.Providers
         private async Task<(string AccountNumber, string ContactEmail)> GetEmailAndAccountNumber(int accountId, int contactId)
         {
             var accountNumber = (await _accountRepository.GetAccountAsync(accountId))?.AccountNumber ?? string.Empty;
-            var contactEmail = (await _contactRepository.GetContactAsync(contactId))?.Email ?? string.Empty;
+            var contactEmail = (await _contactRepository.GetContactAsync(contactId, true))?.Email ?? string.Empty;
 
             return (accountNumber, contactEmail);
         }

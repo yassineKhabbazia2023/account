@@ -83,7 +83,7 @@ public class RoleEventPublisherTests
         };
 
         var contactRepository = new Mock<IContactRepository>();
-        contactRepository.Setup(repository => repository.GetContactAsync(It.IsAny<int>()))
+        contactRepository.Setup(repository => repository.GetContactAsync(It.IsAny<int>(), true))
             .ReturnsAsync(contact);
         var accountRepository = new Mock<IAccountRepository>();
         accountRepository.Setup(repo => repo.GetAccountAsync(It.IsAny<int>())).ReturnsAsync(account);

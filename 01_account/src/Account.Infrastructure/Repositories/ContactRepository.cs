@@ -22,12 +22,17 @@ namespace Pulse.Account.Infrastructure.Repositories
             _accountContext.HandleEFCoreFailure();
         }
 
-        public async Task<ContactEntity> GetContactAsync(int contactId)
+        public async Task<ContactEntity> GetContactAsync(int contactId, bool? searchDeleted = false)
         {
-            var contact = await _accountContext.ContactEntity
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.ContactId == contactId);
 
+            var query = _accountContext.ContactEntity
+                .AsNoTracking();
+            if (searchDeleted == true)
+            {
+                query = query.IgnoreQueryFilters();
+            }
+
+            var contact = await query.FirstOrDefaultAsync(c => c.ContactId == contactId);
             if (contact == null)
             {
                 throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
