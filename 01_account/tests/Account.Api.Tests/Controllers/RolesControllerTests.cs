@@ -5,7 +5,9 @@
 using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using Moq;
 using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Exceptions;
@@ -87,17 +89,29 @@ namespace Account.Api.Tests.Controllers
                 IsFavorite = false,
                 IsSignatory = false
             };
+            var contactId = 123;
 
-            mockRoleService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
-                .Returns(Task.CompletedTask);
+            mockRoleService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<int>())).Returns(Task.CompletedTask);
 
             var rolesController = new RolesController(mockRoleService.Object);
+
+            var httpContextMock = new Mock<HttpContext>();
+            var requestMock = new Mock<HttpRequest>();
+
+            var headers = new HeaderDictionary { { "CurrentUser", new StringValues("123") } };
+            requestMock.Setup(r => r.Headers).Returns(headers);
+
+            httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
+            rolesController.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContextMock.Object
+            };
 
             // Act
             var result = await rolesController.CreateRoleAsync(roleRequest);
 
             // Assert
-            mockRoleService.Verify(s => s.CreateRoleAsync(roleRequest), Times.Once);
+            mockRoleService.Verify(s => s.CreateRoleAsync(roleRequest, contactId), Times.Once);
             Assert.IsType<CreatedResult>(result);
         }
 
@@ -106,15 +120,95 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
-            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
+            rolesService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<int>()))
                 .Throws(new BadRequestException(Errors.BadRequestRoleCode, Errors.BadRequestRoleMessage));
             var rolesController = new RolesController(rolesService.Object);
+
+            var httpContextMock = new Mock<HttpContext>();
+            var requestMock = new Mock<HttpRequest>();
+
+            var headers = new HeaderDictionary { { "CurrentUser", new StringValues("123") } };
+            requestMock.Setup(r => r.Headers).Returns(headers);
+
+            httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
+            rolesController.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContextMock.Object
+            };
 
             // Act
             Task Roles() => rolesController.CreateRoleAsync(null!);
 
             // Assert
             await Assert.ThrowsAsync<BadRequestException>(Roles);
+        }
+
+        [Fact]
+        public async Task CreateRole_Should_ReturnBadRequestException_IfHeaderMissingAsync()
+        {
+            // Arrange
+            var mockRoleService = new Mock<IRolesService>(MockBehavior.Strict);
+            var roleRequest = new CreateRoleRequest
+            {
+                AccountId = 6,
+                ContactId = 6,
+                IsFavorite = false,
+                IsSignatory = false
+            };
+
+            var rolesController = new RolesController(mockRoleService.Object);
+
+            var httpContextMock = new Mock<HttpContext>();
+            var requestMock = new Mock<HttpRequest>();
+
+            var headers = new HeaderDictionary();
+            requestMock.Setup(r => r.Headers).Returns(headers);
+
+            httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
+            rolesController.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContextMock.Object
+            };
+
+            // Act
+            Task Act() => rolesController.CreateRoleAsync(roleRequest);
+
+            // Assert
+            await Assert.ThrowsAsync<BadRequestException>(Act);
+        }
+
+        [Fact]
+        public async Task CreateRole_Should_ReturnBadRequestException_IfHeaderIsInvalidAsync()
+        {
+            // Arrange
+            var mockRoleService = new Mock<IRolesService>(MockBehavior.Strict);
+            var roleRequest = new CreateRoleRequest
+            {
+                AccountId = 6,
+                ContactId = 6,
+                IsFavorite = false,
+                IsSignatory = false
+            };
+
+            var rolesController = new RolesController(mockRoleService.Object);
+
+            var httpContextMock = new Mock<HttpContext>();
+            var requestMock = new Mock<HttpRequest>();
+
+            var headers = new HeaderDictionary { { "CurrentUser", new StringValues("invalid-id") } };
+            requestMock.Setup(r => r.Headers).Returns(headers);
+
+            httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
+            rolesController.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContextMock.Object
+            };
+
+            // Act
+            Task Act() => rolesController.CreateRoleAsync(roleRequest);
+
+            // Assert
+            await Assert.ThrowsAsync<BadRequestException>(Act);
         }
 
         [Fact]

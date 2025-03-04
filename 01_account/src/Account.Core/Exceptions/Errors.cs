@@ -91,5 +91,11 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string NullArgumentCode = "ACC028";
         public static readonly string NullArgumentMessage = "Argument {0} est null ou vide!";
+
+        public static readonly string CurrentUserWasNotFoundInHeaders = "CurrentUser was not found in headers.";
+        public static readonly string CurrentUserWasNotFoundInHeadersMessage = "Le CurrentUser n'a pas été transmis via header.";
+
+        public static readonly string InvalidCurrentUserFormat = "Invalid CurrentUser format.";
+        public static readonly string InvalidCurrentUserFormatMessage = "Le header CurrentUser doit être un entier valide.";
     }
 }

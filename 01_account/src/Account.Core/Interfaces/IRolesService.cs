@@ -14,7 +14,7 @@ public interface IRolesService
 
     Task<IEnumerable<Contact>> GetSignatoryAsync(int accountId);
 
-    Task CreateRoleAsync(CreateRoleRequest role);
+    Task CreateRoleAsync(CreateRoleRequest role, int contactId);
 
     Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory);
 

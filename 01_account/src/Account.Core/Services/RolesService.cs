@@ -42,7 +42,7 @@ public class RolesService : IRolesService
         return await _rolesRepository.GetSignatoryAsync(accountId);
     }
 
-    public async Task CreateRoleAsync(CreateRoleRequest role)
+    public async Task CreateRoleAsync(CreateRoleRequest role, int contactId)
     {
         var rolesCreated = await _rolesRepository.CreateRoleAsync(role);
 
@@ -53,6 +53,7 @@ public class RolesService : IRolesService
             IsSignatory = r.IsSignatory,
             IsFavorite = r.IsFavorite,
             IsDelegation = r.IsDelegation,
+            DelegatorId = contactId
         }).ToList();
 
         await Task.WhenAll(roles.Select(PublishRoleCreatedEvent));

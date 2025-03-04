@@ -4,6 +4,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
@@ -117,7 +118,17 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult> CreateRoleAsync(CreateRoleRequest role)
     {
-        await _rolesService.CreateRoleAsync(role);
+        if (!Request.Headers.TryGetValue("CurrentUser", out StringValues contactIdValue))
+        {
+            throw new BadRequestException(Errors.CurrentUserWasNotFoundInHeaders, Errors.CurrentUserWasNotFoundInHeadersMessage);
+        }
+
+        if (!int.TryParse(contactIdValue, out int contactId))
+        {
+            throw new BadRequestException(Errors.InvalidCurrentUserFormat, Errors.InvalidCurrentUserFormatMessage);
+        }
+
+        await _rolesService.CreateRoleAsync(role, contactId);
         return Created();
     }
 

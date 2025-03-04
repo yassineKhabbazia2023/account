@@ -86,6 +86,7 @@ public class RolesServiceTests
             IsFavorite = false,
             IsSignatory = false
         };
+        var contactId = 123;
 
         var roleRepository = new Mock<IRoleRepository>();
         roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<CreateRoleRequest>()))
@@ -106,7 +107,7 @@ public class RolesServiceTests
         var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
-        await roleService.CreateRoleAsync(createRoleRequest);
+        await roleService.CreateRoleAsync(createRoleRequest, contactId);
 
         // Assert
         roleRepository.VerifyAll();
@@ -120,11 +121,12 @@ public class RolesServiceTests
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
         roleRepository.Setup(repo => repo.CreateRoleAsync(null!))
             .ThrowsAsync(new BadRequestException(Errors.NotFoundAccountMessage, Errors.NotFoundAccountMessage));
+        var contactId = 123;
 
         var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
-        Task Roles() => roleService.CreateRoleAsync(null!);
+        Task Roles() => roleService.CreateRoleAsync(null!, contactId);
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(Roles);
