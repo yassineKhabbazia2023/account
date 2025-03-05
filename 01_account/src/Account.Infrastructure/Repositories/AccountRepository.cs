@@ -110,6 +110,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             {
                 return await _accountContext.AccountEntity
                        .AsNoTracking()
+                       .Include(a => a.DeploymentEntity)
                        .FirstOrDefaultAsync(a => a.AccountId == accountId);
             });
 
@@ -150,7 +151,7 @@ namespace Pulse.Account.Infrastructure.Repositories
             AccountDetail? toReturn = null!;
             await _retryPolicy.ExecuteAsync(async () =>
             {
-                var existingAccount = await _accountContext.AccountEntity.FirstOrDefaultAsync(x => x.AccountId == accountId);
+                var existingAccount = await _accountContext.AccountEntity.Include(a => a.DeploymentEntity).FirstOrDefaultAsync(x => x.AccountId == accountId);
                 if (existingAccount == null)
                 {
                     throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
