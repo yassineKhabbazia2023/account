@@ -1,6 +1,7 @@
 ﻿// <copyright file="ContactRepositoryTests.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
+
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -91,7 +92,8 @@ public class ContactRepositoryTests
             LastName = "Dibeh",
             Type = "Client",
             Status = "Active",
-            PersonaName = "HakounaMatata"
+            PersonaName = "HakounaMatata",
+            IsActive = true
         };
 
         using (var context = new AccountContext(_contextOptions))

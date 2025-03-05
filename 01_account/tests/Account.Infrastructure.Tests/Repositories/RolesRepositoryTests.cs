@@ -178,7 +178,7 @@ public class RolesRepositoryTests
             CreatedBy = "UnitTest@kpmg.fr",
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
-            DeploymentEntity = new List<DeploymentEntity> { deployment },
+            DeploymentEntity = deployment,
             IsActive = true
         });
         accountContext.ContactEntity.Add(new ContactEntity
@@ -192,6 +192,7 @@ public class RolesRepositoryTests
             PersonaName = "Collaborateur ESC",
             Office = "Paris",
             CreationDate = DateTime.UtcNow,
+            IsActive = true
         });
 
         accountContext.DelegationEntity.Add(new DelegationEntity
@@ -245,7 +246,7 @@ public class RolesRepositoryTests
             CreatedBy = "UnitTest@kpmg.fr",
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
-            DeploymentEntity = new List<DeploymentEntity> { deployment },
+            DeploymentEntity = deployment,
             IsActive = true
         });
         accountContext.ContactEntity.Add(new ContactEntity
@@ -259,6 +260,7 @@ public class RolesRepositoryTests
             PersonaName = "Collaborateur ESC",
             Office = "Paris",
             CreationDate = DateTime.UtcNow,
+            IsActive = true
         });
 
         accountContext.DelegationEntity.Add(new DelegationEntity
@@ -352,7 +354,7 @@ public class RolesRepositoryTests
             CreatedBy = "UnitTest@kpmg.fr",
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
-            DeploymentEntity = new List<DeploymentEntity> { deployment },
+            DeploymentEntity = deployment,
             IsActive = true
         });
 

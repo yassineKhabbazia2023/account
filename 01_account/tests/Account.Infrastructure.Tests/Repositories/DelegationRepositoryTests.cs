@@ -5,7 +5,6 @@
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using Moq;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
@@ -797,6 +796,7 @@ public class DelegationRepositoryTests
                     PersonaName = "Collaborateur ESC",
                     Office = "Paris",
                     CreationDate = DateTime.UtcNow,
+                    IsActive = true
                 });
 
                 await context.ContactEntity.AddAsync(new ContactEntity
@@ -810,6 +810,7 @@ public class DelegationRepositoryTests
                     PersonaName = "Collaborateur ESC",
                     Office = "Paris",
                     CreationDate = DateTime.UtcNow,
+                    IsActive = true
                 });
 
                 await context.SaveChangesAsync();
@@ -872,6 +873,7 @@ public class DelegationRepositoryTests
             var contactId = 10;
             await context.ContactEntity.AddAsync(_fixture.Build<ContactEntity>()
                 .With(a => a.ContactId, contactId)
+                .With(a => a.IsActive, true)
                 .Without(a => a.DelegationEntityDelegatee)
                 .Without(a => a.DelegationEntityDelegator)
                 .Without(a => a.RoleEntity)
@@ -895,6 +897,7 @@ public class DelegationRepositoryTests
                     PersonaName = "Collaborateur ESC",
                     Office = "Paris",
                     CreationDate = DateTime.UtcNow,
+                    IsActive = true,
                 };
                 await context.ContactEntity.AddAsync(contactEntity);
 
@@ -911,7 +914,7 @@ public class DelegationRepositoryTests
                     DelegateeId = delegateeId,
                     Status = delegationStatus[randomStatusindex],
                     Note = $"Note de {contactId}",
-                    Account = _fixture.Build<AccountEntity>().Without(a => a.Delegation).Without(a => a.RoleEntity).CreateMany(3).ToList()
+                    Account = _fixture.Build<AccountEntity>().With(a => a.IsActive, true).Without(a => a.Delegation).Without(a => a.RoleEntity).CreateMany(3).ToList()
                 };
                 await context.DelegationEntity.AddRangeAsync(new List<DelegationEntity> { tDelegation });
 
@@ -1046,7 +1049,8 @@ public class DelegationRepositoryTests
                 LastName = "Pierre",
                 PersonaName = "Collaborator",
                 Type = "collaborator",
-                Status = "Declared"
+                Status = "Declared",
+                IsActive = true,
             };
             context.ContactEntity.Add(contact);
 
@@ -1068,7 +1072,7 @@ public class DelegationRepositoryTests
                 AccountNumber = "1",
                 LegalName = "legal",
                 CreatedBy = "moi",
-                DeploymentEntity = new List<DeploymentEntity> { deployment1 },
+                DeploymentEntity = deployment1,
                 IsActive = true,
             };
             var account2 = new AccountEntity
@@ -1077,7 +1081,7 @@ public class DelegationRepositoryTests
                 AccountNumber = "2",
                 LegalName = "illegal",
                 CreatedBy = "moi",
-                DeploymentEntity = new List<DeploymentEntity> { deployment2 },
+                DeploymentEntity = deployment2,
                 IsActive = true
             };
             context.AccountEntity.AddRange(new List<AccountEntity> { account1, account2 });
@@ -1109,8 +1113,9 @@ public class DelegationRepositoryTests
             var result = await repository.GetAccountIdsForFullDelegationAsync(contact.ContactId);
 
             result.Should().NotBeNull();
-            result.Should().ContainSingle();
+            result.Should().Contain(2);
             result.First().Should().Be(roles.First().AccountId);
+            result.ElementAt(1).Should().Be(roles.ElementAt(1).AccountId);
         }
     }
 

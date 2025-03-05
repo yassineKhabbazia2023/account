@@ -73,6 +73,7 @@ public class ContactEventRepositoryTests
             Type = "collaborator",
             CreationDate = DateTime.Parse("2024-04-16T09:19:16Z"),
             ContactGlobalUniqueId = Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF"),
+            IsActive = true,
         };
 
         await context.ContactEntity.AddAsync(contactEntity);
@@ -89,6 +90,7 @@ public class ContactEventRepositoryTests
             Type = "collaborator",
             CreationDate = DateTime.Parse("2024-04-16T09:19:16Z"),
             ContactGlobalUniqueId = Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF"),
+            IsActive= true,
         };
 
         // Act
@@ -130,6 +132,7 @@ public class ContactEventRepositoryTests
             Type = "collaborator",
             CreationDate = DateTime.Parse("2024-04-16T09:19:16Z"),
             ContactGlobalUniqueId = Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF"),
+            IsActive = true
         };
 
         await context.ContactEntity.AddAsync(contactEntity);
@@ -167,7 +170,8 @@ public class ContactEventRepositoryTests
             PersonaName = "collaborator",
             Status = ContactStatus.Connected.ToString(),
             Type = "collaborator",
-            CreationDate = DateTime.UtcNow
+            CreationDate = DateTime.UtcNow,
+            IsActive = true
         };
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();
@@ -198,6 +202,7 @@ public class ContactEventRepositoryTests
             Email = "jeanpierre@kpmg.fr",
             PersonaName = "collaborator",
             Type = "collaborator",
+            IsActive = true
         };
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();

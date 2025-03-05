@@ -5,7 +5,8 @@
 	[DeploymentDate]        DATETIME2           NULL,
 	[Status]                INT	                NOT NULL,
 	CONSTRAINT [C_Deployment_PK] PRIMARY KEY NONCLUSTERED ([DeploymentId] ASC),
-	CONSTRAINT [C_Account_Deployment_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId])
+	CONSTRAINT [C_Account_Deployment_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId]),
+    CONSTRAINT [UQ_AccountId] UNIQUE NONCLUSTERED ([AccountId] ASC)
 )
 
 GO

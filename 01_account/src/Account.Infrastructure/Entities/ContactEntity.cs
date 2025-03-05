@@ -62,10 +62,7 @@ public partial class ContactEntity
     /// </summary>
     public DateTime? LastUpdateDate { get; set; }
 
-    /// <summary>
-    /// le nouveau champ qui indique si le contact est supprimé
-    /// </summary>
-    public bool IsActive { get; set; } = true;
+    public bool IsActive { get; set; }
 
     public virtual ICollection<DelegationEntity> DelegationEntityDelegatee { get; set; } = new List<DelegationEntity>();
 

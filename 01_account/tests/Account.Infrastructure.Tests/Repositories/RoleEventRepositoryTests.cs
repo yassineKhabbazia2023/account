@@ -5,7 +5,6 @@
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
@@ -122,7 +121,8 @@ public class RoleEventRepositoryTests
             LastName = "pierre",
             Email = "jp@kpmg.fr",
             PersonaName = "collaborator",
-            Type = "collaborator"
+            Type = "collaborator",
+            IsActive = true
         };
         var delegatee = new ContactEntity
         {
@@ -132,7 +132,8 @@ public class RoleEventRepositoryTests
             LastName = "jean",
             Email = "pj@kpmg.fr",
             PersonaName = "client",
-            Type = "customer"
+            Type = "customer",
+            IsActive= true
         };
         context.ContactEntity.AddRange(new List<ContactEntity> { delegator, delegatee });
 

@@ -120,12 +120,12 @@ public class RolesController : ControllerBase
     {
         if (!Request.Headers.TryGetValue("CurrentUser", out StringValues contactIdValue))
         {
-            throw new BadRequestException(Errors.CurrentUserWasNotFoundInHeaders, Errors.CurrentUserWasNotFoundInHeadersMessage);
+            throw new BadRequestException(Errors.CurrentUserWasNotFoundInHeadersCode, Errors.CurrentUserWasNotFoundInHeadersMessage);
         }
 
         if (!int.TryParse(contactIdValue, out int contactId))
         {
-            throw new BadRequestException(Errors.InvalidCurrentUserFormat, Errors.InvalidCurrentUserFormatMessage);
+            throw new BadRequestException(Errors.InvalidCurrentUserFormatCode, Errors.InvalidCurrentUserFormatMessage);
         }
 
         await _rolesService.CreateRoleAsync(role, contactId);

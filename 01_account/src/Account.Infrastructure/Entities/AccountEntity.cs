@@ -183,7 +183,7 @@ public partial class AccountEntity
 
     public virtual ICollection<AddressEntity> AddressEntity { get; set; } = new List<AddressEntity>();
 
-    public virtual ICollection<DeploymentEntity> DeploymentEntity { get; set; } = new List<DeploymentEntity>();
+    public virtual DeploymentEntity DeploymentEntity { get; set; }
 
     public virtual HubEntity Hub { get; set; }
 

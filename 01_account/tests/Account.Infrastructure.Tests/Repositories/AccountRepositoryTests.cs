@@ -58,6 +58,7 @@ public class AccountRepositoryTests
                 Email = "firstLastUser@test.fr",
                 CreationDate = DateTime.Now,
                 PersonaName = "toto",
+                IsActive = true,
             };
 
             var roleEntity = new List<RoleEntity>
@@ -145,7 +146,7 @@ public class AccountRepositoryTests
                                                 .With(a => a.IsActive, true)
                                                 .Without(a => a.Delegation)
                                                 .Without(a => a.RoleEntity)
-                                                .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploimentEntityMock })
+                                                .With(a => a.DeploymentEntity, deploimentEntityMock)
                                                 .Create();
 
                 var roleMock = _fixture.Build<RoleEntity>()
@@ -217,7 +218,7 @@ public class AccountRepositoryTests
                                                 .Without(a => a.Delegation)
                                                 .Without(a => a.RoleEntity)
                                                 .With(a => a.IsActive, true)
-                                                .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploimentEntityMock })
+                                                .With(a => a.DeploymentEntity, deploimentEntityMock)
                                                 .Create();
 
                 var firstRoleMock = _fixture.Build<RoleEntity>()
@@ -242,7 +243,7 @@ public class AccountRepositoryTests
                                                 .Without(a => a.Delegation)
                                                 .Without(a => a.RoleEntity)
                                                 .With(a => a.IsActive, true)
-                                                .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploimentEntityMock })
+                                                .With(a => a.DeploymentEntity, deploimentEntityMock)
                                                 .Create();
                 var secondRoleMock = _fixture.Build<RoleEntity>()
                                         .With(e => e.ContactId, mockedContacts[1].ContactId)
@@ -304,7 +305,7 @@ public class AccountRepositoryTests
             var accountMock = _fixture.Build<AccountEntity>()
                                             .Without(a => a.Delegation)
                                             .Without(a => a.RoleEntity)
-                                            .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploymentMockActive })
+                                            .With(a => a.DeploymentEntity, deploymentMockActive)
                                             .Create();
 
             var roleMock = _fixture.Build<RoleEntity>()
@@ -327,7 +328,7 @@ public class AccountRepositoryTests
             var accountMockInactive = _fixture.Build<AccountEntity>()
                                                 .Without(a => a.Delegation)
                                                 .Without(a => a.RoleEntity)
-                                                .With(a => a.DeploymentEntity, new List<DeploymentEntity> { deploymentMock })
+                                                .With(a => a.DeploymentEntity, deploymentMock)
                                                 .Create();
             context.AccountEntity.Add(accountMockInactive);
             context.SaveChanges();
@@ -523,9 +524,9 @@ public class AccountRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Arrange
-            var accountsModel = _fixture.Create<List<AccountEntity>>();
-            var accountFirst = accountsModel[0];
-            var accountDetail = accountFirst?.MapToAccountDetail();
+            var accountsModel = _fixture.Build<AccountEntity>().With(a => a.IsActive, true).Create();
+            var accountDetail = accountsModel?.MapToAccountDetail();
+
             if (accountDetail?.Accounting != null)
             {
                 accountDetail.Accounting.TaxationSystem = "Impot sur le revenu";
@@ -676,8 +677,7 @@ public class AccountRepositoryTests
             var resultExpected = new List<Contact>();
             var deploymentMock = _fixture.Build<DeploymentEntity>()
                                         .Without(d => d.Account)
-                                        .CreateMany(1)
-                                        .ToList();
+                                        .Create();
             var accountsMock = _fixture.Build<AccountEntity>()
                                         .Without(a => a.RoleEntity)
                                         .Without(a => a.Delegation)

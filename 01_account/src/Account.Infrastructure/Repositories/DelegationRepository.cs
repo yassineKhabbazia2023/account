@@ -235,7 +235,6 @@ public class DelegationRepository : IDelegationRepository
                             .Include(r => r.Account)
                             .ThenInclude(a => a.DeploymentEntity)
                             .AsNoTracking()
-                            .Where(r => r.Account.DeploymentEntity.First().Status != (int)DeploymentStatus.Revoked)
                             .Select(a => a.AccountId)
                             .ToListAsync();
         });

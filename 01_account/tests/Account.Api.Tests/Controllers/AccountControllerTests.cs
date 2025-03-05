@@ -32,12 +32,6 @@ namespace Account.Api.Tests.Controllers
     {
         private readonly Fixture _fixture;
         private readonly DbContextOptions<AccountContext> _dbContextOptions;
-        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
-
         private AccountController _accountController;
         private AccountContext _context;
 
@@ -64,8 +58,8 @@ namespace Account.Api.Tests.Controllers
         private AccountContext InitContext()
         {
             var context = new AccountContext(_dbContextOptions);
-            var accountsModel = _fixture.Create<List<AccountEntity>>();
-            var contactsModel = _fixture.Create<List<ContactEntity>>();
+            var accountsModel = _fixture.Build<AccountEntity>().With(a => a.IsActive, true).Create();
+            var contactsModel = _fixture.Build<ContactEntity>().With(a => a.IsActive, true).Create();
 
             context.AccountEntity.AddRange(accountsModel);
             context.ContactEntity.AddRange(contactsModel);

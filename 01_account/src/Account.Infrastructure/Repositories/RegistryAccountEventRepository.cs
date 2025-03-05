@@ -3,7 +3,6 @@
 // </copyright>
 
 using Microsoft.EntityFrameworkCore;
-using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
@@ -42,12 +41,11 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
     public async Task<int> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier)
     {
         var accountToRemove = _context.AccountEntity.FirstOrDefault(a => a.AccountGlobalUniqueId == accountGlobalUniqueIdentifier);
+
         if (accountToRemove == null)
         {
             throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountGlobalUniqueIdentifier));
         }
-
-        var deploymentEntity = accountToRemove.DeploymentEntity?.FirstOrDefault();
 
         accountToRemove.IsActive = false;
 

@@ -12,128 +12,127 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Enum;
 using Pulse.ExceptionMiddleware.Exceptions;
 
-namespace Pulse.Account.Infrastructure.Tests.Repositories
+namespace Pulse.Account.Infrastructure.Tests.Repositories;
+
+public class FavoriteRepositoryTests
 {
-    public class FavoriteRepositoryTests
+    private readonly Fixture _fixture;
+    private readonly DbContextOptions<AccountContext> _options;
+
+    public FavoriteRepositoryTests()
     {
-        private readonly Fixture _fixture;
-        private readonly DbContextOptions<AccountContext> _options;
+        _fixture = new Fixture();
+        _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
+        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        _options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+    }
 
-        public FavoriteRepositoryTests()
+    [Fact]
+    public async Task GetAccountsFavoriteAsync_Should_ReturnsOkResultAsync()
+    {
+        using (var context = new AccountContext(_options))
         {
-            _fixture = new Fixture();
-            _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
-            _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-            _options = new DbContextOptionsBuilder<AccountContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-        }
+            // Arrange
+            var accountsModel = _fixture.Create<List<AccountEntity>>();
+            accountsModel.ForEach(account => account.RoleEntity.First().IsFavorite = true);
+            context.AccountEntity.AddRange(accountsModel);
+            await context.SaveChangesAsync();
+            var contactId = accountsModel.Select(account => account.RoleEntity.Where(role => role.IsFavorite == true).Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
+            var favoriteRepository = new FavoriteRepository(context);
 
-        [Fact]
-        public async Task GetAccountsFavoriteAsync_Should_ReturnsOkResultAsync()
-        {
-            using (var context = new AccountContext(_options))
+            var expectedAccount = accountsModel.Select(entity => new AccountFavorite()
             {
-                // Arrange
-                var accountsModel = _fixture.Create<List<AccountEntity>>();
-                accountsModel.ForEach(account => account.RoleEntity.First().IsFavorite = true);
-                context.AccountEntity.AddRange(accountsModel);
-                await context.SaveChangesAsync();
-                var contactId = accountsModel.Select(account => account.RoleEntity.Where(role => role.IsFavorite == true).Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
-                var favoriteRepository = new FavoriteRepository(context);
+                AccountId = entity.AccountId,
+                AccountNumber = entity.AccountNumber,
+                LegalName = entity.LegalName,
+                IconName = entity.IconName
+            });
 
-                var expectedAccount = accountsModel.Select(entity => new AccountFavorite()
-                {
-                    AccountId = entity.AccountId,
-                    AccountNumber = entity.AccountNumber,
-                    LegalName = entity.LegalName,
-                    IconName = entity.IconName
-                });
+            // Act
+            var accounts = await favoriteRepository.GetAccountFavoritesByContactIdAsync(contactId);
 
-                // Act
-                var accounts = await favoriteRepository.GetAccountFavoritesByContactIdAsync(contactId);
-
-                // Assert
-                var accountExpect = JsonConvert.SerializeObject(expectedAccount);
-                var accountReceived = JsonConvert.SerializeObject(accounts.FirstOrDefault());
-                Assert.Contains(accountReceived, accountExpect);
-            }
+            // Assert
+            var accountExpect = JsonConvert.SerializeObject(expectedAccount);
+            var accountReceived = JsonConvert.SerializeObject(accounts.FirstOrDefault());
+            Assert.Contains(accountReceived, accountExpect);
         }
+    }
 
-        [Fact]
-        public async Task GetAccountsFavoriteAsync_Should_ReturnsOnlyActiveAccountResultAsync()
+    [Fact]
+    public async Task GetAccountsFavoriteAsync_Should_ReturnsOnlyActiveAccountResultAsync()
+    {
+        using (var context = new AccountContext(_options))
         {
-            using (var context = new AccountContext(_options))
-            {
-                // Arrange
-                var roleMock = _fixture.Build<RoleEntity>()
-                    .Without(x => x.Account)
-                    .Without(x => x.Contact)
-                    .With(x => x.IsFavorite, true)
-                    .With(x => x.ContactId, 123)
-                    .Create();
-                var deploymentMock = _fixture.Build<DeploymentEntity>()
-                    .Without(x => x.Account)
-                    .With(x => x.Status, 1)
-                    .Create();
-                var accountsModel = _fixture.Build<AccountEntity>()
-                    .With(x => x.RoleEntity, new List<RoleEntity> { roleMock })
-                    .With(x => x.DeploymentEntity, new List<DeploymentEntity> { deploymentMock })
-                    .Create();
-                context.AccountEntity.Add(accountsModel);
-                await context.SaveChangesAsync();
-                var favoriteRepository = new FavoriteRepository(context);
+            // Arrange
+            var roleMock = _fixture.Build<RoleEntity>()
+                .Without(x => x.Account)
+                .Without(x => x.Contact)
+                .With(x => x.IsFavorite, true)
+                .With(x => x.ContactId, 123)
+                .Create();
+            var deploymentMock = _fixture.Build<DeploymentEntity>()
+                .Without(x => x.Account)
+                .With(x => x.Status, 1)
+                .Create();
+            var accountsModel = _fixture.Build<AccountEntity>()
+                .With(x => x.RoleEntity, new List<RoleEntity> { roleMock })
+                .With(x => x.DeploymentEntity, deploymentMock)
+                .Create();
+            context.AccountEntity.Add(accountsModel);
+            await context.SaveChangesAsync();
+            var favoriteRepository = new FavoriteRepository(context);
 
-                // Act
-                var accounts = await favoriteRepository.GetAccountFavoritesByContactIdAsync(123);
+            // Act
+            var accounts = await favoriteRepository.GetAccountFavoritesByContactIdAsync(123);
 
-                // Assert
-                Assert.Single(accounts);
-            }
+            // Assert
+            Assert.Single(accounts);
         }
+    }
 
-        [Fact]
-        public async Task UpdateAccountFavoriteAsync_Should_ReturnsOkResultAsync()
+    [Fact]
+    public async Task UpdateAccountFavoriteAsync_Should_ReturnsOkResultAsync()
+    {
+        using (var context = new AccountContext(_options))
         {
-            using (var context = new AccountContext(_options))
-            {
-                // Arrange
-                var accountsModel = _fixture.Create<List<AccountEntity>>();
-                accountsModel.ForEach(account => account.RoleEntity.First().IsFavorite = true);
-                context.AccountEntity.AddRange(accountsModel);
-                await context.SaveChangesAsync();
+            // Arrange
+            var accountsModel = _fixture.Create<List<AccountEntity>>();
+            accountsModel.ForEach(account => account.RoleEntity.First().IsFavorite = true);
+            context.AccountEntity.AddRange(accountsModel);
+            await context.SaveChangesAsync();
 
-                var role = accountsModel.Select(account => account.RoleEntity.Where(role => role.IsFavorite == true).Select(role => role).First()).First();
-                var favoriteRepository = new FavoriteRepository(context);
+            var role = accountsModel.Select(account => account.RoleEntity.Where(role => role.IsFavorite == true).Select(role => role).First()).First();
+            var favoriteRepository = new FavoriteRepository(context);
 
-                // Act
-                await favoriteRepository.UpdateAccountFavoriteAsync(role.AccountId, role.ContactId, false);
-                var accountFavorite = await favoriteRepository.GetAccountFavoritesByContactIdAsync(role.ContactId);
+            // Act
+            await favoriteRepository.UpdateAccountFavoriteAsync(role.AccountId, role.ContactId, false);
+            var accountFavorite = await favoriteRepository.GetAccountFavoritesByContactIdAsync(role.ContactId);
 
-                // Assert
-                Assert.Empty(accountFavorite);
-            }
+            // Assert
+            Assert.Empty(accountFavorite);
         }
+    }
 
-        [Fact]
-        public async Task UpdateAccountFavoriteAsync_Should_Throw_NotFoundException()
+    [Fact]
+    public async Task UpdateAccountFavoriteAsync_Should_Throw_NotFoundException()
+    {
+        using (var context = new AccountContext(_options))
         {
-            using (var context = new AccountContext(_options))
-            {
-                // Arrange
-                var accountsMock = _fixture.Create<List<AccountEntity>>();
+            // Arrange
+            var accountsMock = _fixture.Create<List<AccountEntity>>();
 
-                context.AccountEntity.AddRange(accountsMock);
-                context.SaveChanges();
+            context.AccountEntity.AddRange(accountsMock);
+            context.SaveChanges();
 
-                var favoriteRepository = new FavoriteRepository(context);
+            var favoriteRepository = new FavoriteRepository(context);
 
-                // Act
-                Task UpdateFavorite() => favoriteRepository.UpdateAccountFavoriteAsync(123, 123, false);
+            // Act
+            Task UpdateFavorite() => favoriteRepository.UpdateAccountFavoriteAsync(123, 123, false);
 
-                // Assert
-                await Assert.ThrowsAsync<NotFoundException>(UpdateFavorite);
-            }
+            // Assert
+            await Assert.ThrowsAsync<NotFoundException>(UpdateFavorite);
         }
     }
 }

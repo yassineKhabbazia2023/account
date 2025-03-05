@@ -246,6 +246,7 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(250)
                 .IsUnicode(false)
                 .HasComment("Le prénom du contact");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.LastName)
                 .IsRequired()
                 .HasMaxLength(250)
@@ -345,13 +346,15 @@ public partial class AccountContext : DbContext
 
             entity.HasIndex(e => e.Status, "IX_Deployment_Status");
 
+            entity.HasIndex(e => e.AccountId, "UQ_AccountId").IsUnique();
+
             entity.Property(e => e.DeploymentId).HasComment("L''identifiant technique");
             entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
             entity.Property(e => e.DeploymentDate).HasComment("La date à laquelle le déploiement a eu lieu ");
             entity.Property(e => e.Status).HasComment("Le statut du déploiement");
 
-            entity.HasOne(d => d.Account).WithMany(p => p.DeploymentEntity)
-                .HasForeignKey(d => d.AccountId)
+            entity.HasOne(d => d.Account).WithOne(p => p.DeploymentEntity)
+                .HasForeignKey<DeploymentEntity>(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("C_Account_Deployment_FK");
         });

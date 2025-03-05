@@ -3,7 +3,6 @@
 // </copyright>
 
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Moq;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Models;
@@ -15,7 +14,6 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers;
 
 public class MapAccountDbToAccountModelTests
 {
-
     [Fact]
     public void MapToPaginAccounts_ShouldMapCorrectly()
     {
@@ -210,15 +208,10 @@ public class MapAccountDbToAccountModelTests
     public void MapToDeployment_ShouldMapCorrectly()
     {
         // arrange
-        var firstDeployment = new DeploymentEntity() { Status = 1, DeploymentDate = DateTime.UtcNow, DeploymentId = 1 };
-        var secondDeployment = new DeploymentEntity() { DeploymentId = 2, DeploymentDate = DateTime.UtcNow };
-        List<DeploymentEntity> deploymentEntities = new List<DeploymentEntity>()
-        {
-           firstDeployment, secondDeployment
-        };
+        var deployment = new DeploymentEntity() { Status = 1, DeploymentDate = DateTime.UtcNow, DeploymentId = 1 };
         var accountEntity = new AccountEntity
         {
-            DeploymentEntity = deploymentEntities,
+            DeploymentEntity = deployment,
             AccountNumber = "199900046522",
             LegalName = "test scA",
             Hub = new HubEntity { HubId = 1, HubName = "HubName" },
@@ -226,12 +219,12 @@ public class MapAccountDbToAccountModelTests
         };
 
         // act
-        var deployment = accountEntity.MapToDeployment();
+        var result = accountEntity.MapToDeployment();
 
-        deployment.Should().NotBeNull();
-        deployment?.Status.Should().Be(firstDeployment.Status);
-        deployment?.DeploymentDate.Should().Be(firstDeployment.DeploymentDate);
-        deployment?.DeploymentId.Should().Be(firstDeployment.DeploymentId);
+        result.Should().NotBeNull();
+        result.Status.Should().Be(deployment.Status);
+        result.DeploymentDate.Should().Be(deployment.DeploymentDate);
+        result.DeploymentId.Should().Be(deployment.DeploymentId);
     }
 
     [Fact]
@@ -241,7 +234,7 @@ public class MapAccountDbToAccountModelTests
         var existingAccount = new AccountEntity
         {
             AccountId = 1,
-            DeploymentEntity = new List<DeploymentEntity>()
+            DeploymentEntity = null
         };
 
         var accountDetail = new AccountDetail
@@ -280,8 +273,7 @@ public class MapAccountDbToAccountModelTests
         existingAccount.ActivityDescription.Should().Be("Description1");
 
         existingAccount.DeploymentEntity.Should().NotBeNull();
-        existingAccount.DeploymentEntity.Should().HaveCount(1);
-        var deployment = existingAccount.DeploymentEntity.First();
+        var deployment = existingAccount.DeploymentEntity;
         deployment.AccountId.Should().Be(1);
         deployment.DeploymentDate.Should().Be(new DateTime(2023, 6, 1));
         deployment.Status.Should().Be(1);
@@ -300,7 +292,7 @@ public class MapAccountDbToAccountModelTests
             AccountId = 1,
             StaffSizeRange = "Original",
             FiscalExerciseStartDate = new DateTime(2022, 1, 1),
-            DeploymentEntity = new List<DeploymentEntity>()
+            DeploymentEntity = null
         };
 
         var accountDetail = new AccountDetail
@@ -318,7 +310,7 @@ public class MapAccountDbToAccountModelTests
         // Assert
         existingAccount.StaffSizeRange.Should().Be("Original");
         existingAccount.FiscalExerciseStartDate.Should().Be(new DateTime(2022, 1, 1));
-        existingAccount.DeploymentEntity.Should().BeEmpty();
+        existingAccount.DeploymentEntity.Should().BeNull();
         existingAccount.HubId.Should().BeNull();
         existingAccount.Vat.Should().BeNull();
         existingAccount.Vattype.Should().BeNull();
@@ -331,14 +323,11 @@ public class MapAccountDbToAccountModelTests
         var existingAccount = new AccountEntity
         {
             AccountId = 1,
-            DeploymentEntity = new List<DeploymentEntity>
+            DeploymentEntity = new DeploymentEntity
             {
-                new DeploymentEntity
-                {
-                    AccountId = 1,
-                    DeploymentDate = new DateTime(2022, 1, 1),
-                    Status = -1
-                }
+                AccountId = 1,
+                DeploymentDate = new DateTime(2022, 1, 1),
+                Status = -1
             }
         };
 
@@ -355,8 +344,8 @@ public class MapAccountDbToAccountModelTests
         existingAccount.MapToUpdatedAccount(accountDetail);
 
         // Assert
-        existingAccount.DeploymentEntity.Should().HaveCount(1);
-        var deployment = existingAccount.DeploymentEntity.First();
+        existingAccount.DeploymentEntity.Should().NotBeNull();
+        var deployment = existingAccount.DeploymentEntity;
         deployment.AccountId.Should().Be(1);
         deployment.DeploymentDate.Should().Be(new DateTime(2023, 6, 1));
         deployment.Status.Should().Be(1);
@@ -473,10 +462,9 @@ public class MapAccountDbToAccountModelTests
         deployment.UpdateDeploymentToEntity(account);
 
         // Assert
-        account.DeploymentEntity.ToList().Should().NotBeNull();
-        account.DeploymentEntity.ToList().Should().HaveCount(1);
-        account.DeploymentEntity.ToArray().FirstOrDefault()?.Status.Should().Be(1);
-        account.DeploymentEntity.ToArray().FirstOrDefault()?.DeploymentDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        account.DeploymentEntity.Should().NotBeNull();
+        account.DeploymentEntity.Status.Should().Be(1);
+        account.DeploymentEntity.DeploymentDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]
@@ -486,13 +474,10 @@ public class MapAccountDbToAccountModelTests
         var deployment = new Deployment { Status = 1 };
         var account = new AccountEntity
         {
-            DeploymentEntity = new List<DeploymentEntity>
+            DeploymentEntity = new DeploymentEntity
             {
-                new DeploymentEntity
-                {
-                    Status = 1,
-                    DeploymentDate = DateTime.UtcNow.AddDays(-1)
-                }
+                Status = 1,
+                DeploymentDate = DateTime.UtcNow.AddDays(-1)
             }
         };
 
@@ -500,49 +485,16 @@ public class MapAccountDbToAccountModelTests
         deployment.UpdateDeploymentToEntity(account);
 
         // Assert
-        account.DeploymentEntity.Should().HaveCount(1);
-        account.DeploymentEntity.ToArray().FirstOrDefault()?.Status.Should().Be(1);
-        account.DeploymentEntity.ToArray().FirstOrDefault()?.DeploymentDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-    }
-
-    [Fact]
-    public void UpdateDeploymentToEntity_WithMultipleExistingDeploymentEntities_ShouldUpdateFirstEntity()
-    {
-        // Arrange
-        var deployment = new Deployment { Status = 0 };
-        var account = new AccountEntity
-        {
-            DeploymentEntity = new List<DeploymentEntity>
-            {
-                new DeploymentEntity
-                {
-                    Status = 1,
-                    DeploymentDate = DateTime.UtcNow.AddDays(-2)
-                },
-                new DeploymentEntity
-                {
-                    Status = 2,
-                    DeploymentDate = DateTime.UtcNow.AddDays(-1)
-                }
-            }
-        };
-
-        // Act
-        deployment.UpdateDeploymentToEntity(account);
-
-        // Assert
-        account.DeploymentEntity.Should().HaveCount(2);
-        account.DeploymentEntity.ToArray().FirstOrDefault()?.Status.Should().Be(0);
-        account.DeploymentEntity.ToArray().FirstOrDefault()?.DeploymentDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        account.DeploymentEntity.ToArray()[1].Status.Should().Be(2);
-        account.DeploymentEntity.ToArray()[1]?.DeploymentDate.Should().BeCloseTo(DateTime.UtcNow.AddDays(-1), TimeSpan.FromSeconds(1));
+        account.DeploymentEntity.Should().NotBeNull();
+        account.DeploymentEntity.Status.Should().Be(1);
+        account.DeploymentEntity.DeploymentDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]
     public void MapToAccounts_WithNullSource_ShouldReturnEmptyEnumerable()
     {
         // Arrange
-        ICollection<AccountEntity> source = null;
+        ICollection<AccountEntity> source = null!;
         int? contactId = 1;
 
         // Act
@@ -610,12 +562,10 @@ public class MapAccountDbToAccountModelTests
             {
                 new AddressEntity { AddressType = "Delivery" }
             },
-            DeploymentEntity = new List<DeploymentEntity>
-            {
-                new DeploymentEntity { Status = 1 }
-            },
+            DeploymentEntity = new DeploymentEntity { Status = 1 },
             Hub = new HubEntity { HubId = 1, HubName = "Test Hub" }
         };
+
         int? contactId = 1;
 
         // Act
@@ -639,7 +589,7 @@ public class MapAccountDbToAccountModelTests
     public void MapToAccountDetail_WithNullSource_ShouldReturnNull()
     {
         // Arrange
-        AccountEntity source = null;
+        AccountEntity source = null!;
 
         // Act
         var result = MapAccountDbToAccountModel.MapToAccountDetail(source);
@@ -668,7 +618,7 @@ public class MapAccountDbToAccountModelTests
             AddressEntity = new List<AddressEntity>(),
             PhoneEntity = new List<PhoneEntity>(),
             Hub = new HubEntity { HubId = 1, HubName = "Test Hub" },
-            DeploymentEntity = new List<DeploymentEntity> { new DeploymentEntity { Status = 1 } }
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
         };
 
         // Act
@@ -698,8 +648,8 @@ public class MapAccountDbToAccountModelTests
     public void MapToStatistics_WithNullDictionaries_ShouldReturnZeroValues()
     {
         // Arrange
-        Dictionary<int, int> countByAccountStatus = null;
-        Dictionary<string, int> countByContactStatus = null;
+        Dictionary<int, int> countByAccountStatus = null!;
+        Dictionary<string, int> countByContactStatus = null!;
 
         // Act
         var result = MapAccountDbToAccountModel.MapToStatistics(countByAccountStatus, countByContactStatus);
