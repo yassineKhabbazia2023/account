@@ -12,7 +12,7 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
 {
     public static class MapToAccountEntity
     {
-        public static void ToAccountEntity(this AccountEntity destination, AccountEntity source)
+        public static void ToAccountEntity(this AccountEntity destination, AccountEntity source, bool IsCreateOperation = true)
         {
             destination.AccountGlobalUniqueId = source.AccountGlobalUniqueId;
             destination.AccountNumber = source.AccountNumber;
@@ -44,7 +44,12 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
             destination.NafId = source.NafId;
             destination.IsActive = source.IsActive;
             destination.ActivityType = source.ActivityType;
-            destination.ToDeploymentEntity(source);
+
+            if (IsCreateOperation)
+            {
+                destination.ToDeploymentEntity(source);
+            }
+
             destination.ToAddressEntity(source);
             destination.ToPhoneEntity(source);
         }
@@ -119,13 +124,12 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
             destination.State = source.State;
         }
 
-        public static AccountEntity ToAccountEntity(this RegistryAccountStateEventData eventData)
+        public static AccountEntity ToAccountEntity(this RegistryAccountStateEventData eventData, bool IsCreateOperation = true)
         {
             if (eventData == null)
             {
                 return null!;
             }
-
 
             var account = new AccountEntity
             {
@@ -160,7 +164,11 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper
                 IsActive = true,
                 ActivityType = eventData.AccountEscCategory
             };
-            account.DeploymentEntity = eventData.ToDeploymentEntities();
+
+            if (IsCreateOperation)
+            {
+                account.DeploymentEntity = eventData.ToDeploymentEntities();
+            }
 
             account.AddressEntity = eventData.ToAddressEntities();
 

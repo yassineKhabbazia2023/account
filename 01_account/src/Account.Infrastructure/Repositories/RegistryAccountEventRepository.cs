@@ -72,8 +72,8 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
             throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, eventData.AccountGlobalUniqueIdentifier));
         }
 
-        var newAccount = eventData.ToAccountEntity();
-        existingAccount.ToAccountEntity(newAccount);
+        var newAccount = eventData.ToAccountEntity(false);
+        existingAccount.ToAccountEntity(newAccount, false);
         await _context.SaveChangesAsync();
 
         return existingAccount.MapToAccountDetail()!;

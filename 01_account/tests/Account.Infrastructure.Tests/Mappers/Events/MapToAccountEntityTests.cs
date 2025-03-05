@@ -259,5 +259,179 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers.Events
             Assert.Equal(data.DeliveryCountry, result.AddressEntity.First(x => x.AddressType == AddressType.Delivery.ToString()).Country);
             Assert.Equal(data.DeliveryState, result.AddressEntity.First(x => x.AddressType == AddressType.Delivery.ToString()).State);
         }
+
+        [Fact]
+        public void ToAccountEntity_UpdateOperation_DoesNotUpdateDeploymentEntity()
+        {
+            // Arrange
+            var source = new AccountEntity
+            {
+                DeploymentEntity = new List<DeploymentEntity>
+                {
+                    new DeploymentEntity
+                    {
+                        Status = 2,
+                        DeploymentDate = DateTime.UtcNow
+                    }
+                },
+                AddressEntity = new List<AddressEntity>
+                {
+                    new AddressEntity
+                    {
+                        AddressType = AddressType.Delivery.ToString(),
+                        AddressLine1 = "sourceDeliveryLine1"
+                    },
+                    new AddressEntity
+                    {
+                        AddressType = AddressType.Billing.ToString(),
+                        AddressLine1 = "sourceBillingLine1"
+                    }
+                },
+                PhoneEntity = new List<PhoneEntity>
+                {
+                    new PhoneEntity
+                    {
+                        Type = PhoneType.Delivery.ToString(),
+                        PhoneNumber = "sourceDeliveryPhone"
+                    },
+                    new PhoneEntity
+                    {
+                        Type = PhoneType.Billing.ToString(),
+                        PhoneNumber = "sourceBillingPhone"
+                    }
+                }
+            };
+            var destination = new AccountEntity
+            {
+                DeploymentEntity = new List<DeploymentEntity>
+                {
+                    new DeploymentEntity
+                    {
+                        Status = 1,
+                        DeploymentDate = DateTime.UtcNow.AddDays(-1)
+                    }
+                },
+                AddressEntity = new List<AddressEntity>
+                {
+                    new AddressEntity
+                    {
+                        AddressType = AddressType.Delivery.ToString(),
+                        AddressLine1 = "destinationDeliveryLine1"
+                    },
+                    new AddressEntity
+                    {
+                        AddressType = AddressType.Billing.ToString(),
+                        AddressLine1 = "destinationBillingLine1"
+                    }
+                },
+                PhoneEntity = new List<PhoneEntity>
+                {
+                    new PhoneEntity
+                    {
+                        Type = PhoneType.Delivery.ToString(),
+                        PhoneNumber = "destinationDeliveryPhone"
+                    },
+                    new PhoneEntity
+                    {
+                        Type = PhoneType.Billing.ToString(),
+                        PhoneNumber = "destinationBillingPhone"
+                    }
+                }
+            };
+
+            // Act
+            destination.ToAccountEntity(source, true);
+
+            // Assert
+            Assert.Equal(1, destination.DeploymentEntity.First().Status);
+            Assert.NotEqual(source.DeploymentEntity.First().DeploymentDate, destination.DeploymentEntity.First().DeploymentDate);
+        }
+
+        [Fact]
+        public void ToAccountEntity_CreateOperation_UpdatesDeploymentEntity()
+        {
+            // Arrange
+            var source = new AccountEntity
+            {
+                DeploymentEntity = new List<DeploymentEntity>
+                {
+                    new DeploymentEntity
+                    {
+                        Status = 2,
+                        DeploymentDate = DateTime.UtcNow
+                    }
+                },
+                AddressEntity = new List<AddressEntity>
+                {
+                    new AddressEntity
+                    {
+                        AddressType = AddressType.Delivery.ToString(),
+                        AddressLine1 = "sourceDeliveryLine1"
+                    },
+                    new AddressEntity
+                    {
+                        AddressType = AddressType.Billing.ToString(),
+                        AddressLine1 = "sourceBillingLine1"
+                    }
+                },
+                PhoneEntity = new List<PhoneEntity>
+                {
+                    new PhoneEntity
+                    {
+                        Type = PhoneType.Delivery.ToString(),
+                        PhoneNumber = "sourceDeliveryPhone"
+                    },
+                    new PhoneEntity
+                    {
+                        Type = PhoneType.Billing.ToString(),
+                        PhoneNumber = "sourceBillingPhone"
+                    }
+                }
+            };
+            var destination = new AccountEntity
+            {
+                DeploymentEntity = new List<DeploymentEntity>
+                {
+                    new DeploymentEntity
+                    {
+                        Status = 1,
+                        DeploymentDate = DateTime.UtcNow.AddDays(-1)
+                    }
+                },
+                AddressEntity = new List<AddressEntity>
+                {
+                    new AddressEntity
+                    {
+                        AddressType = AddressType.Delivery.ToString(),
+                        AddressLine1 = "destinationDeliveryLine1"
+                    },
+                    new AddressEntity
+                    {
+                        AddressType = AddressType.Billing.ToString(),
+                        AddressLine1 = "destinationBillingLine1"
+                    }
+                },
+                PhoneEntity = new List<PhoneEntity>
+                {
+                    new PhoneEntity
+                    {
+                        Type = PhoneType.Delivery.ToString(),
+                        PhoneNumber = "destinationDeliveryPhone"
+                    },
+                    new PhoneEntity
+                    {
+                        Type = PhoneType.Billing.ToString(),
+                        PhoneNumber = "destinationBillingPhone"
+                    }
+                }
+            };
+
+            // Act
+            destination.ToAccountEntity(source, false);
+
+            // Assert
+            Assert.Equal(2, destination.DeploymentEntity.First().Status);
+            Assert.Equal(source.DeploymentEntity.First().DeploymentDate, destination.DeploymentEntity.First().DeploymentDate);
+        }
     }
 }
