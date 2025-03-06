@@ -111,14 +111,14 @@ namespace Pulse.Account.API.Configuration
                 throw new NullArgumentException(Errors.NotFoundDatabaseConnectionStringCode, Errors.NotFoundDataBaseConnectionStringMessage);
             }
 
-            services.AddDbContext<AccountContext>(options =>
+            services.AddDbContextPool<AccountContext>(options =>
             {
                 options.UseSqlServer(connectionString, opt =>
                 {
                     opt.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                     opt.EnableRetryOnFailure(GlobalConstants.RETRYCOUNT, TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN), null);
                 });
-            }, ServiceLifetime.Transient);
+            });
 
             services.AddHealthChecks()
                 .AddSqlServer(connectionString, healthQuery: "SELECT 1;");
