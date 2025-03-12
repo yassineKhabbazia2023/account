@@ -44,7 +44,7 @@ namespace Pulse.Account.Core.Tests.Extensions
             details.SetDelegationInformation();
 
             Assert.Equal(DelegationStatus.Enabled.ToString().ToLower(), details.FirstOrDefault() !.Status);
-            Assert.Equal(DateTime.Now.Date, details.FirstOrDefault() !.StartDate!.Value.Date);
+            Assert.Equal(DateTime.UtcNow.Date, details.FirstOrDefault() !.StartDate!.Value.Date);
             Assert.True(details.FirstOrDefault() !.IsRoleToCreate);
         }
 

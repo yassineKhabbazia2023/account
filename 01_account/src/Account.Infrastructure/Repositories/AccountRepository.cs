@@ -43,37 +43,61 @@ namespace Pulse.Account.Infrastructure.Repositories
 
         public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination)
         {
-            var query = _accountContext.AccountEntity
-                .AsNoTracking()
-                .Include(a => a.RoleEntity)
-                .ThenInclude(r => r.Contact)
-                .Where(a => a.RoleEntity.Any(r => r.ContactId == criteria.ContactId))
-                .AsQueryable();
+            // Construire la requête de base, en AsNoTracking, avec un premier filtre sur ContactId
+            var baseQuery = from a in _accountContext.AccountEntity.AsNoTracking()
+                            join r in _accountContext.RoleEntity on a.AccountId equals r.AccountId
+                            where r.ContactId == criteria.ContactId
+                            select a;
 
+            // Filtrer par "Search"
             if (!string.IsNullOrWhiteSpace(criteria.Search))
             {
-                query = query
-                    .Where(q => q.LegalName.Contains(criteria.Search) || q.AccountNumber.Contains(criteria.Search) ||
-                q.RoleEntity.Any(role => role.IsSignatory == true && ((role.Contact.FirstName + " " + role.Contact.LastName).Contains(criteria.Search)
-                                                  || role.Contact.Email.Contains(criteria.Search))));
+                var search = criteria.Search.Trim();
+
+                // Filtrer par LegalName, AccountNumber, ou par un rôle signataire dont le Contact correspond à la recherche
+                baseQuery = baseQuery.Where(a =>
+                    a.LegalName.Contains(search) ||
+                    a.AccountNumber.Contains(search) ||
+                    a.RoleEntity.Any(r =>
+                        r.IsSignatory == true &&
+                        ((r.Contact.FirstName + " " + r.Contact.LastName).Contains(search)
+                         || r.Contact.Email.Contains(search))));
             }
 
-            query = query.OrderBy(q => q.LegalName);
+            // Filtrer par DeploymentStatus
+            if (criteria.DeploymentStatus.HasValue)
+            {
+                baseQuery = baseQuery.Where(a =>
+                    a.DeploymentEntity.Status == criteria.DeploymentStatus.Value);
+            }
 
-            var totalItems = await query.CountAsync();
-            var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
+            // Calcul du nombre total d'éléments (après filtres) pour la pagination
+            var totalItems = await baseQuery.CountAsync();
+            var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
-            query = query.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
-            query = query.Take(pagination!.PageSize);
+            // Appliquer l'ordre, le Skip et le Take avant les Includes
+            var query = baseQuery
+                .OrderBy(a => a.LegalName)
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize);
 
-            query = query.Include(a => a.AddressEntity).Include(a => a.DeploymentEntity);
+            // Ajouter les Includes nécessaires pour de meilleures performances
+            query = query
+                .Include(a => a.RoleEntity)
+                    .ThenInclude(r => r.Contact)
+                .Include(a => a.AddressEntity)
+                .Include(a => a.DeploymentEntity);
+
+            // Exécuter la requête et mapper les entités
+            var entities = await query.ToListAsync();
 
             return MapAccountDbToAccountModel.MapToPaginAccounts(
-                await query.ToListAsync(),
+                entities,
                 criteria.ContactId,
-                pagination!.PageNumber,
+                pagination.PageNumber,
                 totalItems,
-                totalPages);
+                totalPages
+            );
         }
 
         public async Task<Paging<AccountModel>> GetAllAccountsAsync(string? accountNumber, Pagination pagination)
