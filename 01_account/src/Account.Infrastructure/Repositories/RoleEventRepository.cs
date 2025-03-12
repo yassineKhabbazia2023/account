@@ -78,14 +78,14 @@ public class RoleEventRepository : IRoleEventRepository
 
             if (!d.Delegatee.RoleEntity.Any(r => r.AccountId == accountId))
             {
-                rolesToCreate.Add(CreateRoleForDelegation(d.DelegateeId, d.Delegatee.ContactGlobalUniqueId, accountId, account!.AccountGlobalUniqueId));
+                rolesToCreate.Add(CreateRoleForDelegation(d.DelegateeId, d.Delegatee.ContactGlobalUniqueId, accountId, account!.AccountGlobalUniqueId, d.DelegatorId));
             }
         });
 
         return rolesToCreate;
     }
 
-    private CreateRoleRequest CreateRoleForDelegation(int contactId, Guid? contactGlobalUniqueId, int accountId, Guid accountGlobalUniqueId)
+    private CreateRoleRequest CreateRoleForDelegation(int contactId, Guid? contactGlobalUniqueId, int accountId, Guid accountGlobalUniqueId, int delegatorId)
     {
         var rolesCreated = new CreateRoleRequest
         {
@@ -95,7 +95,8 @@ public class RoleEventRepository : IRoleEventRepository
             AccountGlobalUniqueId = accountGlobalUniqueId,
             IsSignatory = false,
             IsFavorite = false,
-            IsDelegation = true
+            IsDelegation = true,
+            DelegatorId = delegatorId
         };
 
         return rolesCreated;

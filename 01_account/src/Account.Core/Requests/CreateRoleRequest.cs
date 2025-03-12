@@ -26,6 +26,7 @@ namespace Pulse.Account.Core.Requests
 
         public bool? IsDelegation { get; set; }
 
+        [JsonIgnore]
         public int? DelegatorId { get; set; }
     }
 }

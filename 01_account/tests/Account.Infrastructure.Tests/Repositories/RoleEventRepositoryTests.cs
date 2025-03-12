@@ -133,7 +133,7 @@ public class RoleEventRepositoryTests
             Email = "pj@kpmg.fr",
             PersonaName = "client",
             Type = "customer",
-            IsActive= true
+            IsActive = true
         };
         context.ContactEntity.AddRange(new List<ContactEntity> { delegator, delegatee });
 
@@ -169,6 +169,7 @@ public class RoleEventRepositoryTests
         Assert.Equal(delegatee.ContactGlobalUniqueId, data.ContactGlobalUniqueId);
         Assert.Equal(account.AccountId, data.AccountId);
         Assert.Equal(account.AccountGlobalUniqueId, data.AccountGlobalUniqueId);
+        Assert.Equal(delegator.ContactId, data.DelegatorId);
         Assert.False(data.IsSignatory);
         Assert.False(data.IsFavorite);
         Assert.True(data.IsDelegation);

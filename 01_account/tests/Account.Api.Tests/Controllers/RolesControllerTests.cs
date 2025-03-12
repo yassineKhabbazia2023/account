@@ -139,7 +139,7 @@ public class RolesControllerTests
     }
 
     [Fact]
-    public async Task CreateRole_Should_ReturnBadRequestException_IfHeaderMissingAsync()
+    public async Task CreateRole_WithDelegation_Should_ReturnBadRequestException_IfHeaderMissingAsync()
     {
         // Arrange
         var mockRoleService = new Mock<IRolesService>(MockBehavior.Strict);
@@ -148,7 +148,8 @@ public class RolesControllerTests
             AccountId = 6,
             ContactId = 6,
             IsFavorite = false,
-            IsSignatory = false
+            IsSignatory = false,
+            IsDelegation = true,
         };
 
         var rolesController = new RolesController(mockRoleService.Object);

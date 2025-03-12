@@ -53,7 +53,7 @@ public class RolesService : IRolesService
             IsSignatory = r.IsSignatory,
             IsFavorite = r.IsFavorite,
             IsDelegation = r.IsDelegation,
-            DelegatorId = contactId
+            DelegatorId = r.IsDelegation == true ? contactId : default
         }).ToList();
 
         await Task.WhenAll(roles.Select(PublishRoleCreatedEvent));

@@ -118,7 +118,7 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult> CreateRoleAsync(CreateRoleRequest role)
     {
-        if (!Request.Headers.TryGetValue("CurrentUser", out StringValues contactIdValue))
+        if (!Request.Headers.TryGetValue("CurrentUser", out StringValues contactIdValue) && role.IsDelegation == true)
         {
             throw new BadRequestException(Errors.CurrentUserWasNotFoundInHeadersCode, Errors.CurrentUserWasNotFoundInHeadersMessage);
         }
