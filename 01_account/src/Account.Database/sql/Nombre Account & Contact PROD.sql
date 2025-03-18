@@ -15,13 +15,18 @@ SELECT
 
 
 -- CONTACT
-SELECT 
-	CASE
-		WHEN c.Status IS NOT NULL THEN c.Status
-		ELSE 'Collaborator'
-	END AS Status,
-	count(c.Email) AS Nombre
+  SELECT 
+    CASE
+      WHEN c.IsActive = 0 THEN 'Revoked'
+      WHEN c.Status IS NOT NULL THEN c.Status
+      ELSE 'Unknown'
+    END AS Status,
+    count(DISTINCT c.ContactId) AS Nombre
   FROM [actor].[Contact] c
-  INNER JOIN [account].[Role] r ON r.ContactId = c.ContactId
-  WHERE r.AccountId NOT IN (SELECT AccountId FROM [account].[Account] WHERE AccountType = 'TEST' OR AccountType IS NULL OR SourceName = 'Entity Creator')
-  GROUP BY c.Status
+  WHERE c.Type = 'Customer' 
+	  AND c.ContactId NOT IN (SELECT 
+                            DISTINCT r.ContactId 
+                          FROM [account].[Role] r
+                          INNER JOIN [account].[Account] a ON a.AccountId = r.AccountId 
+                          WHERE AccountType = 'Test' OR AccountType IS NULL OR SourceName = 'Entity Creator')
+  GROUP BY c.Status, c.Type, c.IsActive
