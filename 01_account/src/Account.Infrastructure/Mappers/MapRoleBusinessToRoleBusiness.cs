@@ -14,7 +14,7 @@ public static class MapRoleBusinessToRoleBusiness
         return role == null ? null! : new Role
         {
             AccountId = role.AccountId,
-            ContactId = role.ContactId,
+            ContactId = (int)role.ContactId!,
             IsFavorite = role.IsFavorite,
             IsSignatory = role.IsSignatory,
             IsDelegation = role.IsDelegation,

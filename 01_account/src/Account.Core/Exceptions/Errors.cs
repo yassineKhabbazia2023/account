@@ -97,5 +97,8 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string InvalidCurrentUserFormatCode = "ACC030";
         public static readonly string InvalidCurrentUserFormatMessage = "Le header CurrentUser doit être un entier valide.";
+
+        public static readonly string ContactIdAndEmailNullCode = "ACC031";
+        public static readonly string ContactIdAndEmailNullMessage = "Veuillez fournir au moins le ContactId ou l'email.";
     }
 }

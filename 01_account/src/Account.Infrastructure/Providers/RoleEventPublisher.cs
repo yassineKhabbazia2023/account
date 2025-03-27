@@ -67,7 +67,7 @@ namespace Pulse.Account.Infrastructure.Providers
             var data = new RoleCreatedEventData
             {
                 AccountId = roleRequest.AccountId,
-                ContactId = roleRequest.ContactId,
+                ContactId = (int)roleRequest.ContactId!,
                 IsDelegation = roleRequest.IsDelegation,
                 IsFavorite = roleRequest.IsFavorite,
                 IsSignatory = roleRequest.IsSignatory,

@@ -127,7 +127,7 @@ public class RoleRepository : IRoleRepository
                 throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
             }
 
-            if (await GetContactRoleAsync(role.AccountId, role.ContactId) != null)
+            if (await GetContactRoleAsync(role.AccountId, (int)role.ContactId!) != null)
             {
                 throw new ConflictException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, role.ContactId, role.AccountId));
             }
@@ -183,11 +183,11 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task<bool> CheckRoleExistsAsync(int contactId, int? accountId, string email)
+    public async Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            var contactToCheck = _accountContext.ContactEntity.FirstOrDefault(x => x.Email.Contains(email));
+            var contactToCheck = _accountContext.ContactEntity.FirstOrDefault(x => contactId != null ? x.ContactId == contactId : x.Email.Contains(email!));
 
             // Check if the contact exists
             if (contactToCheck is null)
@@ -197,7 +197,7 @@ public class RoleRepository : IRoleRepository
 
             IQueryable<AccountEntity> query = _accountContext.AccountEntity
                                                     .AsNoTracking()
-                                                    .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
+                                                    .Where(a => a.RoleEntity.Any(r => r.ContactId == currentUserId))
                                                     .Where(a => a.RoleEntity.Any(r => r.ContactId == contactToCheck.ContactId));
 
             // Add the accountId filter if it's not null

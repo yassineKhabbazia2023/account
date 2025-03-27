@@ -41,7 +41,7 @@ public class MapRoleBusinessToRoleDbTests
         CreateRoleRequest? role = _fixture.Create<CreateRoleRequest?>();
         var expected = new RoleEntity()
         {
-            ContactId = role!.ContactId,
+            ContactId = (int)role!.ContactId!,
             AccountId = role!.AccountId,
             IsFavorite = role!.IsFavorite,
             IsSignatory = role!.IsSignatory,

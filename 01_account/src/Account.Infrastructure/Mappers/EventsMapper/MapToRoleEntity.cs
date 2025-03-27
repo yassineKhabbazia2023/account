@@ -42,7 +42,7 @@ public static class MapToRoleEntity
         return new RoleEntity
         {
             AccountId = request.AccountId,
-            ContactId = request.ContactId,
+            ContactId = (int)request.ContactId!,
             IsFavorite = request.IsFavorite,
             IsSignatory = request.IsSignatory,
             IsDelegation = request.IsDelegation,

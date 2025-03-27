@@ -2,10 +2,8 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
-using IdentityModel.OidcClient;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -103,7 +101,7 @@ public class RolesControllerTests
         };
 
         // Act
-        var result = await rolesController.CreateRoleAsync(roleRequest);
+        var result = await rolesController.CreateRoleAsync(6, roleRequest);
 
         // Assert
         mockRoleService.Verify(s => s.CreateRoleAsync(roleRequest, contactId), Times.Once);
@@ -132,7 +130,7 @@ public class RolesControllerTests
         };
 
         // Act
-        Task Roles() => rolesController.CreateRoleAsync(null!);
+        Task Roles() => rolesController.CreateRoleAsync(1, null!);
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(Roles);
@@ -167,7 +165,7 @@ public class RolesControllerTests
         };
 
         // Act
-        Task Act() => rolesController.CreateRoleAsync(roleRequest);
+        Task Act() => rolesController.CreateRoleAsync(1, roleRequest);
 
         // Assert
         var result = await Assert.ThrowsAsync<BadRequestException>(Act);
@@ -203,7 +201,7 @@ public class RolesControllerTests
         };
 
         // Act
-        Task Act() => rolesController.CreateRoleAsync(roleRequest);
+        Task Act() => rolesController.CreateRoleAsync(1, roleRequest);
 
         // Assert
         var result = await Assert.ThrowsAsync<BadRequestException>(Act);
@@ -282,16 +280,91 @@ public class RolesControllerTests
     {
         // Arrange
         var roleService = new Mock<IRolesService>();
-        roleService.Setup(service => service.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), "test@test.fr"))
+        roleService.Setup(service => service.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), "test@test.fr"))
             .Returns(Task.FromResult(true));
         var roleController = new RolesController(roleService.Object);
+
+        var httpContextMock = new Mock<HttpContext>();
+        var requestMock = new Mock<HttpRequest>();
+
+        var headers = new HeaderDictionary { { "CurrentUser", new StringValues("123") } };
+        requestMock.Setup(r => r.Headers).Returns(headers);
+
+        httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
+        roleController.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContextMock.Object
+        };
 
         // Act
         var contactHasRoleOnAccount = await roleController.CheckRoleExists(1, 1, "test@test.fr");
 
         // Assert
-        roleService.Verify(x => x.CheckRoleExistsAsync(1, 1, "test@test.fr"), Times.Once);
+        roleService.Verify(x => x.CheckRoleExistsAsync(123, 1, 1, "test@test.fr"), Times.Once);
         Assert.Equal(true, (contactHasRoleOnAccount as OkObjectResult)?.Value);
+    }
+
+    [Theory]
+    [MemberData(nameof(HeaderParams))]
+    public async Task CheckRoleExists_WithInvalidCurrentUser_Should_ThrowBadRequestException(HeaderDictionary header, string code, string message)
+    {
+        var roleController = new RolesController(null!);
+
+        var httpContextMock = new Mock<HttpContext>();
+        var requestMock = new Mock<HttpRequest>();
+
+        requestMock.Setup(r => r.Headers).Returns(header);
+
+        httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
+        roleController.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContextMock.Object
+        };
+
+        var result = await Assert.ThrowsAsync<BadRequestException>(async () => await roleController.CheckRoleExists(1, 1, "test@test.fr"));
+
+        Assert.Equal(code, result.Code);
+        Assert.Equal(message, result.Message);
+    }
+
+    public static IEnumerable<object[]> HeaderParams()
+    {
+        yield return new object[]
+        {
+            new HeaderDictionary(),
+            "ACC029",
+            "Le CurrentUser n'a pas été transmis via header."
+        };
+
+        yield return new object[]
+        {
+            new HeaderDictionary { { "CurrentUser", new StringValues("toto") } },
+            "ACC030",
+            "Le header CurrentUser doit être un entier valide."
+        };
+    }
+
+    [Fact]
+    public async Task CheckRoleExists_WithContactIdAndEmailNull_Should_ThrowBadRequestException()
+    {
+        var roleController = new RolesController(null!);
+
+        var httpContextMock = new Mock<HttpContext>();
+        var requestMock = new Mock<HttpRequest>();
+
+        var header = new HeaderDictionary { { "CurrentUser", new StringValues("123") } };
+        requestMock.Setup(r => r.Headers).Returns(header);
+
+        httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
+        roleController.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContextMock.Object
+        };
+
+        var result = await Assert.ThrowsAsync<BadRequestException>(async () => await roleController.CheckRoleExists(null!, 1, string.Empty));
+
+        Assert.Equal("ACC031", result.Code);
+        Assert.Equal("Veuillez fournir au moins le ContactId ou l'email.", result.Message);
     }
 
     [Fact]

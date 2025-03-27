@@ -94,9 +94,9 @@ public class RolesService : IRolesService
         await PublishRoleDeletedEvent(accountId, contactId);
     }
 
-    public async Task<bool> CheckRoleExistsAsync(int contactId, int? accountId, string email)
+    public async Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email)
     {
-        return await _rolesRepository.CheckRoleExistsAsync(contactId, accountId, email);
+        return await _rolesRepository.CheckRoleExistsAsync(currentUserId, contactId, accountId, email);
     }
 
     public async Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber)

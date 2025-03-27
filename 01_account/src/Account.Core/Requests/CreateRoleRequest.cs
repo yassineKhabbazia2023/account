@@ -8,12 +8,14 @@ namespace Pulse.Account.Core.Requests
 {
     public class CreateRoleRequest
     {
+        [JsonIgnore]
         public int AccountId { get; set; }
 
         [JsonIgnore]
         public Guid? AccountGlobalUniqueId { get; set; }
 
-        public int ContactId { get; set; }
+        [JsonIgnore]
+        public int? ContactId { get; set; }
 
         public string? Email { get; set; }
 

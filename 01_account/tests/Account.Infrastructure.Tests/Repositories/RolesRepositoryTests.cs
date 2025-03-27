@@ -465,22 +465,25 @@ public class RolesRepositoryTests
         }
     }
 
-    [Fact]
-    public async Task CheckRoleExistsAsync_ShouldReturnFalse_IfContactDoesNotExist()
+    [Theory]
+    [InlineData(null!, "notfound@test.fr")]
+    [InlineData(1, null!)]
+    public async Task CheckRoleExistsAsync_ShouldReturnFalse_IfContactDoesNotExist(int? contactId, string? email)
     {
         // Arrange: Initialize the context
         using (var context = new AccountContext(_dbContextOptions))
         {
             var contactEntity = _fixture.Build<ContactEntity>()
-                                            .With(c => c.Type, "2")
-                                            .With(c => c.FirstName, "firstUser")
-                                            .With(c => c.LastName, "lastUser")
-                                            .With(c => c.Email, "firstLastUser@test.fr")
-                                            .Create();
+                .With(c => c.ContactId, 2)
+                .With(c => c.Type, "2")
+                .With(c => c.FirstName, "firstUser")
+                .With(c => c.LastName, "lastUser")
+                .With(c => c.Email, "firstLastUser@test.fr")
+                .Create();
             var roleEntity = _fixture.Build<RoleEntity>()
-                                            .With(r => r.Contact, contactEntity)
-                                            .With(r => r.IsSignatory, true)
-                                            .CreateMany(1);
+                .With(r => r.Contact, contactEntity)
+                .With(r => r.IsSignatory, true)
+                .CreateMany(1);
             var accountsEntity = _fixture.Build<AccountEntity>()
                 .With(a => a.RoleEntity, roleEntity.ToList())
                 .CreateMany(1);
@@ -491,7 +494,7 @@ public class RolesRepositoryTests
             var rolesRepository = new RoleRepository(context);
 
             // Act: Call the CheckRoleExistsAsync method with the defined inputs
-            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(contactEntity.ContactId, null, "notfound@test.fr");
+            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(2, contactId, null, email);
 
             // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
             Assert.False(contactHasRoleOnAccount);
@@ -538,7 +541,7 @@ public class RolesRepositoryTests
             var rolesRepository = new RoleRepository(context);
 
             // Act: Call the CheckRoleExistsAsync method with the defined inputs
-            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, accountId, secondCustomer.Email);
+            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, secondCustomer.ContactId, accountId, secondCustomer.Email);
 
             // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
             Assert.True(contactHasRoleOnAccount);
@@ -584,7 +587,7 @@ public class RolesRepositoryTests
             var rolesRepository = new RoleRepository(context);
 
             // Act: Call the CheckRoleExistsAsync method with the defined inputs
-            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, null, secondCustomer.Email);
+            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, secondCustomer.ContactId, null, secondCustomer.Email);
 
             // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
             Assert.True(contactHasRoleOnAccount);
@@ -632,7 +635,7 @@ public class RolesRepositoryTests
             var rolesRepository = new RoleRepository(context);
 
             // Act: Call the CheckRoleExistsAsync method with the defined inputs
-            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, accountId, secondCustomer.Email);
+            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, secondCustomer.ContactId, accountId, secondCustomer.Email);
 
             // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
             Assert.False(contactHasRoleOnAccount);

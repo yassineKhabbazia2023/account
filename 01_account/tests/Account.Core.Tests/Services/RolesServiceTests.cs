@@ -267,14 +267,14 @@ public class RolesServiceTests
     {
         // Arrange
         var rolesRepository = new Mock<IRoleRepository>();
-        rolesRepository.Setup(repository => repository.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(true);
+        rolesRepository.Setup(repository => repository.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(true);
         var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _logger!.Object);
 
         // Act
-        var contactHasRoleOnAccount = await rolesService.CheckRoleExistsAsync(1, 1, "test@test.fr");
+        var contactHasRoleOnAccount = await rolesService.CheckRoleExistsAsync(2, 1, 1, "test@test.fr");
 
         // Assert
-        rolesRepository.Verify(x => x.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()));
+        rolesRepository.Verify(x => x.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()));
         Assert.True(contactHasRoleOnAccount);
     }
 
