@@ -26,40 +26,38 @@ public class RegistryRoleEventRepository : IRegistryRoleEventRepository
 
     public async Task<CreateRoleRequest> CreateRoleAsync(RegistryRoleCreatedEventData eventData)
     {
-        (var accountId, var contactId) = await GetAccountIdContactIdAsync(eventData.AccountId, eventData.ContactId);
-
-        var role = eventData.ToRoleEntity(accountId, contactId);
+        var role = eventData.ToRoleEntity();
 
         _context.RoleEntity.Add(role);
         await _context.SaveChangesAsync();
         return role.ToCreateRoleRequest();
     }
 
-    public async Task<(int, int)> RemoveRoleAsync(RegistryRoleRemovedEventData eventData)
+    public async Task<bool> RemoveRoleAsync(int accountId, int contactId)
     {
-        (var accountId, var contactId) = await GetAccountIdContactIdAsync(eventData.AccountId, eventData.ContactId);
+        await CheckExistingAccountAndContactAsync(accountId, contactId);
 
         var roleToRemove = _context.RoleEntity.FirstOrDefault(x => x.ContactId == contactId && x.AccountId == accountId);
+
         if (roleToRemove == null)
         {
-            return (0, 0);
+            return false;
         }
 
         _context.RoleEntity.Remove(roleToRemove);
         await _context.SaveChangesAsync();
-        return (accountId, contactId);
+
+        return true;
     }
 
-    public async Task<(int, int)> GetAccountIdContactIdAsync(Guid accountId, Guid contactId)
+    public async Task CheckExistingAccountAndContactAsync(int accountId, int contactId)
     {
-        var account = await _context.AccountEntity.FirstOrDefaultAsync(a => accountId == a.AccountGlobalUniqueId);
-        var contact = await _context.ContactEntity.FirstOrDefaultAsync(c => contactId == c.ContactGlobalUniqueId);
+        var account = await _context.AccountEntity.FirstOrDefaultAsync(a => accountId == a.AccountId);
+        var contact = await _context.ContactEntity.FirstOrDefaultAsync(c => contactId == c.ContactId);
 
         if (account == null || contact == null)
         {
             throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
         }
-
-        return (account.AccountId, contact.ContactId);
     }
 }

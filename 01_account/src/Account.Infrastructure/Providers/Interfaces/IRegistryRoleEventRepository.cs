@@ -11,7 +11,7 @@ public interface IRegistryRoleEventRepository
 {
     public Task<CreateRoleRequest> CreateRoleAsync(RegistryRoleCreatedEventData eventData);
 
-    public Task<(int, int)> RemoveRoleAsync(RegistryRoleRemovedEventData eventData);
+    public Task<bool> RemoveRoleAsync(int accountId, int contactId);
 
-    public Task<(int, int)> GetAccountIdContactIdAsync(Guid accountId, Guid contactId);
+    public Task CheckExistingAccountAndContactAsync(int accountId, int contactId);
 }

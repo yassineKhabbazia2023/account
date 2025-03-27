@@ -49,7 +49,9 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
             return;
         }
 
-        (var accountId, var contactId) = await _roleEventRepository.GetAccountIdContactIdAsync(@event!.Data.AccountId, @event!.Data.ContactId);
+        var accountId = @event!.Data.AccountId;
+        var contactId = @event!.Data.ContactId;
+        await _roleEventRepository.CheckExistingAccountAndContactAsync(accountId, contactId);
 
         if (await _roleRepository.GetContactRoleAsync(accountId, contactId) != null)
         {

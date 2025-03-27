@@ -44,7 +44,7 @@ public class RegistryRoleCreatedEventHandlerTests
         var roleRepo = new Mock<IRoleRepository>();
 
         var handler = new RegistryRoleCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, roleRepo.Object);
-        var message = "{\"EventType\":\"RegistryRoleCreatedEvent\",\"Data\":{\"AccountId\": \"" + Guid.NewGuid().ToString() + "\",\"ContactId\": \"" + Guid.NewGuid().ToString() + "\",\"Email\":\"test@email.fr\"}}";
+        var message = "{\"EventType\":\"RegistryRoleCreatedEvent\",\"Data\":{\"AccountId\": \"" + 1 + "\",\"ContactId\": \"" + 1 + "\",\"Email\":\"test@email.fr\"}}";
 
         // Act
         await handler.HandleAsync(message);
@@ -112,7 +112,7 @@ public class RegistryRoleCreatedEventHandlerTests
         var handler = new RegistryRoleCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, roleRepo.Object);
 
         // Act
-        var message = "{\"EventType\":\"RegistryRoleCreatedEvent\",\"Data\":{\"AccountId\": \"" + Guid.NewGuid().ToString() + "\",\"ContactId\": \"" + Guid.NewGuid().ToString() + "\",\"Email\":\"test@email.fr\"}}";
+        var message = "{\"EventType\":\"RegistryRoleCreatedEvent\",\"Data\":{\"AccountId\": \"" + 1 + "\",\"ContactId\": \"" + 2 + "\",\"Email\":\"test@email.fr\"}}";
         await handler.HandleAsync(message);
 
         // Assert

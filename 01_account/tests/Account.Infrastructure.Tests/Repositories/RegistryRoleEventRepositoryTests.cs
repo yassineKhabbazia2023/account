@@ -44,8 +44,8 @@ public class RegistryRoleEventRepositoryTests
         await context.SaveChangesAsync();
 
         var data = _fixture.Build<RegistryRoleCreatedEventData>()
-            .With(r => r.AccountId, account.AccountGlobalUniqueId)
-            .With(r => r.ContactId, contact.ContactGlobalUniqueId)
+            .With(r => r.AccountId, account.AccountId)
+            .With(r => r.ContactId, contact.ContactId)
             .Create();
 
         var repository = new RegistryRoleEventRepository(context);
@@ -54,9 +54,7 @@ public class RegistryRoleEventRepositoryTests
 
         Assert.NotNull(result);
         Assert.Equal(account.AccountId, result.AccountId);
-        Assert.Equal(data.AccountId, result.AccountGlobalUniqueId);
         Assert.Equal(contact.ContactId, result.ContactId);
-        Assert.Equal(data.ContactId, result.ContactGlobalUniqueId);
         Assert.Equal(data.IsFavorite, result.IsFavorite);
         Assert.Equal(data.RoleSignatory, result.IsSignatory);
         Assert.Null(result.IsDelegation);
@@ -104,16 +102,15 @@ public class RegistryRoleEventRepositoryTests
         context.SaveChanges();
 
         var data = _fixture.Build<RegistryRoleRemovedEventData>()
-            .With(r => r.AccountId, account.AccountGlobalUniqueId)
-            .With(r => r.ContactId, contact.ContactGlobalUniqueId)
+            .With(r => r.AccountId, 1)
+            .With(r => r.ContactId, 1)
             .Create();
 
         var repository = new RegistryRoleEventRepository(context);
 
-        (var accountIdResult, var contactIdResult) = await repository.RemoveRoleAsync(data);
+        var result = await repository.RemoveRoleAsync(1, 1);
 
-        Assert.Equal(account.AccountId, accountIdResult);
-        Assert.Equal(contact.ContactId, contactIdResult);
+        Assert.True(result);
 
         var removedRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == account.AccountId && r.ContactId == contact.ContactId);
 
@@ -121,7 +118,7 @@ public class RegistryRoleEventRepositoryTests
     }
 
     [Fact]
-    public async Task RemoveRoleAsync_WithNonExistingRole_ShouldReturn0()
+    public async Task RemoveRoleAsync_WithNonExistingRole_ShouldReturnFalse()
     {
         var options = new DbContextOptionsBuilder<AccountContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
@@ -129,45 +126,47 @@ public class RegistryRoleEventRepositoryTests
         using var context = new AccountContext(options);
 
         var account = _fixture.Build<AccountEntity>()
+            .With(a => a.AccountId, 1)
             .Without(a => a.RoleEntity)
             .Create();
         context.AccountEntity.Add(account);
         var contact = _fixture.Build<ContactEntity>()
-             .With(c => c.IsActive, true)
+            .With(c => c.ContactId, 1)
+            .With(c => c.IsActive, true)
             .Without(c => c.RoleEntity)
             .Create();
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();
 
         var data = _fixture.Build<RegistryRoleRemovedEventData>()
-            .With(r => r.AccountId, account.AccountGlobalUniqueId)
-            .With(r => r.ContactId, contact.ContactGlobalUniqueId)
+            .With(r => r.AccountId, account.AccountId)
+            .With(r => r.ContactId, contact.ContactId)
             .Create();
 
         var repository = new RegistryRoleEventRepository(context);
 
-        (var accountIdResult, var contactIdResult) = await repository.RemoveRoleAsync(data);
+        var result = await repository.RemoveRoleAsync(1, 1);
 
-        Assert.Equal(0, accountIdResult);
-        Assert.Equal(0, contactIdResult);
+        Assert.False(result);
     }
 
-    [Fact]
-    public async Task GetAccountIdContactIdAsync_ShouldReturnAccountIdAndContactId()
+    [Theory]
+    [InlineData(1, 2)]
+    [InlineData(2, 1)]
+    [InlineData(1, 1)]
+    public async Task CheckExistingAccountAndContactAsync_WithNonExistingAccountOrContact_ShouldThrowNotFoundException(int accountId, int contactId)
     {
         var options = new DbContextOptionsBuilder<AccountContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
         using var context = new AccountContext(options);
 
-        var accountGlobalUniqueId = Guid.NewGuid();
-        var contactGlobalUniqueId = Guid.NewGuid();
         var account = _fixture.Build<AccountEntity>()
-            .With(a => a.AccountGlobalUniqueId, accountGlobalUniqueId)
+            .With(a => a.AccountId, 2)
             .Create();
         context.AccountEntity.Add(account);
         var contact = _fixture.Build<ContactEntity>()
-            .With(c => c.ContactGlobalUniqueId, contactGlobalUniqueId)
+            .With(c => c.ContactId, 2)
             .With(c => c.IsActive, true)
             .Create();
         context.ContactEntity.Add(contact);
@@ -175,35 +174,9 @@ public class RegistryRoleEventRepositoryTests
 
         var repository = new RegistryRoleEventRepository(context);
 
-        (var accountIdResult, var contactIdResult) = await repository.GetAccountIdContactIdAsync(accountGlobalUniqueId, contactGlobalUniqueId);
-
-        Assert.Equal(account.AccountId, accountIdResult);
-        Assert.Equal(contact.ContactId, contactIdResult);
-    }
-
-    [Fact]
-    public async Task GetAccountIdContactIdAsync_WithNonExistingAccountOrContact_ShouldThrowNotFoundException()
-    {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-        using var context = new AccountContext(options);
-
-        var account = _fixture.Create<AccountEntity>();
-        context.AccountEntity.Add(account);
-        var contact = _fixture.Build<ContactEntity>()
-          .With(c => c.IsActive, true)
-          .Create();
-        context.ContactEntity.Add(contact);
-        await context.SaveChangesAsync();
-
-        var repository = new RegistryRoleEventRepository(context);
-
-        var accountGlobalUniqueId = Guid.NewGuid();
-        var contactGlobalUniqueId = Guid.NewGuid();
-        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.GetAccountIdContactIdAsync(accountGlobalUniqueId, contactGlobalUniqueId));
+        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CheckExistingAccountAndContactAsync(accountId, contactId));
 
         Assert.Equal(Errors.NotFoundRoleCode, result.Code);
-        Assert.Equal(string.Format(Errors.NotFoundRoleMessage, contactGlobalUniqueId, accountGlobalUniqueId), result.Message);
+        Assert.Equal(string.Format(Errors.NotFoundRoleMessage, contactId, accountId), result.Message);
     }
 }

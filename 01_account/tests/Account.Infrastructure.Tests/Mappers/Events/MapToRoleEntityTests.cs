@@ -27,23 +27,21 @@ public class MapToRoleEntityTests
         // Arrange
         var source = new RegistryRoleCreatedEventData
         {
-            AccountId = Guid.NewGuid(),
+            AccountId = 1,
             AccountNumber = "1289090",
-            ContactId = Guid.NewGuid(),
+            ContactId = 2,
             Email = "email@test.fr",
             IsFavorite = true,
             RoleDelegataireEmail = "delegataire@email.fr",
             RoleSignatory = false
         };
-        int accountId = 1;
-        int contactId = 2;
 
         // Act
-        var result = source.ToRoleEntity(accountId, contactId);
+        var result = source.ToRoleEntity();
 
         // Assert
-        Assert.Equal(contactId, result.ContactId);
-        Assert.Equal(accountId, result.AccountId);
+        Assert.Equal(source.ContactId, result.ContactId);
+        Assert.Equal(source.AccountId, result.AccountId);
         Assert.Equal(source.IsFavorite, result.IsFavorite);
         Assert.Equal(source.RoleSignatory, result.IsSignatory);
     }
@@ -51,7 +49,8 @@ public class MapToRoleEntityTests
     [Fact]
     public void ToRoleEntity_WithNullRegistryRoleCreatedEventData_ShouldReturnNull()
     {
-        var result = MapToRoleEntity.ToRoleEntity(null!, 1, 2);
+        RegistryRoleCreatedEventData data = null!;
+        var result = MapToRoleEntity.ToRoleEntity(data);
         Assert.Null(result);
     }
 
@@ -116,7 +115,8 @@ public class MapToRoleEntityTests
     [Fact]
     public void ToRoleEntity_WithNullRequest_Should_ReturnNull()
     {
-        var result = MapToRoleEntity.ToRoleEntity(null!);
+        CreateRoleRequest request = null!;
+        var result = MapToRoleEntity.ToRoleEntity(request);
         Assert.Null(result);
     }
 
