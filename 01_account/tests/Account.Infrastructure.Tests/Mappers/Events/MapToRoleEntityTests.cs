@@ -25,32 +25,57 @@ public class MapToRoleEntityTests
     public void ToRoleEntity_MapsCorrectly()
     {
         // Arrange
-        var source = new RegistryRoleCreatedEventData
+        RegistryRoleCreatedEventData eventData = new RegistryRoleCreatedEventData
         {
             AccountId = 1,
             AccountNumber = "1289090",
             ContactId = 2,
             Email = "email@test.fr",
             IsFavorite = true,
-            RoleDelegataireEmail = "delegataire@email.fr",
             RoleSignatory = false
         };
 
         // Act
-        var result = source.ToRoleEntity();
+        var result = eventData.ToRoleEntity(null, null);
 
         // Assert
-        Assert.Equal(source.ContactId, result.ContactId);
-        Assert.Equal(source.AccountId, result.AccountId);
-        Assert.Equal(source.IsFavorite, result.IsFavorite);
-        Assert.Equal(source.RoleSignatory, result.IsSignatory);
+        Assert.Equal(eventData.ContactId, result.ContactId);
+        Assert.Equal(eventData.AccountId, result.AccountId);
+        Assert.Equal(eventData.IsFavorite, result.IsFavorite);
+        Assert.Equal(eventData.RoleSignatory, result.IsSignatory);
+    }
+
+    [Fact]
+    public void ToRoleEntity_MapsCorrectly_WithOverriddenValues()
+    {
+        // Arrange
+        var expectedContactId = 25;
+        var expectedAccountId = 602;
+        var eventData = new RegistryRoleCreatedEventData
+        {
+            AccountId = 1, // Cette valeur sera surchargée par expectedAccountId
+            AccountNumber = "1289090",
+            ContactId = 2, // Cette valeur sera surchargée par expectedContactId
+            Email = "email@test.fr",
+            IsFavorite = true,
+            RoleSignatory = false
+        };
+
+        // Act
+        var result = eventData.ToRoleEntity(expectedAccountId, expectedContactId);
+
+        // Assert
+        Assert.Equal(expectedContactId, result.ContactId);
+        Assert.Equal(expectedAccountId, result.AccountId);
+        Assert.Equal(eventData.IsFavorite, result.IsFavorite);
+        Assert.Equal(eventData.RoleSignatory, result.IsSignatory);
     }
 
     [Fact]
     public void ToRoleEntity_WithNullRegistryRoleCreatedEventData_ShouldReturnNull()
     {
         RegistryRoleCreatedEventData data = null!;
-        var result = MapToRoleEntity.ToRoleEntity(data);
+        var result = MapToRoleEntity.ToRoleEntity(data, null, null);
         Assert.Null(result);
     }
 

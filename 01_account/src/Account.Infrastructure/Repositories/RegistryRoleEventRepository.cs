@@ -24,9 +24,9 @@ public class RegistryRoleEventRepository : IRegistryRoleEventRepository
         _context.HandleEFCoreFailure();
     }
 
-    public async Task<CreateRoleRequest> CreateRoleAsync(RegistryRoleCreatedEventData eventData)
+    public async Task<CreateRoleRequest> CreateRoleAsync(RegistryRoleCreatedEventData eventData, int? accountId, int? contactId)
     {
-        var role = eventData.ToRoleEntity();
+        var role = eventData.ToRoleEntity(accountId, contactId);
 
         _context.RoleEntity.Add(role);
         await _context.SaveChangesAsync();
@@ -59,5 +59,18 @@ public class RegistryRoleEventRepository : IRegistryRoleEventRepository
         {
             throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
         }
+    }
+
+    public async Task<(int, int)> GetAccountIdContactIdAsync(Guid accountId, Guid contactId)
+    {
+        var account = await _context.AccountEntity.FirstOrDefaultAsync(a => accountId == a.AccountGlobalUniqueId);
+        var contact = await _context.ContactEntity.FirstOrDefaultAsync(c => contactId == c.ContactGlobalUniqueId);
+
+        if (account == null || contact == null)
+        {
+            throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
+        }
+
+        return (account.AccountId, contact.ContactId);
     }
 }

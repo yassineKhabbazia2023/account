@@ -11,19 +11,22 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper;
 
 public static class MapToRoleEntity
 {
-    public static RoleEntity ToRoleEntity(this RegistryRoleCreatedEventData eventData)
+    public static RoleEntity ToRoleEntity(this RegistryRoleCreatedEventData eventData, int? accountId, int? contactId)
     {
         if (eventData == null)
         {
             return null!;
         }
 
+        var resolvedAccountId = eventData.AccountId ?? 0;
+        var resolvedContactId = eventData.ContactId ?? 0;
+
         return new RoleEntity
         {
-            AccountId = eventData.AccountId,
-            ContactId = eventData.ContactId,
+            AccountId = accountId ?? resolvedAccountId,
+            ContactId = contactId ?? resolvedContactId,
             IsFavorite = eventData.IsFavorite,
-            IsSignatory = eventData.RoleSignatory,
+            IsSignatory = eventData.RoleSignatory
         };
     }
 

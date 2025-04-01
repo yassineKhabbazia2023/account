@@ -30,7 +30,7 @@ public class RegistryRoleCreatedEventHandlerTests
         // Arrange
         var loggerMock = new Mock<ILogger<RegistryRoleCreatedEventHandler>>();
         var repositoryMock = new Mock<IRegistryRoleEventRepository>();
-        repositoryMock.Setup(r => r.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>()))
+        repositoryMock.Setup(r => r.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>(), It.IsAny<int?>(), It.IsAny<int?>()))
         .ReturnsAsync(_roleEntity.ToCreateRoleRequest());
         var publisherMock = new Mock<IRoleEventPublisher>();
 
@@ -50,7 +50,7 @@ public class RegistryRoleCreatedEventHandlerTests
         await handler.HandleAsync(message);
 
         // Assert
-        repositoryMock.Verify(repo => repo.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>()), Times.Once);
+        repositoryMock.Verify(repo => repo.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>(), It.IsAny<int?>(), It.IsAny<int?>()), Times.Once);
         publisherMock.Verify(p => p.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Once);
     }
 
@@ -60,7 +60,7 @@ public class RegistryRoleCreatedEventHandlerTests
         // Arrange
         var loggerMock = new Mock<ILogger<RegistryRoleCreatedEventHandler>>();
         var repositoryMock = new Mock<IRegistryRoleEventRepository>(MockBehavior.Strict);
-        repositoryMock.Setup(r => r.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>())) !
+        repositoryMock.Setup(r => r.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>(), It.IsAny<int?>(), It.IsAny<int?>())) !
         .ReturnsAsync(_roleEntity.ToCreateRoleRequest());
         var publisherMock = new Mock<IRoleEventPublisher>();
         var handler = new RegistryRoleCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, null!);
@@ -69,7 +69,7 @@ public class RegistryRoleCreatedEventHandlerTests
         await handler.HandleAsync(null!);
 
         // Assert
-        repositoryMock.Verify(repo => repo.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>()), Times.Never);
+        repositoryMock.Verify(repo => repo.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>(), It.IsAny<int?>(), It.IsAny<int?>()), Times.Never);
         publisherMock.Verify(p => p.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
     }
 
@@ -79,7 +79,7 @@ public class RegistryRoleCreatedEventHandlerTests
         // Arrange
         var loggerMock = new Mock<ILogger<RegistryRoleCreatedEventHandler>>();
         var repositoryMock = new Mock<IRegistryRoleEventRepository>(MockBehavior.Strict);
-        repositoryMock.Setup(r => r.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>())) !
+        repositoryMock.Setup(r => r.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>(), It.IsAny<int?>(), It.IsAny<int?>())) !
         .ReturnsAsync(_roleEntity.ToCreateRoleRequest());
         var publisherMock = new Mock<IRoleEventPublisher>();
         var handler = new RegistryRoleCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, null!);
@@ -89,7 +89,7 @@ public class RegistryRoleCreatedEventHandlerTests
         await handler.HandleAsync(message);
 
         // Assert
-        repositoryMock.Verify(repo => repo.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>()), Times.Never);
+        repositoryMock.Verify(repo => repo.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>(), It.IsAny<int?>(), It.IsAny<int?>()), Times.Never);
         publisherMock.Verify(p => p.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
     }
 
@@ -116,7 +116,7 @@ public class RegistryRoleCreatedEventHandlerTests
         await handler.HandleAsync(message);
 
         // Assert
-        repositoryMock.Verify(repo => repo.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>()), Times.Never);
+        repositoryMock.Verify(repo => repo.CreateRoleAsync(It.IsAny<RegistryRoleCreatedEventData>(), It.IsAny<int?>(), It.IsAny<int?>()), Times.Never);
         publisherMock.Verify(p => p.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
     }
 }

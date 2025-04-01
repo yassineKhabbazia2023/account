@@ -45,8 +45,8 @@ public class RegistryRoleRemovedEventHandler : IEventHandler
             return;
         }
 
-        var accountId = @event!.Data.AccountId;
-        var contactId = @event!.Data.ContactId;
+        var accountId = @event!.Data.AccountId ?? 0;
+        var contactId = @event!.Data.ContactId ?? 0;
 
         if (!await _roleEventRepository.RemoveRoleAsync(accountId, contactId))
         {

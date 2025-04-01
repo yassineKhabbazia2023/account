@@ -39,18 +39,32 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
         }
 
         var @event = JsonConvert.DeserializeObject<RegistryRoleCreatedEvent>(message);
-        _logger.LogInformation("Consommation de l'event type: {EventType}, AccountId: {AccountId}, ContactId: {ContactId}",
+        _logger.LogInformation("Consommation de l'event type: {EventType}, AccountId: {AccountId}, ContactId: {ContactId} | AccountGuid: {AccountGuid}, ContactGuid: {ContactGuid}",
             @event?.EventType,
             @event?.Data?.AccountId,
-            @event?.Data?.ContactId);
+            @event?.Data?.ContactId,
+            @event?.Data?.AccountGuid,
+            @event?.Data?.ContactGuid);
 
-        if (@event?.Data == null || @event?.Data.AccountId == null || @event?.Data.ContactId == null)
+        if (@event?.Data == null)
         {
             return;
         }
 
-        var accountId = @event!.Data.AccountId;
-        var contactId = @event!.Data.ContactId;
+        var accountId = @event.Data.AccountId ?? 0;
+        var contactId = @event.Data.ContactId ?? 0;
+
+        // Vérifier l'existence des Guids
+        if (@event.Data.AccountGuid.HasValue && @event.Data.ContactGuid.HasValue)
+        {
+            // Récupérer les identifiants résolus à partir de la base de données
+            (int resolvedAccountId, int resolvedContactId) = await _roleEventRepository.GetAccountIdContactIdAsync((Guid)@event.Data.AccountGuid, (Guid)@event.Data.ContactGuid);
+
+            // Mettre à jour les valeurs de accountId et contactId avec les valeurs résolues
+            accountId = resolvedAccountId;
+            contactId = resolvedContactId;
+        }
+
         await _roleEventRepository.CheckExistingAccountAndContactAsync(accountId, contactId);
 
         if (await _roleRepository.GetContactRoleAsync(accountId, contactId) != null)
@@ -59,7 +73,7 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
         }
         else
         {
-            var createdRole = await _roleEventRepository.CreateRoleAsync(@event!.Data);
+            var createdRole = await _roleEventRepository.CreateRoleAsync(@event!.Data, accountId, contactId);
             _logger.LogInformation("Le role avec l'identifiant suivant: AccountId: {AccountId} - ContactId: {ContactId} vient d'être mise à jour.", createdRole.AccountId, createdRole.ContactId);
 
             await _roleEventPublisher.PublishRoleCreatedEventAsync(createdRole);
