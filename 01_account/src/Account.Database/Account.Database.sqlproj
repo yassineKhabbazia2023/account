@@ -62,6 +62,7 @@
     <Folder Include="postDeployment" />
     <Folder Include="Log" />
     <Folder Include="ScriptsRattrapage" />
+    <Folder Include="Scripts" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="account\Tables\Account.sql" />
@@ -75,6 +76,7 @@
     <Build Include="account\Tables\Hub.sql" />
     <Build Include="Security\Schemas\account.sql" />
     <Build Include="account\Tables\DelegationDetail.sql" />
+    <Build Include="Scripts\002_Synchro_taille_colonne_Account.sql" />
     <None Include="Log\Script.Contact.sql" />
     <None Include="Log\Script.Account.sql" />
     <None Include="Log\Script.Address.sql" />
