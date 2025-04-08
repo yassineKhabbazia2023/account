@@ -1,7 +1,7 @@
 ﻿CREATE TABLE [account].[Account] (
     [AccountId]               INT              IDENTITY (1, 1) NOT NULL,
     [AccountGlobalUniqueId]   UNIQUEIDENTIFIER NOT NULL,
-    [AccountNumber]           VARCHAR (100)    NOT NULL,
+    [AccountNumber]           VARCHAR (20)    NOT NULL,
     [LegalName]               NVARCHAR (255)   NOT NULL,
     [CommercialName]          NVARCHAR (255)   NULL,
     [AccountType]             VARCHAR (50)     NULL,
@@ -24,7 +24,7 @@
     [FiscalExerciseStartDate] DATETIME2 (7)    NULL,
     [FiscalExerciseDuration]  INT              NULL,
     [ISIN]                    VARCHAR (150)    NULL,
-    [Siret]                   VARCHAR (150)    NULL,
+    [Siret]                   VARCHAR (14)    NULL,
     [TaxationSystem]          VARCHAR (150)    NULL,
     [ActivityDescription]     VARCHAR (150)    NULL,
     [ActivityType]            VARCHAR (150)    NULL,

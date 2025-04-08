@@ -54,7 +54,7 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.AccountGlobalUniqueId).HasComment("L''identifiant global de l''entité");
             entity.Property(e => e.AccountNumber)
                 .IsRequired()
-                .HasMaxLength(100)
+                .HasMaxLength(20)
                 .IsUnicode(false);
             entity.Property(e => e.AccountType)
                 .HasMaxLength(50)
@@ -130,7 +130,7 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("Le code du secteur");
             entity.Property(e => e.Siret)
-                .HasMaxLength(150)
+                .HasMaxLength(14)
                 .IsUnicode(false)
                 .HasComment("Le Siret");
             entity.Property(e => e.SourceName)
@@ -238,18 +238,18 @@ public partial class AccountContext : DbContext
                 .HasComment("La date de création du contact");
             entity.Property(e => e.Email)
                 .IsRequired()
-                .HasMaxLength(250)
+                .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasComment("L''adresse mail du contact");
             entity.Property(e => e.FirstName)
                 .IsRequired()
-                .HasMaxLength(250)
+                .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasComment("Le prénom du contact");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.LastName)
                 .IsRequired()
-                .HasMaxLength(250)
+                .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasComment("Le nom du contact");
             entity.Property(e => e.LastUpdateDate).HasComment("La date de la dernière modification du contact");

@@ -2,9 +2,9 @@
 (
 	[ContactId]				INT	                NOT NULL,
 	[ContactGlobalUniqueId]	UNIQUEIDENTIFIER	NULL,
-	[FirstName]				VARCHAR(250)		NOT NULL,
-	[LastName]				VARCHAR(250)		NOT NULL,
-	[Email]     			VARCHAR(250)		NOT NULL,
+	[FirstName]				VARCHAR(100)		NOT NULL,
+	[LastName]				VARCHAR(100)		NOT NULL,
+	[Email]     			VARCHAR(255)		NOT NULL,
 	[Type]                  VARCHAR(20)         NOT NULL, 
 	[Status]                VARCHAR(20)         NULL, 
 	[PersonaName]           VARCHAR(50)         NOT NULL, 
