@@ -34,7 +34,6 @@ public static class MapToAccountEntity
         destination.StaffSizeRange = source.StaffSizeRange;
         destination.DeliveryFax = source.DeliveryFax;
         destination.BillingFax = source.BillingFax;
-        destination.Turnover = source.Turnover;
         destination.FiscalSystem = source.FiscalSystem;
         destination.AccountingMethod = source.AccountingMethod;
         destination.LegalForm = source.LegalForm;
@@ -43,6 +42,11 @@ public static class MapToAccountEntity
         destination.NafId = source.NafId;
         destination.IsActive = source.IsActive;
         destination.ActivityType = source.ActivityType;
+
+        if (source.Turnover != null)
+        {
+            destination.Turnover = source.Turnover;
+        }
 
         if (isCreateOperation)
         {

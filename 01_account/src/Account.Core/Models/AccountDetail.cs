@@ -44,5 +44,7 @@ namespace Pulse.Account.Core.Models
         public string? CreatedBy { get; set; } = string.Empty;
 
         public string? ModifiedBy { get; set; } = string.Empty;
+
+        public decimal? Turnover { get; set; }
     }
 }

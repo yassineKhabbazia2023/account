@@ -220,4 +220,36 @@ public class MapToAccountEntityTests
         Assert.Equal(2, destination.DeploymentEntity.Status);
         Assert.Equal(source.DeploymentEntity.DeploymentDate, destination.DeploymentEntity.DeploymentDate);
     }
+
+    [Fact]
+    public void ToAccountEntity_ShouldNotOverwriteTurnoverWithNull()
+    {
+        // Arrange
+        var deliveryAddress = _fixture.Build<AddressEntity>()
+            .With(x => x.AddressType, "Delivery")
+            .With(x => x.City, "DeliveryCity")
+            .Create();
+
+        var billingAddress = _fixture.Build<AddressEntity>()
+            .With(x => x.AddressType, "Billing")
+            .With(x => x.City, "BillingCity")
+            .Create();
+
+        var source = _fixture.Build<AccountEntity>()
+            .With(x => x.AddressEntity, new List<AddressEntity> { deliveryAddress, billingAddress })
+            .With(x => x.Turnover, (decimal?)null) // Turnover is null in the source
+            .Create();
+
+        var destination = _fixture.Build<AccountEntity>()
+            .With(x => x.AddressEntity, new List<AddressEntity> { deliveryAddress, billingAddress })
+            .With(x => x.Turnover, 1000000.50m) // Turnover is set in the destination
+            .Create();
+
+        // Act
+        destination.ToAccountEntity(source);
+
+        // Assert
+        Assert.NotNull(destination.Turnover); // Ensure Turnover is not null
+        Assert.Equal(1000000.50m, destination.Turnover); // Ensure Turnover value remains unchanged
+    }
 }

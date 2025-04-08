@@ -114,7 +114,8 @@ public static class MapAccountDbToAccountModel
             Hub = source.MapToHub(),
             Deployment = source.MapToDeployment(),
             CreatedBy = source.CreatedBy,
-            ModifiedBy = source.ModifiedBy
+            ModifiedBy = source.ModifiedBy,
+            Turnover = source.Turnover
         };
     }
 
@@ -348,5 +349,6 @@ public static class MapAccountDbToAccountModel
         existingAccount.HubId = accountDetail.Hub?.HubId;
         existingAccount.Vat = accountDetail.Vat?.System;
         existingAccount.Vattype = accountDetail.Vat?.Type;
+        existingAccount.Turnover = accountDetail.Turnover;
     }
 }

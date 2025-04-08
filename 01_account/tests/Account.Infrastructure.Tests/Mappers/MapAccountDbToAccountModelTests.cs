@@ -618,7 +618,8 @@ public class MapAccountDbToAccountModelTests
             AddressEntity = new List<AddressEntity>(),
             PhoneEntity = new List<PhoneEntity>(),
             Hub = new HubEntity { HubId = 1, HubName = "Test Hub" },
-            DeploymentEntity = new DeploymentEntity { Status = 1 }
+            DeploymentEntity = new DeploymentEntity { Status = 1 },
+            Turnover = 1000000.50m
         };
 
         // Act
@@ -642,6 +643,7 @@ public class MapAccountDbToAccountModelTests
         result.Phone.Should().NotBeNull();
         result.Hub.Should().NotBeNull();
         result.Deployment.Should().NotBeNull();
+        result.Turnover.Should().Be(1000000.50m);
     }
 
     [Fact]
