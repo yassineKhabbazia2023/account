@@ -525,6 +525,8 @@ public class AccountRepositoryTests
         {
             // Arrange
             var accountsModel = _fixture.Build<AccountEntity>().With(a => a.IsActive, true).Create();
+            accountsModel.OfficeId = accountsModel.Office!.OfficeId;
+            accountsModel.Office = null;
             var accountDetail = accountsModel?.MapToAccountDetail();
 
             if (accountDetail?.Accounting != null)
@@ -532,7 +534,7 @@ public class AccountRepositoryTests
                 accountDetail.Accounting.TaxationSystem = "Impot sur le revenu";
             }
 
-            context.AccountEntity.AddRange(accountsModel);
+            context.AccountEntity.AddRange(accountsModel!);
             await context.SaveChangesAsync();
             var accountRepository = new AccountRepository(context);
 
@@ -887,7 +889,6 @@ public class AccountRepositoryTests
                 .Without(x => x.AddressEntity)
                 .Without(x => x.DeploymentEntity)
                 .Create();
-
 
         var contact = _fixture.Build<ContactEntity>()
             .With(x => x.FirstName, searchTerm)

@@ -46,7 +46,7 @@ public static class MapAccountDbToAccountModel
 
     public static IEnumerable<Core.Models.Account> MapToAccounts(this ICollection<AccountEntity> source, int? contactId)
     {
-        return source?.Select(a => a.MapToAccount(contactId) !) ?? Enumerable.Empty<Core.Models.Account>();
+        return source?.Select(a => a.MapToAccount(contactId)!) ?? Enumerable.Empty<Core.Models.Account>();
     }
 
     public static Core.Models.Account? MapToAccount(this AccountEntity source, int? contactId)
@@ -88,9 +88,36 @@ public static class MapAccountDbToAccountModel
                 AccountGlobalUniqueId = source.AccountGlobalUniqueId,
                 AccountNumber = source.AccountNumber,
                 LegalName = source.LegalName,
+                OfficeId = source.OfficeId,
+                Office = source.Office?.MapToOffice(),
+                MissionType = source.MissionType,
                 Address = source.MapToAddressDelivery(),
                 Deployment = source.MapToDeployment(),
             };
+    }
+
+    public static Office? MapToOffice(this OfficeEntity source)
+    {
+        return source == null ? null : new Office
+        {
+            OfficeId = source.OfficeId,
+            Name = source.Name,
+            Address = source.AddressEntity.MapToAddress(),
+            PhoneNumber = source.PhoneNumber,
+            AddressId = source.AddressId,
+        };
+    }
+
+    public static OfficeEntity? MapToOffice(this Office source)
+    {
+        return source == null ? null : new OfficeEntity
+        {
+            OfficeId = source.OfficeId,
+            Name = source.Name,
+            AddressEntity = source!.Address?.MapToAddressEntity() ?? default,
+            PhoneNumber = source.PhoneNumber,
+            AddressId = source.AddressId,
+        };
     }
 
     public static AccountDetail? MapToAccountDetail(this AccountEntity source)
@@ -115,6 +142,9 @@ public static class MapAccountDbToAccountModel
             Deployment = source.MapToDeployment(),
             CreatedBy = source.CreatedBy,
             ModifiedBy = source.ModifiedBy,
+            MissionType = source.MissionType,
+            OfficeId = source.OfficeId ?? default,
+            Office = source.Office?.MapToOffice(),
             Turnover = source.Turnover
         };
     }
@@ -157,7 +187,6 @@ public static class MapAccountDbToAccountModel
     public static void UpdateDeploymentToEntity(this Deployment deployment, AccountEntity tAccount)
     {
         var deploymentStatus = deployment.Status;
-        var deploymentEntity = tAccount.DeploymentEntity;
 
         tAccount.DeploymentEntity = new DeploymentEntity
         {
@@ -186,19 +215,34 @@ public static class MapAccountDbToAccountModel
 
         var address = tAccount.AddressEntity.FirstOrDefault(address => address.AddressType == AddressType.Delivery.ToString());
 
-        return address == null ? new Address() : new Address
-        {
-            AddressId = address!.AddressId,
-            Country = address.Country,
-            City = address.City,
-            State = address.State,
-            AddressLine1 = address.AddressLine1,
-            AddressLine2 = address.AddressLine2,
-            AddressLine3 = address.AddressLine3,
-            ZipCode = address.ZipCode,
-            AddressType = address.AddressType
-        };
+        return MapToAddress(address)!;
     }
+
+    private static Address? MapToAddress(this AddressEntity? address) => address == null ? null : new Address
+    {
+        AddressId = address!.AddressId,
+        Country = address.Country,
+        City = address.City,
+        State = address.State,
+        AddressLine1 = address.AddressLine1,
+        AddressLine2 = address.AddressLine2,
+        AddressLine3 = address.AddressLine3,
+        ZipCode = address.ZipCode,
+        AddressType = address.AddressType
+    };
+
+    private static AddressEntity? MapToAddressEntity(this Address? address) => address == null ? null : new AddressEntity
+    {
+        AddressId = address!.AddressId,
+        Country = address.Country,
+        City = address.City,
+        State = address.State,
+        AddressLine1 = address.AddressLine1,
+        AddressLine2 = address.AddressLine2,
+        AddressLine3 = address.AddressLine3,
+        ZipCode = address.ZipCode,
+        AddressType = address.AddressType
+    };
 
     private static IEnumerable<Address>? MapToAddress(this AccountEntity tAccount)
     {
@@ -350,5 +394,8 @@ public static class MapAccountDbToAccountModel
         existingAccount.Vat = accountDetail.Vat?.System;
         existingAccount.Vattype = accountDetail.Vat?.Type;
         existingAccount.Turnover = accountDetail.Turnover;
+        existingAccount.MissionType = accountDetail.MissionType;
+        existingAccount.OfficeId = accountDetail.OfficeId;
+        existingAccount.Office = accountDetail.Office?.MapToOffice();
     }
 }

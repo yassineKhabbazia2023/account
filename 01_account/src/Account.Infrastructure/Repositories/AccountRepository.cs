@@ -158,6 +158,8 @@ namespace Pulse.Account.Infrastructure.Repositories
                        .Include(x => x.DeploymentEntity)
                        .Include(x => x.Hub)
                        .Include(x => x.Naf)
+                       .Include(x => x.Office)
+                       .Include(x => x.Office.AddressEntity)
                        .Include(x => x.PhoneEntity)
                        .FirstOrDefaultAsync(a => a.AccountId == accountId);
             });
@@ -308,21 +310,27 @@ namespace Pulse.Account.Infrastructure.Repositories
                     case SortingConstants.NAME:
                         exp = c => c.FirstName + c.LastName;
                         break;
+
                     case SortingConstants.EMAIL:
                         exp = c => c.Email;
                         break;
+
                     case SortingConstants.PERSONA:
                         exp = c => c.PersonaName;
                         break;
+
                     case SortingConstants.OFFICE:
                         exp = c => c.Office;
                         break;
+
                     case SortingConstants.STATUS:
                         exp = c => c.Status;
                         break;
+
                     case SortingConstants.DATE:
                         exp = c => c.CreationDate;
                         break;
+
                     default:
                         throw new BadRequestException(Errors.BadRequestContactsAccountCode, string.Format(Errors.BadRequestContactsAccountMessage, sorting.Field));
                 }

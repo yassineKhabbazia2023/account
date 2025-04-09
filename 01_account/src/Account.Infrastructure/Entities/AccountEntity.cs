@@ -170,6 +170,11 @@ public partial class AccountEntity
     public string ModifiedBy { get; set; }
 
     /// <summary>
+    /// Le type de mission.
+    /// </summary>
+    public string MissionType { get; set; }
+
+    /// <summary>
     /// La date de création
     /// </summary>
     public DateTime CreationDate { get; set; }
@@ -181,7 +186,11 @@ public partial class AccountEntity
 
     public string IconName { get; set; }
 
-    public virtual ICollection<AddressEntity> AddressEntity { get; set; } = new List<AddressEntity>();
+    public int? OfficeId { get; set; }
+
+    public virtual OfficeEntity? Office { get; set; }
+
+    public virtual ICollection<AddressEntity> AddressEntity { get; set; } = [];
 
     public virtual DeploymentEntity DeploymentEntity { get; set; }
 
@@ -189,9 +198,9 @@ public partial class AccountEntity
 
     public virtual NafEntity Naf { get; set; }
 
-    public virtual ICollection<PhoneEntity> PhoneEntity { get; set; } = new List<PhoneEntity>();
+    public virtual ICollection<PhoneEntity> PhoneEntity { get; set; } = [];
 
-    public virtual ICollection<RoleEntity> RoleEntity { get; set; } = new List<RoleEntity>();
+    public virtual ICollection<RoleEntity> RoleEntity { get; set; } = [];
 
-    public virtual ICollection<DelegationEntity> Delegation { get; set; } = new List<DelegationEntity>();
+    public virtual ICollection<DelegationEntity> Delegation { get; set; } = [];
 }

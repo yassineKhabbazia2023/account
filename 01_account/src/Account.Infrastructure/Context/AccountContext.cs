@@ -32,6 +32,8 @@ public partial class AccountContext : DbContext
 
     public virtual DbSet<RoleEntity> RoleEntity { get; set; }
 
+    public virtual DbSet<OfficeEntity> OfficeEntity { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AccountEntity>(entity =>
@@ -47,6 +49,8 @@ public partial class AccountContext : DbContext
             entity.HasIndex(e => e.HubId, "IX_Hub_HubId");
 
             entity.HasIndex(e => e.NafId, "IX_Naf_NafId");
+
+            entity.HasIndex(e => e.OfficeId, "IX_Office_OfficeId");
 
             entity.HasIndex(e => e.AccountGlobalUniqueId, "UQ_Account_AccountGlobalUniqueId").IsUnique();
 
@@ -164,7 +168,12 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("Type de TVA")
                 .HasColumnName("VATType");
-
+            entity.Property(e => e.MissionType)
+                  .HasMaxLength(150)
+                  .IsUnicode(false)
+                  .HasComment("L''identifiant technique du type de mission");
+            entity.Property(e => e.OfficeId)
+                .HasComment("L''identifiant technique du bureau");
             entity.HasOne(d => d.Hub).WithMany(p => p.AccountEntity)
                 .HasForeignKey(d => d.HubId)
                 .HasConstraintName("C_Account_Hub_HubId_FK");
@@ -172,6 +181,33 @@ public partial class AccountContext : DbContext
             entity.HasOne(d => d.Naf).WithMany(p => p.AccountEntity)
                 .HasForeignKey(d => d.NafId)
                 .HasConstraintName("C_Account_NafId_FK");
+
+            entity.HasOne(d => d.Office).WithMany(p => p.AccountEntity)
+                .HasForeignKey(d => d.OfficeId)
+                .HasConstraintName("C_Account_OfficeId_FK");
+        });
+
+        modelBuilder.Entity<OfficeEntity>(entity =>
+        {
+            entity.HasKey(e => e.OfficeId).HasName("C_Office_PK");
+
+            entity.HasIndex(e => e.AddressId, "IX_Address_AddressId");
+            entity.ToTable("Office", "account");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(150)
+                .IsUnicode(false)
+                .HasComment("Le nom du bureau");
+            entity.Property(e => e.PhoneNumber)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+
+            entity.Property(e => e.AddressId).HasComment("L''identifiant technique de l''adresse");
+
+            entity.HasOne(d => d.AddressEntity).WithMany(p => p.OfficeEntities)
+                .HasForeignKey(d => d.AddressId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_Office_Address_FK");
         });
 
         modelBuilder.Entity<AddressEntity>(entity =>
@@ -215,6 +251,13 @@ public partial class AccountContext : DbContext
                 .HasForeignKey(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("C_Account_Address_AccountId_FK");
+
+            entity.Property(e => e.Latitude)
+                .HasColumnType("decimal(9, 6)")
+                .HasComment("Latitude du bureau");
+            entity.Property(e => e.Longitude)
+                .HasColumnType("decimal(9, 6)")
+                .HasComment("Longitude du bureau");
         });
 
         modelBuilder.Entity<ContactEntity>(entity =>

@@ -1,6 +1,6 @@
 ﻿CREATE TABLE [account].[Address] (
     [AddressId]    INT            IDENTITY (1, 1) NOT NULL,
-    [AccountId]    INT            NOT NULL,
+    [AccountId]    INT            NULL,
     [AddressLine1] NVARCHAR (255) NULL,
     [AddressLine2] NVARCHAR (255) NULL,
     [AddressLine3] NVARCHAR (255) NULL,
@@ -8,7 +8,9 @@
     [City]         VARCHAR (255)  NOT NULL,
     [State]        VARCHAR (255)  NULL,
     [Country]      VARCHAR (255)  NOT NULL,
-    [AddressType]  VARCHAR (25)   NOT NULL,
+    [AddressType]  VARCHAR (25)   NULL,
+    [Latitude]     DECIMAL(9,6),
+    [Longitude]    DECIMAL(9,6),
     CONSTRAINT [C_Address_PK] PRIMARY KEY CLUSTERED ([AddressId] ASC),
     CONSTRAINT [C_Account_Address_AccountId_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId])
 );

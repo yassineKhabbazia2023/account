@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
 using Moq;
@@ -320,6 +319,83 @@ namespace Pulse.Account.Core.Tests.Services
             var exception = await Assert.ThrowsAsync<NotFoundException>(result);
             Assert.Equal(Errors.NotFoundRoleContactCode, exception.Code);
             Assert.Equal(Errors.NotFoundRoleContactMessage, exception.Message);
+        }
+
+        [Fact]
+        public async Task ShouldReturn_ExpectedOfficeId_WithExpectedValue_GetAccountsAsyncInvoked()
+        {
+            // Arrange
+            var accountMocked = _fixture.Create<Paging<AccountModel>>();
+            _accountRepository.Setup(repository =>
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
+                .ReturnsAsync(accountMocked);
+
+            var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
+            var searchAccountCriteria = new SearchAccountCriteria
+            {
+                Search = string.Empty,
+                ContactId = 123
+            };
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4
+            };
+
+            // Act
+            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria, pagination);
+
+            // Assert
+            Assert.Equal(accountMocked, accounts);
+            Assert.NotNull(accounts.Items);
+            Assert.All(accounts.Items, account =>
+            {
+                Assert.NotEqual(0, account.OfficeId);
+                Assert.NotNull(account.Office);
+            });
+        }
+
+        [Fact]
+        public async Task ShouldReturn_NullOfficeId_WithInvalidValue_GetAccountsAsyncInvoked()
+        {
+            // Arrange
+            var accountMocked = _fixture.Create<Paging<AccountModel>>();
+            var expectedAccount = this._fixture.CreateMany<AccountModel>().ToList();
+            expectedAccount.ForEach(item =>
+            {
+                item.OfficeId = null;
+                item.Office = null;
+            });
+            accountMocked.Items = expectedAccount;
+
+            _accountRepository.Setup(repository =>
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
+                .ReturnsAsync(accountMocked);
+
+            var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
+            var searchAccountCriteria = new SearchAccountCriteria
+            {
+                Search = string.Empty,
+                ContactId = 123
+            };
+
+            var pagination = new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 4
+            };
+
+            // Act
+            var accounts = await accountService.GetAccountsAsync(searchAccountCriteria, pagination);
+
+            // Assert
+            Assert.Equal(accountMocked, accounts);
+            Assert.NotNull(accounts.Items);
+            Assert.All(accounts.Items, account =>
+            {
+                Assert.Null(account.OfficeId);
+                Assert.Null(account.Office);
+            });
         }
     }
 }

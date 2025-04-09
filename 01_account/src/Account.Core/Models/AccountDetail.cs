@@ -2,9 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-
 namespace Pulse.Account.Core.Models
 {
     public class AccountDetail
@@ -46,5 +43,11 @@ namespace Pulse.Account.Core.Models
         public string? ModifiedBy { get; set; } = string.Empty;
 
         public decimal? Turnover { get; set; }
+
+        public string? MissionType { get; set; }
+
+        public int OfficeId { get; set; }
+
+        public Office? Office { get; set; }
     }
 }

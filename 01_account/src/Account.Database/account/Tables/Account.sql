@@ -38,9 +38,12 @@
     [CreationDate]            DATETIME2 (7)    NOT NULL,
     [UpdatedDate]             DATETIME2 (7)    NULL,
     [IconName]                VARCHAR (50)     NULL,
+    [MissionType]             VARCHAR (150)    NULL,
+    [OfficeId]                INT              NULL,
     CONSTRAINT [C_Account_PK] PRIMARY KEY CLUSTERED ([AccountId] ASC),
     CONSTRAINT [C_Account_Hub_HubId_FK] FOREIGN KEY ([HubId]) REFERENCES [account].[Hub] ([HubId]),
     CONSTRAINT [C_Account_NafId_FK] FOREIGN KEY ([NafId]) REFERENCES [account].[Naf] ([NafId]),
+    CONSTRAINT [C_Account_OfficeId_FK] FOREIGN KEY ([OfficeId]) REFERENCES [account].[Office] ([OfficeId]),
     CONSTRAINT [UQ_Account_AccountGlobalUniqueId] UNIQUE NONCLUSTERED ([AccountGlobalUniqueId] ASC)
 );
 
@@ -59,6 +62,10 @@ CREATE NONCLUSTERED INDEX [IX_Hub_HubId]
 GO
 CREATE NONCLUSTERED INDEX [IX_Naf_NafId]
     ON  [account].[Account]([NafId] ASC)
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Office_OfficeId]
+    ON  [account].[Account]([OfficeId] ASC)
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
