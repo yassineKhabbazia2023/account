@@ -93,5 +93,21 @@ namespace Account.Api.Tests.Controllers
             result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
             result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(expectedResult);
         }
+
+        [Fact]
+        public async Task GetOfficesAsync_ShouldReturnOkResult()
+        {
+            // Arrange
+            var offices = _fixture.CreateMany<Office>();
+            _service.Setup(x => x.GetOfficesAsync()).ReturnsAsync(offices).Verifiable();
+            var referentialController = new ReferentialController(_service.Object);
+
+            // Act
+            var result = await referentialController.GetOfficesAsync();
+
+            // Assert
+            result.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
+            result.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(offices);
+        }
     }
 }

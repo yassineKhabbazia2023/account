@@ -13,5 +13,7 @@ namespace Pulse.Account.Core.Interfaces
         Task<IEnumerable<Hub?>> GetHubsAsync();
 
         Task<Paging<Naf>> GetNafsAsync(string? search, Pagination pagination);
+
+        Task<IEnumerable<Office?>> GetOfficesAsync();
     }
 }

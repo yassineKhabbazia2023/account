@@ -94,5 +94,20 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
                 Assert.Empty(result.Items!);
             }
         }
+
+        [Fact]
+        public async Task GetOfficesAsync_ShouldReturnOffices()
+        {
+            using (var context = new AccountContext(_options))
+            {
+                var tOffices = _fixture.CreateMany<OfficeEntity>();
+                context.AddRange(tOffices);
+                await context.SaveChangesAsync();
+                var repository = new ReferentialRepository(context);
+                var result = await repository.GetOfficesAsync();
+                Assert.NotNull(result);
+                Assert.Equal(tOffices.Count(), result.Count());
+            }
+        }
     }
 }

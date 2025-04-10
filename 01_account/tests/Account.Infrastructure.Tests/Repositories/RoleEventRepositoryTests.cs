@@ -62,6 +62,8 @@ public class RoleEventRepositoryTests
         var account = fixture.Build<AccountEntity>()
             .With(x => x.AccountId, 1)
             .Without(x => x.RoleEntity)
+            .Without(x => x.Office)
+            .Without(x => x.OfficeId)
             .Create();
 
         var contact = fixture.Build<ContactEntity>()

@@ -56,7 +56,9 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 AddressLine1 = address.AddressLine1,
                 AddressLine2 = address.AddressLine2,
                 AddressLine3 = address.AddressLine3,
-                ZipCode = address.ZipCode
+                ZipCode = address.ZipCode,
+                Latitude = address.Latitude,
+                Longitude = address.Longitude
             }).First();
 
             // Act
@@ -70,6 +72,9 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             Assert.Equal(expectedAccount.AccountNumber, accountModel.AccountNumber);
             Assert.Equal(expectedAccount.AccountId, accountModel.AccountId);
             Assert.Equal(expectedAccount.AccountGlobalUniqueId, accountModel.AccountGlobalUniqueId);
+            Assert.NotNull(accountModel.Address);
+            Assert.Equal(expectedAccount.Address.Latitude, accountModel.Address.Latitude);
+            Assert.Equal(expectedAccount.Address.Longitude, accountModel.Address.Longitude);
         }
 
         [Fact]
@@ -101,7 +106,9 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 AddressLine1 = address.AddressLine1,
                 AddressLine2 = address.AddressLine2,
                 AddressLine3 = address.AddressLine3,
-                ZipCode = address.ZipCode
+                ZipCode = address.ZipCode,
+                Latitude = address.Latitude,
+                Longitude = address.Longitude
             });
             expectedAccount.CreatedBy = tAccountFixture.CreatedBy;
             expectedAccount.ModifiedBy = tAccountFixture.ModifiedBy;
@@ -119,6 +126,23 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             Assert.Equal(expectedAccount.AccountGlobalUniqueId, accountModel.AccountGlobalUniqueId);
             Assert.Equal(expectedAccount.CreatedBy, accountModel.CreatedBy);
             Assert.Equal(expectedAccount.ModifiedBy, accountModel.ModifiedBy);
+            Assert.NotNull(accountModel.Address);
+            Assert.All(accountModel.Address, address =>
+            {
+                Assert.NotNull(address);
+                var expectedAddress = expectedAccount.Address.First(a => a.AddressId == address.AddressId);
+                Assert.Equal(expectedAddress.AddressId, address.AddressId);
+                Assert.Equal(expectedAddress.AddressType, address.AddressType);
+                Assert.Equal(expectedAddress.City, address.City);
+                Assert.Equal(expectedAddress.Country, address.Country);
+                Assert.Equal(expectedAddress.State, address.State);
+                Assert.Equal(expectedAddress.AddressLine1, address.AddressLine1);
+                Assert.Equal(expectedAddress.AddressLine2, address.AddressLine2);
+                Assert.Equal(expectedAddress.AddressLine3, address.AddressLine3);
+                Assert.Equal(expectedAddress.Latitude, address.Latitude);
+                Assert.Equal(expectedAddress.Longitude, address.Longitude);
+                Assert.Equal(expectedAddress.ZipCode, address.ZipCode);
+            });
         }
 
         [Fact]

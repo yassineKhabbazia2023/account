@@ -228,7 +228,9 @@ public static class MapAccountDbToAccountModel
         AddressLine2 = address.AddressLine2,
         AddressLine3 = address.AddressLine3,
         ZipCode = address.ZipCode,
-        AddressType = address.AddressType
+        AddressType = address.AddressType,
+        Longitude = address.Longitude,
+        Latitude = address.Latitude
     };
 
     private static AddressEntity? MapToAddressEntity(this Address? address) => address == null ? null : new AddressEntity
@@ -241,7 +243,9 @@ public static class MapAccountDbToAccountModel
         AddressLine2 = address.AddressLine2,
         AddressLine3 = address.AddressLine3,
         ZipCode = address.ZipCode,
-        AddressType = address.AddressType
+        AddressType = address.AddressType,
+        Longitude = address.Longitude,
+        Latitude = address.Latitude
     };
 
     private static IEnumerable<Address>? MapToAddress(this AccountEntity tAccount)
@@ -257,7 +261,9 @@ public static class MapAccountDbToAccountModel
                 AddressLine2 = address.AddressLine2,
                 AddressLine3 = address.AddressLine3,
                 ZipCode = address.ZipCode,
-                AddressType = address.AddressType
+                AddressType = address.AddressType,
+                Longitude = address.Longitude,
+                Latitude = address.Latitude
             });
     }
 

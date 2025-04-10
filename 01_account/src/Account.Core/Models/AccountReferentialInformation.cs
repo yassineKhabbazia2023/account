@@ -108,4 +108,16 @@ public class AccountReferentialInformation
             };
         }
     }
+
+    public IReadOnlyDictionary<string, string> MissionType
+    {
+        get
+        {
+            return new Dictionary<string, string>
+            {
+                { "Tenue", "Tenue" },
+                { "Revision", "Révision" },
+            };
+        }
+    }
 }

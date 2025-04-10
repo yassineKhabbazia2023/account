@@ -63,5 +63,21 @@ namespace Pulse.Account.Core.Tests.Services
 
             result.Should().BeEquivalentTo(expectedResult);
         }
+
+        [Fact]
+        public async Task GetOfficesAsync_ShouldReturnOfficeList()
+        {
+            // Arrange
+            var offices = _fixture.CreateMany<Office>();
+            _repositoryMock.Setup(x => x.GetOfficesAsync()).ReturnsAsync(offices);
+            var service = new ReferentialService(_repositoryMock.Object);
+
+            // Act
+            var result = await service.GetOfficesAsync();
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(offices, result);
+        }
     }
 }

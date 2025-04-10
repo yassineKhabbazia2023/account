@@ -43,6 +43,16 @@ namespace Pulse.Account.Infrastructure.Repositories
             });
         }
 
+        public async Task<IEnumerable<Office?>> GetOfficesAsync()
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                var offices = await _accountContext.OfficeEntity.Include(o => o.AddressEntity).AsNoTracking().ToListAsync();
+
+                return offices.MapToOffices();
+            });
+        }
+
         public async Task<Paging<Naf>> GetNafsAsync(string? search, Pagination pagination)
         {
             return await _retryPolicy.ExecuteAsync(async () =>
