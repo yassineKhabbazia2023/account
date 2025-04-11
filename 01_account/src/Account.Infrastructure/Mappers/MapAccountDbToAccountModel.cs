@@ -229,8 +229,8 @@ public static class MapAccountDbToAccountModel
         AddressLine3 = address.AddressLine3,
         ZipCode = address.ZipCode,
         AddressType = address.AddressType,
-        Longitude = address.Longitude,
-        Latitude = address.Latitude
+        Longitude = address.Longitude ?? default,
+        Latitude = address.Latitude ?? default
     };
 
     private static AddressEntity? MapToAddressEntity(this Address? address) => address == null ? null : new AddressEntity
@@ -262,8 +262,8 @@ public static class MapAccountDbToAccountModel
                 AddressLine3 = address.AddressLine3,
                 ZipCode = address.ZipCode,
                 AddressType = address.AddressType,
-                Longitude = address.Longitude,
-                Latitude = address.Latitude
+                Longitude = address.Longitude ?? default,
+                Latitude = address.Latitude ?? default
             });
     }
 

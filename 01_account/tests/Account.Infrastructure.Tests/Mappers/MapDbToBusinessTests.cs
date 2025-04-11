@@ -57,8 +57,8 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 AddressLine2 = address.AddressLine2,
                 AddressLine3 = address.AddressLine3,
                 ZipCode = address.ZipCode,
-                Latitude = address.Latitude,
-                Longitude = address.Longitude
+                Latitude = address.Latitude ?? default,
+                Longitude = address.Longitude ?? default
             }).First();
 
             // Act
@@ -107,8 +107,8 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 AddressLine2 = address.AddressLine2,
                 AddressLine3 = address.AddressLine3,
                 ZipCode = address.ZipCode,
-                Latitude = address.Latitude,
-                Longitude = address.Longitude
+                Latitude = address.Latitude ?? default,
+                Longitude = address.Longitude ?? default
             });
             expectedAccount.CreatedBy = tAccountFixture.CreatedBy;
             expectedAccount.ModifiedBy = tAccountFixture.ModifiedBy;

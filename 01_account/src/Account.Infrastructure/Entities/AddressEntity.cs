@@ -43,9 +43,9 @@ public partial class AddressEntity
     /// </summary>
     public string Country { get; set; }
 
-    public decimal Latitude { get; set; } = default!;
+    public decimal? Latitude { get; set; } = default!;
 
-    public decimal Longitude { get; set; } = default!;
+    public decimal? Longitude { get; set; } = default!;
 
     /// <summary>
     /// Le type d&apos;&apos;adresse
