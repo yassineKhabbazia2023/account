@@ -9,6 +9,9 @@ Modèle de script de post-déploiement
                SELECT * FROM [$(TableName)]
 --------------------------------------------------------------------------------------
 */
+ALTER TABLE [account].[Address] NOCHECK CONSTRAINT [C_Account_Address_AccountId_FK]
+GO
+
 INSERT INTO [account].[Address] ([AccountId],[AddressLine1],[AddressLine2],[AddressLine3],[ZipCode],[City],[State],[Country],[AddressType],[Latitude],[Longitude]) VALUES
 ('', 'Téléport 7', 'Zone Tertiaire Pyrène Aéropole (voie du Pape)', '', '65290', 'Juillan', '', 'France', 'Office', 43.18782, 0.00798),
 ('', '6 rue Frères Picco', 'Le Saint Pierre', '', '06500', 'Menton', '', 'France', 'Office', 43.77218, 7.49461),

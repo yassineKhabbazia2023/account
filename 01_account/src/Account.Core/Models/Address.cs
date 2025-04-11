@@ -24,7 +24,7 @@ public class Address
 
     public string? AddressType { get; set; }
 
-    public decimal Latitude { get; set; } = default!;
+    public decimal? Latitude { get; set; } = default!;
 
-    public decimal Longitude { get; set; } = default!;
+    public decimal? Longitude { get; set; } = default!;
 }

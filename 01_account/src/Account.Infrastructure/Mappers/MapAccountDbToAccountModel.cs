@@ -46,7 +46,7 @@ public static class MapAccountDbToAccountModel
 
     public static IEnumerable<Core.Models.Account> MapToAccounts(this ICollection<AccountEntity> source, int? contactId)
     {
-        return source?.Select(a => a.MapToAccount(contactId)!) ?? Enumerable.Empty<Core.Models.Account>();
+        return source?.Select(a => a.MapToAccount(contactId)!) ?? [];
     }
 
     public static Core.Models.Account? MapToAccount(this AccountEntity source, int? contactId)
@@ -67,6 +67,8 @@ public static class MapAccountDbToAccountModel
                 AccountNumber = source.AccountNumber,
                 LegalName = source.LegalName,
                 IsFavorite = currentContact?.IsFavorite,
+                OfficeId = source.OfficeId,
+                Office = source.Office?.MapToOffice(),
                 Address = source.MapToAddressDelivery(),
                 Signatory = signatory?.Contact.MapToContact(),
                 Deployment = source.MapToDeployment(),
@@ -114,7 +116,7 @@ public static class MapAccountDbToAccountModel
         {
             OfficeId = source.OfficeId,
             Name = source.Name,
-            AddressEntity = source!.Address?.MapToAddressEntity() ?? default,
+            AddressEntity = source!.Address!.MapToAddressEntity(),
             PhoneNumber = source.PhoneNumber,
             AddressId = source.AddressId,
         };
@@ -143,7 +145,7 @@ public static class MapAccountDbToAccountModel
             CreatedBy = source.CreatedBy,
             ModifiedBy = source.ModifiedBy,
             MissionType = source.MissionType,
-            OfficeId = source.OfficeId ?? default,
+            OfficeId = source.OfficeId,
             Office = source.Office?.MapToOffice(),
             Turnover = source.Turnover
         };
@@ -178,9 +180,9 @@ public static class MapAccountDbToAccountModel
 
         return new Deployment
         {
+            Status = deployment.Status,
             DeploymentId = deployment.DeploymentId,
             DeploymentDate = deployment.DeploymentDate,
-            Status = deployment.Status,
         };
     }
 
@@ -190,8 +192,8 @@ public static class MapAccountDbToAccountModel
 
         tAccount.DeploymentEntity = new DeploymentEntity
         {
-            DeploymentDate = DateTime.UtcNow,
             Status = deploymentStatus,
+            DeploymentDate = DateTime.UtcNow,
         };
     }
 
@@ -200,9 +202,9 @@ public static class MapAccountDbToAccountModel
         return tAccount.PhoneEntity == null ? Array.Empty<Phone>() :
             tAccount.PhoneEntity.Select(phone => new Phone
             {
+                Type = phone.Type,
                 PhoneId = phone.PhoneId,
                 PhoneNumber = phone.PhoneNumber,
-                Type = phone.Type,
             });
     }
 
@@ -215,10 +217,10 @@ public static class MapAccountDbToAccountModel
 
         var address = tAccount.AddressEntity.FirstOrDefault(address => address.AddressType == AddressType.Delivery.ToString());
 
-        return MapToAddress(address)!;
+        return MapToAddress(address);
     }
 
-    private static Address? MapToAddress(this AddressEntity? address) => address == null ? null : new Address
+    private static Address MapToAddress(this AddressEntity? address) => address == null ? new Address() : new Address
     {
         AddressId = address!.AddressId,
         Country = address.Country,
@@ -229,11 +231,11 @@ public static class MapAccountDbToAccountModel
         AddressLine3 = address.AddressLine3,
         ZipCode = address.ZipCode,
         AddressType = address.AddressType,
-        Longitude = address.Longitude ?? default,
-        Latitude = address.Latitude ?? default
+        Longitude = address.Longitude,
+        Latitude = address.Latitude
     };
 
-    private static AddressEntity? MapToAddressEntity(this Address? address) => address == null ? null : new AddressEntity
+    private static AddressEntity MapToAddressEntity(this Address? address) => address == null ? new AddressEntity() : new AddressEntity
     {
         AddressId = address!.AddressId,
         Country = address.Country,
@@ -262,8 +264,8 @@ public static class MapAccountDbToAccountModel
                 AddressLine3 = address.AddressLine3,
                 ZipCode = address.ZipCode,
                 AddressType = address.AddressType,
-                Longitude = address.Longitude ?? default,
-                Latitude = address.Latitude ?? default
+                Longitude = address.Longitude,
+                Latitude = address.Latitude
             });
     }
 
@@ -319,7 +321,7 @@ public static class MapAccountDbToAccountModel
     {
         if (tAccount.Naf == null)
         {
-            return new List<Naf>();
+            return [];
         }
 
         var naf = new Naf
@@ -329,7 +331,7 @@ public static class MapAccountDbToAccountModel
             NafLabel = tAccount.Naf.NafLabel
         };
 
-        return new List<Naf> { naf };
+        return [naf];
     }
 
     public static Naf? MapToNaf(this NafEntity nafEntity)
@@ -344,8 +346,8 @@ public static class MapAccountDbToAccountModel
 
     public static Statistics MapToStatistics(Dictionary<int, int> countByAccountStatus, Dictionary<string, int> countByContactStatus)
     {
-        countByAccountStatus = countByAccountStatus == null || countByAccountStatus.Count == 0 ? new Dictionary<int, int>() : countByAccountStatus;
-        countByContactStatus = countByContactStatus == null || countByContactStatus.Count == 0 ? new Dictionary<string, int>() : countByContactStatus;
+        countByAccountStatus = countByAccountStatus == null || countByAccountStatus.Count == 0 ? [] : countByAccountStatus;
+        countByContactStatus = countByContactStatus == null || countByContactStatus.Count == 0 ? [] : countByContactStatus;
 
         return InitStatistic(countByAccountStatus, countByContactStatus);
     }
@@ -392,16 +394,16 @@ public static class MapAccountDbToAccountModel
                 };
             }
 
-            existingAccount.DeploymentEntity.DeploymentDate = accountDetail.Deployment.DeploymentDate.HasValue ? accountDetail.Deployment.DeploymentDate.Value : DateTime.UtcNow;
             existingAccount.DeploymentEntity.Status = accountDetail.Deployment.Status;
+            existingAccount.DeploymentEntity.DeploymentDate = accountDetail.Deployment.DeploymentDate ?? DateTime.UtcNow;
         }
 
+        existingAccount.OfficeId = accountDetail.OfficeId;
+        existingAccount.Office = accountDetail.Office?.MapToOffice();
         existingAccount.HubId = accountDetail.Hub?.HubId;
         existingAccount.Vat = accountDetail.Vat?.System;
         existingAccount.Vattype = accountDetail.Vat?.Type;
         existingAccount.Turnover = accountDetail.Turnover;
         existingAccount.MissionType = accountDetail.MissionType;
-        existingAccount.OfficeId = accountDetail.OfficeId;
-        existingAccount.Office = accountDetail.Office?.MapToOffice();
     }
 }

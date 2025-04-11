@@ -15,7 +15,7 @@ public partial class AddressEntity
     /// <summary>
     /// L&apos;&apos;identifiant de l&apos;&apos;entité
     /// </summary>
-    public int? AccountId { get; set; }
+    public int AccountId { get; set; }
 
     public string AddressLine1 { get; set; }
 

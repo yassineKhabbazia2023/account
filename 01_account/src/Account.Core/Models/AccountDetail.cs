@@ -46,7 +46,7 @@ namespace Pulse.Account.Core.Models
 
         public string? MissionType { get; set; }
 
-        public int OfficeId { get; set; }
+        public int? OfficeId { get; set; }
 
         public Office? Office { get; set; }
     }
