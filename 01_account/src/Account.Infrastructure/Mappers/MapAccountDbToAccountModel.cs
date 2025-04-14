@@ -304,10 +304,14 @@ public static class MapAccountDbToAccountModel
 
     private static Legal MapToLegal(this AccountEntity tAccount)
     {
+        var siren = !string.IsNullOrWhiteSpace(tAccount?.Siret) && tAccount.Siret.Length >= 9
+            ? tAccount.Siret.Substring(0, 9)
+            : null;
+
         return new Legal
         {
             LegalName = tAccount.LegalName,
-            Siren = tAccount.Isin,
+            Siren = siren,
             Siret = tAccount.Siret,
             LegalForm = tAccount.LegalForm,
             LegalFormCode = tAccount.LegalFormCode,

@@ -464,6 +464,32 @@ public class AccountRepositoryTests
     }
 
     [Fact]
+    public async Task GetAccountAsync_Should_ReturnsAccountAsync_WhenSiretNull()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Arrange
+            var accountsModel = _fixture.Create<List<AccountEntity>>();
+            accountsModel[0].Siret = null;
+            var accountFirst = accountsModel[0];
+            var accountDetail = accountFirst?.MapToAccountDetail();
+            context.AccountEntity.AddRange(accountsModel);
+            await context.SaveChangesAsync();
+            var accountRepository = new AccountRepository(context);
+
+            // Act
+            var accounts = await accountRepository.GetAccountAsync(accountFirst!.AccountId);
+
+            // Assert
+            Assert.Equal(accountDetail?.AccountNumber, accounts!.AccountNumber);
+            Assert.Equal(accountDetail?.AccountId, accounts.AccountId);
+            Assert.Equal(accountDetail?.Legal?.LegalName, accounts.Legal?.LegalName);
+            Assert.Equal(accountDetail?.Legal?.Siren, accounts.Legal?.Siren);
+            Assert.Equal(accountDetail?.Legal?.Siret, accounts.Legal?.Siret);
+        }
+    }
+
+    [Fact]
     public async Task GetAccountAsync_Should_ThrowsNotFoundExceptionAsync()
     {
         using (var context = new AccountContext(_dbContextOptions))
