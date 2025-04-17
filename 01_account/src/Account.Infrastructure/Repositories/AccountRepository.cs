@@ -135,6 +135,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 return await _accountContext.AccountEntity
                        .AsNoTracking()
                        .Include(a => a.DeploymentEntity)
+                       .Include(h => h.Hub)
                        .FirstOrDefaultAsync(a => a.AccountId == accountId);
             });
 
