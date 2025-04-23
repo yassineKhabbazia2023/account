@@ -81,6 +81,17 @@ namespace Pulse.Account.Infrastructure.Providers
             await _eventPublisher.PublishAsync(new RoleCreatedEvent(data));
         }
 
+        public async Task PublishRoleFavoriteStatusChangedEventAsync(int accountId, int contactId, bool isFavorite)
+        {
+            var data = new RoleUpdatedEventData
+            {
+                AccountId = accountId,
+                ContactId = contactId,
+                IsFavorite = isFavorite,
+            };
+            await _eventPublisher.PublishAsync(new RoleUpdatedEvent(data));
+        }
+
         public async Task PublishRoleUpdatedEventAsync(int accountId, int contactId, bool isSignatory)
         {
             var data = new RoleUpdatedEventData

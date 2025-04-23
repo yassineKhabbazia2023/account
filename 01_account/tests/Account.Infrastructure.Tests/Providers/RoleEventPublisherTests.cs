@@ -120,4 +120,24 @@ public class RoleEventPublisherTests
         publisherMock.Verify(x => x.PublishAsync(It.IsAny<RoleUpdatedEvent>(), null!, null!), Times.Once);
     }
 
+    [Fact]
+    public async Task PublishRoleFavoriteStatusChangedEventAsync()
+    {
+        // arrange
+        int accountId = 1;
+        int contactId = 2;
+        bool isFavorite = true;
+
+        var contactRepository = new Mock<IContactRepository>();
+        var accountRepository = new Mock<IAccountRepository>();
+        var publisherMock = new Mock<IEventPublisher>();
+        var scopeMock = new Mock<IServiceScopeFactory>();
+        var roleEventPublisher = new RoleEventPublisher(publisherMock.Object, contactRepository.Object, accountRepository.Object, scopeMock.Object);
+
+        // act
+        await roleEventPublisher.PublishRoleFavoriteStatusChangedEventAsync(accountId, contactId, isFavorite);
+
+        // arrange
+        publisherMock.Verify(x => x.PublishAsync(It.IsAny<RoleUpdatedEvent>(), null!, null!), Times.Once);
+    }
 }

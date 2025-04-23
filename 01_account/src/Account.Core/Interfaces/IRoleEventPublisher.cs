@@ -13,5 +13,7 @@ namespace Pulse.Account.Core.Interfaces
         Task PublishRoleDeletedEventAsync(int accountId, int contactId);
 
         Task PublishRoleUpdatedEventAsync(int accountId, int contactId, bool isSignatory);
+
+        Task PublishRoleFavoriteStatusChangedEventAsync(int accountId, int contactId, bool isFavorite);
     }
 }
