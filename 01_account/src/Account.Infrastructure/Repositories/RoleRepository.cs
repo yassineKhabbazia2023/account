@@ -171,6 +171,25 @@ public class RoleRepository : IRoleRepository
         });
     }
 
+    public async Task<Role> UpdateRoleRelationClientAsync(int accountId, int contactId, bool isCustomerRelation)
+    {
+        var roleDb = await _accountContext.RoleEntity.FirstOrDefaultAsync(role => role.AccountId == accountId && role.ContactId == contactId);
+
+        if (roleDb is null)
+        {
+            throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
+        }
+
+        if (roleDb.IsCustomerRelation != isCustomerRelation)
+        {
+            roleDb.IsCustomerRelation = isCustomerRelation;
+            _accountContext.Entry(roleDb).State = EntityState.Modified;
+            await _accountContext.SaveChangesAsync();
+        }
+
+        return roleDb!.MapToRole();
+    }
+
     public async Task DeleteRoleAsync(int accountId, int contactId)
     {
         await _retryPolicy.ExecuteAsync(async () =>
@@ -217,6 +236,7 @@ public class RoleRepository : IRoleRepository
         return await _retryPolicy.ExecuteAsync(async () =>
         {
             IQueryable<RoleEntity> query = _accountContext.RoleEntity
+                                                    .Include(x => x.Account)
                                                     .AsNoTracking()
                                                     .Where(r => r.ContactId == contactId &&
                                                                 (accountId.HasValue ?

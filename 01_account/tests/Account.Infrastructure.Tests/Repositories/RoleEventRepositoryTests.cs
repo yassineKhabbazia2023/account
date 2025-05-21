@@ -84,6 +84,7 @@ public class RoleEventRepositoryTests
             context.SaveChanges();
             context.RoleEntity.Add(role);
             context.SaveChanges();
+            context.ChangeTracker.Clear();
             using (var newContext = new AccountContext(dbOptions))
             {
                 var repos = new RoleRepository(newContext);

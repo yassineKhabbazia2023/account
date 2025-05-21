@@ -32,6 +32,8 @@ public class MapRoleDbToRoleBusinessTests
         Assert.Equal(role.IsSignatory, result.IsSignatory);
         Assert.Equal(role.IsFavorite, result.IsFavorite);
         Assert.Equal(role.IsDelegation, result.IsDelegation);
+        Assert.Equal(role.IsCustomerRelation, result.IsCustomerRelation);
+        Assert.Equal(role.IsActor, result.IsActor);
     }
 
     [Fact]

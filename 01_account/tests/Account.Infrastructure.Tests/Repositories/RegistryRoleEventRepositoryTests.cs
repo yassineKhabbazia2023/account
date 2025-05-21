@@ -143,6 +143,8 @@ public class RegistryRoleEventRepositoryTests
         context.RoleEntity.Add(role);
         context.SaveChanges();
 
+        context.ChangeTracker.Clear();
+
         var data = _fixture.Build<RegistryRoleRemovedEventData>()
             .With(r => r.AccountId, 1)
             .With(r => r.ContactId, 1)
@@ -179,17 +181,21 @@ public class RegistryRoleEventRepositoryTests
             .Create();
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         var data = _fixture.Build<RegistryRoleRemovedEventData>()
             .With(r => r.AccountId, account.AccountId)
             .With(r => r.ContactId, contact.ContactId)
             .Create();
 
-        var repository = new RegistryRoleEventRepository(context);
+        using(var dbContext = new AccountContext(options))
+        {
+            var repository = new RegistryRoleEventRepository(dbContext);
 
-        var result = await repository.RemoveRoleAsync(1, 1);
+            var result = await repository.RemoveRoleAsync(1, 1);
 
-        Assert.False(result);
+            Assert.False(result);
+        }
     }
 
     [Theory]

@@ -34,6 +34,10 @@ public partial class AccountContext : DbContext
 
     public virtual DbSet<OfficeEntity> OfficeEntity { get; set; }
 
+    public virtual DbSet<LabelEntity> LabelEntity { get; set; }
+
+    public virtual DbSet<RoleLabelEntity> RoleLabelEntity { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AccountEntity>(entity =>
@@ -314,6 +318,10 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasComment("Le type de contact");
+            entity.HasMany(c => c.RoleLabelEntities)
+            .WithOne(rl => rl.ContactEntity)
+            .HasForeignKey(rl => rl.ContactId)
+            .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<DelegationEntity>(entity =>
@@ -476,6 +484,9 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.IsDelegation).HasComment("Indique, dans les cas où c''est possible, si le role est lié à une délégation");
             entity.Property(e => e.IsFavorite).HasComment("Le rôle est-il considéré comme un favori ou mis en avant comme tel");
             entity.Property(e => e.IsSignatory).HasComment("Le signataire");
+            entity.Property(e => e.IsCustomerRelation).HasComment("Indique s'il ya un contact direct avec le client");
+            entity.Property(e => e.IsActor).HasComment("Indique s'il est acteur ou proviseur sur le compte");
+
 
             entity.HasOne(d => d.Account).WithMany(p => p.RoleEntity)
                 .HasForeignKey(d => d.AccountId)
@@ -486,6 +497,99 @@ public partial class AccountContext : DbContext
                 .HasForeignKey(d => d.ContactId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("C_Account_Contact_FK");
+        });
+
+        modelBuilder.Entity<LabelEntity>(entity =>
+        {
+            entity.HasKey(e => e.LabelId).HasName("PK_Label");
+
+            entity.ToTable("Label", "account");
+
+            entity.Property(e => e.LabelId)
+                .ValueGeneratedOnAdd()
+                .HasComment("Identifiant technique");
+
+            entity.Property(e => e.Code)
+                .IsRequired()
+                .HasMaxLength(50)
+                .IsUnicode(true)
+                .HasComment("Code unique du label");
+
+            entity.Property(e => e.CustomerLabel)
+                .IsRequired()
+                .HasMaxLength(255)
+                .IsUnicode(true)
+                .HasComment("Libellé pour les clients");
+
+            entity.Property(e => e.CollaboratorLabel)
+                .IsRequired()
+                .HasMaxLength(255)
+                .IsUnicode(true)
+                .HasComment("Libellé pour les collaborateurs");
+
+            entity.Property(e => e.Description)
+                .IsRequired(false)
+                .HasMaxLength(2000)
+                .IsUnicode(true)
+                .HasComment("Description détaillée du label");
+
+            entity.Property(e => e.IsVisible)
+            .IsRequired(true)
+            .HasDefaultValue(true)
+            .HasComment("si oui on l'affichage dans la sélection manuelle de mission, si non il n'est pas affiché");
+
+            entity.HasIndex(e => e.Code)
+                .IsUnique()
+                .HasName("UNIQUE_CODE");
+
+        });
+
+        modelBuilder.Entity<RoleLabelEntity>(entity =>
+        {
+            entity.HasKey(e => new { e.AccountId, e.ContactId, e.LabelId });
+
+            entity.ToTable("RoleLabel", "account");
+
+            entity.Property(e => e.AccountId)
+                .HasComment("Identifiant du compte");
+
+            entity.Property(e => e.ContactId)
+                .HasComment("Identifiant du contact");
+
+            entity.Property(e => e.LabelId)
+                .HasComment("Identifiant du label");
+
+            entity.Property(e => e.CreatedDate)
+                .IsRequired()
+                .HasDefaultValueSql("GETDATE()")
+                .HasComment("Date de création");
+
+            entity.Property(e => e.CreatedBy)
+                .IsRequired()
+                .HasComment("Identifiant du créateur");
+
+            // Foreign key relationships
+            entity.HasOne(c=> c.AccountEntity)
+                .WithMany(c=>c.RoleLabelEntities)
+                .HasForeignKey(e => e.AccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(rl => rl.ContactEntity)
+            .WithMany(c => c.RoleLabelEntities)
+            .HasForeignKey(rl => rl.ContactId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(c=>c.ContactEntity)
+                .WithMany(c=>c.RoleLabelEntities)
+                .HasForeignKey(e => e.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(c => c.LabelEntity)
+                .WithMany(c=>c.RoleLabelEntities)
+                .HasForeignKey(e => e.LabelId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
         });
 
         OnModelCreatingPartial(modelBuilder);

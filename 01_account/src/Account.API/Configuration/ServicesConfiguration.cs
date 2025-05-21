@@ -44,6 +44,10 @@ namespace Pulse.Account.API.Configuration
             services.AddScoped<IStatisticsService, StatisticsService>();
             services.AddScoped<IStatisticsRepository, StatisticsRepository>();
             services.AddScoped<IContactRepository, ContactRepository>();
+            services.AddScoped<ILabelRepository, LabelRepository>();
+            services.AddScoped<ILabelService, LabelService>();
+            services.AddScoped<IRoleLabelRepository, RoleLabelRepository>();
+            services.AddScoped<IRoleLabelService, RoleLabelService>();
         }
 
         public static void RegisterBrokerServices(this IServiceCollection services, IConfiguration configuration)

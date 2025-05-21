@@ -5,7 +5,9 @@
 	[IsFavorite]		BIT					NULL,
 	[IsSignatory]		BIT					NULL,
     [IsDelegation]      BIT                 NULL,
-	CONSTRAINT [C_Role_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC, [AccountId] ASC),
+	[IsCustomerRelation] BIT NULL , 
+    [IsActor] BIT NULL, 
+    CONSTRAINT [C_Role_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC, [AccountId] ASC),
 	CONSTRAINT [C_Account_Role_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId]),
 	CONSTRAINT [C_Account_Contact_FK] FOREIGN KEY ([ContactId]) REFERENCES [actor].[Contact] ([ContactId]), 
     CONSTRAINT [C_Role_AccountId_ContactId] UNIQUE ([AccountId], [ContactId])

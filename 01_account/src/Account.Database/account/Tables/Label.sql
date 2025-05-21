@@ -1,0 +1,11 @@
+﻿CREATE TABLE [account].[Label]
+(
+	[LabelId] INT NOT NULL PRIMARY KEY IDENTITY(1,1),
+	[Code] NVARCHAR(50) NOT NULL,
+	[CustomerLabel] NVARCHAR(255) NOT NULL,
+	[CollaboratorLabel] NVARCHAR(255) NOT NULL,
+	[Description] NVARCHAR(2000) NULL,
+	[Business] NVARCHAR(100) NOT NULL, 
+    [IsVisible] BIT NOT NULL DEFAULT 1, 
+    CONSTRAINT UNIQUE_CODE Unique(Code)
+)

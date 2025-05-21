@@ -82,6 +82,8 @@
     <None Include="Log\Script.Address.sql" />
     <None Include="Log\Script.Delegation.sql" />
     <Build Include="account\Tables\Office.sql" />
+    <Build Include="account\Tables\Label.sql" />
+    <Build Include="account\Tables\RoleLabel.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Account.Database.refactorlog" />

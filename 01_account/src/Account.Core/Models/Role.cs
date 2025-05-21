@@ -15,5 +15,9 @@ namespace Pulse.Account.Core.Models
         public bool? IsFavorite { get; set; }
 
         public bool? IsDelegation { get; set; }
+
+        public bool? IsCustomerRelation { get; set; }
+
+        public bool? IsActor { get; set; }
     }
 }

@@ -32,6 +32,10 @@ public partial class RoleEntity
     /// </summary>
     public bool? IsDelegation { get; set; }
 
+    public bool? IsCustomerRelation { get; set; }
+
+    public bool? IsActor { get; set; }
+
     public virtual AccountEntity Account { get; set; }
 
     public virtual ContactEntity Contact { get; set; }

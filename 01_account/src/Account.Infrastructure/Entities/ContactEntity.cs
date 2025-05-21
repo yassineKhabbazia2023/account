@@ -69,4 +69,6 @@ public partial class ContactEntity
     public virtual ICollection<DelegationEntity> DelegationEntityDelegator { get; set; } = new List<DelegationEntity>();
 
     public virtual ICollection<RoleEntity> RoleEntity { get; set; } = new List<RoleEntity>();
+
+    public virtual ICollection<RoleLabelEntity> RoleLabelEntities { get; set; } = new List<RoleLabelEntity>();
 }

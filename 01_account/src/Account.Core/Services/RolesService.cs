@@ -71,6 +71,11 @@ public class RolesService : IRolesService
         await PublishRoleUpdatedEvent(accountId, contactId, isSignatory);
     }
 
+    public async Task<Role> UpdateRoleRelationClientAsync(int accountId, int contactId, bool isCustomerRelation)
+    {
+        return await _rolesRepository.UpdateRoleRelationClientAsync(accountId, contactId, isCustomerRelation);
+    }
+
     public async Task DeleteRoleAsync(int accountId, int contactId)
     {
         var role = await _rolesRepository.GetContactRoleAsync(accountId, contactId);

@@ -293,4 +293,116 @@ public class RolesServiceTests
         rolesRepository.Verify(x => x.IsContactHasRoleOnAccount(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()));
         Assert.True(contactHasRoleOnAccount);
     }
+
+    [Fact]
+    public async Task UpdateRoleRelationClientAsync_Should_Return_Updated_Role()
+    {
+        // Arrange
+        int accountId = 10;
+        int contactId = 25;
+        bool isCustomerRelation = true;
+
+        var existingRole = new Role
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsCustomerRelation = false, // Different from what we're updating to
+            IsFavorite = false,
+            IsSignatory = false
+        };
+
+        var updatedRole = new Role
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsCustomerRelation = true, // Updated value
+            IsFavorite = false,
+            IsSignatory = false
+        };
+
+        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        roleRepository.Setup(repo => repo.UpdateRoleRelationClientAsync(
+                It.Is<int>(a => a == accountId),
+                It.Is<int>(c => c == contactId),
+                It.Is<bool>(r => r == isCustomerRelation)))
+            .ReturnsAsync(updatedRole)
+            .Verifiable();
+
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher.Object, _logger.Object);
+
+        // Act
+        var result = await roleService.UpdateRoleRelationClientAsync(accountId, contactId, isCustomerRelation);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsCustomerRelation.Should().Be(isCustomerRelation);
+        result.AccountId.Should().Be(accountId);
+        result.ContactId.Should().Be(contactId);
+        roleRepository.VerifyAll();
+    }
+
+    [Fact]
+    public async Task UpdateRoleRelationClientAsync_Should_Throw_NotFoundException_When_Role_Does_Not_Exist()
+    {
+        // Arrange
+        int accountId = 10;
+        int contactId = 25;
+        bool isCustomerRelation = true;
+
+        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        roleRepository.Setup(repo => repo.UpdateRoleRelationClientAsync(
+                It.Is<int>(a => a == accountId),
+                It.Is<int>(c => c == contactId),
+                It.Is<bool>(r => r == isCustomerRelation)))
+            .ThrowsAsync(new NotFoundException(Errors.NotFoundRoleCode, Errors.NotFoundRoleMessage))
+            .Verifiable();
+
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher.Object, _logger.Object);
+
+        // Act
+        Func<Task> act = async () => await roleService.UpdateRoleRelationClientAsync(accountId, contactId, isCustomerRelation);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>()
+            .WithMessage(Errors.NotFoundRoleMessage);
+        roleRepository.VerifyAll();
+    }
+
+    [Fact]
+    public async Task UpdateRoleRelationClientAsync_Should_Not_Update_When_IsCustomerRelation_Value_Is_Same()
+    {
+        // Arrange
+        int accountId = 10;
+        int contactId = 25;
+        bool isCustomerRelation = true;
+
+        var existingRole = new Role
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsCustomerRelation = true, // Same as what we're updating to
+            IsFavorite = false,
+            IsSignatory = false
+        };
+
+        var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
+        roleRepository.Setup(repo => repo.UpdateRoleRelationClientAsync(
+                It.Is<int>(a => a == accountId),
+                It.Is<int>(c => c == contactId),
+                It.Is<bool>(r => r == isCustomerRelation)))
+            .ReturnsAsync(existingRole) // Returns the unchanged role
+            .Verifiable();
+
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher.Object, _logger.Object);
+
+        // Act
+        var result = await roleService.UpdateRoleRelationClientAsync(accountId, contactId, isCustomerRelation);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.IsCustomerRelation.Should().Be(isCustomerRelation);
+        result.AccountId.Should().Be(accountId);
+        result.ContactId.Should().Be(contactId);
+        roleRepository.VerifyAll();
+    }
 }

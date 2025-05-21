@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.ComponentModel.DataAnnotations;
 using Pulse.Account.Core.Enum;
 
 namespace Pulse.Account.Core.Requests;

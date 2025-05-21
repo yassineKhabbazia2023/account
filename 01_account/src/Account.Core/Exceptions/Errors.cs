@@ -100,5 +100,11 @@ namespace Pulse.Account.Core.Exceptions
 
         public static readonly string ContactIdAndEmailNullCode = "ACC031";
         public static readonly string ContactIdAndEmailNullMessage = "Veuillez fournir au moins le ContactId ou l'email.";
+
+        public static readonly string CodeAlreadyExistsCode = "ACC032";
+        public static readonly string CodeAlreadyExitsMessage = "Ce code {0} éxiste déja dans le DB!";
+
+        public static readonly string RoleLabelAlreadyExistsCode = "ACC033";
+        public static readonly string RoleLabelAlreadyExistsMessage = "Ce Contact a déja ce Label";
     }
 }

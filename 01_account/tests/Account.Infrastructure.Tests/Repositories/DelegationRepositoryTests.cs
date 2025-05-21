@@ -118,8 +118,8 @@ public class DelegationRepositoryTests
 
             var exception = await action.Should().ThrowAsync<NotFoundException>();
 
-            exception.WithMessage(Errors.NotFoundAccountsMessage);
-            exception.Which.Code.Should().Be(Errors.NotFoundAccountsCode);
+            exception.WithMessage("Un des contacts est introuvable");
+            exception.Which.Code.Should().Be("ACC013");
         }
     }
 
@@ -877,9 +877,12 @@ public class DelegationRepositoryTests
                 .Without(a => a.DelegationEntityDelegatee)
                 .Without(a => a.DelegationEntityDelegator)
                 .Without(a => a.RoleEntity)
+                .Without(a => a.RoleLabelEntities)
                 .Create());
+
             await context.SaveChangesAsync();
 
+            context.ChangeTracker.Clear();
             var expectedDelegationsResult = new List<Delegation>();
 
             var delegationStatus = new List<string> { "Pending", "Enabled", "Disabled" };
@@ -916,23 +919,27 @@ public class DelegationRepositoryTests
                     Note = $"Note de {contactId}",
                     Account = _fixture.Build<AccountEntity>().With(a => a.IsActive, true).Without(a => a.Delegation).Without(a => a.RoleEntity).CreateMany(3).ToList()
                 };
-                await context.DelegationEntity.AddRangeAsync(new List<DelegationEntity> { tDelegation });
+
+                await context.DelegationEntity.AddAsync(tDelegation);
 
                 expectedDelegationsResult.Add(tDelegation.ToDelegation()!);
             }
 
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
+            using (var dbContext= new AccountContext(dbContextOptions))
+            {
+                var repository = new DelegationRepository(dbContext);
 
-            var repository = new DelegationRepository(context);
+                // Act
+                var result = await repository.GetContactDelegationsHistoryAsync(contactId, pagination, true);
 
-            // Act
-            var result = await repository.GetContactDelegationsHistoryAsync(contactId, pagination, true);
-
-            // Assert
-            result.Items.Should().NotBeNull().And.NotBeEmpty();
-            result.CurrentPage.Should().Be(1);
-            result.TotalItems.Should().Be(10);
-            result.TotalPage.Should().Be(1);
+                // Assert
+                result.Items.Should().NotBeNull().And.NotBeEmpty();
+                result.CurrentPage.Should().Be(1);
+                result.TotalItems.Should().Be(10);
+                result.TotalPage.Should().Be(1);
+            }
         }
     }
 

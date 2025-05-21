@@ -119,4 +119,18 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="AccountType" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="6d5b8306-4c44-4df5-be99-d68244c74f56" ChangeDateTime="05/19/2025 12:34:38">
+    <Property Name="ElementName" Value="[dbo].[Label].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Label]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="LabelId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="dc48703d-368b-414e-90c0-4a5389053459" ChangeDateTime="05/19/2025 13:16:08">
+    <Property Name="ElementName" Value="[account].[Label].[CollabloratorLabel]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[account].[Label]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CollaboratorLabel" />
+  </Operation>
 </Operations>
