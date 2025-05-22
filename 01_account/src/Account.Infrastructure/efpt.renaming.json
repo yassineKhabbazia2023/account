@@ -34,8 +34,18 @@
          },
          {
             "Columns": [ ],
+            "Name": "Label",
+            "NewName": "LabelEntity"
+         },
+         {
+            "Columns": [ ],
             "Name": "Naf",
             "NewName": "NafEntity"
+         },
+         {
+            "Columns": [ ],
+            "Name": "Office",
+            "NewName": "OfficeEntity"
          },
          {
             "Columns": [ ],
@@ -46,6 +56,11 @@
             "Columns": [ ],
             "Name": "Role",
             "NewName": "RoleEntity"
+         },
+         {
+            "Columns": [ ],
+            "Name": "RoleLabel",
+            "NewName": "RoleLabelEntity"
          }
       ],
       "UseSchemaName": false

@@ -47,7 +47,7 @@ namespace Pulse.Account.Infrastructure.Repositories
         {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                var offices = await _accountContext.OfficeEntity.Include(o => o.AddressEntity).AsNoTracking().ToListAsync();
+                var offices = await _accountContext.OfficeEntity.Include(o => o.Address).AsNoTracking().ToListAsync();
 
                 return offices.MapToOffices();
             });

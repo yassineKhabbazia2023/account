@@ -26,15 +26,15 @@ public partial class AccountContext : DbContext
 
     public virtual DbSet<HubEntity> HubEntity { get; set; }
 
+    public virtual DbSet<LabelEntity> LabelEntity { get; set; }
+
     public virtual DbSet<NafEntity> NafEntity { get; set; }
+
+    public virtual DbSet<OfficeEntity> OfficeEntity { get; set; }
 
     public virtual DbSet<PhoneEntity> PhoneEntity { get; set; }
 
     public virtual DbSet<RoleEntity> RoleEntity { get; set; }
-
-    public virtual DbSet<OfficeEntity> OfficeEntity { get; set; }
-
-    public virtual DbSet<LabelEntity> LabelEntity { get; set; }
 
     public virtual DbSet<RoleLabelEntity> RoleLabelEntity { get; set; }
 
@@ -124,6 +124,9 @@ public partial class AccountContext : DbContext
                 .IsRequired()
                 .HasMaxLength(255)
                 .HasComment("La raison social de l''entité");
+            entity.Property(e => e.MissionType)
+                .HasMaxLength(150)
+                .IsUnicode(false);
             entity.Property(e => e.ModifiedBy)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -172,12 +175,7 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("Type de TVA")
                 .HasColumnName("VATType");
-            entity.Property(e => e.MissionType)
-                  .HasMaxLength(150)
-                  .IsUnicode(false)
-                  .HasComment("L''identifiant technique du type de mission");
-            entity.Property(e => e.OfficeId)
-                .HasComment("L''identifiant technique du bureau");
+
             entity.HasOne(d => d.Hub).WithMany(p => p.AccountEntity)
                 .HasForeignKey(d => d.HubId)
                 .HasConstraintName("C_Account_Hub_HubId_FK");
@@ -189,29 +187,6 @@ public partial class AccountContext : DbContext
             entity.HasOne(d => d.Office).WithMany(p => p.AccountEntity)
                 .HasForeignKey(d => d.OfficeId)
                 .HasConstraintName("C_Account_OfficeId_FK");
-        });
-
-        modelBuilder.Entity<OfficeEntity>(entity =>
-        {
-            entity.HasKey(e => e.OfficeId).HasName("C_Office_PK");
-
-            entity.HasIndex(e => e.AddressId, "IX_Address_AddressId");
-            entity.ToTable("Office", "account");
-            entity.Property(e => e.Name)
-                .IsRequired()
-                .HasMaxLength(150)
-                .IsUnicode(false)
-                .HasComment("Le nom du bureau");
-            entity.Property(e => e.PhoneNumber)
-                .HasMaxLength(20)
-                .IsUnicode(false);
-
-            entity.Property(e => e.AddressId).HasComment("L''identifiant technique de l''adresse");
-
-            entity.HasOne(d => d.AddressEntity).WithMany(p => p.OfficeEntities)
-                .HasForeignKey(d => d.AddressId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_Office_Address_FK");
         });
 
         modelBuilder.Entity<AddressEntity>(entity =>
@@ -228,7 +203,6 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.AddressLine2).HasMaxLength(255);
             entity.Property(e => e.AddressLine3).HasMaxLength(255);
             entity.Property(e => e.AddressType)
-                .IsRequired()
                 .HasMaxLength(25)
                 .IsUnicode(false)
                 .HasComment("Le type d''adresse");
@@ -242,6 +216,8 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasComment("Le pays");
+            entity.Property(e => e.Latitude).HasColumnType("decimal(9, 6)");
+            entity.Property(e => e.Longitude).HasColumnType("decimal(9, 6)");
             entity.Property(e => e.State)
                 .HasMaxLength(255)
                 .IsUnicode(false)
@@ -253,15 +229,7 @@ public partial class AccountContext : DbContext
 
             entity.HasOne(d => d.Account).WithMany(p => p.AddressEntity)
                 .HasForeignKey(d => d.AccountId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("C_Account_Address_AccountId_FK");
-
-            entity.Property(e => e.Latitude)
-                .HasColumnType("decimal(9, 6)")
-                .HasComment("Latitude du bureau");
-            entity.Property(e => e.Longitude)
-                .HasColumnType("decimal(9, 6)")
-                .HasComment("Longitude du bureau");
         });
 
         modelBuilder.Entity<ContactEntity>(entity =>
@@ -294,12 +262,20 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("Le prénom du contact");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.LandPhone)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasComment("Le numéro de téléphone du contact");
             entity.Property(e => e.LastName)
                 .IsRequired()
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasComment("Le nom du contact");
             entity.Property(e => e.LastUpdateDate).HasComment("La date de la dernière modification du contact");
+            entity.Property(e => e.MobilePhone)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasComment("Le numéro de téléphone portable du contact");
             entity.Property(e => e.Office)
                 .HasMaxLength(250)
                 .IsUnicode(false)
@@ -318,10 +294,6 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasComment("Le type de contact");
-            entity.HasMany(c => c.RoleLabelEntities)
-            .WithOne(rl => rl.ContactEntity)
-            .HasForeignKey(rl => rl.ContactId)
-            .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<DelegationEntity>(entity =>
@@ -424,6 +396,30 @@ public partial class AccountContext : DbContext
                 .HasComment("Le nom du Hub");
         });
 
+        modelBuilder.Entity<LabelEntity>(entity =>
+        {
+            entity.HasKey(e => e.LabelId);
+
+            entity.ToTable("Label", "account");
+
+            entity.HasIndex(e => e.Code, "UNIQUE_CODE").IsUnique();
+
+            entity.Property(e => e.Business)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.Code)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.CollaboratorLabel)
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.Property(e => e.CustomerLabel)
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.IsVisible).HasDefaultValue(true);
+        });
+
         modelBuilder.Entity<NafEntity>(entity =>
         {
             entity.HasKey(e => e.NafId).HasName("C_Naf_PK");
@@ -439,6 +435,27 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.NafLabel)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<OfficeEntity>(entity =>
+        {
+            entity.HasKey(e => e.OfficeId).HasName("C_Office_PK");
+
+            entity.ToTable("Office", "account");
+
+            entity.HasIndex(e => e.AddressId, "IX_Address_AddressId");
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.PhoneNumber)
+                .HasMaxLength(20)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Address).WithMany(p => p.OfficeEntity)
+                .HasForeignKey(d => d.AddressId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_Account_Office_AddressId_FK");
         });
 
         modelBuilder.Entity<PhoneEntity>(entity =>
@@ -484,9 +501,6 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.IsDelegation).HasComment("Indique, dans les cas où c''est possible, si le role est lié à une délégation");
             entity.Property(e => e.IsFavorite).HasComment("Le rôle est-il considéré comme un favori ou mis en avant comme tel");
             entity.Property(e => e.IsSignatory).HasComment("Le signataire");
-            entity.Property(e => e.IsCustomerRelation).HasComment("Indique s'il ya un contact direct avec le client");
-            entity.Property(e => e.IsActor).HasComment("Indique s'il est acteur ou proviseur sur le compte");
-
 
             entity.HasOne(d => d.Account).WithMany(p => p.RoleEntity)
                 .HasForeignKey(d => d.AccountId)
@@ -499,97 +513,31 @@ public partial class AccountContext : DbContext
                 .HasConstraintName("C_Account_Contact_FK");
         });
 
-        modelBuilder.Entity<LabelEntity>(entity =>
-        {
-            entity.HasKey(e => e.LabelId).HasName("PK_Label");
-
-            entity.ToTable("Label", "account");
-
-            entity.Property(e => e.LabelId)
-                .ValueGeneratedOnAdd()
-                .HasComment("Identifiant technique");
-
-            entity.Property(e => e.Code)
-                .IsRequired()
-                .HasMaxLength(50)
-                .IsUnicode(true)
-                .HasComment("Code unique du label");
-
-            entity.Property(e => e.CustomerLabel)
-                .IsRequired()
-                .HasMaxLength(255)
-                .IsUnicode(true)
-                .HasComment("Libellé pour les clients");
-
-            entity.Property(e => e.CollaboratorLabel)
-                .IsRequired()
-                .HasMaxLength(255)
-                .IsUnicode(true)
-                .HasComment("Libellé pour les collaborateurs");
-
-            entity.Property(e => e.Description)
-                .IsRequired(false)
-                .HasMaxLength(2000)
-                .IsUnicode(true)
-                .HasComment("Description détaillée du label");
-
-            entity.Property(e => e.IsVisible)
-            .IsRequired(true)
-            .HasDefaultValue(true)
-            .HasComment("si oui on l'affichage dans la sélection manuelle de mission, si non il n'est pas affiché");
-
-            entity.HasIndex(e => e.Code)
-                .IsUnique()
-                .HasName("UNIQUE_CODE");
-
-        });
-
         modelBuilder.Entity<RoleLabelEntity>(entity =>
         {
             entity.HasKey(e => new { e.AccountId, e.ContactId, e.LabelId });
 
             entity.ToTable("RoleLabel", "account");
 
-            entity.Property(e => e.AccountId)
-                .HasComment("Identifiant du compte");
-
-            entity.Property(e => e.ContactId)
-                .HasComment("Identifiant du contact");
-
-            entity.Property(e => e.LabelId)
-                .HasComment("Identifiant du label");
-
             entity.Property(e => e.CreatedDate)
-                .IsRequired()
                 .HasDefaultValueSql("GETDATE()")
-                .HasComment("Date de création");
+                .HasColumnType("datetime");
 
-            entity.Property(e => e.CreatedBy)
-                .IsRequired()
-                .HasComment("Identifiant du créateur");
+            entity.HasOne(d => d.Account).WithMany(p => p.RoleLabelEntity)
+                .HasForeignKey(d => d.AccountId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
-            // Foreign key relationships
-            entity.HasOne(c=> c.AccountEntity)
-                .WithMany(c=>c.RoleLabelEntities)
-                .HasForeignKey(e => e.AccountId)
-                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(d => d.Contact).WithMany(p => p.RoleLabelEntityContact)
+                .HasForeignKey(d => d.ContactId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(rl => rl.ContactEntity)
-            .WithMany(c => c.RoleLabelEntities)
-            .HasForeignKey(rl => rl.ContactId)
-            .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.RoleLabelEntityCreatedByNavigation)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(c=>c.ContactEntity)
-                .WithMany(c=>c.RoleLabelEntities)
-                .HasForeignKey(e => e.CreatedBy)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasOne(c => c.LabelEntity)
-                .WithMany(c=>c.RoleLabelEntities)
-                .HasForeignKey(e => e.LabelId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-
+            entity.HasOne(d => d.Label).WithMany(p => p.RoleLabelEntity)
+                .HasForeignKey(d => d.LabelId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         OnModelCreatingPartial(modelBuilder);

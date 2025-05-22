@@ -18,6 +18,6 @@ namespace Pulse.Account.Core.Models
 
         public bool? IsCustomerRelation { get; set; }
 
-        public bool? IsActor { get; set; }
+        public int ActionLevel { get; set; } = default;
     }
 }

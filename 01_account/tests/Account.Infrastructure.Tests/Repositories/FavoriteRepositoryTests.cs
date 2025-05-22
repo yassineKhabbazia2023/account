@@ -77,8 +77,10 @@ public class FavoriteRepositoryTests
                 .With(x => x.Status, 1)
                 .Create();
             var accountsModel = _fixture.Build<AccountEntity>()
+                .With(a => a.IsActive, true)
                 .With(x => x.RoleEntity, new List<RoleEntity> { roleMock })
-                .With(x => x.DeploymentEntity, deploymentMock)
+                .Without(x => x.DeploymentEntity)
+                .Without(x => x.RoleLabelEntity)
                 .Create();
             context.AccountEntity.Add(accountsModel);
             await context.SaveChangesAsync();

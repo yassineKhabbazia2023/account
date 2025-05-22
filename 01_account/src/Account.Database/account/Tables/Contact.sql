@@ -5,6 +5,8 @@
 	[FirstName]				VARCHAR(100)		NOT NULL,
 	[LastName]				VARCHAR(100)		NOT NULL,
 	[Email]     			VARCHAR(255)		NOT NULL,
+    [LandPhone]             VARCHAR(255)        NULL,
+	[MobilePhone]           VARCHAR(255)        NULL,
 	[Type]                  VARCHAR(20)         NOT NULL, 
 	[Status]                VARCHAR(20)         NULL, 
 	[PersonaName]           VARCHAR(50)         NOT NULL, 
@@ -69,6 +71,24 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'Contact',
     @level2type = N'COLUMN',
     @level2name = N'Email'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Le numéro de téléphone du contact',
+    @level0type = N'SCHEMA',
+    @level0name = N'actor',
+    @level1type = N'TABLE',
+    @level1name = N'Contact',
+    @level2type = N'COLUMN',
+    @level2name = N'LandPhone'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Le numéro de téléphone portable du contact',
+    @level0type = N'SCHEMA',
+    @level0name = N'actor',
+    @level1type = N'TABLE',
+    @level1name = N'Contact',
+    @level2type = N'COLUMN',
+    @level2name = N'MobilePhone'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'Le type de contact',

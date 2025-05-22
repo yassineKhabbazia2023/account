@@ -15,7 +15,7 @@ public partial class AddressEntity
     /// <summary>
     /// L&apos;&apos;identifiant de l&apos;&apos;entité
     /// </summary>
-    public int AccountId { get; set; }
+    public int? AccountId { get; set; }
 
     public string AddressLine1 { get; set; }
 
@@ -43,16 +43,16 @@ public partial class AddressEntity
     /// </summary>
     public string Country { get; set; }
 
-    public decimal? Latitude { get; set; } = default!;
-
-    public decimal? Longitude { get; set; } = default!;
-
     /// <summary>
     /// Le type d&apos;&apos;adresse
     /// </summary>
     public string AddressType { get; set; }
 
-    public virtual AccountEntity? Account { get; set; }
+    public decimal? Latitude { get; set; }
 
-    public virtual ICollection<OfficeEntity>? OfficeEntities { get; set; } = [];
+    public decimal? Longitude { get; set; }
+
+    public virtual AccountEntity Account { get; set; }
+
+    public virtual ICollection<OfficeEntity> OfficeEntity { get; set; } = new List<OfficeEntity>();
 }

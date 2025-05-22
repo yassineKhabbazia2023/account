@@ -122,14 +122,44 @@ public class RolesRepositoryTests
         // Arrange
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var accountsMock = _fixture.Create<List<AccountEntity>>();
-            context.AccountEntity.AddRange(accountsMock);
-            context.SaveChanges();
+            var accountMock = _fixture.Build<AccountEntity>()
+                .With(a => a.IsActive, true)
+                .Without(a => a.RoleEntity)
+                .Without(a => a.RoleLabelEntity)
+                .Without(a => a.Delegation)
+                .Create();
+            var contact = _fixture.Build<ContactEntity>()
+                .With(c => c.IsActive, true)
+                .Without(c => c.RoleEntity)
+                .Without(c => c.RoleLabelEntityContact)
+                .Without(c => c.DelegationEntityDelegatee)
+                .Without(c => c.DelegationEntityDelegator)
+                .CreateMany(2);
+            var signatory = new RoleEntity
+            {
+                AccountId = accountMock.AccountId,
+                Account = accountMock,
+                ContactId = contact.First().ContactId,
+                IsSignatory = true,
+                Contact = contact.First()
+            };
+            var nonSignatory = new RoleEntity
+            {
+                AccountId = accountMock.AccountId,
+                Account = accountMock,
+                ContactId = contact.ElementAt(1).ContactId,
+                IsSignatory = false,
+                Contact = contact.ElementAt(1)
+            };
+            var rolesMock = new List<RoleEntity> { signatory, nonSignatory };
+            context.AccountEntity.Add(accountMock);
+            context.ContactEntity.AddRange(contact);
+            context.RoleEntity.AddRange(rolesMock);
+            await context.SaveChangesAsync();
 
             var rolesRepository = new RoleRepository(context);
-            var data = accountsMock.First().RoleEntity.Where(r => r.IsSignatory!.Value).ToList();
-            var resultExpected = new List<Contact>();
-            resultExpected.AddRange(data.MapToContacts());
+            var data = rolesMock.Where(r => r.IsSignatory!.Value).ToList();
+            var resultExpected = new List<Contact> { signatory.MapToContact() ! };
 
             // Act
             var roles = await rolesRepository.GetSignatoryAsync(data.First().AccountId);

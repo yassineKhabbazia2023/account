@@ -104,7 +104,7 @@ public static class MapAccountDbToAccountModel
         {
             OfficeId = source.OfficeId,
             Name = source.Name,
-            Address = source.AddressEntity.MapToAddress(),
+            Address = source.Address.MapToAddress(),
             PhoneNumber = source.PhoneNumber,
             AddressId = source.AddressId,
         };
@@ -116,7 +116,7 @@ public static class MapAccountDbToAccountModel
         {
             OfficeId = source.OfficeId,
             Name = source.Name,
-            AddressEntity = source!.Address!.MapToAddressEntity(),
+            Address = source!.Address!.MapToAddressEntity(),
             PhoneNumber = source.PhoneNumber,
             AddressId = source.AddressId,
         };

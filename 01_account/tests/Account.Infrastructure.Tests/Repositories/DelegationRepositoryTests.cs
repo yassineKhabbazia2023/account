@@ -39,10 +39,6 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task CreateDelegationAsync_ShouldThrowNotFoundException_WhenNoExistingContactsFound()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-      .UseInMemoryDatabase(Guid.NewGuid().ToString())
-      .Options;
-
         CreateDelegationRequest createDelegationRequest = _fixture
             .Build<CreateDelegationRequest>()
             .Create();
@@ -52,28 +48,22 @@ public class DelegationRepositoryTests
             .CreateMany(3)
             .ToList();
 
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             var repos = new DelegationRepository(context);
 
             var action = async () => await repos.CreateDelegationAsync(createDelegationRequest, roleRequestList);
 
             var exception = await action.Should().ThrowAsync<NotFoundException>();
-            var contactIds = createDelegationRequest.DelegationDetails.Select(x => x.DelegateeId).ToList();
-            contactIds.Add(createDelegationRequest.DelegatorId);
 
-            exception.WithMessage(Errors.NotFoundContactsMessage);
-            exception.Which.Code.Should().Be(Errors.NotFoundContactsCode);
+            exception.WithMessage("Un des contacts est introuvable");
+            exception.Which.Code.Should().Be("ACC013");
         }
     }
 
     [Fact]
     public async Task CreateDelegationAsync_ShouldThrowNotFoundException_WhenNoExistingAccountsFound()
     {
-        var options = new DbContextOptionsBuilder<AccountContext>()
-      .UseInMemoryDatabase(Guid.NewGuid().ToString())
-      .Options;
-
         CreateDelegationRequest createDelegationRequest = _fixture
             .Build<CreateDelegationRequest>()
             .Create();
@@ -91,6 +81,8 @@ public class DelegationRepositoryTests
                 .Without(x => x.DelegationEntityDelegatee)
                 .Without(x => x.DelegationEntityDelegator)
                 .Without(x => x.RoleEntity)
+                .Without(x => x.RoleLabelEntityContact)
+                .Without(x => x.RoleLabelEntityCreatedByNavigation)
                 .With(c => c.IsActive, true)
                 .With(x => x.ContactId, item.DelegateeId)
                 .Create();
@@ -103,11 +95,13 @@ public class DelegationRepositoryTests
             .Without(x => x.DelegationEntityDelegatee)
                 .Without(x => x.DelegationEntityDelegator)
                 .Without(x => x.RoleEntity)
+                .Without(x => x.RoleLabelEntityContact)
+                .Without(x => x.RoleLabelEntityCreatedByNavigation)
             .Create();
 
         contactEntities.Add(contactDelegator);
 
-        using (var context = new AccountContext(options))
+        using (var context = new AccountContext(_dbContextOptions))
         {
             context.ContactEntity.AddRange(contactEntities);
             context.SaveChanges();
@@ -118,8 +112,8 @@ public class DelegationRepositoryTests
 
             var exception = await action.Should().ThrowAsync<NotFoundException>();
 
-            exception.WithMessage("Un des contacts est introuvable");
-            exception.Which.Code.Should().Be("ACC013");
+            exception.WithMessage("Une des entités est introuvable");
+            exception.Which.Code.Should().Be("ACC012");
         }
     }
 
@@ -877,7 +871,8 @@ public class DelegationRepositoryTests
                 .Without(a => a.DelegationEntityDelegatee)
                 .Without(a => a.DelegationEntityDelegator)
                 .Without(a => a.RoleEntity)
-                .Without(a => a.RoleLabelEntities)
+                .Without(a => a.RoleLabelEntityContact)
+                .Without(a => a.RoleLabelEntityCreatedByNavigation)
                 .Create());
 
             await context.SaveChangesAsync();
@@ -917,7 +912,7 @@ public class DelegationRepositoryTests
                     DelegateeId = delegateeId,
                     Status = delegationStatus[randomStatusindex],
                     Note = $"Note de {contactId}",
-                    Account = _fixture.Build<AccountEntity>().With(a => a.IsActive, true).Without(a => a.Delegation).Without(a => a.RoleEntity).CreateMany(3).ToList()
+                    Account = _fixture.Build<AccountEntity>().With(a => a.IsActive, true).Without(a => a.Delegation).Without(a => a.RoleEntity).Without(a => a.RoleLabelEntity).CreateMany(3).ToList()
                 };
 
                 await context.DelegationEntity.AddAsync(tDelegation);
@@ -927,7 +922,7 @@ public class DelegationRepositoryTests
 
             await context.SaveChangesAsync();
             context.ChangeTracker.Clear();
-            using (var dbContext= new AccountContext(dbContextOptions))
+            using (var dbContext = new AccountContext(dbContextOptions))
             {
                 var repository = new DelegationRepository(dbContext);
 

@@ -206,7 +206,8 @@ public class AccountRepositoryTests
                                             .Without(c => c.DelegationEntityDelegator)
                                             .Without(c => c.RoleEntity)
                                             .Without(c => c.ContactGlobalUniqueId)
-                                            .Without(c => c.RoleLabelEntities)
+                                            .Without(c => c.RoleLabelEntityContact)
+                                            .Without(c => c.RoleLabelEntityCreatedByNavigation)
                                             .With(c => c.Type, "1")
                                             .CreateMany(2)
                                             .ToList();
@@ -218,6 +219,7 @@ public class AccountRepositoryTests
                 var accountMock = _fixture.Build<AccountEntity>()
                                                 .Without(a => a.Delegation)
                                                 .Without(a => a.RoleEntity)
+                                                .Without(a => a.RoleLabelEntity)
                                                 .With(a => a.IsActive, true)
                                                 .With(a => a.DeploymentEntity, deploimentEntityMock)
                                                 .Create();
@@ -243,6 +245,7 @@ public class AccountRepositoryTests
                 var accountMock = _fixture.Build<AccountEntity>()
                                                 .Without(a => a.Delegation)
                                                 .Without(a => a.RoleEntity)
+                                                .Without(a => a.RoleLabelEntity)
                                                 .With(a => a.IsActive, true)
                                                 .With(a => a.DeploymentEntity, deploimentEntityMock)
                                                 .Create();

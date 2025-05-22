@@ -1,5 +1,5 @@
 ﻿{
-   "CodeGenerationMode": 4,
+   "CodeGenerationMode": 5,
    "ContextClassName": "AccountContext",
    "ContextNamespace": null,
    "FilterSchemas": false,
@@ -39,7 +39,15 @@
          "ObjectType": 0
       },
       {
+         "Name": "[account].[Label]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[account].[Naf]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[account].[Office]",
          "ObjectType": 0
       },
       {
@@ -48,6 +56,10 @@
       },
       {
          "Name": "[account].[Role]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[account].[RoleLabel]",
          "ObjectType": 0
       },
       {

@@ -160,7 +160,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                        .Include(x => x.Hub)
                        .Include(x => x.Naf)
                        .Include(x => x.Office)
-                       .Include(x => x.Office.AddressEntity)
+                       .Include(x => x.Office.Address)
                        .Include(x => x.PhoneEntity)
                        .FirstOrDefaultAsync(a => a.AccountId == accountId);
             });

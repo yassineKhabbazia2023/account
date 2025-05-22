@@ -33,6 +33,16 @@ public partial class ContactEntity
     public string Email { get; set; }
 
     /// <summary>
+    /// Le numéro de téléphone du contact
+    /// </summary>
+    public string LandPhone { get; set; }
+
+    /// <summary>
+    /// Le numéro de téléphone portable du contact
+    /// </summary>
+    public string MobilePhone { get; set; }
+
+    /// <summary>
     /// Le type de contact
     /// </summary>
     public string Type { get; set; }
@@ -70,5 +80,7 @@ public partial class ContactEntity
 
     public virtual ICollection<RoleEntity> RoleEntity { get; set; } = new List<RoleEntity>();
 
-    public virtual ICollection<RoleLabelEntity> RoleLabelEntities { get; set; } = new List<RoleLabelEntity>();
+    public virtual ICollection<RoleLabelEntity> RoleLabelEntityContact { get; set; } = new List<RoleLabelEntity>();
+
+    public virtual ICollection<RoleLabelEntity> RoleLabelEntityCreatedByNavigation { get; set; } = new List<RoleLabelEntity>();
 }
