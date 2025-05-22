@@ -3,7 +3,7 @@
 	AccountId INT NOT NULL,
 	ContactId INT NOT NULL, 
 	LabelId INT NOT NULL, 
-	CreatedOn DATETIME NOT NULL DEFAULT GETDATE(),
+	[CreatedDate] DATETIME NOT NULL DEFAULT GETDATE(),
 	CreatedBy INT NOT NULL,
 	PRIMARY KEY (AccountId,ContactId,LabelId),
 	Foreign Key (AccountId) References account.Account(AccountId),

@@ -133,4 +133,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="CollaboratorLabel" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="83f92083-051e-4369-87da-777a540f416b" ChangeDateTime="05/22/2025 08:15:47">
+    <Property Name="ElementName" Value="[account].[RoleLabel].[CreatedOn]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[account].[RoleLabel]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CreatedDate" />
+  </Operation>
 </Operations>
