@@ -205,7 +205,10 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<AccountEntity>();
+            var tAccount = _fixture.Build<AccountEntity>()
+                .Without(a => a.Delegation)
+                .Without(a => a.RoleEntity)
+                .Create();
             context.AccountEntity.Add(tAccount);
             await context.SaveChangesAsync();
 
@@ -214,17 +217,19 @@ public class DelegationRepositoryTests
             var tDelegatee = _fixture.Build<ContactEntity>()
                 .With(c => c.IsActive, true)
                 .With(c => c.ContactId, 124)
+                .Without(c => c.RoleEntity)
+                .Without(c => c.DelegationEntityDelegatee)
+                .Without(c => c.DelegationEntityDelegator)
                 .Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
 
             // Create role
-            var existingRole = _fixture.Build<RoleEntity>()
-                .With(r => r.Account, tAccount)
-                .With(r => r.Contact, tDelegatee)
-                .With(r => r.AccountId, tAccount.AccountId)
-                .With(r => r.ContactId, 124)
-                .Create();
+            var existingRole = new RoleEntity
+            {
+                AccountId = tAccount.AccountId,
+                ContactId = tDelegatee.ContactId,
+            };
             context.RoleEntity.Add(existingRole);
             await context.SaveChangesAsync();
 
@@ -532,7 +537,7 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var contactDelegations = await repository.GetContactDelegationsAsync(tDelegatee.ContactId);
 
-            Assert.Equal(0, contactDelegations.Count);
+            Assert.Empty(contactDelegations);
         }
     }
 
@@ -588,7 +593,7 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var delegationList = await repository.GetDelegationsAsync(tDelegator.ContactId, tDelegatee.ContactId);
 
-            Assert.Equal(1, delegationList.Count);
+            Assert.Single(delegationList);
             var delegation = delegationList.FirstOrDefault();
             Assert.NotNull(delegation);
             Assert.Equal(delegation.StartDate, tDelegation.StartDate);
@@ -653,7 +658,7 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var delegationList = await repository.GetDelegationsAsync(tDelegator.ContactId, tDelegatee.ContactId);
 
-            Assert.Equal(0, delegationList.Count);
+            Assert.Empty(delegationList);
         }
     }
 

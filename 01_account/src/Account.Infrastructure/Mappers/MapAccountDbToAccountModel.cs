@@ -6,12 +6,13 @@ using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Infrastructure.Entities;
+using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Infrastructure.Mappers;
 
 public static class MapAccountDbToAccountModel
 {
-    public static Paging<Core.Models.Account> MapToPaginAccounts(
+    public static Paging<AccountModel> MapToPaginAccounts(
         this ICollection<AccountEntity> source,
         int? contactId,
         int pageNumber,
@@ -19,7 +20,7 @@ public static class MapAccountDbToAccountModel
         int totalPageCalcul)
     {
         return
-            new Paging<Core.Models.Account>()
+            new Paging<AccountModel>()
             {
                 Items = source.MapToAccounts(contactId),
                 CurrentPage = pageNumber,
@@ -44,12 +45,12 @@ public static class MapAccountDbToAccountModel
             };
     }
 
-    public static IEnumerable<Core.Models.Account> MapToAccounts(this ICollection<AccountEntity> source, int? contactId)
+    public static IEnumerable<AccountModel> MapToAccounts(this ICollection<AccountEntity> source, int? contactId)
     {
         return source?.Select(a => a.MapToAccount(contactId)!) ?? [];
     }
 
-    public static Core.Models.Account? MapToAccount(this AccountEntity source, int? contactId)
+    public static AccountModel? MapToAccount(this AccountEntity source, int? contactId)
     {
         if (source == null)
         {
@@ -60,7 +61,7 @@ public static class MapAccountDbToAccountModel
         var currentContact = source.RoleEntity?.FirstOrDefault(r => r.ContactId == contactId);
 
         return
-            new Core.Models.Account
+            new AccountModel
             {
                 AccountId = source.AccountId,
                 AccountGlobalUniqueId = source.AccountGlobalUniqueId,
@@ -76,26 +77,20 @@ public static class MapAccountDbToAccountModel
             };
     }
 
-    public static Core.Models.Account? MapToAccount(this AccountEntity source)
+    public static AccountModel? MapToAccount(this AccountEntity source)
     {
-        if (source == null)
+        return source == null ? null : new AccountModel
         {
-            return null;
-        }
-
-        return
-            new Core.Models.Account
-            {
-                AccountId = source.AccountId,
-                AccountGlobalUniqueId = source.AccountGlobalUniqueId,
-                AccountNumber = source.AccountNumber,
-                LegalName = source.LegalName,
-                OfficeId = source.OfficeId,
-                Office = source.Office?.MapToOffice(),
-                MissionType = source.MissionType,
-                Address = source.MapToAddressDelivery(),
-                Deployment = source.MapToDeployment(),
-            };
+            AccountId = source.AccountId,
+            AccountGlobalUniqueId = source.AccountGlobalUniqueId,
+            AccountNumber = source.AccountNumber,
+            LegalName = source.LegalName,
+            OfficeId = source.OfficeId,
+            Office = source.Office?.MapToOffice(),
+            MissionType = source.MissionType,
+            Address = source.MapToAddressDelivery(),
+            Deployment = source.MapToDeployment(),
+        };
     }
 
     public static Office? MapToOffice(this OfficeEntity source)
@@ -160,13 +155,23 @@ public static class MapAccountDbToAccountModel
             Email = tContact.Email,
             FirstName = tContact.FirstName,
             LastName = tContact.LastName,
+            LandPhone = tContact.LandPhone,
+            MobilePhone = tContact.MobilePhone,
             Status = tContact.Status,
             PersonaName = tContact.PersonaName,
             Office = tContact.Office,
             CreationDate = tContact.CreationDate,
             Type = tContact.Type,
             IsActive = tContact.IsActive,
+            IsCustomerRelation = tContact.RoleEntity.FirstOrDefault()?.IsCustomerRelation,
+            ActionLevel = tContact.RoleEntity.FirstOrDefault()?.ActionLevel ?? 0,
+            Labels = tContact.RoleLabelEntityContact.MapToLabels(),
         };
+    }
+
+    private static IEnumerable<Label> MapToLabels(this IEnumerable<RoleLabelEntity> source)
+    {
+        return source?.Select(l => l.Label.Map() !) ?? Enumerable.Empty<Label>();
     }
 
     public static Deployment? MapToDeployment(this AccountEntity tAccount)

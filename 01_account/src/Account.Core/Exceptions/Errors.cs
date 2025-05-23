@@ -2,8 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Microsoft.AspNetCore.Http;
-
 namespace Pulse.Account.Core.Exceptions
 {
     public static class Errors
@@ -84,7 +82,7 @@ namespace Pulse.Account.Core.Exceptions
         public static readonly string NotFoundApplicationInsightConnectionStringMessage = "Connection string du application insight est null ou vide";
 
         public static readonly string RoleNotFoundCode = "ACC026";
-        public static readonly string RoleNotFoundMessage = "le role accountId {0} et contactId {1} est introuvable";
+        public static readonly string RoleNotFoundMessage = "Le role accountId {0} et contactId {1} est introuvable";
 
         public static readonly string NullDelegationRequestCode = "ACC027";
         public static readonly string NullDelegationRequestMessage = "le Delegation request est null";
@@ -102,9 +100,12 @@ namespace Pulse.Account.Core.Exceptions
         public static readonly string ContactIdAndEmailNullMessage = "Veuillez fournir au moins le ContactId ou l'email.";
 
         public static readonly string CodeAlreadyExistsCode = "ACC032";
-        public static readonly string CodeAlreadyExitsMessage = "Ce code {0} éxiste déja dans le DB!";
+        public static readonly string CodeAlreadyExitsMessage = "Le code {0} existe déjà dans la base.";
 
         public static readonly string RoleLabelAlreadyExistsCode = "ACC033";
-        public static readonly string RoleLabelAlreadyExistsMessage = "Ce Contact a déja ce Label";
+        public static readonly string RoleLabelAlreadyExistsMessage = "Ce contact a déjà ce label.";
+
+        public static readonly string LabelNotFoundCode = "ACC034";
+        public static readonly string LabelNotFoundMessage = "Aucun label trouvé.";
     }
 }

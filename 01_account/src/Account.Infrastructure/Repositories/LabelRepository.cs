@@ -3,6 +3,7 @@
 // </copyright>
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -10,7 +11,6 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
-using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.ExceptionMiddleware.Exceptions;
 
@@ -35,6 +35,11 @@ namespace Pulse.Account.Infrastructure.Repositories
                 .Take(pagination.PageSize)
                 .Skip((pagination.PageNumber - 1) * pagination.PageSize)
                 .Select(x => x.Map()).ToListAsync();
+
+            if (labelEntitites.IsNullOrEmpty())
+            {
+                throw new NoContentException(Errors.LabelNotFoundCode, Errors.LabelNotFoundMessage);
+            }
 
             return new Paging<Label>
             {

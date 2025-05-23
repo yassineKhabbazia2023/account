@@ -24,7 +24,7 @@ namespace Pulse.Account.API.Controllers
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<Label>))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+        [ProducesResponseType(StatusCodes.Status204NoContent, Type = typeof(ErrorResponse))]
         public async Task<IActionResult> GetLabelsAsync([FromQuery] Pagination pagination)
         {
             return Ok(await _labelService.GetLabelsAsync(pagination));

@@ -9,6 +9,7 @@ using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories
 {
@@ -61,7 +62,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         }
 
         [Fact]
-        public async Task GetAsync_WhenNoLabelsExist_ShouldReturnEmptyCollection()
+        public async Task GetAsync_WhenNoLabelsExist_ShouldThrowsNoContentException()
         {
             // Arrange
             using var context = new AccountContext(_dbContextOptions);
@@ -71,11 +72,11 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
             var labelRepository = new LabelRepository(context);
 
             // Act
-            var paginLabels = await labelRepository.GetLabelsAsync(pagination);
+            var result = await Assert.ThrowsAsync<NoContentException>(async () => await labelRepository.GetLabelsAsync(pagination));
 
-            var result = paginLabels.Items.ToList();
             // Assert
-            result.Should().BeEmpty();
+            Assert.Equal("ACC034", result.Code);
+            Assert.Equal("Aucun label trouvé.", result.Message);
         }
     }
 }

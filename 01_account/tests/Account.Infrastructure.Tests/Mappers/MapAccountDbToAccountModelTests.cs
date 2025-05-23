@@ -155,6 +155,21 @@ public class MapAccountDbToAccountModelTests
     public void MapToContact_ShouldMapCorrectly()
     {
         // arrange
+        var label = new LabelEntity
+        {
+            LabelId = 1,
+            Code = "EXPERT_CONSEIL",
+            CollaboratorLabel = "Expert conseil",
+            CustomerLabel = "Conseiller dédié",
+            Business = "ESC",
+            Description = "description",
+            IsVisible = true,
+        };
+        var role = new RoleEntity
+        {
+            IsCustomerRelation = true,
+            ActionLevel = 1,
+        };
         var contactEntity = new ContactEntity
         {
             ContactId = 1,
@@ -165,24 +180,45 @@ public class MapAccountDbToAccountModelTests
             Email = "firstLastUser@test.fr",
             CreationDate = DateTime.Now,
             PersonaName = "toto",
-            Status = "Active"
+            Status = "Active",
+            RoleEntity = new List<RoleEntity>
+            {
+                role
+            },
+            RoleLabelEntityContact = new List<RoleLabelEntity>
+            {
+                new()
+                {
+                    Label = label
+                }
+            }
         };
 
         // act
-        var contact = contactEntity.MapToContact();
+        var result = contactEntity.MapToContact();
 
         // assert
-        contact.Should().NotBeNull();
-        contact.Should().BeOfType<Contact>();
-        contact?.Status.Should().Be(contactEntity.Status);
-        contact?.ContactId.Should().Be(contactEntity.ContactId);
-        contact?.ContactGlobalUniqueId.Should().Be(contactEntity.ContactGlobalUniqueId);
-        contact?.Office.Should().BeEquivalentTo(contactEntity.Office);
-        contact?.FirstName.Should().BeEquivalentTo(contactEntity.FirstName);
-        contact?.LastName.Should().BeEquivalentTo(contactEntity.LastName);
-        contact?.Email.Should().BeEquivalentTo(contactEntity.Email);
-        contact?.CreationDate.Should().Be(contactEntity.CreationDate);
-        contact?.PersonaName.Should().BeEquivalentTo(contactEntity.PersonaName);
+        Assert.NotNull(result);
+        Assert.IsType<Contact>(result);
+        Assert.Equal(contactEntity.ContactId, result.ContactId);
+        Assert.Equal(contactEntity.ContactGlobalUniqueId, result.ContactGlobalUniqueId);
+        Assert.Equal(contactEntity.FirstName, result.FirstName);
+        Assert.Equal(contactEntity.LastName, result.LastName);
+        Assert.Equal(contactEntity.Email, result.Email);
+        Assert.Equal(contactEntity.LandPhone, result.LandPhone);
+        Assert.Equal(contactEntity.MobilePhone, result.MobilePhone);
+        Assert.Equal(contactEntity.Status, result.Status);
+        Assert.Equal(contactEntity.Office, result.Office);
+        Assert.Equal(contactEntity.CreationDate, result.CreationDate);
+        Assert.Equal(contactEntity.PersonaName, result.PersonaName);
+        Assert.Equal(role.IsCustomerRelation, result.IsCustomerRelation);
+        Assert.Equal(role.ActionLevel, result.ActionLevel);
+        Assert.Single(result.Labels!);
+        Assert.Equal(label.Code, result.Labels!.First().Code);
+        Assert.Equal(label.CollaboratorLabel, result.Labels!.First().CollaboratorLabel);
+        Assert.Equal(label.CustomerLabel, result.Labels!.First().CustomerLabel);
+        Assert.Equal(label.Business, result.Labels!.First().Business);
+        Assert.Equal(label.Description, result.Labels!.First().Description);
     }
 
     [Fact]

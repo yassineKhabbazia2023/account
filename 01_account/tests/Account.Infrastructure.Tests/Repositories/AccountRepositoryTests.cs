@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -595,40 +596,114 @@ public class AccountRepositoryTests
         // Arrange
         using var context = new AccountContext(_dbContextOptions);
 
-        _fixture.Customizations.Add(new ContactEntityTypeSpecimenBuilder());
         var resultExpected = new List<Contact>();
-
-        var accountMock = _fixture.Build<AccountEntity>()
-                                        .Without(a => a.Delegation)
-                                        .Without(a => a.RoleEntity)
-                                        .Create();
-
-        for (int i = 0; i < 20; i++)
+        var contactsMock = new List<ContactEntity>
         {
-            var contactMock = _fixture.Build<ContactEntity>()
-                                        .Without(c => c.DelegationEntityDelegatee)
-                                        .Without(c => c.DelegationEntityDelegator)
-                                        .Without(c => c.RoleEntity)
-                                        .Without(c => c.ContactGlobalUniqueId)
-                                        .With(c => c.IsActive, true)
-                                        .Create();
-
-            var roleMock = _fixture.Build<RoleEntity>()
-                                    .With(e => e.ContactId, contactMock.ContactId)
-                                    .With(e => e.Contact, contactMock)
-                                    .With(e => e.AccountId, accountMock.AccountId)
-                                    .With(e => e.Account, accountMock)
-                                    .Create();
-
-            if (type == null || contactMock.Type == type.ToString()!.ToLower())
+            new()
             {
-                contactMock.Type = type.ToString();
-                resultExpected.Add(contactMock.MapToContact()!);
+                ContactId = 11,
+                Email = "email1",
+                FirstName = "firstName1",
+                LastName = "lastName1",
+                PersonaName = "persona1",
+                Type = "collaborator1",
+                IsActive = true,
+                RoleLabelEntityContact = new List<RoleLabelEntity>
+                {
+                    new()
+                    {
+                        AccountId = 10,
+                        ContactId = 11,
+                        LabelId = 1
+                    },
+                    new()
+                    {
+                        AccountId = 10,
+                        ContactId = 11,
+                        LabelId = 2
+                    }
+                },
+                RoleEntity = new List<RoleEntity>
+                {
+                    new()
+                    {
+                        AccountId = 10,
+                        ContactId = 11,
+                        ActionLevel = 0,
+                        IsCustomerRelation = true,
+                        IsDelegation = true,
+                        IsFavorite = true,
+                        IsSignatory = true,
+                    }
+                }
+            },
+            new()
+            {
+                ContactId = 12,
+                Email = "email2",
+                FirstName = "firstName2",
+                LastName = "lastName2",
+                PersonaName = "persona2",
+                Type = "collaborator2",
+                IsActive = true,
+                RoleLabelEntityContact = new List<RoleLabelEntity>
+                {
+                    new()
+                    {
+                        AccountId = 10,
+                        ContactId = 12,
+                        Label = new()
+                        {
+                            LabelId = 1,
+                            Code = "code1",
+                            CollaboratorLabel = "collabLabel1",
+                            CustomerLabel = "clientLabel1",
+                            Business = "ESC",
+                            IsVisible = true
+                        }
+                    },
+                    new()
+                    {
+                        AccountId = 10,
+                        ContactId = 12,
+                        Label = new()
+                        {
+                            LabelId = 2,
+                            Code = "code2",
+                            CollaboratorLabel = "collabLabel2",
+                            CustomerLabel = "clientLabel2",
+                            Business = "ESC",
+                            IsVisible = true
+                        }
+                    }
+                },
+                RoleEntity = new List<RoleEntity>
+                {
+                    new()
+                    {
+                        AccountId = 10,
+                        ContactId = 12,
+                        ActionLevel = 1,
+                        IsCustomerRelation = false,
+                        IsDelegation = false,
+                        IsFavorite = false,
+                        IsSignatory = false,
+                    }
+                }
             }
+        };
 
-            context.RoleEntity.Add(roleMock);
-            context.SaveChanges();
+        if (type == null)
+        {
+            resultExpected.AddRange(contactsMock.Select(c => c.MapToContact()) !);
         }
+        else
+        {
+            resultExpected.AddRange(contactsMock.Where(c => c.Type == type.ToString() !.ToLower()).Select(c => c.MapToContact())!);
+        }
+
+        context.ContactEntity.AddRange(contactsMock);
+        await context.SaveChangesAsync();
 
         var accountRepository = new AccountRepository(context);
         var criteria = new SearchContactsAccountCriteria
@@ -658,7 +733,7 @@ public class AccountRepositoryTests
         pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
 
         // Act
-        var contacts = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, pagination);
+        var contacts = await accountRepository.GetContactsAccountAsync(10, criteria, pagination);
 
         // Assert
         Assert.Equivalent(resultExpected, contacts.Items);
@@ -671,7 +746,6 @@ public class AccountRepositoryTests
         using var context = new AccountContext(_dbContextOptions);
 
         _fixture.Customizations.Add(new ContactEntityTypeSpecimenBuilder());
-        var resultExpected = new List<Contact>();
 
         var accountMock = _fixture.Build<AccountEntity>()
                                         .Without(a => a.Delegation)
@@ -693,7 +767,61 @@ public class AccountRepositoryTests
         Task Accounts() => accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, new Pagination());
 
         // Assert
-        await Assert.ThrowsAsync<BadRequestException>(Accounts);
+        var result = await Assert.ThrowsAsync<BadRequestException>(Accounts);
+        Assert.Equal("ACC019", result.Code);
+        Assert.Equal("Le champ demandé bad n'existe pas", result.Message);
+    }
+
+    [Theory]
+    [InlineData(true, 1)]
+    [InlineData(false, 2)]
+    public async Task GetContactsAccountAsync_WhenIsCustomerRelationCriteria_ShouldFilterOnIsCustomerRelationContacts(bool isCustomerRelation, int expectedId)
+    {
+        // Arrange
+        using var context = new AccountContext(_dbContextOptions);
+
+        var roleIsCustomerRelation = new RoleEntity
+        {
+            AccountId = 1,
+            ContactId = 1,
+            IsCustomerRelation = true
+        };
+        var roleIsNotCustomerRelation = new RoleEntity
+        {
+            AccountId = 1,
+            ContactId = 2,
+            IsCustomerRelation = false
+        };
+
+        var contactIsCustomerRelation = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 1)
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+        var contactIsNotCustomerRelation = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 2)
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+
+        context.ContactEntity.AddRange(new List<ContactEntity> { contactIsCustomerRelation, contactIsNotCustomerRelation });
+        context.RoleEntity.AddRange(new List<RoleEntity> { roleIsCustomerRelation, roleIsNotCustomerRelation });
+        await context.SaveChangesAsync();
+
+        var criteria = new SearchContactsAccountCriteria { IsCustomerRelation = isCustomerRelation };
+
+        var accountRepository = new AccountRepository(context);
+
+        // Act
+        var result = await accountRepository.GetContactsAccountAsync(1, criteria, new Pagination { PageNumber = 1, PageSize = 100 });
+
+        // Assert
+        Assert.NotNull(result);
+
+        var contacts = result.Items;
+        Assert.NotNull(contacts);
+        Assert.Single(contacts);
+        Assert.Equal(expectedId, contacts.First().ContactId);
     }
 
     [Fact]

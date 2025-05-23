@@ -9,20 +9,17 @@ namespace Pulse.Account.Infrastructure.Mappers.EventsMapper;
 
 public static class MapToContactEntity
 {
-    public static ContactEntity ToContactEntity(this ContactStateEventData source)
+    public static ContactEntity? ToContactEntity(this ContactStateEventData source)
     {
-        if (source == null)
-        {
-            return null!;
-        }
-
-        return new ContactEntity
+        return source == null ? null : new ContactEntity
         {
             ContactId = source.ContactId,
             ContactGlobalUniqueId = source.ContactGlobalUniqueId ?? Guid.Empty,
             FirstName = source.FirstName,
             LastName = source.LastName,
             Email = source.Email,
+            LandPhone = source.LandPhone,
+            MobilePhone = source.MobilePhone,
             Office = source.Office,
             PersonaName = source.PersonaName,
             Status = source.Status,
@@ -43,6 +40,8 @@ public static class MapToContactEntity
         destination.FirstName = source.FirstName;
         destination.LastName = source.LastName;
         destination.Email = source.Email;
+        destination.LandPhone = source.LandPhone;
+        destination.MobilePhone = source.MobilePhone;
         destination.Office = source.Office;
         destination.PersonaName = source.PersonaName;
         destination.Status = source.Status;

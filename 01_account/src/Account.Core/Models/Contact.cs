@@ -19,6 +19,10 @@ public class Contact
 
     public required string Email { get; set; }
 
+    public string? LandPhone { get; set; }
+
+    public string? MobilePhone { get; set; }
+
     public string? Type { get; set; }
 
     public string? Status { get; set; }
@@ -30,4 +34,10 @@ public class Contact
     public DateTime? CreationDate { get; set; }
 
     public bool IsActive { get; set; }
+
+    public bool? IsCustomerRelation { get; set; }
+
+    public int ActionLevel { get; set; }
+
+    public IEnumerable<Label>? Labels { get; set; }
 }

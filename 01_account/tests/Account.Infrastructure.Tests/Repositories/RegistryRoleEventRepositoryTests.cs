@@ -211,11 +211,17 @@ public class RegistryRoleEventRepositoryTests
 
         var account = _fixture.Build<AccountEntity>()
             .With(a => a.AccountId, 2)
+            .Without(a => a.RoleEntity)
+            .Without(a => a.RoleLabelEntity)
+            .Without(a => a.Delegation)
             .Create();
         context.AccountEntity.Add(account);
         var contact = _fixture.Build<ContactEntity>()
             .With(c => c.ContactId, 2)
             .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
             .Create();
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();

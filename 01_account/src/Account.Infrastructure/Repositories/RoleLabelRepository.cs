@@ -40,7 +40,7 @@ namespace Pulse.Account.Infrastructure.Repositories
 
             if (!roleExists)
             {
-                throw new NotFoundException(Errors.RoleNotFoundCode, Errors.RoleNotFoundMessage);
+                throw new NotFoundException(Errors.RoleNotFoundCode, string.Format(Errors.RoleNotFoundMessage, roleLabel.AccountId, roleLabel.ContactId));
             }
 
             var roleLabelEntity = roleLabel.Map();

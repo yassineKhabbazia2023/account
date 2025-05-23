@@ -66,7 +66,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
             // Assert
             await act.Should().ThrowAsync<ConflictException>()
-                .WithMessage(Errors.RoleLabelAlreadyExistsMessage);
+                .WithMessage("Ce contact a déjà ce label.");
         }
 
         [Fact]
@@ -86,7 +86,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
             // Assert
             await act.Should().ThrowAsync<NotFoundException>()
-                .WithMessage(Errors.RoleNotFoundMessage);
+                .WithMessage("Le role accountId 999 et contactId 999 est introuvable");
         }
 
         [Fact]

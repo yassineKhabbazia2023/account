@@ -13,4 +13,6 @@ public class SearchContactsAccountCriteria
     public Sorting? Sorting { get; set; }
 
     public ContactType? Type { get; set; }
+
+    public bool? IsCustomerRelation { get; set; }
 }
