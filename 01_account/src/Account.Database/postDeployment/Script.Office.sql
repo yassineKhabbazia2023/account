@@ -9,195 +9,232 @@ Modèle de script de post-déploiement
                SELECT * FROM [$(TableName)]
 --------------------------------------------------------------------------------------
 */
-INSERT INTO [account].[Office] ([Name], [PhoneNumber], [AddressId]) VALUES
-('Juillan - Tarbes', '05 62 34 78 15', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = 'Téléport 7' AND ZipCode = '65290' AND City = 'Juillan')),
-('Menton', '04 93 35 48 83', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '6 rue Frères Picco' AND ZipCode = '06500' AND City = 'Menton')),
-('Fort de France', '05 96 71 92 72', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = 'Quartiers de Dillon Stade' AND ZipCode = '97200' AND City = 'Fort-de-France')),
-('Le Havre', '0232747600', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '46 rue Louis Eudier' AND ZipCode = '76600' AND City = 'Le Havre')),
-('Dijon', '03 80 78 86 10', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '6 rue Paul Verlaine' AND ZipCode = '21000' AND City = 'Dijon')),
-('Pont-Audemer', '02 32 41 51 34', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '8 rue du Président Georges Pompidou' AND ZipCode = '27500' AND City = 'Pont-Audemer')),
-('Saintes', '05 46 74 29 91', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '2 chemin des Marsais ' AND ZipCode = '17100' AND City = 'Saintes')),
-('Lyon', '04 37 64 75 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '21 rue Antonin Laborde' AND ZipCode = '69009' AND City = 'Lyon')),
-('Tours', '02 47 63 47 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '2 Allée Colette Duval Bât J' AND ZipCode = '37100' AND City = 'Tours')),
-('Sens', '03 86 64 03 98', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = 'ECO PARC, 49 Rue du 19 Mars 1962' AND ZipCode = '89100' AND City = 'Sens')),
-('Saint-Sauveur - Luxeuil-les-Bains', '03 84 93 78 22', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '66 rue Edouard Herriot' AND ZipCode = '70300' AND City = 'Saint-Sauveur')),
-('Mantes-la-Jolie', '01 34 00 15 15', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '48 avenue République' AND ZipCode = '78200' AND City = 'Mantes-la-Jolie')),
-('Creysse - Bergerac', '05 53 61 72 24', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '32 ZA La Nauve Nord' AND ZipCode = '24100' AND City = 'Creysse')),
-('Epernay', '03 26 51 16 26', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '2 allée Côte des Blancs' AND ZipCode = '51200' AND City = 'Epernay')),
-('Gensac-la-Pallue - Cognac', '05 45 35 13 01', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '27 route de la Grue' AND ZipCode = '16130' AND City = 'Gensac-la-Pallue')),
-('Nantes', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '7 boulevard Albert Einstein' AND ZipCode = '44300' AND City = 'Nantes')),
-('Saint-Dié-des-Vosges', '03 29 55 27 08', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '11 Parc d''activités' AND ZipCode = '88470' AND City = 'Saint-Michel-sur-Meurthe')),
-('Coutances', '02 33 45 42 62', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '9000 rue de la nouvelle idée' AND ZipCode = '50200' AND City = 'Coutances')),
-('Montceau-les-Mines', '03 85 57 06 06', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '15 rue Carnot' AND ZipCode = '71300' AND City = 'Montceau-les-Mines')),
-('Châteauroux', '02 54 22 03 31', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '3 Place Colbert' AND ZipCode = '36003' AND City = 'Châteauroux')),
-('Vire', '02 31 67 73 12', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '13 rue Emile Zimmermann' AND ZipCode = '14500' AND City = 'Vire')),
-('Lisieux', '02 31 31 33 02', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '94 Route de Cormeilles' AND ZipCode = '14100' AND City = 'Lisieux')),
-('Angoulême', '05 45 90 37 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '144 Route de Vars' AND ZipCode = '16160' AND City = 'Gond-Pontouvre')),
-('Le Mans', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '40 place République' AND ZipCode = '72000' AND City = 'Le Mans')),
-('Cayenne', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '8 rue des Bourdons' AND ZipCode = '97300' AND City = 'Cayenne')),
-('Mulhouse', '03 89 32 94 94', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '60 rue Jacques Mugnier' AND ZipCode = '68100' AND City = 'Mulhouse')),
-('Mérignac - Bordeaux', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '11 rue Archimède' AND ZipCode = '33700' AND City = 'Mérignac')),
-('Beauvais', '03 44 05 46 46', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '8 avenue du Beauvaisis' AND ZipCode = '60000' AND City = 'Beauvais')),
-('Bois Guillaume - Rouen', '02 35 52 68 60', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '71 avenue Antoine de Saint Exupéry' AND ZipCode = '76230' AND City = 'Bois Guillaume')),
-('Etampes', '01 64 94 38 18', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 rue des Epinants' AND ZipCode = '91150' AND City = 'Etampes')),
-('Pontarlier', '03 81 46 28 50', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 rue Hélène Boucher' AND ZipCode = '25300' AND City = 'Pontarlier')),
-('Alençon', '02 33 82 33 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '22 bis rue Villeneuve' AND ZipCode = '61000' AND City = 'Alençon')),
-('Pissotte - Fontenay-le-Compte', '02 51 69 95 10', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = 'D938T' AND ZipCode = '85200' AND City = 'Pissotte')),
-('La Teste-de-Buch', '05 57 52 33 50', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '3B avenue Binghamton' AND ZipCode = '33260' AND City = 'La Teste-de-Buch')),
-('Louhans', '03 85 75 71 11', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '41 rue Colombier' AND ZipCode = '71500' AND City = 'Louhans')),
-('Marmande', '05 53 20 35 10', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '10 rue Arago' AND ZipCode = '47200' AND City = 'Marmande')),
-('Yquelon - Granville', '02 33 50 07 76', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '132 Rue Bocagère' AND ZipCode = '50400' AND City = 'Yquelon')),
-('Limoges', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '25 rue Hubert Curien' AND ZipCode = '87000' AND City = 'Limoges')),
-('Rezé', '02 28 07 05 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '2 rue Joseph Conrad' AND ZipCode = '44400' AND City = 'Rezé')),
-('Saint-Avold', '03 87 91 11 43', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '5 rue de la Piscine' AND ZipCode = '57500' AND City = 'Saint-Avold')),
-('Bessines - Niort', '05 49 73 55 55', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 rue du Champ de la Motte' AND ZipCode = '79000' AND City = 'Bessines')),
-('Saint-Germain-en-Laye', '01 39 73 73 64', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '3 place André Malraux' AND ZipCode = '78100' AND City = 'Saint-Germain-en-Laye')),
-('Lens', '03 21 14 71 50', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '19 rue Diderot' AND ZipCode = '62300' AND City = 'Lens')),
-('Montélimar', '04 75 92 01 80', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '114 route de Châteauneuf' AND ZipCode = '26200' AND City = 'Montélimar')),
-('Hérouville Saint Clair - Caen', '02 14 37 55 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '5 avenue Dubna' AND ZipCode = '14200' AND City = 'Hérouville Saint Clair')),
-('Nevers', '03 86 71 64 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '72 rue Marzy' AND ZipCode = '58000' AND City = 'Nevers')),
-('Alès', '04 66 30 72 40', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '4 rue de la Bergerie' AND ZipCode = '30100' AND City = 'Alès')),
-('Quimperlé', '02 98 96 23 76', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '46 B rue Eric Tarbarly' AND ZipCode = '29300' AND City = 'Quimperlé')),
-('Bourges', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '14 allée Charles Pathé' AND ZipCode = '18000' AND City = 'Bourges')),
-('Metz', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '2 rue Pierre Simon de Laplace' AND ZipCode = '57070' AND City = 'Metz')),
-('Péronne', '03 22 73 38 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '29 rue St Sauveur' AND ZipCode = '80200' AND City = 'Péronne')),
-('Montargis', '02 38 95 00 72', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '47 rue Jean Jaurès' AND ZipCode = '45200' AND City = 'Montargis')),
-('Montluçon', '04 70 08 22 70', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '3 avenue Marx Dormoy' AND ZipCode = '03100' AND City = 'Montluçon')),
-('Montbéliard', '03 81 91 15 64', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1655 Allée Henri Hugoniot' AND ZipCode = '25600' AND City = 'Brognard')),
-('Saint-Malo', '02 23 18 00 35', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '25 rue de l''Arkansas' AND ZipCode = '35400' AND City = 'Saint-Malo')),
-('Brive-la-Gaillarde', '05 55 17 06 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '34 bis Avenue Alsace Lorraine' AND ZipCode = '19100' AND City = 'Brive-la-Gaillarde')),
-('La Roche-sur-Yon', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '14 rue Montesquieu' AND ZipCode = '85000' AND City = 'La Roche-sur-Yon')),
-('Bitche', '03 87 96 05 14', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '3 avenue Gén de Gaulle' AND ZipCode = '57230' AND City = 'Bitche')),
-('Nice', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '51 avenue Simone Veil' AND ZipCode = '06200' AND City = 'Nice')),
-('Gérardmer', '03 29 63 36 78', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '55 rue François Mitterrand' AND ZipCode = '88400' AND City = 'Gérardmer')),
-('Saint-Grégoire - Rennes', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = 'rue Terre Victoria' AND ZipCode = '35760' AND City = 'Saint-Grégoire')),
-('Bayonne - Biarritz / Anglet', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '52 Avenue du 8 mai 1945' AND ZipCode = '64100' AND City = 'Bayonne')),
-('Sarrebourg', '03 87 03 19 38', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '6 Terrasse Normandie' AND ZipCode = '57400' AND City = 'Sarrebourg')),
-('Gien', '02 38 05 11 20', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '49 avenue Chantemerle' AND ZipCode = '45500' AND City = 'Gien')),
-('Roanne', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '39 rue Jean Moulin' AND ZipCode = '42300' AND City = 'Roanne')),
-('Nancy', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '35 avenue 20ème Corps' AND ZipCode = '54000' AND City = 'Nancy')),
-('Saint-Jean-du-Falga - Pamiers', '05 34 01 33 83', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '2 rue Mille Hommes' AND ZipCode = '09100' AND City = 'Saint-Jean-du-Falga')),
-('Nîmes', '04 66 68 91 91', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '308 allée de l''Amérique Latine' AND ZipCode = '30900' AND City = 'Nîmes')),
-('Marcq-en-Baroeul - Lille', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '36 rue Eugène Jacquet' AND ZipCode = '59700' AND City = 'Marcq-en-Baroeul')),
-('Louviers', '02 32 25 26 10', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '2 boulevard Maréchal Joffre' AND ZipCode = '27400' AND City = 'Louviers')),
-('Puget-sur-Argens', '04 94 19 68 41', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '76 boulevard Progrès' AND ZipCode = '83480' AND City = 'Puget-sur-Argens')),
-('Chambéry', '04 79 62 99 11', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '24 rue Aristide Bergès' AND ZipCode = '73000' AND City = 'Chambéry')),
-('Blois', '02 54 90 26 60', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '21 rue de la Vallée Maillard' AND ZipCode = '41043' AND City = 'Blois')),
-('Albi', '05 63 48 75 10', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = 'ZAC Les Portes d''Albi' AND ZipCode = '81000' AND City = 'Albi')),
-('Baie-Mahault', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = 'Les Galeries de Houelbourg' AND ZipCode = '97122' AND City = 'Baie-Mahault')),
-('Abbeville', '03 22 99 90 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = 'ZAC des 2 Vallées' AND ZipCode = '80100' AND City = 'Abbeville')),
-('Montévrain', '01 71 58 02 20', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 rue de Berlin' AND ZipCode = '77144' AND City = 'MONTEVRAIN')),
-('Creil', '03 44 55 97 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '2 allée de la Forêt d''Halatte' AND ZipCode = '60100' AND City = 'Creil')),
-('Montpellier', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '251 rue Euclide' AND ZipCode = '34000' AND City = 'Montpellier')),
-('Labège - Toulouse', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '224 rue Carmin' AND ZipCode = '31670' AND City = 'Labège')),
-('Sarreguemines', '03 87 95 61 87', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '31 rue Poincaré' AND ZipCode = '57200' AND City = 'Sarreguemines')),
-('Charleville-Mézières', '03 24 33 25 57', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '6 place de la Gare' AND ZipCode = '08000' AND City = 'Charleville-Mézières')),
-('Morteau', '03 81 67 19 23', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '8 avenue Gén Charles de Gaulle' AND ZipCode = '25500' AND City = 'Morteau')),
-('Lons-le-Saunier', '03 84 87 15 45', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '17 place Verdun' AND ZipCode = '39000' AND City = 'Lons-le-Saunier')),
-('Auxerre', '03 86 72 90 70', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 avenue St Georges' AND ZipCode = '89000' AND City = 'Auxerre')),
-('Montigny-le-Bretonneux - Versailles / Saint-Quentin', '01 39 30 53 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '60 avenue Centre' AND ZipCode = '78180' AND City = 'Montigny-le-Bretonneux')),
-('Guéret', '05 55 52 08 55', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '12 avenue Berry' AND ZipCode = '23000' AND City = 'Guéret')),
-('Châlons-en-Champagne', '03 26 65 17 15', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '14 avenue du Général George Smith Patton' AND ZipCode = '51000' AND City = 'Châlons-en-Champagne')),
-('Ambert', '04 73 82 22 44', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '3 avenue de la Dore' AND ZipCode = '63600' AND City = 'Ambert')),
-('Thyez - Cluses', '04 50 18 23 03', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '156 rue Sorbiers' AND ZipCode = '74300' AND City = 'Thyez')),
-('Castres', '05 63 71 82 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '17 rue Léon Blum' AND ZipCode = '81100' AND City = 'Castres')),
-('Maisons-Laffitte', '01 61 04 72 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '4 Avenue de Saint-Germain' AND ZipCode = '78600' AND City = 'Maisons-Laffitte')),
-('Maubeuge', '03 27 62 48 88', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '48 boulevard de l''Europe' AND ZipCode = '59600' AND City = 'Maubeuge')),
-('Digoin', '03 85 88 55 80', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '6 rue Charmes' AND ZipCode = '71160' AND City = 'Digoin')),
-('Roubaix', '03 28 45 90 89', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 Grande Rue' AND ZipCode = '59100' AND City = 'Roubaix')),
-('Dax', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '178 avenue St Vincent de Paul' AND ZipCode = '40100' AND City = 'Dax')),
-('Angers', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '12 rue Papiau de la Verrie' AND ZipCode = '49000' AND City = 'Angers')),
-('Saint-Quentin', '03 23 05 78 80', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '50 rue de Baudreuil' AND ZipCode = '02100' AND City = 'Saint-Quentin')),
-('Brest', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '12 quai Armand Considère' AND ZipCode = '29200' AND City = 'Brest')),
-('Paris La Défense - Courbevoie', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '2 avenue Gambetta' AND ZipCode = '92400' AND City = 'Courbevoie')),
-('Orléans', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '14 avenue des Droits de l''homme' AND ZipCode = '45100' AND City = 'Orléans')),
-('Aurillac', '04 71 45 49 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '38 bis avenue Georges Pompidou' AND ZipCode = '15000' AND City = 'Aurillac')),
-('Neuville-lès-Dieppe', '02 35 82 87 21', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '32 rue Louis Blériot' AND ZipCode = '76370' AND City = 'Neuville-lès-Dieppe')),
-('Moulins', '04 70 46 37 03', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '24 rue des Tanneries' AND ZipCode = '03000' AND City = 'Moulins')),
-('Boulogne-sur-Mer', '03 21 33 48 58', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 boulevard Auguste Mariette' AND ZipCode = '62200' AND City = 'Boulogne-sur-Mer')),
-('Beausoleil', '04 93 41 79 79', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '33 boulevard Gén Leclerc' AND ZipCode = '06240' AND City = 'Beausoleil')),
-('Troyes', '03 25 82 65 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '42 rue Paix' AND ZipCode = '10000' AND City = 'Troyes')),
-('Hauts-de-Bienne - Morez', '03 84 33 10 57', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '194 rue République' AND ZipCode = '39400' AND City = 'Hauts-de-Bienne')),
-('Graulhet', '05 63 42 22 30', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '20 boulevard Georges Ravari' AND ZipCode = '81300' AND City = 'Graulhet')),
-('Deauville', '02 31 88 49 45', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1A rue Victor Hugo' AND ZipCode = '14800' AND City = 'Deauville')),
-('La-Ferté-sous-Jouarre', '01 60 22 20 06', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '15 rue Merlette' AND ZipCode = '77260' AND City = 'La-Ferté-sous-Jouarre')),
-('Cholet', '02 41 49 53 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '28 rue Terre-Neuve' AND ZipCode = '49300' AND City = 'Cholet')),
-('Arras', '03 21 24 38 40', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '3/5 Grand''Place' AND ZipCode = '62000' AND City = 'Arras')),
-('Clermont-Ferrand', '04 73 44 70 65', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '8 rue Eric de Cromières' AND ZipCode = '63000' AND City = 'Clermont-Ferrand')),
-('Yutz - Thionville', '03 82 86 00 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '5 rue Lorraine' AND ZipCode = '57970' AND City = 'Yutz')),
-('Saint-André', '02 62 46 01 12', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '665 rue de la gare' AND ZipCode = '97440' AND City = 'Saint-André')),
-('Perpignan', '04 68 66 43 70', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1098 avenue Eole' AND ZipCode = '66000' AND City = 'Perpignan')),
-('Saint-Denis', '02 62 94 84 24', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '4 rue Camille Vergoz' AND ZipCode = '97400' AND City = 'Saint-Denis')),
-('Manosque', '04 92 71 74 20', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '79 avenue Mar De Lattre de Tassigny' AND ZipCode = '04100' AND City = 'Manosque')),
-('Coulounieix Chamiers - Périgueux', '05 53 03 54 22', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '445 boulevard des saveurs' AND ZipCode = '24660' AND City = 'Coulounieix Chamiers')),
-('Frangy', '04 50 44 82 85', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '685 rue Grand Pont' AND ZipCode = '74270' AND City = 'Frangy')),
-('Mâcon', '03 85 21 51 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '106 rue du Km 400' AND ZipCode = '71000' AND City = 'Mâcon')),
-('Bourgoin-Jallieu', '04 74 93 24 09', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 allée Claude Chappe' AND ZipCode = '38300' AND City = 'Bourgoin-Jallieu')),
-('Hazebrouck', '03 28 44 22 30', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '80 boulevard de l''Abbé Lemire' AND ZipCode = '59190' AND City = 'Hazebrouck')),
-('Thiers', '04 73 80 23 86', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '60 avenue Léo Lagrange' AND ZipCode = '63300' AND City = 'Thiers')),
-('Rodez', '05 65 77 21 60', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '42 rue Docteur Théodore Mathieu' AND ZipCode = '12000' AND City = 'Rodez')),
-('Haguenau', '03 88 93 08 81', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '95 route Marienthal' AND ZipCode = '67500' AND City = 'Haguenau')),
-('Dunkerque', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '124 rue du magasin général' AND ZipCode = '59140' AND City = 'Dunkerque')),
-('Narbonne', '04 68 65 40 60', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = 'avenue du Forum' AND ZipCode = '11100' AND City = 'Narbonne')),
-('Villeneuve-de-Rivière - Saint Gaudens', '05 62 00 80 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '34 rue du Moulin d''Aulne' AND ZipCode = '31800' AND City = 'Villeneuve-de-Rivière')),
-('Montauban', '05 63 91 70 50', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '240 avenue Espagne' AND ZipCode = '82000' AND City = 'Montauban')),
-('Cergy', '01 34 22 94 20', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '4/6 rue des Chauffours' AND ZipCode = '95000' AND City = 'CERGY')),
-('Marseille', '04 96 20 53 60', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '132 Boulevard Michelet' AND ZipCode = '13272' AND City = 'Marseille')),
-('Boé - Agen', '05 53 77 59 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 rue Albert Ferrasse' AND ZipCode = '47550' AND City = 'Boé')),
-('Davezieux - Annonay', '04 75 33 73 60', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '57 rue Pins' AND ZipCode = '07430' AND City = 'Davezieux')),
-('Forbach', '03 87 29 26 60', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '8 avenue St Rémy' AND ZipCode = '57600' AND City = 'Forbach')),
-('Chalon-sur-Saône', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '32 quai St Cosme' AND ZipCode = '71100' AND City = 'Chalon-sur-Saône')),
-('Chinon', '02 47 93 10 18', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '8 quai Pasteur' AND ZipCode = '37500' AND City = 'Chinon')),
-('Fougères', '02 99 17 20 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 rue Pellerine' AND ZipCode = '35300' AND City = 'Fougères')),
-('Epinal', '03 29 31 10 31', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '44 rue Léo Valentin' AND ZipCode = '88000' AND City = 'Epinal')),
-('Cahors', '05 65 24 71 26', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '58 place de la Résistance' AND ZipCode = '46000' AND City = 'Cahors')),
-('Valenciennes', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 rue de l''Hôpital de Siège' AND ZipCode = '59300' AND City = 'Valenciennes')),
-('Béthune', '03 61 88 42 07', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '25 Rue Eugène Haynaut' AND ZipCode = '62400' AND City = 'Béthune')),
-('Mont-de-Marsan', '05 58 75 02 48', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = 'Immeuble Office 31' AND ZipCode = '40280' AND City = 'Saint-Pierre-du-Mont')),
-('Saint-Claude', '03 84 33 63 70', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '8 rue Reybert' AND ZipCode = '39200' AND City = 'Saint-Claude')),
-('Auch', '05 62 60 64 40', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '152 Route d''Agen' AND ZipCode = '32000' AND City = 'Auch')),
-('Toulon', '04 94 18 90 70', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '270 Avenue Jean D''Ormesson Immeuble Le Nobel' AND ZipCode = '83160' AND City = 'LA VALETTE DU VAR')),
-('Plérin - Saint-Brieuc', '02 96 79 82 79', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '9 rue Hélène Boucher' AND ZipCode = '22190' AND City = 'Plérin')),
-('Amiens', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '7 avenue du Danemark' AND ZipCode = '80090' AND City = 'Amiens')),
-('Valbonne', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '291 rue Albert Caquot' AND ZipCode = '06560' AND City = 'Valbonne')),
-('Chartres', '02 37 28 10 89', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '6 avenue Nicolas Conté' AND ZipCode = '28000' AND City = 'Chartres')),
-('Reims', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '19 rue Clément Ader' AND ZipCode = '51100' AND City = 'Reims')),
-('Saint-Lô', '02 33 77 14 14', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '89 rue des Cinq Chemins' AND ZipCode = '50000' AND City = 'Saint-Lô')),
-('Paris - Liège', '01 40 82 19 63', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '36 rue de Liège' AND ZipCode = '75008' AND City = 'Paris')),
-('Challans', '02 51 49 34 47', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '16 rue Owen Chamberlain' AND ZipCode = '85300' AND City = 'Challans')),
-('Meaux', '01 60 25 18 32', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '18 avenue du Président Salvador Allende' AND ZipCode = '77100' AND City = 'Meaux')),
-('Le Creusot', '03 85 78 87 87', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '90B allée Hubert Curien' AND ZipCode = '71200' AND City = 'Le Creusot')),
-('Longwy', '03 82 23 00 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '38 rue Legendre' AND ZipCode = '54400' AND City = 'Longwy')),
-('Evreux', '02 32 28 19 60', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '67 rue Pierre Tal Coat' AND ZipCode = '27000' AND City = 'Evreux')),
-('Annecy le Vieux', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '15 rue Pré-Paillard' AND ZipCode = '74940' AND City = 'Annecy le Vieux')),
-('Reichstett - Strasbourg', '03 88 18 23 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '200 rue de Paris' AND ZipCode = '67116' AND City = 'Reichstett')),
-('Quimper', '02 98 64 54 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '9 rue Président Sadate' AND ZipCode = '29000' AND City = 'Quimper')),
-('Saint-Nazaire', '02 40 45 80 28', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '43 boulevard Université' AND ZipCode = '44600' AND City = 'Saint-Nazaire')),
-('Valence', '04 75 41 89 89', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '49 Avenue des Langories' AND ZipCode = '26000' AND City = 'Valence')),
-('Saint-Marcellin', '04 76 64 94 64', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '44 cours Vallier' AND ZipCode = '38160' AND City = 'Saint-Marcellin')),
-('Cherbourg - Octeville', '02 33 88 36 38', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '28 avenue Mar de Lattre de Tassigny' AND ZipCode = '50100' AND City = 'Cherbourg-Octeville')),
-('Lagord - La Rochelle', '05 46 50 57 67', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '4 rue Louis Tardy' AND ZipCode = '17140' AND City = 'Lagord')),
-('Vitré', '02 23 55 13 60', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '8 rue Epinettes' AND ZipCode = '35500' AND City = 'Vitré')),
-('Besançon', '03 81 41 70 10', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '17 Avenue des Montboucons' AND ZipCode = '25000' AND City = 'Besançon')),
-('Pau', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '4 boulevard Lucien Favre' AND ZipCode = '64000' AND City = 'Pau')),
-('Cambrai', '03 27 82 95 10', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '20-22 rue du Maréchal de Lattre De Tassigny' AND ZipCode = '59400' AND City = 'Cambrai')),
-('Saint-Etienne', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '4 allée Drouot' AND ZipCode = '42100' AND City = 'Saint-Etienne')),
-('Sète', '04 67 46 65 10', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = 'Espace Don Quichotte,' AND ZipCode = '34200' AND City = 'Sète')),
-('Longuenesse - Saint-Omer', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '47 avenue Clemenceau' AND ZipCode = '62219' AND City = 'Longuenesse')),
-('Douai', '03 27 88 91 58', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '39 rue Mongat' AND ZipCode = '59500' AND City = 'Douai')),
-('Remiremont', '03 29 26 29 26', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '16 rue des Cardes' AND ZipCode = '88200' AND City = 'Remiremont')),
-('Carcassonne', '04 68 25 91 64', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1876 boulevard François Xavier Faffeur' AND ZipCode = '11000' AND City = 'Carcassonne')),
-('Vannes', '02 97 63 13 73', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 rue Anita Conti' AND ZipCode = '56000' AND City = 'Vannes')),
-('Saint-Jean-de-Luz', '05 59 51 58 60', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '24 zone industrielle Layats' AND ZipCode = '64500' AND City = 'Saint-Jean-de-Luz')),
-('Calais', '03 21 46 74 44', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '10 Boulevard du Parc' AND ZipCode = '62231' AND City = 'Coquelles')),
-('Laval', '02 43 59 06 40', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '7 rue Paradis' AND ZipCode = '53000' AND City = 'Laval')),
-('Lorient', '02 97 83 44 32', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1 rue Honoré d''Estienne d''Orves' AND ZipCode = '56100' AND City = 'Lorient')),
-('Montreuil-sur-Mer', '03 61 22 10 01', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '7 Place Gambetta' AND ZipCode = '62170' AND City = 'Montreuil-sur-Mer')),
-('Compiègne', '03 44 55 97 00', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '114 Rue Saint Lazare' AND ZipCode = '60200' AND City = 'Compiègne')),
-('La Lande-Patry - Flers', '02 33 65 06 60', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '8 Rue Denys Boudard' AND ZipCode = '61100' AND City = 'La Lande-Patry')),
-('Bourg-en-Bresse', '04 74 50 31 80', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '24 boulevard Jules Ferry' AND ZipCode = '01000' AND City = 'Bourg-en-Bresse')),
-('Poitiers', '05 49 38 45 50', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '7 rue Eugène Chevreul' AND ZipCode = '86000' AND City = 'Poitiers')),
-('Meylan - Grenoble', 'Numéro non trouvé', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '51 Chemin de la Taillat' AND ZipCode = '38240' AND City = 'Meylan')),
-('Colmar', '03 89 21 73 21', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '4E avenue du Général de Gaulle' AND ZipCode = '68000' AND City = 'Colmar')),
-('Avignon', '04 90 81 17 30', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '1335 Route de l''Aérodrome' AND ZipCode = '84140' AND City = 'Avignon')),
-('Saint-Girons', '05 34 14 39 20', (SELECT TOP 1 AddressId FROM [account].[Address] WHERE AddressLine1 = '16 rue du Quai' AND ZipCode = '09200' AND City = 'Saint-Girons'))
+CREATE OR ALTER PROCEDURE [account].[InsertOfficeIfNotExists] 
+    @OfficeName NVARCHAR(255),
+    @PhoneNumber NVARCHAR(50),
+    @AddressLine1 NVARCHAR(255),
+    @ZipCode NVARCHAR(20),
+    @City NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @Result INT;
+    DECLARE @AddressId INT;
+    SET @Result = 0;
+    SELECT @AddressId = AddressId
+    FROM [account].[Address]
+    WHERE AddressLine1 = @AddressLine1
+      AND ZipCode = @ZipCode
+      AND City = @City;
+
+    IF @AddressId IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM [account].[Office] WHERE [Name] = @OfficeName
+    )
+    BEGIN
+        INSERT INTO [account].[Office] ([Name], [PhoneNumber], [AddressId])
+        VALUES (@OfficeName, @PhoneNumber, @AddressId);
+        SET @Result = 1;
+        RETURN;
+    END
+
+    IF @Result = 1
+        PRINT 'Office inserted successfully.';
+    ELSE
+        PRINT 'Office already exists or address not found.';
+END
+GO
+
+-- Example usage
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Juillan - Tarbes', @PhoneNumber = '05 62 34 78 15', @AddressLine1 = 'Téléport 7', @ZipCode = '65290', @City = 'Juillan';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Menton', @PhoneNumber = '04 93 35 48 83', @AddressLine1 = '6 rue Frères Picco', @ZipCode = '06500', @City = 'Menton';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Fort de France', @PhoneNumber = '05 96 71 92 72', @AddressLine1 = 'Quartiers de Dillon Stade', @ZipCode = '97200', @City = 'Fort-de-France';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Le Havre', @PhoneNumber = '0232747600', @AddressLine1 = '46 rue Louis Eudier', @ZipCode = '76600', @City = 'Le Havre';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Dijon', @PhoneNumber = '03 80 78 86 10', @AddressLine1 = '6 rue Paul Verlaine', @ZipCode = '21000', @City = 'Dijon';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Pont-Audemer', @PhoneNumber = '02 32 41 51 34', @AddressLine1 = '8 rue du Président Georges Pompidou', @ZipCode = '27500', @City = 'Pont-Audemer';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saintes', @PhoneNumber = '05 46 74 29 91', @AddressLine1 = '2 chemin des Marsais ', @ZipCode = '17100', @City = 'Saintes';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Lyon', @PhoneNumber = '04 37 64 75 00', @AddressLine1 = '21 rue Antonin Laborde', @ZipCode = '69009', @City = 'Lyon';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Tours', @PhoneNumber = '02 47 63 47 00', @AddressLine1 = '2 Allée Colette Duval Bât J', @ZipCode = '37100', @City = 'Tours';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Sens', @PhoneNumber = '03 86 64 03 98', @AddressLine1 = 'ECO PARC, 49 Rue du 19 Mars 1962', @ZipCode = '89100', @City = 'Sens';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Sauveur - Luxeuil-les-Bains', @PhoneNumber = '03 84 93 78 22', @AddressLine1 = '66 rue Edouard Herriot', @ZipCode = '70300', @City = 'Saint-Sauveur';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Mantes-la-Jolie', @PhoneNumber = '01 34 00 15 15', @AddressLine1 = '48 avenue République', @ZipCode = '78200', @City = 'Mantes-la-Jolie';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Creysse - Bergerac', @PhoneNumber = '05 53 61 72 24', @AddressLine1 = '32 ZA La Nauve Nord', @ZipCode = '24100', @City = 'Creysse';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Epernay', @PhoneNumber = '03 26 51 16 26', @AddressLine1 = '2 allée Côte des Blancs', @ZipCode = '51200', @City = 'Epernay';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Gensac-la-Pallue - Cognac', @PhoneNumber = '05 45 35 13 01', @AddressLine1 = '27 route de la Grue', @ZipCode = '16130', @City = 'Gensac-la-Pallue';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Nantes', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '7 boulevard Albert Einstein', @ZipCode = '44300', @City = 'Nantes';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Dié-des-Vosges', @PhoneNumber = '03 29 55 27 08', @AddressLine1 = '11 Parc d''activités', @ZipCode = '88470', @City = 'Saint-Michel-sur-Meurthe';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Coutances', @PhoneNumber = '02 33 45 42 62', @AddressLine1 = '9000 rue de la nouvelle idée', @ZipCode = '50200', @City = 'Coutances';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Montceau-les-Mines', @PhoneNumber = '03 85 57 06 06', @AddressLine1 = '15 rue Carnot', @ZipCode = '71300', @City = 'Montceau-les-Mines';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Châteauroux', @PhoneNumber = '02 54 22 03 31', @AddressLine1 = '3 Place Colbert', @ZipCode = '36003', @City = 'Châteauroux';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Vire', @PhoneNumber = '02 31 67 73 12', @AddressLine1 = '13 rue Emile Zimmermann', @ZipCode = '14500', @City = 'Vire';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Lisieux', @PhoneNumber = '02 31 31 33 02', @AddressLine1 = '94 Route de Cormeilles', @ZipCode = '14100', @City = 'Lisieux';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Angoulême', @PhoneNumber = '05 45 90 37 00', @AddressLine1 = '144 Route de Vars', @ZipCode = '16160', @City = 'Gond-Pontouvre';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Le Mans', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '40 place République', @ZipCode = '72000', @City = 'Le Mans';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Cayenne', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '8 rue des Bourdons', @ZipCode = '97300', @City = 'Cayenne';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Mulhouse', @PhoneNumber = '03 89 32 94 94', @AddressLine1 = '60 rue Jacques Mugnier', @ZipCode = '68100', @City = 'Mulhouse';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Mérignac - Bordeaux', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '11 rue Archimède', @ZipCode = '33700', @City = 'Mérignac';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Beauvais', @PhoneNumber = '03 44 05 46 46', @AddressLine1 = '8 avenue du Beauvaisis', @ZipCode = '60000', @City = 'Beauvais';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Bois Guillaume - Rouen', @PhoneNumber = '02 35 52 68 60', @AddressLine1 = '71 avenue Antoine de Saint Exupéry', @ZipCode = '76230', @City = 'Bois Guillaume';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Etampes', @PhoneNumber = '01 64 94 38 18', @AddressLine1 = '1 rue des Epinants', @ZipCode = '91150', @City = 'Etampes';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Pontarlier', @PhoneNumber = '03 81 46 28 50', @AddressLine1 = '1 rue Hélène Boucher', @ZipCode = '25300', @City = 'Pontarlier';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Alençon', @PhoneNumber = '02 33 82 33 00', @AddressLine1 = '22 bis rue Villeneuve', @ZipCode = '61000', @City = 'Alençon';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Pissotte - Fontenay-le-Compte', @PhoneNumber = '02 51 69 95 10', @AddressLine1 = 'D938T', @ZipCode = '85200', @City = 'Pissotte';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'La Teste-de-Buch', @PhoneNumber = '05 57 52 33 50', @AddressLine1 = '3B avenue Binghamton', @ZipCode = '33260', @City = 'La Teste-de-Buch';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Louhans', @PhoneNumber = '03 85 75 71 11', @AddressLine1 = '41 rue Colombier', @ZipCode = '71500', @City = 'Louhans';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Marmande', @PhoneNumber = '05 53 20 35 10', @AddressLine1 = '10 rue Arago', @ZipCode = '47200', @City = 'Marmande';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Yquelon - Granville', @PhoneNumber = '02 33 50 07 76', @AddressLine1 = '132 Rue Bocagère', @ZipCode = '50400', @City = 'Yquelon';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Limoges', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '25 rue Hubert Curien', @ZipCode = '87000', @City = 'Limoges';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Rezé', @PhoneNumber = '02 28 07 05 00', @AddressLine1 = '2 rue Joseph Conrad', @ZipCode = '44400', @City = 'Rezé';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Avold', @PhoneNumber = '03 87 91 11 43', @AddressLine1 = '5 rue de la Piscine', @ZipCode = '57500', @City = 'Saint-Avold';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Bessines - Niort', @PhoneNumber = '05 49 73 55 55', @AddressLine1 = '1 rue du Champ de la Motte', @ZipCode = '79000', @City = 'Bessines';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Germain-en-Laye', @PhoneNumber = '01 39 73 73 64', @AddressLine1 = '3 place André Malraux', @ZipCode = '78100', @City = 'Saint-Germain-en-Laye';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Lens', @PhoneNumber = '03 21 14 71 50', @AddressLine1 = '19 rue Diderot', @ZipCode = '62300', @City = 'Lens';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Montélimar', @PhoneNumber = '04 75 92 01 80', @AddressLine1 = '114 route de Châteauneuf', @ZipCode = '26200', @City = 'Montélimar';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Hérouville Saint Clair - Caen', @PhoneNumber = '02 14 37 55 00', @AddressLine1 = '5 avenue Dubna', @ZipCode = '14200', @City = 'Hérouville Saint Clair';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Nevers', @PhoneNumber = '03 86 71 64 00', @AddressLine1 = '72 rue Marzy', @ZipCode = '58000', @City = 'Nevers';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Alès', @PhoneNumber = '04 66 30 72 40', @AddressLine1 = '4 rue de la Bergerie', @ZipCode = '30100', @City = 'Alès';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Quimperlé', @PhoneNumber = '02 98 96 23 76', @AddressLine1 = '46 B rue Eric Tarbarly', @ZipCode = '29300', @City = 'Quimperlé';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Bourges', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '14 allée Charles Pathé', @ZipCode = '18000', @City = 'Bourges';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Metz', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '2 rue Pierre Simon de Laplace', @ZipCode = '57070', @City = 'Metz';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Péronne', @PhoneNumber = '03 22 73 38 00', @AddressLine1 = '29 rue St Sauveur', @ZipCode = '80200', @City = 'Péronne';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Montargis', @PhoneNumber = '02 38 95 00 72', @AddressLine1 = '47 rue Jean Jaurès', @ZipCode = '45200', @City = 'Montargis';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Montluçon', @PhoneNumber = '04 70 08 22 70', @AddressLine1 = '3 avenue Marx Dormoy', @ZipCode = '03100', @City = 'Montluçon';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Montbéliard', @PhoneNumber = '03 81 91 15 64', @AddressLine1 = '1655 Allée Henri Hugoniot', @ZipCode = '25600', @City = 'Brognard';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Malo', @PhoneNumber = '02 23 18 00 35', @AddressLine1 = '25 rue de l''Arkansas', @ZipCode = '35400', @City = 'Saint-Malo';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Brive-la-Gaillarde', @PhoneNumber = '05 55 17 06 00', @AddressLine1 = '34 bis Avenue Alsace Lorraine', @ZipCode = '19100', @City = 'Brive-la-Gaillarde';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'La Roche-sur-Yon', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '14 rue Montesquieu', @ZipCode = '85000', @City = 'La Roche-sur-Yon';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Bitche', @PhoneNumber = '03 87 96 05 14', @AddressLine1 = '3 avenue Gén de Gaulle', @ZipCode = '57230', @City = 'Bitche';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Nice', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '51 avenue Simone Veil', @ZipCode = '06200', @City = 'Nice';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Gérardmer', @PhoneNumber = '03 29 63 36 78', @AddressLine1 = '55 rue François Mitterrand', @ZipCode = '88400', @City = 'Gérardmer';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Grégoire - Rennes', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = 'rue Terre Victoria', @ZipCode = '35760', @City = 'Saint-Grégoire';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Bayonne - Biarritz / Anglet', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '52 Avenue du 8 mai 1945', @ZipCode = '64100', @City = 'Bayonne';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Sarrebourg', @PhoneNumber = '03 87 03 19 38', @AddressLine1 = '6 Terrasse Normandie', @ZipCode = '57400', @City = 'Sarrebourg';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Gien', @PhoneNumber = '02 38 05 11 20', @AddressLine1 = '49 avenue Chantemerle', @ZipCode = '45500', @City = 'Gien';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Roanne', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '39 rue Jean Moulin', @ZipCode = '42300', @City = 'Roanne';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Nancy', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '35 avenue 20ème Corps', @ZipCode = '54000', @City = 'Nancy';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Jean-du-Falga - Pamiers', @PhoneNumber = '05 34 01 33 83', @AddressLine1 = '2 rue Mille Hommes', @ZipCode = '09100', @City = 'Saint-Jean-du-Falga';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Nîmes', @PhoneNumber = '04 66 68 91 91', @AddressLine1 = '308 allée de l''Amérique Latine', @ZipCode = '30900', @City = 'Nîmes';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Marcq-en-Baroeul - Lille', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '36 rue Eugène Jacquet', @ZipCode = '59700', @City = 'Marcq-en-Baroeul';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Louviers', @PhoneNumber = '02 32 25 26 10', @AddressLine1 = '2 boulevard Maréchal Joffre', @ZipCode = '27400', @City = 'Louviers';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Puget-sur-Argens', @PhoneNumber = '04 94 19 68 41', @AddressLine1 = '76 boulevard Progrès', @ZipCode = '83480', @City = 'Puget-sur-Argens';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Chambéry', @PhoneNumber = '04 79 62 99 11', @AddressLine1 = '24 rue Aristide Bergès', @ZipCode = '73000', @City = 'Chambéry';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Blois', @PhoneNumber = '02 54 90 26 60', @AddressLine1 = '21 rue de la Vallée Maillard', @ZipCode = '41043', @City = 'Blois';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Albi', @PhoneNumber = '05 63 48 75 10', @AddressLine1 = 'ZAC Les Portes d''Albi', @ZipCode = '81000', @City = 'Albi';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Baie-Mahault', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = 'Les Galeries de Houelbourg', @ZipCode = '97122', @City = 'Baie-Mahault';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Abbeville', @PhoneNumber = '03 22 99 90 00', @AddressLine1 = 'ZAC des 2 Vallées', @ZipCode = '80100', @City = 'Abbeville';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Montévrain', @PhoneNumber = '01 71 58 02 20', @AddressLine1 = '1 rue de Berlin', @ZipCode = '77144', @City = 'MONTEVRAIN';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Creil', @PhoneNumber = '03 44 55 97 00', @AddressLine1 = '2 allée de la Forêt d''Halatte', @ZipCode = '60100', @City = 'Creil';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Montpellier', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '251 rue Euclide', @ZipCode = '34000', @City = 'Montpellier';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Labège - Toulouse', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '224 rue Carmin', @ZipCode = '31670', @City = 'Labège';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Sarreguemines', @PhoneNumber = '03 87 95 61 87', @AddressLine1 = '31 rue Poincaré', @ZipCode = '57200', @City = 'Sarreguemines';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Charleville-Mézières', @PhoneNumber = '03 24 33 25 57', @AddressLine1 = '6 place de la Gare', @ZipCode = '08000', @City = 'Charleville-Mézières';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Morteau', @PhoneNumber = '03 81 67 19 23', @AddressLine1 = '8 avenue Gén Charles de Gaulle', @ZipCode = '25500', @City = 'Morteau';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Lons-le-Saunier', @PhoneNumber = '03 84 87 15 45', @AddressLine1 = '17 place Verdun', @ZipCode = '39000', @City = 'Lons-le-Saunier';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Auxerre', @PhoneNumber = '03 86 72 90 70', @AddressLine1 = '1 avenue St Georges', @ZipCode = '89000', @City = 'Auxerre';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Montigny-le-Bretonneux - Versailles / Saint-Quentin', @PhoneNumber = '01 39 30 53 00', @AddressLine1 = '60 avenue Centre', @ZipCode = '78180', @City = 'Montigny-le-Bretonneux';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Guéret', @PhoneNumber = '05 55 52 08 55', @AddressLine1 = '12 avenue Berry', @ZipCode = '23000', @City = 'Guéret';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Châlons-en-Champagne', @PhoneNumber = '03 26 65 17 15', @AddressLine1 = '14 avenue du Général George Smith Patton', @ZipCode = '51000', @City = 'Châlons-en-Champagne';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Ambert', @PhoneNumber = '04 73 82 22 44', @AddressLine1 = '3 avenue de la Dore', @ZipCode = '63600', @City = 'Ambert';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Thyez - Cluses', @PhoneNumber = '04 50 18 23 03', @AddressLine1 = '156 rue Sorbiers', @ZipCode = '74300', @City = 'Thyez';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Castres', @PhoneNumber = '05 63 71 82 00', @AddressLine1 = '17 rue Léon Blum', @ZipCode = '81100', @City = 'Castres';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Maisons-Laffitte', @PhoneNumber = '01 61 04 72 00', @AddressLine1 = '4 Avenue de Saint-Germain', @ZipCode = '78600', @City = 'Maisons-Laffitte';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Maubeuge', @PhoneNumber = '03 27 62 48 88', @AddressLine1 = '48 boulevard de l''Europe', @ZipCode = '59600', @City = 'Maubeuge';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Digoin', @PhoneNumber = '03 85 88 55 80', @AddressLine1 = '6 rue Charmes', @ZipCode = '71160', @City = 'Digoin';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Roubaix', @PhoneNumber = '03 28 45 90 89', @AddressLine1 = '1 Grande Rue', @ZipCode = '59100', @City = 'Roubaix';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Dax', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '178 avenue St Vincent de Paul', @ZipCode = '40100', @City = 'Dax';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Angers', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '12 rue Papiau de la Verrie', @ZipCode = '49000', @City = 'Angers';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Quentin', @PhoneNumber = '03 23 05 78 80', @AddressLine1 = '50 rue de Baudreuil', @ZipCode = '02100', @City = 'Saint-Quentin';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Brest', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '12 quai Armand Considère', @ZipCode = '29200', @City = 'Brest';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Paris La Défense - Courbevoie', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '2 avenue Gambetta', @ZipCode = '92400', @City = 'Courbevoie';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Orléans', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '14 avenue des Droits de l''homme', @ZipCode = '45100', @City = 'Orléans';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Aurillac', @PhoneNumber = '04 71 45 49 00', @AddressLine1 = '38 bis avenue Georges Pompidou', @ZipCode = '15000', @City = 'Aurillac';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Neuville-lès-Dieppe', @PhoneNumber = '02 35 82 87 21', @AddressLine1 = '32 rue Louis Blériot', @ZipCode = '76370', @City = 'Neuville-lès-Dieppe';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Moulins', @PhoneNumber = '04 70 46 37 03', @AddressLine1 = '24 rue des Tanneries', @ZipCode = '03000', @City = 'Moulins';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Boulogne-sur-Mer', @PhoneNumber = '03 21 33 48 58', @AddressLine1 = '1 boulevard Auguste Mariette', @ZipCode = '62200', @City = 'Boulogne-sur-Mer';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Beausoleil', @PhoneNumber = '04 93 41 79 79', @AddressLine1 = '33 boulevard Gén Leclerc', @ZipCode = '06240', @City = 'Beausoleil';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Troyes', @PhoneNumber = '03 25 82 65 00', @AddressLine1 = '42 rue Paix', @ZipCode = '10000', @City = 'Troyes';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Hauts-de-Bienne - Morez', @PhoneNumber = '03 84 33 10 57', @AddressLine1 = '194 rue République', @ZipCode = '39400', @City = 'Hauts-de-Bienne';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Graulhet', @PhoneNumber = '05 63 42 22 30', @AddressLine1 = '20 boulevard Georges Ravari', @ZipCode = '81300', @City = 'Graulhet';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Deauville', @PhoneNumber = '02 31 88 49 45', @AddressLine1 = '1A rue Victor Hugo', @ZipCode = '14800', @City = 'Deauville';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'La-Ferté-sous-Jouarre', @PhoneNumber = '01 60 22 20 06', @AddressLine1 = '15 rue Merlette', @ZipCode = '77260', @City = 'La-Ferté-sous-Jouarre';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Cholet', @PhoneNumber = '02 41 49 53 00', @AddressLine1 = '28 rue Terre-Neuve', @ZipCode = '49300', @City = 'Cholet';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Arras', @PhoneNumber = '03 21 24 38 40', @AddressLine1 = '3/5 Grand''Place', @ZipCode = '62000', @City = 'Arras';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Clermont-Ferrand', @PhoneNumber = '04 73 44 70 65', @AddressLine1 = '8 rue Eric de Cromières', @ZipCode = '63000', @City = 'Clermont-Ferrand';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Yutz - Thionville', @PhoneNumber = '03 82 86 00 00', @AddressLine1 = '5 rue Lorraine', @ZipCode = '57970', @City = 'Yutz';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-André', @PhoneNumber = '02 62 46 01 12', @AddressLine1 = '665 rue de la gare', @ZipCode = '97440', @City = 'Saint-André';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Perpignan', @PhoneNumber = '04 68 66 43 70', @AddressLine1 = '1098 avenue Eole', @ZipCode = '66000', @City = 'Perpignan';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Denis', @PhoneNumber = '02 62 94 84 24', @AddressLine1 = '4 rue Camille Vergoz', @ZipCode = '97400', @City = 'Saint-Denis';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Manosque', @PhoneNumber = '04 92 71 74 20', @AddressLine1 = '79 avenue Mar De Lattre de Tassigny', @ZipCode = '04100', @City = 'Manosque';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Coulounieix Chamiers - Périgueux', @PhoneNumber = '05 53 03 54 22', @AddressLine1 = '445 boulevard des saveurs', @ZipCode = '24660', @City = 'Coulounieix Chamiers';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Frangy', @PhoneNumber = '04 50 44 82 85', @AddressLine1 = '685 rue Grand Pont', @ZipCode = '74270', @City = 'Frangy';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Mâcon', @PhoneNumber = '03 85 21 51 00', @AddressLine1 = '106 rue du Km 400', @ZipCode = '71000', @City = 'Mâcon';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Bourgoin-Jallieu', @PhoneNumber = '04 74 93 24 09', @AddressLine1 = '1 allée Claude Chappe', @ZipCode = '38300', @City = 'Bourgoin-Jallieu';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Hazebrouck', @PhoneNumber = '03 28 44 22 30', @AddressLine1 = '80 boulevard de l''Abbé Lemire', @ZipCode = '59190', @City = 'Hazebrouck';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Thiers', @PhoneNumber = '04 73 80 23 86', @AddressLine1 = '60 avenue Léo Lagrange', @ZipCode = '63300', @City = 'Thiers';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Rodez', @PhoneNumber = '05 65 77 21 60', @AddressLine1 = '42 rue Docteur Théodore Mathieu', @ZipCode = '12000', @City = 'Rodez';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Haguenau', @PhoneNumber = '03 88 93 08 81', @AddressLine1 = '95 route Marienthal', @ZipCode = '67500', @City = 'Haguenau';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Dunkerque', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '124 rue du magasin général', @ZipCode = '59140', @City = 'Dunkerque';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Narbonne', @PhoneNumber = '04 68 65 40 60', @AddressLine1 = 'avenue du Forum', @ZipCode = '11100', @City = 'Narbonne';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Villeneuve-de-Rivière - Saint Gaudens', @PhoneNumber = '05 62 00 80 00', @AddressLine1 = '34 rue du Moulin d''Aulne', @ZipCode = '31800', @City = 'Villeneuve-de-Rivière';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Montauban', @PhoneNumber = '05 63 91 70 50', @AddressLine1 = '240 avenue Espagne', @ZipCode = '82000', @City = 'Montauban';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Cergy', @PhoneNumber = '01 34 22 94 20', @AddressLine1 = '4/6 rue des Chauffours', @ZipCode = '95000', @City = 'CERGY';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Marseille', @PhoneNumber = '04 96 20 53 60', @AddressLine1 = '132 Boulevard Michelet', @ZipCode = '13272', @City = 'Marseille';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Boé - Agen', @PhoneNumber = '05 53 77 59 00', @AddressLine1 = '1 rue Albert Ferrasse', @ZipCode = '47550', @City = 'Boé';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Davezieux - Annonay', @PhoneNumber = '04 75 33 73 60', @AddressLine1 = '57 rue Pins', @ZipCode = '07430', @City = 'Davezieux';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Forbach', @PhoneNumber = '03 87 29 26 60', @AddressLine1 = '8 avenue St Rémy', @ZipCode = '57600', @City = 'Forbach';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Chalon-sur-Saône', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '32 quai St Cosme', @ZipCode = '71100', @City = 'Chalon-sur-Saône';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Chinon', @PhoneNumber = '02 47 93 10 18', @AddressLine1 = '8 quai Pasteur', @ZipCode = '37500', @City = 'Chinon';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Fougères', @PhoneNumber = '02 99 17 20 00', @AddressLine1 = '1 rue Pellerine', @ZipCode = '35300', @City = 'Fougères';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Epinal', @PhoneNumber = '03 29 31 10 31', @AddressLine1 = '44 rue Léo Valentin', @ZipCode = '88000', @City = 'Epinal';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Cahors', @PhoneNumber = '05 65 24 71 26', @AddressLine1 = '58 place de la Résistance', @ZipCode = '46000', @City = 'Cahors';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Valenciennes', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '1 rue de l''Hôpital de Siège', @ZipCode = '59300', @City = 'Valenciennes';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Béthune', @PhoneNumber = '03 61 88 42 07', @AddressLine1 = '25 Rue Eugène Haynaut', @ZipCode = '62400', @City = 'Béthune';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Mont-de-Marsan', @PhoneNumber = '05 58 75 02 48', @AddressLine1 = 'Immeuble Office 31', @ZipCode = '40280', @City = 'Saint-Pierre-du-Mont';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Claude', @PhoneNumber = '03 84 33 63 70', @AddressLine1 = '8 rue Reybert', @ZipCode = '39200', @City = 'Saint-Claude';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Auch', @PhoneNumber = '05 62 60 64 40', @AddressLine1 = '152 Route d''Agen', @ZipCode = '32000', @City = 'Auch';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Toulon', @PhoneNumber = '04 94 18 90 70', @AddressLine1 = '270 Avenue Jean D''Ormesson Immeuble Le Nobel', @ZipCode = '83160', @City = 'LA VALETTE DU VAR';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Plérin - Saint-Brieuc', @PhoneNumber = '02 96 79 82 79', @AddressLine1 = '9 rue Hélène Boucher', @ZipCode = '22190', @City = 'Plérin';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Amiens', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '7 avenue du Danemark', @ZipCode = '80090', @City = 'Amiens';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Valbonne', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '291 rue Albert Caquot', @ZipCode = '06560', @City = 'Valbonne';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Chartres', @PhoneNumber = '02 37 28 10 89', @AddressLine1 = '6 avenue Nicolas Conté', @ZipCode = '28000', @City = 'Chartres';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Reims', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '19 rue Clément Ader', @ZipCode = '51100', @City = 'Reims';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Lô', @PhoneNumber = '02 33 77 14 14', @AddressLine1 = '89 rue des Cinq Chemins', @ZipCode = '50000', @City = 'Saint-Lô';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Paris - Liège', @PhoneNumber = '01 40 82 19 63', @AddressLine1 = '36 rue de Liège', @ZipCode = '75008', @City = 'Paris';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Challans', @PhoneNumber = '02 51 49 34 47', @AddressLine1 = '16 rue Owen Chamberlain', @ZipCode = '85300', @City = 'Challans';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Meaux', @PhoneNumber = '01 60 25 18 32', @AddressLine1 = '18 avenue du Président Salvador Allende', @ZipCode = '77100', @City = 'Meaux';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Le Creusot', @PhoneNumber = '03 85 78 87 87', @AddressLine1 = '90B allée Hubert Curien', @ZipCode = '71200', @City = 'Le Creusot';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Longwy', @PhoneNumber = '03 82 23 00 00', @AddressLine1 = '38 rue Legendre', @ZipCode = '54400', @City = 'Longwy';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Evreux', @PhoneNumber = '02 32 28 19 60', @AddressLine1 = '67 rue Pierre Tal Coat', @ZipCode = '27000', @City = 'Evreux';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Annecy le Vieux', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '15 rue Pré-Paillard', @ZipCode = '74940', @City = 'Annecy le Vieux';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Reichstett - Strasbourg', @PhoneNumber = '03 88 18 23 00', @AddressLine1 = '200 rue de Paris', @ZipCode = '67116', @City = 'Reichstett';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Quimper', @PhoneNumber = '02 98 64 54 00', @AddressLine1 = '9 rue Président Sadate', @ZipCode = '29000', @City = 'Quimper';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Nazaire', @PhoneNumber = '02 40 45 80 28', @AddressLine1 = '43 boulevard Université', @ZipCode = '44600', @City = 'Saint-Nazaire';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Valence', @PhoneNumber = '04 75 41 89 89', @AddressLine1 = '49 Avenue des Langories', @ZipCode = '26000', @City = 'Valence';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Marcellin', @PhoneNumber = '04 76 64 94 64', @AddressLine1 = '44 cours Vallier', @ZipCode = '38160', @City = 'Saint-Marcellin';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Cherbourg - Octeville', @PhoneNumber = '02 33 88 36 38', @AddressLine1 = '28 avenue Mar de Lattre de Tassigny', @ZipCode = '50100', @City = 'Cherbourg-Octeville';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Lagord - La Rochelle', @PhoneNumber = '05 46 50 57 67', @AddressLine1 = '4 rue Louis Tardy', @ZipCode = '17140', @City = 'Lagord';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Vitré', @PhoneNumber = '02 23 55 13 60', @AddressLine1 = '8 rue Epinettes', @ZipCode = '35500', @City = 'Vitré';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Besançon', @PhoneNumber = '03 81 41 70 10', @AddressLine1 = '17 Avenue des Montboucons', @ZipCode = '25000', @City = 'Besançon';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Pau', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '4 boulevard Lucien Favre', @ZipCode = '64000', @City = 'Pau';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Cambrai', @PhoneNumber = '03 27 82 95 10', @AddressLine1 = '20-22 rue du Maréchal de Lattre De Tassigny', @ZipCode = '59400', @City = 'Cambrai';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Etienne', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '4 allée Drouot', @ZipCode = '42100', @City = 'Saint-Etienne';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Sète', @PhoneNumber = '04 67 46 65 10', @AddressLine1 = 'Espace Don Quichotte,', @ZipCode = '34200', @City = 'Sète';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Longuenesse - Saint-Omer', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '47 avenue Clemenceau', @ZipCode = '62219', @City = 'Longuenesse';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Douai', @PhoneNumber = '03 27 88 91 58', @AddressLine1 = '39 rue Mongat', @ZipCode = '59500', @City = 'Douai';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Remiremont', @PhoneNumber = '03 29 26 29 26', @AddressLine1 = '16 rue des Cardes', @ZipCode = '88200', @City = 'Remiremont';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Carcassonne', @PhoneNumber = '04 68 25 91 64', @AddressLine1 = '1876 boulevard François Xavier Faffeur', @ZipCode = '11000', @City = 'Carcassonne';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Vannes', @PhoneNumber = '02 97 63 13 73', @AddressLine1 = '1 rue Anita Conti', @ZipCode = '56000', @City = 'Vannes';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Jean-de-Luz', @PhoneNumber = '05 59 51 58 60', @AddressLine1 = '24 zone industrielle Layats', @ZipCode = '64500', @City = 'Saint-Jean-de-Luz';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Calais', @PhoneNumber = '03 21 46 74 44', @AddressLine1 = '10 Boulevard du Parc', @ZipCode = '62231', @City = 'Coquelles';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Laval', @PhoneNumber = '02 43 59 06 40', @AddressLine1 = '7 rue Paradis', @ZipCode = '53000', @City = 'Laval';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Lorient', @PhoneNumber = '02 97 83 44 32', @AddressLine1 = '1 rue Honoré d''Estienne d''Orves', @ZipCode = '56100', @City = 'Lorient';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Montreuil-sur-Mer', @PhoneNumber = '03 61 22 10 01', @AddressLine1 = '7 Place Gambetta', @ZipCode = '62170', @City = 'Montreuil-sur-Mer';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Compiègne', @PhoneNumber = '03 44 55 97 00', @AddressLine1 = '114 Rue Saint Lazare', @ZipCode = '60200', @City = 'Compiègne';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'La Lande-Patry - Flers', @PhoneNumber = '02 33 65 06 60', @AddressLine1 = '8 Rue Denys Boudard', @ZipCode = '61100', @City = 'La Lande-Patry';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Bourg-en-Bresse', @PhoneNumber = '04 74 50 31 80', @AddressLine1 = '24 boulevard Jules Ferry', @ZipCode = '01000', @City = 'Bourg-en-Bresse';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Poitiers', @PhoneNumber = '05 49 38 45 50', @AddressLine1 = '7 rue Eugène Chevreul', @ZipCode = '86000', @City = 'Poitiers';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Meylan - Grenoble', @PhoneNumber = 'Numéro non trouvé', @AddressLine1 = '51 Chemin de la Taillat', @ZipCode = '38240', @City = 'Meylan';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Colmar', @PhoneNumber = '03 89 21 73 21', @AddressLine1 = '4E avenue du Général de Gaulle', @ZipCode = '68000', @City = 'Colmar';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Avignon', @PhoneNumber = '04 90 81 17 30', @AddressLine1 = '1335 Route de l''Aérodrome', @ZipCode = '84140', @City = 'Avignon';
+EXEC [account].[InsertOfficeIfNotExists] @OfficeName = 'Saint-Girons', @PhoneNumber = '05 34 14 39 20', @AddressLine1 = '16 rue du Quai', @ZipCode = '09200', @City = 'Saint-Girons';
+
+DROP PROCEDURE [account].[InsertOfficeIfNotExists];
