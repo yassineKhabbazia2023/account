@@ -68,6 +68,7 @@ public static class MapAccountDbToAccountModel
                 AccountNumber = source.AccountNumber,
                 LegalName = source.LegalName,
                 IsFavorite = currentContact?.IsFavorite,
+                IsCustomerRelation = currentContact?.IsCustomerRelation,
                 OfficeId = source.OfficeId,
                 Office = source.Office?.MapToOffice(),
                 Address = source.MapToAddressDelivery(),

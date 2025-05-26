@@ -592,6 +592,12 @@ public class MapAccountDbToAccountModelTests
                 {
                     IsSignatory = true,
                     Contact = new ContactEntity { Type = "Client" }
+                },
+                new RoleEntity
+                {
+                    ContactId = 1,
+                    IsFavorite = true,
+                    IsCustomerRelation = true,
                 }
             },
             AddressEntity = new List<AddressEntity>
@@ -619,6 +625,8 @@ public class MapAccountDbToAccountModelTests
         result.Hub.Should().NotBeNull();
         result.Hub.HubId.Should().Be(1);
         result.Hub.HubName.Should().Be("Test Hub");
+        Assert.True(result.IsFavorite);
+        Assert.True(result.IsCustomerRelation);
     }
 
     [Fact]

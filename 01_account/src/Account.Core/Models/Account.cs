@@ -16,6 +16,8 @@ public class Account
 
     public bool? IsFavorite { get; set; }
 
+    public bool? IsCustomerRelation { get; set; }
+
     public string? MissionType { get; set; }
 
     public int? OfficeId { get; set; }
