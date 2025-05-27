@@ -24,5 +24,5 @@ public interface IRolesService
 
     Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber);
 
-    Task<Role> UpdateRoleRelationClientAsync(int accountId, int contactId, bool isCustomerRelation);
+    Task UpdateRoleCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation);
 }

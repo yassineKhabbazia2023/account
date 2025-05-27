@@ -76,7 +76,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
             // Assert
             Assert.Equal("ACC034", result.Code);
-            Assert.Equal("Aucun label trouvé.", result.Message);
+            Assert.Equal("Aucun libellé trouvé.", result.Message);
         }
     }
 }

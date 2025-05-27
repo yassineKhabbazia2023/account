@@ -66,7 +66,7 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
 
             // Assert
             await act.Should().ThrowAsync<ConflictException>()
-                .WithMessage("Ce contact a déjà ce label.");
+                .WithMessage("Ce contact a déjà ce libellé.");
         }
 
         [Fact]

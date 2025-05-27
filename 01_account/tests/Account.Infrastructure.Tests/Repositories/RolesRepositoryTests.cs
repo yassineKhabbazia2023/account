@@ -17,6 +17,7 @@ using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
 using Pulse.ExceptionMiddleware.Exceptions;
 using AccountModel = Pulse.Account.Core.Models.Account;
+using InvalidOperationExceptionMiddleware = Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
@@ -434,12 +435,22 @@ public class RolesRepositoryTests
         const bool newIsCustomerRelation = true;
 
         using var context = new AccountContext(_dbContextOptions);
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, contactId)
+            .With(c => c.Type, ContactType.Collaborator.ToString())
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Create();
         var roleEntity = new RoleEntity
         {
             AccountId = accountId,
             ContactId = contactId,
             IsCustomerRelation = false
         };
+        context.ContactEntity.Add(contact);
         context.RoleEntity.Add(roleEntity);
         await context.SaveChangesAsync();
 
@@ -447,12 +458,9 @@ public class RolesRepositoryTests
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        var result = await rolesRepository.UpdateRoleRelationClientAsync(accountId, contactId, newIsCustomerRelation);
+        await rolesRepository.UpdateRoleCustomerRelationAsync(accountId, contactId, newIsCustomerRelation);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(newIsCustomerRelation, result.IsCustomerRelation);
-
         var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
         Assert.NotNull(updatedRole);
         Assert.Equal(newIsCustomerRelation, updatedRole.IsCustomerRelation);
@@ -467,14 +475,27 @@ public class RolesRepositoryTests
         const bool newIsCustomerRelation = true;
 
         using var context = new AccountContext(_dbContextOptions);
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, contactId)
+            .With(c => c.Type, ContactType.Collaborator.ToString())
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Create();
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        Func<Task> action = async () => await rolesRepository.UpdateRoleRelationClientAsync(accountId, contactId, newIsCustomerRelation);
+        Func<Task> action = async () => await rolesRepository.UpdateRoleCustomerRelationAsync(accountId, contactId, newIsCustomerRelation);
 
         // Assert
         var exception = await Assert.ThrowsAsync<NotFoundException>(() => action());
-        Assert.Equal(string.Format(Errors.NotFoundRoleMessage, contactId, accountId), exception.Message);
+        Assert.Equal("ACC004", exception.Code);
+        Assert.Equal("Le contact avec l'identifiant 456 n'a aucun role sur l'account 123", exception.Message);
     }
 
     [Fact]
@@ -486,27 +507,66 @@ public class RolesRepositoryTests
         const bool isCustomerRelation = true;
 
         using var context = new AccountContext(_dbContextOptions);
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, contactId)
+            .With(c => c.Type, ContactType.Collaborator.ToString())
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Create();
         var roleEntity = new RoleEntity
         {
             AccountId = accountId,
             ContactId = contactId,
             IsCustomerRelation = isCustomerRelation
         };
+        context.ContactEntity.Add(contact);
         context.RoleEntity.Add(roleEntity);
         await context.SaveChangesAsync();
 
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        var result = await rolesRepository.UpdateRoleRelationClientAsync(accountId, contactId, isCustomerRelation);
+        await rolesRepository.UpdateRoleCustomerRelationAsync(accountId, contactId, isCustomerRelation);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(isCustomerRelation, result.IsCustomerRelation);
-
         var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
         Assert.NotNull(updatedRole);
         Assert.Equal(isCustomerRelation, updatedRole.IsCustomerRelation);
+    }
+
+    [Fact]
+    public async Task UpdateRoleRelationClientAsync_WithClient_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        const int accountId = 123;
+        const int contactId = 456;
+        const bool newIsCustomerRelation = true;
+
+        using var context = new AccountContext(_dbContextOptions);
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, contactId)
+            .With(c => c.Type, ContactType.Customer.ToString())
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Create();
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+
+        var rolesRepository = new RoleRepository(context);
+
+        // Act
+        Func<Task> action = async () => await rolesRepository.UpdateRoleCustomerRelationAsync(accountId, contactId, newIsCustomerRelation);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationExceptionMiddleware>(() => action());
+        Assert.Equal("ACC035", exception.Code);
+        Assert.Equal("Impossible d'ajouter des libellés pour un client.", exception.Message);
     }
 
     [Fact]

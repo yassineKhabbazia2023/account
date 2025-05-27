@@ -18,6 +18,7 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.ExceptionMiddleware.Exceptions;
+using InvalidOperationExceptionMiddleware = Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -171,8 +172,15 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task<Role> UpdateRoleRelationClientAsync(int accountId, int contactId, bool isCustomerRelation)
+    public async Task UpdateRoleCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation)
     {
+        var isCollab = await _accountContext.ContactEntity.AsNoTracking().AnyAsync(c => c.ContactId == contactId && c.Type == ContactType.Collaborator.ToString());
+
+        if (!isCollab)
+        {
+            throw new InvalidOperationExceptionMiddleware(Errors.NoClientLabelCode, Errors.NoClientLabelMessage);
+        }
+
         var roleDb = await _accountContext.RoleEntity.FirstOrDefaultAsync(role => role.AccountId == accountId && role.ContactId == contactId);
 
         if (roleDb is null)
@@ -186,8 +194,6 @@ public class RoleRepository : IRoleRepository
             _accountContext.Entry(roleDb).State = EntityState.Modified;
             await _accountContext.SaveChangesAsync();
         }
-
-        return roleDb!.MapToRole();
     }
 
     public async Task DeleteRoleAsync(int accountId, int contactId)

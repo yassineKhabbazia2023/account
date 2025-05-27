@@ -170,6 +170,16 @@ public class RolesController : ControllerBase
         return Ok();
     }
 
+    [HttpPatch("customer-relation")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult> UpdateRoleCustomerRelationAsync([Required] int accountId, [Required] int contactId, [Required] bool isCustomerRelation)
+    {
+        await _rolesService.UpdateRoleCustomerRelationAsync(accountId, contactId, isCustomerRelation);
+        return Ok();
+    }
+
     /// <summary>
     /// Supprimer le role d'un contact dans une entité morale.
     /// </summary>

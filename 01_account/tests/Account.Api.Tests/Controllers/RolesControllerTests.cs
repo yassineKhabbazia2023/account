@@ -210,7 +210,7 @@ public class RolesControllerTests
     }
 
     [Fact]
-    public async Task UpdateRole_Should_ReturnOkResultAsync()
+    public async Task UpdateRoleSignatoryAsync_Should_ReturnOkResult()
     {
         // Arrange
         var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
@@ -225,6 +225,24 @@ public class RolesControllerTests
         // Assert
         result!.StatusCode.Should().Be(200);
         rolesService.Verify(x => x.UpdateRoleSignatoryAsync(1, 1, true), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateRoleRelationClientAsync_Should_ReturnOkResult()
+    {
+        // Arrange
+        var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
+        rolesService.Setup(service => service.UpdateRoleCustomerRelationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
+            .Returns(Task.CompletedTask);
+        var rolesController = new RolesController(rolesService.Object);
+
+        // Act
+        var actionResult = await rolesController.UpdateRoleCustomerRelationAsync(1, 1, true);
+        var result = actionResult as StatusCodeResult;
+
+        // Assert
+        result!.StatusCode.Should().Be(200);
+        rolesService.Verify(x => x.UpdateRoleCustomerRelationAsync(1, 1, true), Times.Once);
     }
 
     [Fact]
