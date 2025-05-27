@@ -4,6 +4,8 @@
 
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
+using Polly;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
@@ -167,6 +169,43 @@ public class StatisticsRepositoryTests
             Assert.Equal(0, result.ContactInvited);
             Assert.Equal(0, result.ContactDeclared);
             Assert.Equal(1, result.ContactConnected);
+        }
+    }
+
+    [Fact]
+    public async Task GetAccountPercentageCustomerRelationAsync_Should_ReturnsCorrectPercentage()
+    {
+        using (var context = new AccountContext(_options))
+        {
+            var accountsEntity = _fixture.Build<AccountEntity>()
+                .Without(a => a.RoleEntity)
+                .CreateMany(100);
+
+            var accountFirstId = accountsEntity.First().AccountId;
+            var contactId = 1;
+
+            var contactEntity = _fixture.Build<ContactEntity>()
+                                            .With(c => c.Type, ContactType.Collaborator.ToString())
+                                            .With(c => c.ContactId, contactId)
+                                            .Without(c => c.RoleEntity)
+                                            .Create();
+
+            var roleEntity = _fixture.Build<RoleEntity>()
+                                            .With(r => r.ContactId, contactId)
+                                            .With(r => r.AccountId, accountFirstId)
+                                            .With(r => r.IsCustomerRelation, true)
+                                            .With(r => r.Contact, contactEntity)
+                                            .Without(r => r.Account)
+                                            .Create();
+
+            var repository = new StatisticsRepository(context);
+            context.RoleEntity.AddRange(roleEntity);
+            context.AccountEntity.AddRange(accountsEntity);
+            await context.SaveChangesAsync();
+
+            var percentage = await repository.GetAccountPercentageCustomerRelationAsync();
+
+            Assert.Equal(1, percentage);
         }
     }
 }

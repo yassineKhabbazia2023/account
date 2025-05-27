@@ -20,5 +20,10 @@ namespace Pulse.Account.Core.Services
         {
             return await _statisticsRepository.GetStatisticsAsync(contactId);
         }
+
+        public async Task<double> GetAccountPercentageCustomerRelationAsync()
+        {
+            return await _statisticsRepository.GetAccountPercentageCustomerRelationAsync();
+        }
     }
 }

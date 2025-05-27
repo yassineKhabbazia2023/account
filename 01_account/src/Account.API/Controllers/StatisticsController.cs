@@ -35,5 +35,19 @@ namespace Pulse.Account.API.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Récupérer le pourcentage des comptes ayant au moins un contact en relation client.
+        /// </summary>
+        /// <returns>Le pourcentage des comptes ayant au moins un contact en relation client.</returns>
+        [HttpGet("account-customer-relation")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(int))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+        public async Task<ActionResult<Statistics>> GetAccountPercentageCustomerRelation()
+        {
+            var result = await _statisticsService.GetAccountPercentageCustomerRelationAsync();
+
+            return Ok(result);
+        }
     }
 }

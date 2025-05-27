@@ -4,6 +4,7 @@
 
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Notifications.Commons.AzureFunctions.Models;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
@@ -40,6 +41,24 @@ namespace Pulse.Account.Infrastructure.Repositories
 
                 return MapAccountDbToAccountModel.MapToStatistics(accountStats!, contactStats!);
             });
+        }
+
+        public async Task<double> GetAccountPercentageCustomerRelationAsync()
+        {
+            var totalAccounts = await _accountContext.AccountEntity
+                .Select(a => a.AccountId)
+                .Distinct()
+                .CountAsync();
+
+            var accountsWithRelationClient = await _accountContext.RoleEntity
+                .Where(r => r.IsCustomerRelation == true && r.Contact.Type.Equals(ContactType.Collaborator.ToString()))
+                .Select(r => r.AccountId)
+                .Distinct()
+                .CountAsync();
+
+            var percentage = totalAccounts == 0 ? 0 : Math.Round((double)accountsWithRelationClient / totalAccounts * 100, 2);
+
+            return percentage;
         }
 
         private async Task<Dictionary<int, int>?> GetAccountStatistics(int contactId)

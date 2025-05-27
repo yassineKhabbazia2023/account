@@ -9,5 +9,7 @@ namespace Pulse.Account.Core.Interfaces
     public interface IStatisticsService
     {
         Task<Statistics> GetStatisticsAsync(int contactId);
+
+        Task<double> GetAccountPercentageCustomerRelationAsync();
     }
 }

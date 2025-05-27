@@ -38,5 +38,19 @@ namespace Account.Api.Tests.Controllers
             Assert.NotNull(result);
             Assert.Equal(expected, result.Value);
         }
+
+        [Fact]
+        public async Task GetAccountPercentageCustomerRelation_ReturnExpected()
+        {
+            double expected = 1;
+
+            _statisticsServiceMock.Setup(service => service.GetAccountPercentageCustomerRelationAsync()).ReturnsAsync(expected);
+            var statisticsController = new StatisticsController(_statisticsServiceMock.Object);
+
+            var statistics = await statisticsController.GetAccountPercentageCustomerRelation();
+            var result = statistics?.Result as OkObjectResult;
+
+            Assert.Equal(expected, result!.Value);
+        }
     }
 }

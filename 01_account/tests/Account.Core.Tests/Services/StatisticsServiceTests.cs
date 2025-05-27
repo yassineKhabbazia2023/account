@@ -39,5 +39,21 @@ namespace Pulse.Account.Core.Tests.Services
             Assert.NotNull(result);
             Assert.Equal(expected, result);
         }
+
+        [Fact]
+        public async Task GetAccountPercentageCustomerRelationAsync_ReturnExpected()
+        {
+            // Arrange
+            var expected = 1;
+
+            _statisticsRepositoryMock.Setup(r => r.GetAccountPercentageCustomerRelationAsync()).ReturnsAsync(expected);
+            var statisticsService = new StatisticsService(_statisticsRepositoryMock.Object);
+
+            // Act
+            var result = await statisticsService.GetAccountPercentageCustomerRelationAsync();
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
     }
 }
