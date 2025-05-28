@@ -2,15 +2,20 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.Data;
+using System;
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
 using Pulse.ExceptionMiddleware.Exceptions;
+using Polly;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories
 {
@@ -48,25 +53,52 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         [Fact]
         public async Task AddRoleLabelAsync_WhenRoleLabelAlreadyExists_ShouldThrowBadRequestException()
         {
-            // Arrange
             using var context = new AccountContext(_dbContextOptions);
-            var existingRoleLabelEntity = new RoleLabelEntity() { AccountId = 1, ContactId = 1, LabelId = 1, CreatedDate = DateTime.UtcNow, CreatedBy = 1 };
-            context.RoleLabelEntity.Add(existingRoleLabelEntity);
-            await context.SaveChangesAsync();
-
-            var roleLabelRepository = new RoleLabelRepository(context);
-            var duplicateRoleLabel = _fixture.Build<RoleLabel>()
-                .With(x => x.AccountId, 1)
-                .With(x => x.ContactId, 1)
-                .With(x => x.LabelId, 1)
-                .Create();
+            var account = new AccountEntity
+            {
+                AccountId = 1,
+                AccountGlobalUniqueId = Guid.NewGuid(),
+                AccountNumber = "12345",
+                CreatedBy = "System",
+                LegalName = "Testing Company",
+                IsActive = true
+            };
+            var contact = new ContactEntity
+            {
+                ContactId = 1,
+                Email = "testing@rydge.fr",
+                FirstName = "testing",
+                LastName = "testing",
+                PersonaName = "Testing XUNIT",
+                Type = ContactType.Collaborator.ToString(),
+                CreationDate = DateTime.Now,
+                IsActive = true
+            };
+            var label = new LabelEntity
+            {
+                LabelId = 1,
+                Code = "CODE",
+                Business = "ESG",
+                IsVisible = true,
+                CollaboratorLabel = "COLLAB",
+                CustomerLabel = "CUST"
+            };
+            var role = new RoleEntity { AccountId = 1, ContactId = 1 };
+            var roleLabelEntity = new RoleLabelEntity { AccountId = 1, ContactId = 1, LabelId = 1, CreatedBy = 1 };
+            var roleLabel = new RoleLabel { AccountId = 1, ContactId = 1, LabelId = 1, CreatedBy = 1 };
+            context.AccountEntity.Add(account);
+            context.ContactEntity.Add(contact);
+            context.LabelEntity.Add(label);
+            context.RoleEntity.Add(role);
+            context.RoleLabelEntity.Add(roleLabelEntity);
+            int numberOfChanges = context.SaveChanges();
+            var roleLabelRepos = new RoleLabelRepository(context);
 
             // Act
-            Func<Task> act = async () => await roleLabelRepository.AddRoleLabelAsync(duplicateRoleLabel);
-
-            // Assert
-            await act.Should().ThrowAsync<ConflictException>()
-                .WithMessage("Ce contact a déjà ce libellé.");
+            Func<Task> act = async () => await roleLabelRepos.AddRoleLabelAsync(roleLabel);
+            var actionResult = await Assert.ThrowsAsync<ConflictException>(act);
+            Assert.Equal("ACC033", actionResult.Code);
+            Assert.Equal("Ce contact a déjà ce libellé.", actionResult.Message);
         }
 
         [Fact]
@@ -74,64 +106,207 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories
         {
             // Arrange
             using var context = new AccountContext(_dbContextOptions);
-            var roleLabelRepository = new RoleLabelRepository(context);
-            var roleLabelWithoutRole = _fixture.Build<RoleLabel>()
-                .With(x => x.AccountId, 999)
-                .With(x => x.ContactId, 999)
-                .With(x => x.LabelId, 1)
-                .Create();
+            var account = new AccountEntity
+            {
+                AccountId = 1,
+                AccountGlobalUniqueId = Guid.NewGuid(),
+                AccountNumber = "12345",
+                CreatedBy = "System",
+                LegalName = "Testing Company",
+                IsActive = true
+            };
+            var contact = new ContactEntity
+            {
+                ContactId = 1,
+                Email = "testing@rydge.fr",
+                FirstName = "testing",
+                LastName = "testing",
+                PersonaName = "Testing XUNIT",
+                Type = ContactType.Collaborator.ToString(),
+                CreationDate = DateTime.Now,
+                IsActive = true
+            };
+            var label = new LabelEntity
+            {
+                LabelId = 1,
+                Code = "CODE",
+                Business = "ESG",
+                IsVisible = true,
+                CollaboratorLabel = "COLLAB",
+                CustomerLabel = "CUST"
+            };
+            var roleLabel = new RoleLabel { AccountId = 1, ContactId = 1, LabelId = 1, CreatedBy = 1 };
+            context.AccountEntity.Add(account);
+            context.ContactEntity.Add(contact);
+            context.LabelEntity.Add(label);
+            int numberOfChanges = context.SaveChanges();
+            var roleLabelRepos = new RoleLabelRepository(context);
 
             // Act
-            Func<Task> act = async () => await roleLabelRepository.AddRoleLabelAsync(roleLabelWithoutRole);
+            Func<Task> act = async () => await roleLabelRepos.AddRoleLabelAsync(roleLabel);
 
             // Assert
             await act.Should().ThrowAsync<NotFoundException>()
-                .WithMessage("Le role accountId 999 et contactId 999 est introuvable");
+                .WithMessage("Le role accountId 1 et contactId 1 est introuvable");
+        }
+
+
+        [Fact]
+        public async Task AddRoleLabelAsync_WhenContactIsActiveIsFalse_ShouldThrowNotFoundException()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                var account = new AccountEntity
+                {
+                    AccountId = 1,
+                    AccountGlobalUniqueId = Guid.NewGuid(),
+                    AccountNumber = "12345",
+                    CreatedBy = "System",
+                    LegalName = "Testing Company",
+                    IsActive = true
+                };
+                var contact = new ContactEntity
+                {
+                    ContactId = 1,
+                    Email = "testing@rydge.fr",
+                    FirstName = "testing",
+                    LastName = "testing",
+                    PersonaName = "Testing XUNIT",
+                    Type = ContactType.Customer.ToString(),
+                    CreationDate = DateTime.Now,
+                    IsActive = false
+                };
+                var role = new RoleEntity
+                {
+                    AccountId = 1,
+                    ContactId = 1,
+                    IsSignatory = false
+                };
+                var label = new LabelEntity
+                {
+                    LabelId = 1,
+                    Code = "CODE",
+                    Business = "ESG",
+                    IsVisible = true,
+                    CollaboratorLabel = "COLLAB",
+                    CustomerLabel = "CUST"
+                };
+                var roleLabel = new RoleLabel { AccountId = 1, ContactId = 1, LabelId = 1, CreatedBy = 1 };
+                context.AccountEntity.Add(account);
+                context.ContactEntity.Add(contact);
+                context.SaveChanges();
+                context.RoleEntity.Add(role);
+                context.LabelEntity.Add(label);
+                int numberOfChanges = context.SaveChanges();
+                var roleLabelRepos = new RoleLabelRepository(context);
+                var action = async () => await roleLabelRepos.AddRoleLabelAsync(roleLabel);
+                var exceptionResult = await Assert.ThrowsAsync<NotFoundException>(action);
+                Assert.Equal("ACC002", exceptionResult.Code);
+                Assert.Equal("Le contact avec l'identifiant 1 est introuvable", exceptionResult.Message);
+            }
+        }
+
+        [Fact]
+        public async Task AddRoleLabelAsync_WhenContactIsClient_ShouldThrowInvalidRequestException()
+        {
+            using (var context = new AccountContext(_dbContextOptions))
+            {
+                var account = new AccountEntity
+                {
+                    AccountId = 1,
+                    AccountGlobalUniqueId = Guid.NewGuid(),
+                    AccountNumber = "12345",
+                    CreatedBy = "System",
+                    LegalName = "Testing Company",
+                    IsActive = true
+                };
+                var contact = new ContactEntity
+                {
+                    ContactId = 1,
+                    Email = "testing@rydge.fr",
+                    FirstName = "testing",
+                    LastName = "testing",
+                    PersonaName = "Testing XUNIT",
+                    Type = ContactType.Customer.ToString(),
+                    CreationDate = DateTime.Now,
+                    IsActive = true
+                };
+                var role = new RoleEntity
+                {
+                    AccountId = 1,
+                    ContactId = 1,
+                    IsSignatory = false
+                };
+                var label = new LabelEntity
+                {
+                    LabelId = 1,
+                    Code = "CODE",
+                    Business = "ESG",
+                    IsVisible = true,
+                    CollaboratorLabel = "COLLAB",
+                    CustomerLabel = "CUST"
+                };
+                var roleLabel = new RoleLabel { AccountId = 1, ContactId = 1, LabelId = 1, CreatedBy = 1 };
+                context.AccountEntity.Add(account);
+                context.ContactEntity.Add(contact);
+                context.RoleEntity.Add(role);
+                context.LabelEntity.Add(label);
+                int numberOfChanges = context.SaveChanges();
+                var roleLabelRepos = new RoleLabelRepository(context);
+                var action = async () => await roleLabelRepos.AddRoleLabelAsync(roleLabel);
+                var exceptionResult = await Assert.ThrowsAsync<Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException>(action);
+                Assert.Equal("ACC035", exceptionResult.Code);
+                Assert.Equal("Impossible d'ajouter des libellés pour un client.", exceptionResult.Message);
+            }
         }
 
         [Fact]
         public async Task AddRoleLabelAsync_WhenRoleLabelIsValid_ShouldAddRoleLabelToContext()
         {
-            // Arrange
             using var context = new AccountContext(_dbContextOptions);
-
-            // Create and add a role entity first
-            var roleEntity = _fixture.Build<RoleEntity>()
-                .With(x => x.AccountId, 1)
-                .With(x => x.ContactId, 1)
-                .Without(x => x.Account)
-                .Without(x => x.Contact)
-                .Create();
-
-            // Create and add a label entity
-            var labelEntity = _fixture.Build<LabelEntity>()
-                .With(x => x.LabelId, 1)
-                .Create();
-
-            context.RoleEntity.Add(roleEntity);
-            context.LabelEntity.Add(labelEntity);
-            await context.SaveChangesAsync();
-
-            var roleLabelRepository = new RoleLabelRepository(context);
-            var roleLabel = _fixture.Build<RoleLabel>()
-                .With(x => x.AccountId, 1)
-                .With(x => x.ContactId, 1)
-                .With(x => x.LabelId, 1)
-                .Create();
+            var account = new AccountEntity
+            {
+                AccountId = 1,
+                AccountGlobalUniqueId = Guid.NewGuid(),
+                AccountNumber = "12345",
+                CreatedBy = "System",
+                LegalName = "Testing Company",
+                IsActive = true
+            };
+            var contact = new ContactEntity
+            {
+                ContactId = 1,
+                Email = "testing@rydge.fr",
+                FirstName = "testing",
+                LastName = "testing",
+                PersonaName = "Testing XUNIT",
+                Type = ContactType.Collaborator.ToString(),
+                CreationDate = DateTime.Now,
+                IsActive = true
+            };
+            var label = new LabelEntity
+            {
+                LabelId = 1,
+                Code = "CODE",
+                Business = "ESG",
+                IsVisible = true,
+                CollaboratorLabel = "COLLAB",
+                CustomerLabel = "CUST"
+            };
+            var role = new RoleEntity { AccountId = 1, ContactId = 1 };
+            var roleLabel = new RoleLabel { AccountId = 1, ContactId = 1, LabelId = 1, CreatedBy = 1 };
+            context.AccountEntity.Add(account);
+            context.ContactEntity.Add(contact);
+            context.LabelEntity.Add(label);
+            context.RoleEntity.Add(role);
+            int numberOfChanges = context.SaveChanges();
+            var roleLabelRepos = new RoleLabelRepository(context);
 
             // Act
-            await roleLabelRepository.AddRoleLabelAsync(roleLabel);
+            await roleLabelRepos.AddRoleLabelAsync(roleLabel);
 
-            // Assert
-            var savedRoleLabel = await context.RoleLabelEntity.FirstOrDefaultAsync(rl =>
-                rl.AccountId == roleLabel.AccountId &&
-                rl.ContactId == roleLabel.ContactId &&
-                rl.LabelId == roleLabel.LabelId);
-
-            savedRoleLabel.Should().NotBeNull();
-            savedRoleLabel!.AccountId.Should().Be(roleLabel.AccountId);
-            savedRoleLabel.ContactId.Should().Be(roleLabel.ContactId);
-            savedRoleLabel.LabelId.Should().Be(roleLabel.LabelId);
+            var roleLabelResult = await context.RoleLabelEntity.FirstOrDefaultAsync(rl => rl.ContactId == 1 && rl.LabelId == 1 && rl.AccountId == 1);
+            Assert.NotNull(roleLabelResult);
         }
 
         [Fact]

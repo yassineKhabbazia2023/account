@@ -3,12 +3,14 @@
 // </copyright>
 
 using Microsoft.EntityFrameworkCore;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.ExceptionMiddleware.Exceptions;
+using InvalidOperationException = Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException;
 
 namespace Pulse.Account.Infrastructure.Repositories
 {
@@ -26,6 +28,20 @@ namespace Pulse.Account.Infrastructure.Repositories
             if (roleLabel is null)
             {
                 throw new ArgumentNullException(Errors.NullArgumentCode, string.Format(Errors.NullArgumentMessage, nameof(roleLabel)));
+            }
+
+            var contact = await _accountContext.ContactEntity.AsNoTracking().FirstOrDefaultAsync(cnt => cnt.ContactId == roleLabel.ContactId);
+
+            if (contact is null)
+            {
+                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, roleLabel.ContactId));
+            }
+
+            bool isClient = contact.Type == ContactType.Customer.ToString();
+
+            if (isClient)
+            {
+                throw new InvalidOperationException(Errors.NoClientLabelCode, Errors.NoClientLabelMessage);
             }
 
             bool roleLabelexists = await _accountContext.RoleLabelEntity
