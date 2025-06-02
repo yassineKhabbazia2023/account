@@ -92,11 +92,12 @@ public class DelegationRepositoryTests
 
         var contactDelegator = _fixture.Build<ContactEntity>()
             .With(x => x.ContactId, createDelegationRequest.DelegatorId)
+            .With(x => x.IsActive, true)
             .Without(x => x.DelegationEntityDelegatee)
-                .Without(x => x.DelegationEntityDelegator)
-                .Without(x => x.RoleEntity)
-                .Without(x => x.RoleLabelEntityContact)
-                .Without(x => x.RoleLabelEntityCreatedByNavigation)
+            .Without(x => x.DelegationEntityDelegator)
+            .Without(x => x.RoleEntity)
+            .Without(x => x.RoleLabelEntityContact)
+            .Without(x => x.RoleLabelEntityCreatedByNavigation)
             .Create();
 
         contactEntities.Add(contactDelegator);

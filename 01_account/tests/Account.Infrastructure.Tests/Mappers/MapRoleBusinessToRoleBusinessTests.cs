@@ -32,6 +32,7 @@ public class MapRoleBusinessToRoleBusinessTests
         Assert.Equal(source.IsSignatory, result.IsSignatory);
         Assert.Equal(source.IsFavorite, result.IsFavorite);
         Assert.Equal(source.IsDelegation, result.IsDelegation);
+        Assert.Equal(source.IsCustomerRelation, result.IsCustomerRelation);
     }
 
     [Fact]

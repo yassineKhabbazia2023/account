@@ -4,6 +4,7 @@
 
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
@@ -53,16 +54,16 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
 
         var accountId = @event.Data.AccountId ?? 0;
         var contactId = @event.Data.ContactId ?? 0;
+        bool? isCustomerRelation = null;
 
         // Vérifier l'existence des Guids
         if (@event.Data.AccountGuid.HasValue && @event.Data.ContactGuid.HasValue)
         {
-            // Récupérer les identifiants résolus à partir de la base de données
-            (int resolvedAccountId, int resolvedContactId) = await _roleEventRepository.GetAccountIdContactIdAsync((Guid)@event.Data.AccountGuid, (Guid)@event.Data.ContactGuid);
+            accountId = await _roleEventRepository.GetAccountIdByGuidAsync((Guid)@event.Data.AccountGuid);
 
-            // Mettre à jour les valeurs de accountId et contactId avec les valeurs résolues
-            accountId = resolvedAccountId;
-            contactId = resolvedContactId;
+            var contact = await _roleEventRepository.GetContactByGuidAsync((Guid)@event.Data.ContactGuid);
+            contactId = contact.ContactId;
+            isCustomerRelation = contact.Type == ContactType.Collaborator.ToString() ? false : null;
         }
 
         await _roleEventRepository.CheckExistingAccountAndContactAsync(accountId, contactId);
@@ -73,7 +74,7 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
         }
         else
         {
-            var createdRole = await _roleEventRepository.CreateRoleAsync(@event!.Data, accountId, contactId);
+            var createdRole = await _roleEventRepository.CreateRoleAsync(@event!.Data, accountId, contactId, isCustomerRelation);
             _logger.LogInformation("Le role avec l'identifiant suivant: AccountId: {AccountId} - ContactId: {ContactId} vient d'être mise à jour.", createdRole.AccountId, createdRole.ContactId);
 
             await _roleEventPublisher.PublishRoleCreatedEventAsync(createdRole);

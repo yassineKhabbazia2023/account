@@ -36,13 +36,14 @@ public class MapToRoleEntityTests
         };
 
         // Act
-        var result = eventData.ToRoleEntity(null, null);
+        var result = eventData.ToRoleEntity(null, null, true);
 
         // Assert
         Assert.Equal(eventData.ContactId, result.ContactId);
         Assert.Equal(eventData.AccountId, result.AccountId);
         Assert.Equal(eventData.IsFavorite, result.IsFavorite);
         Assert.Equal(eventData.RoleSignatory, result.IsSignatory);
+        Assert.True(result.IsCustomerRelation);
     }
 
     [Fact]
@@ -62,20 +63,21 @@ public class MapToRoleEntityTests
         };
 
         // Act
-        var result = eventData.ToRoleEntity(expectedAccountId, expectedContactId);
+        var result = eventData.ToRoleEntity(expectedAccountId, expectedContactId, false);
 
         // Assert
         Assert.Equal(expectedContactId, result.ContactId);
         Assert.Equal(expectedAccountId, result.AccountId);
         Assert.Equal(eventData.IsFavorite, result.IsFavorite);
         Assert.Equal(eventData.RoleSignatory, result.IsSignatory);
+        Assert.False(result.IsCustomerRelation);
     }
 
     [Fact]
     public void ToRoleEntity_WithNullRegistryRoleCreatedEventData_ShouldReturnNull()
     {
         RegistryRoleCreatedEventData data = null!;
-        var result = MapToRoleEntity.ToRoleEntity(data, null, null);
+        var result = MapToRoleEntity.ToRoleEntity(data, null, null, null);
         Assert.Null(result);
     }
 
@@ -135,6 +137,7 @@ public class MapToRoleEntityTests
         Assert.Equal(request.IsSignatory, result.IsSignatory);
         Assert.Equal(request.IsDelegation, result.IsDelegation);
         Assert.Equal(request.IsFavorite, result.IsFavorite);
+        Assert.False(result.IsCustomerRelation);
     }
 
     [Fact]

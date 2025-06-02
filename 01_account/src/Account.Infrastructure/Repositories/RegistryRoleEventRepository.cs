@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
+using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
@@ -24,9 +25,9 @@ public class RegistryRoleEventRepository : IRegistryRoleEventRepository
         _context.HandleEFCoreFailure();
     }
 
-    public async Task<CreateRoleRequest> CreateRoleAsync(RegistryRoleCreatedEventData eventData, int? accountId, int? contactId)
+    public async Task<CreateRoleRequest> CreateRoleAsync(RegistryRoleCreatedEventData eventData, int? accountId, int? contactId, bool? isCustomerRelation)
     {
-        var role = eventData.ToRoleEntity(accountId, contactId);
+        var role = eventData.ToRoleEntity(accountId, contactId, isCustomerRelation);
 
         _context.RoleEntity.Add(role);
         await _context.SaveChangesAsync();
@@ -61,16 +62,27 @@ public class RegistryRoleEventRepository : IRegistryRoleEventRepository
         }
     }
 
-    public async Task<(int, int)> GetAccountIdContactIdAsync(Guid accountId, Guid contactId)
+    public async Task<int> GetAccountIdByGuidAsync(Guid accountId)
     {
         var account = await _context.AccountEntity.FirstOrDefaultAsync(a => accountId == a.AccountGlobalUniqueId);
-        var contact = await _context.ContactEntity.FirstOrDefaultAsync(c => contactId == c.ContactGlobalUniqueId);
 
-        if (account == null || contact == null)
+        if (account == null)
         {
-            throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
+            throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId.ToString()));
         }
 
-        return (account.AccountId, contact.ContactId);
+        return account.AccountId;
+    }
+
+    public async Task<ContactEntity> GetContactByGuidAsync(Guid contactId)
+    {
+        var contact = await _context.ContactEntity.FirstOrDefaultAsync(c => contactId == c.ContactGlobalUniqueId);
+
+        if (contact == null)
+        {
+            throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId.ToString()));
+        }
+
+        return contact;
     }
 }

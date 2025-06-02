@@ -227,7 +227,7 @@ public class AccountRepository : IAccountRepository
 
             var result = await query.ToListAsync();
 
-            var contacts = result.Select(c => c.MapToContact());
+            var contacts = result.Select(c => c.MapToContact(accountId));
 
             return contacts!.MapToPagingContact(
                 pagination!.PageNumber,

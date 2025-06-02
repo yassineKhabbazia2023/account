@@ -30,5 +30,8 @@ namespace Pulse.Account.Core.Requests
 
         [JsonIgnore]
         public int? DelegatorId { get; set; }
+
+        [JsonIgnore]
+        public bool? IsCustomerRelation { get; set; }
     }
 }

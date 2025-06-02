@@ -72,7 +72,7 @@ public static class MapAccountDbToAccountModel
                 OfficeId = source.OfficeId,
                 Office = source.Office?.MapToOffice(),
                 Address = source.MapToAddressDelivery(),
-                Signatory = signatory?.Contact.MapToContact(),
+                Signatory = signatory?.Contact.MapToContact(null!),
                 Deployment = source.MapToDeployment(),
                 Hub = source.MapToHub()
             };
@@ -147,7 +147,7 @@ public static class MapAccountDbToAccountModel
         };
     }
 
-    public static Contact? MapToContact(this ContactEntity tContact)
+    public static Contact? MapToContact(this ContactEntity tContact, int? accountId)
     {
         return tContact == null ? null : new Contact
         {
@@ -164,8 +164,8 @@ public static class MapAccountDbToAccountModel
             CreationDate = tContact.CreationDate,
             Type = tContact.Type,
             IsActive = tContact.IsActive,
-            IsCustomerRelation = tContact.RoleEntity.FirstOrDefault()?.IsCustomerRelation,
-            ActionLevel = tContact.RoleEntity.FirstOrDefault()?.ActionLevel ?? 0,
+            IsCustomerRelation = tContact.RoleEntity.FirstOrDefault(r => r.AccountId == accountId)?.IsCustomerRelation,
+            ActionLevel = tContact.RoleEntity.FirstOrDefault(r => r.AccountId == accountId)?.ActionLevel ?? 0,
             Labels = tContact.RoleLabelEntityContact.MapToLabels(),
         };
     }

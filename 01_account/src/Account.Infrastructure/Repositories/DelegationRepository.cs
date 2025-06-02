@@ -56,7 +56,7 @@ public class DelegationRepository : IDelegationRepository
 
             if (!(await CheckExistingAccountsAsync(delegation.AccountIds!))?.Any() == false)
             {
-                throw new NotFoundException(Errors.NotFoundAccountsCode, string.Format(Errors.NotFoundAccountsMessage, string.Join(',', delegation.AccountIds)));
+                throw new NotFoundException(Errors.NotFoundAccountsCode, Errors.NotFoundAccountsMessage);
             }
 
             if (!await CheckContactHasAccounts(delegation.DelegatorId, delegation.AccountIds!))

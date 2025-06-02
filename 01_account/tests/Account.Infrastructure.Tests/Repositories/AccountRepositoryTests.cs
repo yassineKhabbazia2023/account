@@ -695,11 +695,11 @@ public class AccountRepositoryTests
 
         if (type == null)
         {
-            resultExpected.AddRange(contactsMock.Select(c => c.MapToContact()) !);
+            resultExpected.AddRange(contactsMock.Select(c => c.MapToContact(10)) !);
         }
         else
         {
-            resultExpected.AddRange(contactsMock.Where(c => c.Type == type.ToString() !.ToLower()).Select(c => c.MapToContact())!);
+            resultExpected.AddRange(contactsMock.Where(c => c.Type == type.ToString() !.ToLower()).Select(c => c.MapToContact(10)) !);
         }
 
         context.ContactEntity.AddRange(contactsMock);

@@ -24,6 +24,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 IsFavorite = role.IsFavorite,
                 IsSignatory = role.IsSignatory,
                 IsDelegation = role.IsDelegation,
+                IsCustomerRelation = false,
             };
         }
 
@@ -36,6 +37,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 IsFavorite = role.IsFavorite,
                 IsSignatory = role.IsSignatory,
                 IsDelegation = role.IsDelegation,
+                IsCustomerRelation = role.IsCustomerRelation,
             };
         }
 

@@ -123,7 +123,8 @@ public class RoleRepository : IRoleRepository
                 throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, role.AccountId));
             }
 
-            if (!await _accountContext.ContactEntity.AnyAsync(x => x.ContactId == role.ContactId && x.IsActive))
+            var contact = await _accountContext.ContactEntity.FirstOrDefaultAsync(x => x.ContactId == role.ContactId && x.IsActive);
+            if (contact == null)
             {
                 throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
             }
@@ -133,6 +134,7 @@ public class RoleRepository : IRoleRepository
                 throw new ConflictException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, role.ContactId, role.AccountId));
             }
 
+            role.IsCustomerRelation = contact.Type == ContactType.Collaborator.ToString() ? false : null;
             var roles = new List<Role> { role.MapCreateRoleRequestToRole() };
             var roleEntities = roles.MapRolesToRolesDb();
 

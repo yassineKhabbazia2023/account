@@ -167,6 +167,7 @@ public class MapAccountDbToAccountModelTests
         };
         var role = new RoleEntity
         {
+            AccountId = 1,
             IsCustomerRelation = true,
             ActionLevel = 1,
         };
@@ -195,7 +196,7 @@ public class MapAccountDbToAccountModelTests
         };
 
         // act
-        var result = contactEntity.MapToContact();
+        var result = contactEntity.MapToContact(1);
 
         // assert
         Assert.NotNull(result);

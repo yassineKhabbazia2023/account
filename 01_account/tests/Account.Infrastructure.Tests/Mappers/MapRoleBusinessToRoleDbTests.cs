@@ -3,10 +3,9 @@
 // </copyright>
 
 using AutoFixture;
-using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
-using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
+using RoleModel = Pulse.Account.Core.Models.Role;
 
 namespace Pulse.Account.Infrastructure.Tests.Mappers;
 
@@ -38,27 +37,24 @@ public class MapRoleBusinessToRoleDbTests
     public void MapContactEntityToSignatory_CaseSuccess()
     {
         // Arrange
-        CreateRoleRequest? role = _fixture.Create<CreateRoleRequest?>();
-        var expected = new RoleEntity()
-        {
-            ContactId = (int)role!.ContactId!,
-            AccountId = role!.AccountId,
-            IsFavorite = role!.IsFavorite,
-            IsSignatory = role!.IsSignatory,
-            IsDelegation = role!.IsDelegation,
-        };
+        var role = _fixture.Create<CreateRoleRequest?>();
 
         // Act
         var result = role.MapRoleToRoleDb();
 
         // Assert
-        Assert.Equivalent(expected, result);
+        Assert.Equal(role.ContactId, result.ContactId);
+        Assert.Equal(role.AccountId, result.AccountId);
+        Assert.Equal(role.IsFavorite, result.IsFavorite);
+        Assert.Equal(role.IsSignatory, result.IsSignatory);
+        Assert.Equal(role.IsDelegation, result.IsDelegation);
+        Assert.False(role.IsCustomerRelation);
     }
 
     [Fact]
     public void MapRolesToRolesDb_ShouldMapRolesToRoleEntities()
     {
-        var roles = _fixture.CreateMany<Core.Models.Role>();
+        var roles = _fixture.CreateMany<RoleModel>();
 
         var results = roles.MapRolesToRolesDb();
 
@@ -126,7 +122,7 @@ public class MapRoleBusinessToRoleDbTests
     public void MapRoleToRoleDb_WithNullRole_ReturnsNull()
     {
         // Arrange
-        Pulse.Account.Core.Models.Role role = null;
+        RoleModel role = null;
 
         // Act
         var result = role.MapRoleToRoleDb();
@@ -139,7 +135,7 @@ public class MapRoleBusinessToRoleDbTests
     public void MapRoleToRoleDb_WithValidRole_ShouldMapCorrectly()
     {
         // Arrange
-        var role = _fixture.Create<Pulse.Account.Core.Models.Role>();
+        var role = _fixture.Create<RoleModel>();
 
         // Act
         var result = role.MapRoleToRoleDb();
@@ -151,13 +147,14 @@ public class MapRoleBusinessToRoleDbTests
         Assert.Equal(role.IsFavorite, result.IsFavorite);
         Assert.Equal(role.IsSignatory, result.IsSignatory);
         Assert.Equal(role.IsDelegation, result.IsDelegation);
+        Assert.Equal(role.IsCustomerRelation, result.IsCustomerRelation);
     }
 
     [Fact]
     public void MapRolesToRolesDb_WithEmptyList_ShouldReturnEmptyList()
     {
         // Arrange
-        var roles = new List<Pulse.Account.Core.Models.Role>();
+        var roles = new List<RoleModel>();
 
         // Act
         var result = roles.MapRolesToRolesDb();

@@ -18,6 +18,7 @@ public static class MapRoleBusinessToRoleBusiness
             IsFavorite = role.IsFavorite,
             IsSignatory = role.IsSignatory,
             IsDelegation = role.IsDelegation,
+            IsCustomerRelation = role.IsCustomerRelation,
         };
     }
 }
