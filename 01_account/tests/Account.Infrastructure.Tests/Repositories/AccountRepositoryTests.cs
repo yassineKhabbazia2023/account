@@ -403,6 +403,29 @@ public class AccountRepositoryTests
     }
 
     [Fact]
+    public async Task GetAccountSummary_Should_ReturnsOkResultAsync()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Arrange
+            var accountsModel = _fixture.Create<List<AccountEntity>>();
+            var accountFirst = accountsModel[0];
+            var accountSummary = accountFirst?.MapToAccountDetail();
+            context.AccountEntity.AddRange(accountsModel);
+            await context.SaveChangesAsync();
+            var accountRepository = new AccountRepository(context);
+
+            // Act
+            var accounts = await accountRepository.GetAccountSummaryAsync(accountFirst!.AccountId);
+
+            // Assert
+            Assert.Equal(accountSummary?.AccountNumber, accounts!.AccountNumber);
+            Assert.Equal(accountSummary?.AccountId, accounts.AccountId);
+            Assert.Equal(accountSummary?.Legal?.LegalName, accounts.LegalName);
+        }
+    }
+
+    [Fact]
     public async Task GetAccountDetail_Should_ReturnsOkResultAsync()
     {
         using (var context = new AccountContext(_dbContextOptions))

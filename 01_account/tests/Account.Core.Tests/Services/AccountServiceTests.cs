@@ -145,6 +145,22 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         [Fact]
+        public async Task Should_GetAccountSummary_ReturnsOkResultAsync()
+        {
+            // Arrange
+            var accountMocked = _fixture.Create<AccountModel>();
+            _accountRepository.Setup(repository => repository.GetAccountSummaryAsync(It.IsAny<int>())).ReturnsAsync(accountMocked);
+
+            var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
+
+            // Act
+            var accountSummary = await accountService.GetAccountSummaryAsync(accountId: 1);
+
+            // Assert
+            Assert.Equal(accountMocked, accountSummary);
+        }
+
+        [Fact]
         public async Task Should_GetAccountDetail_ReturnsOkResultAsync()
         {
             // Arrange

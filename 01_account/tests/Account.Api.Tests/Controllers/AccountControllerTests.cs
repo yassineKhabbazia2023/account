@@ -150,6 +150,23 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
     }
 
     [Fact]
+    public async Task Should_GetAccountSummary_ReturnsOkResultAsync()
+    {
+        // Arrange
+        var accountMocked = await _context.AccountEntity.FirstAsync();
+        var expected = accountMocked.MapToAccount();
+
+        // Act
+        var account = await _accountController.GetAccountSummaryAsync(accountMocked.AccountId);
+        var resultAccounts = account?.Result as OkObjectResult;
+        var accountSummaryResult = resultAccounts!.Value.As<AccountModel>();
+
+        // Assert
+        Assert.NotNull(accountSummaryResult);
+        Assert.Equivalent(expected, accountSummaryResult);
+    }
+
+    [Fact]
     public async Task Should_GetAccountDetail_ReturnsOkResultAsync()
     {
         // Arrange
@@ -157,7 +174,6 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         var expected = accountMocked.MapToAccountDetail();
 
         // Act
-
         var account = await _accountController.GetAccountDetailAsync(accountMocked.AccountId);
         var resultAccounts = account?.Result as OkObjectResult;
         var accountDetailResult = resultAccounts!.Value.As<AccountDetail>();

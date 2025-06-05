@@ -128,6 +128,26 @@ public class AccountRepository : IAccountRepository
         });
     }
 
+    public async Task<AccountModel?> GetAccountSummaryAsync(int accountId)
+    {
+        AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>
+        {
+            return await _accountContext.AccountEntity
+                    .AsNoTracking()
+                    .Include(a => a.DeploymentEntity)
+                    .Include(x => x.Office)
+                    .ThenInclude(x => x.Address)
+                    .FirstOrDefaultAsync(a => a.AccountId == accountId);
+        });
+
+        if (account == null)
+        {
+            throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
+        }
+
+        return account.MapToAccount();
+    }
+
     public async Task<AccountDetail?> GetAccountAsync(int accountId)
     {
         AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>

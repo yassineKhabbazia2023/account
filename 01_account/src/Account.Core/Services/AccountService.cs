@@ -42,6 +42,11 @@ namespace Pulse.Account.Core.Services
             return await _accountRepository.GetAllAccountsAsync(accountNumber, pagination);
         }
 
+        public async Task<Models.Account?> GetAccountSummaryAsync(int accountId)
+        {
+            return await _accountRepository.GetAccountSummaryAsync(accountId);
+        }
+
         public async Task<AccountDetail?> GetAccountAsync(int accountId)
         {
             return await _accountRepository.GetAccountAsync(accountId);
