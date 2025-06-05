@@ -40,12 +40,13 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
         }
 
         var @event = JsonConvert.DeserializeObject<RegistryRoleCreatedEvent>(message);
-        _logger.LogInformation("Consommation de l'event type: {EventType}, AccountId: {AccountId}, ContactId: {ContactId} | AccountGuid: {AccountGuid}, ContactGuid: {ContactGuid}",
+        _logger.LogInformation("Consommation de l'event type: {EventType}, AccountId: {AccountId}, ContactId: {ContactId} | AccountGuid: {AccountGuid}, ContactGuid: {ContactGuid}, IsCustomerRelation: {IsCustomerRelation}",
             @event?.EventType,
             @event?.Data?.AccountId,
             @event?.Data?.ContactId,
             @event?.Data?.AccountGuid,
-            @event?.Data?.ContactGuid);
+            @event?.Data?.ContactGuid,
+            @event?.Data?.IsCustomerRelation);
 
         if (@event?.Data == null)
         {
@@ -63,7 +64,7 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
 
             var contact = await _roleEventRepository.GetContactByGuidAsync((Guid)@event.Data.ContactGuid);
             contactId = contact.ContactId;
-            isCustomerRelation = contact.Type == ContactType.Collaborator.ToString() ? false : null;
+            isCustomerRelation = contact.Type == ContactType.Customer.ToString() ? null : @event?.Data?.IsCustomerRelation;
         }
 
         await _roleEventRepository.CheckExistingAccountAndContactAsync(accountId, contactId);

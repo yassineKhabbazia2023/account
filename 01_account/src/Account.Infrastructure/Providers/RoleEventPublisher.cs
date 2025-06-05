@@ -75,7 +75,8 @@ namespace Pulse.Account.Infrastructure.Providers
                 ContactGlobalUniqueId = (Guid)roleRequest.ContactGlobalUniqueId!,
                 DelegatorContactId = roleRequest.DelegatorId,
                 AccountNumber = selectedAccount!.AccountNumber,
-                ContactEmail = selectedContact!.Email
+                ContactEmail = selectedContact!.Email,
+                IsCustomerRelation = roleRequest.IsCustomerRelation,
             };
 
             await _eventPublisher.PublishAsync(new RoleCreatedEvent(data));

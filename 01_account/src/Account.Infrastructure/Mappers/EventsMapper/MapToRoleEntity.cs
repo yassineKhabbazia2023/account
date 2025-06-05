@@ -27,7 +27,7 @@ public static class MapToRoleEntity
             ContactId = contactId ?? resolvedContactId,
             IsFavorite = eventData.IsFavorite,
             IsSignatory = eventData.RoleSignatory,
-            IsCustomerRelation = isCustomerRelation,
+            IsCustomerRelation = isCustomerRelation
         };
     }
 
@@ -50,7 +50,7 @@ public static class MapToRoleEntity
             IsFavorite = request.IsFavorite,
             IsSignatory = request.IsSignatory,
             IsDelegation = request.IsDelegation,
-            IsCustomerRelation = false,
+            IsCustomerRelation = request.IsCustomerRelation
         };
     }
 
@@ -70,6 +70,7 @@ public static class MapToRoleEntity
             IsFavorite = roleEntity.IsFavorite,
             IsSignatory = roleEntity.IsSignatory,
             IsDelegation = roleEntity.IsDelegation,
+            IsCustomerRelation = roleEntity.IsCustomerRelation
         };
     }
 
@@ -86,7 +87,8 @@ public static class MapToRoleEntity
             AccountId = source.AccountId,
             IsDelegation = source.IsDelegation,
             IsFavorite = source.IsFavorite,
-            IsSignatory = source.IsSignatory
+            IsSignatory = source.IsSignatory,
+            IsCustomerRelation = source.IsCustomerRelation
         };
     }
 

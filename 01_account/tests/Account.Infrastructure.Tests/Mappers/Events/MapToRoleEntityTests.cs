@@ -3,6 +3,7 @@
 // </copyright>
 
 using AutoFixture;
+using Org.BouncyCastle.Ocsp;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
@@ -32,7 +33,8 @@ public class MapToRoleEntityTests
             ContactId = 2,
             Email = "email@test.fr",
             IsFavorite = true,
-            RoleSignatory = false
+            RoleSignatory = false,
+            IsCustomerRelation = true
         };
 
         // Act
@@ -43,7 +45,7 @@ public class MapToRoleEntityTests
         Assert.Equal(eventData.AccountId, result.AccountId);
         Assert.Equal(eventData.IsFavorite, result.IsFavorite);
         Assert.Equal(eventData.RoleSignatory, result.IsSignatory);
-        Assert.True(result.IsCustomerRelation);
+        Assert.Equal(eventData.IsCustomerRelation, result.IsCustomerRelation);
     }
 
     [Fact]
@@ -59,25 +61,26 @@ public class MapToRoleEntityTests
             ContactId = 2, // Cette valeur sera surchargée par expectedContactId
             Email = "email@test.fr",
             IsFavorite = true,
-            RoleSignatory = false
+            RoleSignatory = false,
+            IsCustomerRelation = true
         };
 
         // Act
-        var result = eventData.ToRoleEntity(expectedAccountId, expectedContactId, false);
+        var result = eventData.ToRoleEntity(expectedAccountId, expectedContactId, true);
 
         // Assert
         Assert.Equal(expectedContactId, result.ContactId);
         Assert.Equal(expectedAccountId, result.AccountId);
         Assert.Equal(eventData.IsFavorite, result.IsFavorite);
         Assert.Equal(eventData.RoleSignatory, result.IsSignatory);
-        Assert.False(result.IsCustomerRelation);
+        Assert.Equal(eventData.IsCustomerRelation, result.IsCustomerRelation);
     }
 
     [Fact]
     public void ToRoleEntity_WithNullRegistryRoleCreatedEventData_ShouldReturnNull()
     {
         RegistryRoleCreatedEventData data = null!;
-        var result = MapToRoleEntity.ToRoleEntity(data, null, null, null);
+        var result = MapToRoleEntity.ToRoleEntity(data, null, null, false);
         Assert.Null(result);
     }
 
@@ -101,7 +104,8 @@ public class MapToRoleEntityTests
             },
             IsDelegation = true,
             IsFavorite = true,
-            IsSignatory = true
+            IsSignatory = true,
+            IsCustomerRelation = true,
         };
 
         // Act
@@ -112,6 +116,7 @@ public class MapToRoleEntityTests
         Assert.Equal(roleEntity.AccountId, createdRole.AccountId);
         Assert.Equal(roleEntity.IsFavorite, createdRole.IsFavorite);
         Assert.Equal(roleEntity.IsSignatory, createdRole.IsSignatory);
+        Assert.Equal(roleEntity.IsCustomerRelation, createdRole.IsCustomerRelation);
         Assert.Equal(roleEntity.Contact.ContactGlobalUniqueId, createdRole.ContactGlobalUniqueId);
         Assert.Equal(roleEntity.Account.AccountGlobalUniqueId, createdRole.AccountGlobalUniqueId);
     }
@@ -137,7 +142,7 @@ public class MapToRoleEntityTests
         Assert.Equal(request.IsSignatory, result.IsSignatory);
         Assert.Equal(request.IsDelegation, result.IsDelegation);
         Assert.Equal(request.IsFavorite, result.IsFavorite);
-        Assert.False(result.IsCustomerRelation);
+        Assert.Equal(request.IsCustomerRelation, result.IsCustomerRelation);
     }
 
     [Fact]
@@ -168,6 +173,7 @@ public class MapToRoleEntityTests
             Assert.Equal(request.IsSignatory, result.IsSignatory);
             Assert.Equal(request.IsDelegation, result.IsDelegation);
             Assert.Equal(request.IsFavorite, result.IsFavorite);
+            Assert.Equal(request.IsCustomerRelation, result.IsCustomerRelation);
         }
     }
 
@@ -193,6 +199,7 @@ public class MapToRoleEntityTests
         Assert.Equal(source.IsSignatory, result.IsSignatory);
         Assert.Equal(source.IsDelegation, result.IsDelegation);
         Assert.Equal(source.IsFavorite, result.IsFavorite);
+        Assert.Equal(source.IsCustomerRelation, result.IsCustomerRelation);
     }
 
     [Fact]
