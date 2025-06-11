@@ -319,12 +319,9 @@ public class AccountRepository : IAccountRepository
                     .Include(c => c.RoleEntity)
                     .Include(c => c.RoleLabelEntityContact)
                     .ThenInclude(r => r.Label)
-                    .Where(c => c.RoleEntity.Any(r => r.AccountId == accountId));
-
-        if (isCustomerRelation != null)
-        {
-            query = query.Where(c => c.RoleEntity.Any(r => r.IsCustomerRelation == isCustomerRelation));
-        }
+                    .Where(c => c.RoleEntity
+                                    .Any(r => r.AccountId == accountId &&
+                                            (isCustomerRelation == null || r.IsCustomerRelation == isCustomerRelation)));
 
         return query;
     }
