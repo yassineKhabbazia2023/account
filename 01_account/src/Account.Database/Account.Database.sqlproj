@@ -97,5 +97,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ScriptsRattrapage\Suppression_deployment_doublon.sql" />
+    <None Include="Scripts\003_Update_ActionLevel.sql" />
   </ItemGroup>
 </Project>

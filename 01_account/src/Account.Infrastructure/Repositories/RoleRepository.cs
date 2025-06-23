@@ -192,6 +192,7 @@ public class RoleRepository : IRoleRepository
 
         if (roleDb.IsCustomerRelation != isCustomerRelation)
         {
+            roleDb.ActionLevel = isCustomerRelation ? (int)ActionLevelType.DirectClientRelation : (int)ActionLevelType.Observator;
             roleDb.IsCustomerRelation = isCustomerRelation;
             _accountContext.Entry(roleDb).State = EntityState.Modified;
             await _accountContext.SaveChangesAsync();
