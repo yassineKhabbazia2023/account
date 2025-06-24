@@ -46,7 +46,9 @@ public class AccountRepository : IAccountRepository
         // Construire la requête de base, en AsNoTracking, avec un premier filtre sur ContactId
         var baseQuery = from a in _accountContext.AccountEntity.AsNoTracking()
                         join r in _accountContext.RoleEntity on a.AccountId equals r.AccountId
-                        where r.ContactId == criteria.ContactId
+                        where r.ContactId == criteria.ContactId &&
+                        (criteria.IsFavoriteFilter != true || r.IsFavorite == true) &&
+                        (criteria.IsCustomerRelationFilter != true || r.IsCustomerRelation == true)
                         select a;
 
         // Filtrer par "Search"
@@ -67,8 +69,7 @@ public class AccountRepository : IAccountRepository
         // Filtrer par DeploymentStatus
         if (criteria.DeploymentStatus.HasValue)
         {
-            baseQuery = baseQuery.Where(a =>
-                a.DeploymentEntity.Status == criteria.DeploymentStatus.Value);
+            baseQuery = baseQuery.Where(a => a.DeploymentEntity.Status == criteria.DeploymentStatus.Value);
         }
 
         // Calcul du nombre total d'éléments (après filtres) pour la pagination

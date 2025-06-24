@@ -14,5 +14,9 @@ namespace Pulse.Account.Core.Requests
 
         [Required]
         public int ContactId { get; set; }
+
+        public bool? IsFavoriteFilter { get; set; }
+
+        public bool? IsCustomerRelationFilter { get; set; }
     }
 }

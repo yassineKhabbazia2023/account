@@ -22,6 +22,10 @@ CREATE NONCLUSTERED INDEX [IX_Role_IsSignatory]
     ON [account].[Role]([IsSignatory] ASC);
 
 GO
+CREATE NONCLUSTERED INDEX [IX_Role_IsCustomerRelation]
+    ON [account].[Role]([IsCustomerRelation] ASC);
+
+GO
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',

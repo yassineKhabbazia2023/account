@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -1135,5 +1134,101 @@ public class AccountRepositoryTests
             // Assert
             await action.Should().ThrowAsync<NotFoundException>();
         }
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WithFilter_ShouldReturnPagingAccount()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var accounts = new List<AccountEntity>
+        {
+            new()
+            {
+                AccountId = 1,
+                AccountGlobalUniqueId = Guid.NewGuid(),
+                AccountNumber = "num1",
+                CreatedBy = "moi",
+                LegalName = "legal1",
+                IsActive = true,
+            },
+            new()
+            {
+                AccountId = 2,
+                AccountGlobalUniqueId = Guid.NewGuid(),
+                LegalName = "legal2",
+                AccountNumber = "num2",
+                CreatedBy = "moi",
+                IsActive = true,
+            },
+            new()
+            {
+                AccountId = 3,
+                AccountGlobalUniqueId = Guid.NewGuid(),
+                LegalName = "legal3",
+                AccountNumber = "num3",
+                CreatedBy = "moi",
+                IsActive = true,
+            },
+            new()
+            {
+                AccountId = 4,
+                AccountGlobalUniqueId = Guid.NewGuid(),
+                LegalName = "legal4",
+                AccountNumber = "num4",
+                CreatedBy = "moi",
+                IsActive = true,
+            }
+        };
+
+        var roles = new List<RoleEntity>
+        {
+            new()
+            {
+                AccountId = 1,
+                ContactId = 1,
+                IsFavorite = true,
+                IsCustomerRelation = true,
+            },
+            new()
+            {
+                AccountId = 2,
+                ContactId = 1,
+                IsFavorite = false,
+                IsCustomerRelation = true,
+            },
+            new()
+            {
+                AccountId = 3,
+                ContactId = 1,
+                IsFavorite = true,
+                IsCustomerRelation = false,
+            },
+            new()
+            {
+                AccountId = 4,
+                ContactId = 2,
+                IsFavorite = true,
+                IsCustomerRelation = true,
+            }
+        };
+        context.AccountEntity.AddRange(accounts);
+        context.RoleEntity.AddRange(roles);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = 1,
+            IsFavoriteFilter = true,
+            IsCustomerRelationFilter = true,
+        };
+
+        var repository = new AccountRepository(context);
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        Assert.NotNull(result);
+        Assert.Single(result.Items);
     }
 }
