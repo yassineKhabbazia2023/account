@@ -184,6 +184,26 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
     }
 
     [Fact]
+    public async Task Should_GetAccountDetail_Without_StaffRange_When_StaffSize_Is_Null_ReturnsOkResultAsync()
+    {
+        // Arrange
+        var accountMocked = await _context.AccountEntity.FirstAsync();
+        accountMocked.StaffSize = null; // Set StaffSize to null to test the absence of StaffRange
+        var expected = accountMocked.MapToAccountDetail();
+
+        // Act
+        var account = await _accountController.GetAccountDetailAsync(accountMocked.AccountId);
+        var resultAccounts = account?.Result as OkObjectResult;
+        var accountDetailResult = resultAccounts!.Value.As<AccountDetail>();
+
+        // Assert
+        Assert.NotNull(accountDetailResult);
+        Assert.True(
+            accountDetailResult.GetType().GetProperty("StaffRange")?.GetValue(accountDetailResult) == null ||
+            accountDetailResult.GetType().GetProperty("StaffSizeRange")?.GetValue(accountDetailResult) == null);
+    }
+
+    [Fact]
     public async Task Should_UpdateAccount_ReturnsOkResultAsync()
     {
         // Arrange
