@@ -250,6 +250,11 @@ public class AccountRepository : IAccountRepository
 
             var contacts = result.Select(c => c.MapToContact(accountId));
 
+            if (criteria.Type == ContactType.Collaborator)
+            {
+                contacts = contacts.OrderByDescending(cnt => cnt?.ActionLevel);
+            }
+
             return contacts!.MapToPagingContact(
                 pagination!.PageNumber,
                 totalItems,

@@ -717,11 +717,11 @@ public class AccountRepositoryTests
 
         if (type == null)
         {
-            resultExpected.AddRange(contactsMock.Select(c => c.MapToContact(10)) !);
+            resultExpected.AddRange(contactsMock.Select(c => c.MapToContact(10))!);
         }
         else
         {
-            resultExpected.AddRange(contactsMock.Where(c => c.Type == type.ToString() !.ToLower()).Select(c => c.MapToContact(10)) !);
+            resultExpected.AddRange(contactsMock.Where(c => c.Type == type.ToString()!.ToLower()).Select(c => c.MapToContact(10))!);
         }
 
         context.ContactEntity.AddRange(contactsMock);
@@ -1073,6 +1073,7 @@ public class AccountRepositoryTests
 
         var contact = _fixture.Build<ContactEntity>()
             .With(x => x.FirstName, searchTerm)
+            .With(x => x.Type, ContactType.Collaborator.ToString())
             .Without(x => x.RoleEntity)
             .Without(x => x.DelegationEntityDelegatee)
             .Without(x => x.DelegationEntityDelegator)
@@ -1106,6 +1107,109 @@ public class AccountRepositoryTests
             // Assert
             Assert.All(result.Items, item =>
                 Assert.Contains(searchTerm, $"{item.FirstName} {item.LastName} {item.Email} {item.PersonaName} {item.Office}", StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    [Fact]
+    public async Task GetContactsAccountAsync_WithSearchCriteriaForTypeCollaborator_ShouldFilterResultsAndReturnContactsOrderedDescendingByActionLevel()
+    {
+        var accountId = 1;
+        ContactType collaborator = ContactType.Collaborator;
+
+        var account = _fixture.Build<AccountEntity>()
+                .With(x => x.AccountId, accountId)
+                .Without(x => x.RoleEntity)
+                .Without(x => x.PhoneEntity)
+                .Without(x => x.AddressEntity)
+                .Without(x => x.DeploymentEntity)
+                .Without(x => x.Office)
+                .Without(x => x.Delegation)
+                .Without(x => x.RoleLabelEntity)
+                .With(x => x.IsActive, true)
+                .Create();
+
+        var contact1 = _fixture.Build<ContactEntity>()
+            .With(x => x.FirstName, "Mostapha")
+            .With(x => x.Type, ContactType.Collaborator.ToString())
+            .Without(x => x.RoleEntity)
+            .Without(x => x.DelegationEntityDelegatee)
+            .Without(x => x.DelegationEntityDelegator)
+            .Without(x => x.RoleLabelEntityContact)
+            .Without(x => x.RoleLabelEntityCreatedByNavigation)
+            .With(x => x.IsActive, true)
+            .Create();
+
+        var contact2 = _fixture.Build<ContactEntity>()
+            .With(x => x.FirstName, "Nadim")
+            .With(x => x.Type, ContactType.Collaborator.ToString())
+            .Without(x => x.RoleEntity)
+            .Without(x => x.DelegationEntityDelegatee)
+            .Without(x => x.DelegationEntityDelegator)
+            .Without(x => x.RoleLabelEntityContact)
+            .Without(x => x.RoleLabelEntityCreatedByNavigation)
+            .With(x => x.IsActive, true)
+            .Create();
+
+        var contact3 = _fixture.Build<ContactEntity>()
+            .With(x => x.FirstName, "Awad")
+            .With(x => x.Type, ContactType.Collaborator.ToString())
+            .Without(x => x.RoleEntity)
+            .Without(x => x.DelegationEntityDelegatee)
+            .Without(x => x.DelegationEntityDelegator)
+            .Without(x => x.RoleLabelEntityContact)
+            .Without(x => x.RoleLabelEntityCreatedByNavigation)
+            .Create();
+
+        var role1 = _fixture.Build<RoleEntity>()
+            .Without(x => x.Account)
+            .Without(x => x.Contact)
+            .With(x => x.AccountId, account.AccountId)
+            .With(x => x.ContactId, contact1.ContactId)
+            .With(x => x.IsCustomerRelation, true)
+            .With(x => x.ActionLevel, 1)
+            .Create();
+
+        var role2 = _fixture.Build<RoleEntity>()
+           .Without(x => x.Account)
+           .Without(x => x.Contact)
+           .With(x => x.AccountId, account.AccountId)
+           .With(x => x.ContactId, contact2.ContactId)
+           .With(x => x.IsCustomerRelation, true)
+           .With(x => x.ActionLevel, 2)
+           .Create();
+
+        var role3 = _fixture.Build<RoleEntity>()
+           .Without(x => x.Account)
+           .Without(x => x.Contact)
+           .With(x => x.AccountId, account.AccountId)
+           .With(x => x.ContactId, contact3.ContactId)
+           .With(x => x.IsCustomerRelation, true)
+           .With(x => x.ActionLevel, 3)
+           .Create();
+
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Arrange
+            context.AccountEntity.Add(account);
+            context.ContactEntity.AddRange(new List<ContactEntity>() { contact1, contact2, contact3 });
+            context.SaveChanges();
+            context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
+            context.SaveChanges();
+
+            var accountRepository = new AccountRepository(context);
+
+            // Add test data with different contact names
+            var criteria = new SearchContactsAccountCriteria { Type = ContactType.Collaborator };
+            var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+            // Act
+            var result = await accountRepository.GetContactsAccountAsync(accountId, criteria, pagination);
+
+            var firstContact = result.Items.FirstOrDefault();
+            var thirdContact = result.Items.LastOrDefault();
+            Assert.NotNull(firstContact);
+            Assert.Equal(firstContact?.ActionLevel, 3);
+            Assert.Equal(thirdContact?.ActionLevel, 1);
         }
     }
 
