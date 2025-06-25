@@ -239,6 +239,12 @@ public class AccountRepository : IAccountRepository
 
             query = GetContactEntitiesSorted(query, criteria.Sorting);
 
+            if (criteria.Type == ContactType.Collaborator)
+            {
+                query = query.OrderByDescending(x => x.RoleEntity.Where(x => x.AccountId == accountId).Select(r => r.ActionLevel).FirstOrDefault())
+                .ThenBy(cnt => cnt.FirstName);
+            }
+
             var totalItems = await query.CountAsync();
 
             var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
@@ -249,11 +255,6 @@ public class AccountRepository : IAccountRepository
             var result = await query.ToListAsync();
 
             var contacts = result.Select(c => c.MapToContact(accountId));
-
-            if (criteria.Type == ContactType.Collaborator)
-            {
-                contacts = contacts.OrderByDescending(cnt => cnt?.ActionLevel);
-            }
 
             return contacts!.MapToPagingContact(
                 pagination!.PageNumber,
