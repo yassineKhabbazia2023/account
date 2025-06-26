@@ -4,7 +4,6 @@
 
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Notifications.Commons.AzureFunctions.Models;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
@@ -99,6 +98,52 @@ namespace Pulse.Account.Infrastructure.Repositories
                 .Select(s => new { Status = s.Key, Count = s.Select(d => d.Status).Count() });
 
             return await contactStatusStatistics.ToDictionaryAsync(x => x.Status, x => x.Count);
+        }
+
+        public async Task<IEnumerable<(int AccountCount, int ClientCount)>> GetAccountsPerClientCountAsync()
+        {
+            var data = await (from r in _accountContext.RoleEntity
+                              join c in _accountContext.ContactEntity on r.ContactId equals c.ContactId
+                              where c.Type == ContactType.Customer.ToString()
+                              select new { r.ContactId, r.AccountId })
+                     .ToListAsync();
+
+            var result = data
+                .GroupBy(x => x.ContactId)
+                .Select(g => new
+                {
+                    ContactId = g.Key,
+                    AccountCount = g.Select(x => x.AccountId).Distinct().Count()
+                })
+                .GroupBy(x => x.AccountCount)
+                .Select(g => (AccountCount: g.Key, ClientCount: g.Count()))
+                .OrderBy(x => x.AccountCount)
+                .ToList();
+
+            return result;
+        }
+
+        public async Task<IEnumerable<(int ClientCount, int AccountCount)>> GetClientsPerAccountCountAsync()
+        {
+            var data = await (from r in _accountContext.RoleEntity
+                              join c in _accountContext.ContactEntity on r.ContactId equals c.ContactId
+                              where c.Type == ContactType.Customer.ToString()
+                              select new { r.AccountId, r.ContactId })
+                     .ToListAsync();
+
+            var result = data
+                .GroupBy(x => x.AccountId)
+                .Select(g => new
+                {
+                    AccountId = g.Key,
+                    ClientCount = g.Select(x => x.ContactId).Distinct().Count()
+                })
+                .GroupBy(x => x.ClientCount)
+                .Select(g => (ClientCount: g.Key, AccountCount: g.Count()))
+                .OrderBy(x => x.ClientCount)
+                .ToList();
+
+            return result;
         }
     }
 }

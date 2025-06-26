@@ -11,5 +11,7 @@ namespace Pulse.Account.Core.Interfaces
         Task<Statistics> GetStatisticsAsync(int contactId);
 
         Task<double> GetAccountPercentageCustomerRelationAsync();
+
+        Task<byte[]> GetAccountAndClientIndicatorsAsync();
     }
 }

@@ -3,8 +3,8 @@
 // </copyright>
 
 using AutoFixture;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Polly;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -207,5 +207,165 @@ public class StatisticsRepositoryTests
 
             Assert.Equal(1, percentage);
         }
+    }
+
+    [Fact]
+    public async Task GetAccountsPerClientCountAsync_ShouldReturnCorrectCounts()
+    {
+        using var context = new AccountContext(_options);
+
+        var contacts = new List<ContactEntity>
+        {
+            new()
+            {
+                ContactId = 1,
+                Email = "mail1",
+                Type = "Customer",
+                FirstName = "fname1",
+                LastName = "lname1",
+                PersonaName = "dirigeant",
+                IsActive = true,
+            },
+            new()
+            {
+                ContactId = 2,
+                Email = "mail2",
+                Type = "Customer",
+                FirstName = "fname2",
+                LastName = "lname2",
+                PersonaName = "dirigeant",
+                IsActive = true,
+            },
+            new()
+            {
+                ContactId = 3,
+                Email = "mail3",
+                Type = "Collaborator",
+                FirstName = "fname3",
+                LastName = "lname3",
+                PersonaName = "dirigeant",
+                IsActive = true,
+            }
+        };
+        context.ContactEntity.AddRange(contacts);
+
+        var accounts = new List<AccountEntity>
+        {
+            new()
+            {
+                AccountId = 100,
+                AccountNumber = "num100",
+                LegalName = "legal100",
+                CreatedBy = "moi",
+                IsActive = true,
+            },
+            new()
+            {
+                AccountId = 200,
+                AccountNumber = "num200",
+                LegalName = "legal200",
+                CreatedBy = "moi",
+                IsActive = true,
+            }
+        };
+        context.AccountEntity.AddRange(accounts);
+
+        context.RoleEntity.AddRange(
+            new RoleEntity { ContactId = 1, AccountId = 100 },
+            new RoleEntity { ContactId = 1, AccountId = 200 },
+            new RoleEntity { ContactId = 2, AccountId = 100 },
+            new RoleEntity { ContactId = 3, AccountId = 200 });
+
+        await context.SaveChangesAsync();
+
+        var repository = new StatisticsRepository(context);
+
+        // Act
+        var result = await repository.GetAccountsPerClientCountAsync();
+
+        // Assert
+        result.Should().ContainInOrder(
+            (1, 1),
+            (2, 1));
+    }
+
+    [Fact]
+    public async Task GetClientsPerAccountCountAsync_ShouldReturnCorrectCounts()
+    {
+        using var context = new AccountContext(_options);
+
+        var contacts = new List<ContactEntity>
+        {
+            new()
+            {
+                ContactId = 1,
+                Email = "mail1",
+                Type = "Customer",
+                FirstName = "fname1",
+                LastName = "lname1",
+                PersonaName = "dirigeant",
+                IsActive = true,
+            },
+            new()
+            {
+                ContactId = 2,
+                Email = "mail2",
+                Type = "Customer",
+                FirstName = "fname2",
+                LastName = "lname2",
+                PersonaName = "dirigeant",
+                IsActive = true,
+            },
+            new()
+            {
+                ContactId = 3,
+                Email = "mail3",
+                Type = "Collaborator",
+                FirstName = "fname3",
+                LastName = "lname3",
+                PersonaName = "dirigeant",
+                IsActive = true,
+            }
+        };
+        context.ContactEntity.AddRange(contacts);
+
+        var accounts = new List<AccountEntity>
+        {
+            new()
+            {
+                AccountId = 100,
+                AccountNumber = "num100",
+                LegalName = "legal100",
+                CreatedBy = "moi",
+                IsActive = true,
+            },
+            new()
+            {
+                AccountId = 200,
+                AccountNumber = "num200",
+                LegalName = "legal200",
+                CreatedBy = "moi",
+                IsActive = true,
+            }
+        };
+        context.AccountEntity.AddRange(accounts);
+
+        context.RoleEntity.AddRange(
+            new RoleEntity { ContactId = 1, AccountId = 100 },
+            new RoleEntity { ContactId = 1, AccountId = 200 },
+            new RoleEntity { ContactId = 2, AccountId = 100 },
+            new RoleEntity { ContactId = 3, AccountId = 200 });
+
+        await context.SaveChangesAsync();
+
+        var repository = new StatisticsRepository(context);
+
+        // Act
+        var result = await repository.GetClientsPerAccountCountAsync();
+
+        // Assert
+        result.Should().ContainInOrder(
+            (1, 1),
+            (2, 1));
     }
 }
