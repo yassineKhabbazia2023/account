@@ -321,7 +321,7 @@ public static class MapAccountDbToAccountModel
             Siret = tAccount.Siret,
             LegalForm = tAccount.LegalForm,
             LegalFormCode = tAccount.LegalFormCode,
-            StaffSizeRange = tAccount.StaffSize != null ? tAccount.StaffSizeRange : null,
+            StaffSizeRange = tAccount.StaffSizeRange,
             Naf = tAccount.MapToNaf(),
             CreationDate = tAccount.CreationDate
         };
