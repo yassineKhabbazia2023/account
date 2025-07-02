@@ -1,0 +1,46 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+parameters:
+- name: deployToDev
+  displayName: 'Déployer sur DEV'
+  type: boolean
+  default: false
+- name: deployToItg
+  displayName: 'Déployer sur ITG'
+  type: boolean
+  default: true
+- name: deployToRec
+  displayName: 'Déployer sur REC'
+  type: boolean
+  default: true
+- name: deployToPrd
+  displayName: 'Déployer sur PROD'
+  type: boolean
+  default: true
+
+
+resources:
+  repositories:
+  - repository: Pulse
+    name: 'Pulse.Operations.Pipelines'
+    type: git
+    ref: 'refs/heads/Release/v4.0'
+
+extends:
+  template: pipelines/delivery/back.yaml@Pulse
+  parameters:
+    deployToDev: ${{ parameters.deployToDev }}
+    deployToItg: ${{ parameters.deployToItg }}
+    deployToRec: ${{ parameters.deployToRec }}
+    deployToPrd: ${{ parameters.deployToPrd }}
+    srcPath: 01_account/src/Account.API/Account.API.csproj
+    testsPath: 01_account/tests/**/*Tests.csproj
+    sonarExclusions: '**/Account.Database/Mocks.dev/**,**/Account.Database/Scripts/**,**/Account.Database/postDeployment/**,**/tests/**'
+    domain: acc
+    name: account
+    appType: webApp
+    id: '01'
