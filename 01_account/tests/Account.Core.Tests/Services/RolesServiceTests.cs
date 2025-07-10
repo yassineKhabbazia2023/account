@@ -1,4 +1,4 @@
-﻿// <copyright file="RolesServiceTests.cs" company="Pulse">
+// <copyright file="RolesServiceTests.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -84,7 +84,8 @@ public class RolesServiceTests
             AccountId = 6,
             ContactId = 6,
             IsFavorite = false,
-            IsSignatory = false
+            IsSignatory = false,
+            IncludePennylaneAccess = true
         };
         var contactId = 123;
 

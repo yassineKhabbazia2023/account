@@ -32,7 +32,8 @@ namespace Pulse.Account.Infrastructure.Mappers
                     Note = detail.Note,
                     Account = accounts.ToList(),
                     IsFullDelegation = delegation.IsFullDelegation,
-                    IsAutomaticDelegation = detail.IsAutomaticDelegation
+                    IsAutomaticDelegation = detail.IsAutomaticDelegation,
+                    IncludePennylaneAccess = delegation.IncludePennylaneAccess
                 };
 
                 delegationEntities.Add(delegationEntity);

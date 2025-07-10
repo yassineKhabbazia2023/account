@@ -54,26 +54,6 @@ public static class MapToRoleEntity
         };
     }
 
-    public static CreateRoleRequest ToCreateRoleRequest(this RoleEntity roleEntity)
-    {
-        if(roleEntity == null)
-        {
-            return null!;
-        }
-
-        return new CreateRoleRequest
-        {
-            AccountId = roleEntity.AccountId,
-            AccountGlobalUniqueId = roleEntity.Account?.AccountGlobalUniqueId,
-            ContactId = roleEntity.ContactId,
-            ContactGlobalUniqueId = roleEntity.Contact?.ContactGlobalUniqueId,
-            IsFavorite = roleEntity.IsFavorite,
-            IsSignatory = roleEntity.IsSignatory,
-            IsDelegation = roleEntity.IsDelegation,
-            IsCustomerRelation = roleEntity.IsCustomerRelation
-        };
-    }
-
     public static Role ToRole(this RoleCreatedEventData source)
     {
         if (source == null)
@@ -92,16 +72,23 @@ public static class MapToRoleEntity
         };
     }
 
-    public static IEnumerable<CreateRoleRequest> ToCreateRoleRequests(this IEnumerable<RoleEntity>? roleEntities, int delegatorId)
+    public static IEnumerable<CreateRoleRequest> ToCreateRoleRequests(this IEnumerable<RoleEntity>? roleEntities, int delegatorId, bool includePennylaneAccess)
     {
-        return roleEntities?.Select(x => x.ToCreateRoleRequest(delegatorId)) ?? Enumerable.Empty<CreateRoleRequest>();
+        return roleEntities?.Select(x => x.ToCreateRoleRequest(delegatorId, includePennylaneAccess)) ?? Enumerable.Empty<CreateRoleRequest>();
     }
 
-    private static CreateRoleRequest ToCreateRoleRequest(this RoleEntity roleEntity, int delegatorId)
-    {
-        var role = roleEntity.ToCreateRoleRequest();
-        role.DelegatorId = delegatorId;
-
-        return role;
-    }
+    public static CreateRoleRequest ToCreateRoleRequest(this RoleEntity roleEntity, int? delegatorId = null, bool? includePennylaneAccess = null) =>
+        new()
+        {
+            AccountId = roleEntity.AccountId,
+            AccountGlobalUniqueId = roleEntity.Account?.AccountGlobalUniqueId,
+            ContactId = roleEntity.ContactId,
+            ContactGlobalUniqueId = roleEntity.Contact?.ContactGlobalUniqueId,
+            IsFavorite = roleEntity.IsFavorite,
+            IsSignatory = roleEntity.IsSignatory,
+            IsDelegation = roleEntity.IsDelegation,
+            IsCustomerRelation = roleEntity.IsCustomerRelation,
+            DelegatorId = delegatorId,
+            IncludePennylaneAccess = includePennylaneAccess
+        };
 }

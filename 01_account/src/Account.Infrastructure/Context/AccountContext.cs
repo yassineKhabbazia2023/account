@@ -312,6 +312,7 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.DelegatorId).HasComment("Le délégateur ");
             entity.Property(e => e.EndDate).HasComment("La date effective de la fin de la délégation");
             entity.Property(e => e.IsAutomaticDelegation).HasComment("Indique s''il s''agit d''une délégation automatique");
+            entity.Property(e => e.IncludePennylaneAccess).HasComment("Indique si l'accès à Pennylane doit être inclus.");
             entity.Property(e => e.IsFullDelegation).HasComment("Indique si la délégation concerne l''intégralité du portefeuille ou non");
             entity.Property(e => e.Note)
                 .HasMaxLength(255)

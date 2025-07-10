@@ -33,5 +33,7 @@ namespace Pulse.Account.Core.Requests
 
         [JsonIgnore]
         public bool? IsCustomerRelation { get; set; }
+
+        public bool? IncludePennylaneAccess { get; set; }
     }
 }

@@ -53,6 +53,11 @@ public partial class DelegationEntity
     public bool IsFullDelegation { get; set; }
 
     /// <summary>
+    /// Indique si l'accès à Pennylane doit être inclus.
+    /// </summary>
+    public bool IncludePennylaneAccess { get; set; }
+
+    /// <summary>
     /// Indique s&apos;&apos;il s&apos;&apos;agit d&apos;&apos;une délégation automatique
     /// </summary>
     public bool IsAutomaticDelegation { get; set; }

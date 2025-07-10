@@ -30,7 +30,8 @@ public static class MapDelegationDbToDelegationModel
                 Delegatee = source.Delegatee?.ToContact(),
                 Delegator = source.Delegator?.ToContact(),
                 IsFullDelegation = source.IsFullDelegation,
-                IsAutomaticDelegation = source.IsAutomaticDelegation
+                IsAutomaticDelegation = source.IsAutomaticDelegation,
+                IncludePennylaneAccess = source.IncludePennylaneAccess
             };
     }
 

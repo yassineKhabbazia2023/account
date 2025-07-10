@@ -77,6 +77,7 @@ namespace Pulse.Account.Infrastructure.Providers
                 AccountNumber = selectedAccount!.AccountNumber,
                 ContactEmail = selectedContact!.Email,
                 IsCustomerRelation = roleRequest.IsCustomerRelation,
+                IncludePennylaneAccess = roleRequest.IncludePennylaneAccess,
             };
 
             await _eventPublisher.PublishAsync(new RoleCreatedEvent(data));

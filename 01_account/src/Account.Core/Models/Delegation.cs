@@ -30,4 +30,6 @@ public class Delegation
     public bool IsFullDelegation { get; set; }
 
     public bool IsAutomaticDelegation { get; set; }
+
+    public bool IncludePennylaneAccess { get; set; }
 }

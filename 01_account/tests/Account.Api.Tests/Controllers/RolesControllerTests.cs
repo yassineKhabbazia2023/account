@@ -148,6 +148,7 @@ public class RolesControllerTests
             IsFavorite = false,
             IsSignatory = false,
             IsDelegation = true,
+            IncludePennylaneAccess = true
         };
 
         var rolesController = new RolesController(mockRoleService.Object);

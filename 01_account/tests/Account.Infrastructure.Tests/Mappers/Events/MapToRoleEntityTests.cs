@@ -122,14 +122,6 @@ public class MapToRoleEntityTests
     }
 
     [Fact]
-    public void ToCreateRoleRequest_WithNullSource_ShouldReturnNull()
-    {
-        var result = MapToRoleEntity.ToCreateRoleRequest(null!);
-
-        Assert.Null(result);
-    }
-
-    [Fact]
     public void ToRoleEntity_Should_MapCreateRoleRequestToRoleEntity()
     {
         var request = _fixture.Create<CreateRoleRequest>();
@@ -214,8 +206,8 @@ public class MapToRoleEntityTests
     {
         var source = _fixture.CreateMany<RoleEntity>(3);
         var delegatorId = 8;
-
-        var result = source.ToCreateRoleRequests(delegatorId);
+        var includePennylaneAccess = false;
+        var result = source.ToCreateRoleRequests(delegatorId, includePennylaneAccess);
 
         Assert.NotNull(result);
         Assert.NotEmpty(result);
@@ -227,13 +219,14 @@ public class MapToRoleEntityTests
             var resultItem = result.ElementAt(i);
 
             Assert.Equal(delegatorId, resultItem.DelegatorId);
+            Assert.Equal(includePennylaneAccess, resultItem.IncludePennylaneAccess);
         }
     }
 
     [Fact]
     public void ToCreateRoleRequests_WithNullSource_Should_ReturnEmptyList()
     {
-        var result = MapToRoleEntity.ToCreateRoleRequests(null!, 1);
+        var result = MapToRoleEntity.ToCreateRoleRequests(null!, 1, false);
 
         Assert.Empty(result);
     }

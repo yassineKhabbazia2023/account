@@ -15,4 +15,6 @@ public class CreateDelegationRequest
     public IEnumerable<int>? AccountIds { get; set; }
 
     public bool IsFullDelegation { get; set; }
+
+    public bool IncludePennylaneAccess { get; set; }
 }

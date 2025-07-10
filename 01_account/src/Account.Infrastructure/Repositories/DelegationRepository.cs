@@ -76,7 +76,7 @@ public class DelegationRepository : IDelegationRepository
             await _accountContext.DelegationEntity.AddRangeAsync(delegationEntities);
             await _accountContext.SaveChangesAsync();
 
-            return roleEntities.ToCreateRoleRequests(delegation.DelegatorId);
+            return roleEntities.ToCreateRoleRequests(delegation.DelegatorId, delegation.IncludePennylaneAccess);
         });
     }
 
