@@ -94,6 +94,7 @@
     <None Include="postDeployment\Script.Naf.sql" />
     <None Include="postDeployment\Script.OfficeAddress.sql" />
     <None Include="postDeployment\Script.Office.sql" />
+    <None Include="postDeployment\Script.Label.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ScriptsRattrapage\Suppression_deployment_doublon.sql" />

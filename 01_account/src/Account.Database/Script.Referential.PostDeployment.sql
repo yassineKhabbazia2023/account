@@ -13,3 +13,4 @@ Post-Deployment Script Template
 :r .\postDeployment\Hub.Refential.sql
 :r .\postDeployment\Script.Naf.sql
 :r .\postDeployment\Script.Migration.sql
+:r .\postDeployment\Script.Label.sql

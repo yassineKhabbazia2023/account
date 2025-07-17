@@ -116,3 +116,13 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level2type = N'COLUMN',
     @level2name = N'IsAutomaticDelegation'
 GO
+
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Indique si l''accès à Pennylane doit être inclus.',
+    @level0type = N'SCHEMA',
+    @level0name = N'account',
+    @level1type = N'TABLE',
+    @level1name = N'Delegation',
+    @level2type = N'COLUMN',
+    @level2name = N'IncludePennylaneAccess'
+GO
