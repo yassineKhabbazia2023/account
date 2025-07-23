@@ -76,9 +76,11 @@ public class AccountRepository : IAccountRepository
         var totalItems = await baseQuery.CountAsync();
         var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
-        // Appliquer l'ordre, le Skip et le Take avant les Includes
-        var query = baseQuery
-            .OrderBy(a => a.LegalName)
+        // Sort result
+        var query = GetAccountEntitiesSorted(baseQuery, criteria.Sorting);
+
+        // Appliquer le Skip et le Take avant les Includes
+        query = query
             .Skip((pagination.PageNumber - 1) * pagination.PageSize)
             .Take(pagination.PageSize);
 
@@ -99,6 +101,70 @@ public class AccountRepository : IAccountRepository
             totalItems,
             totalPages
         );
+    }
+
+    private static IQueryable<AccountEntity> GetAccountEntitiesSorted(IQueryable<AccountEntity> query, Sorting? sorting)
+    {
+        if (sorting == null)
+        {
+            return query.OrderBy(x => x.LegalName);
+        }
+
+        switch (sorting.Field)
+        {
+            case SortingConstants.COMPANYNAME:
+                query = sorting.Descending
+                    ? query.OrderByDescending(x => x.LegalName)
+                    : query.OrderBy(x => x.LegalName);
+                break;
+
+            case SortingConstants.CUSTOMERCODE:
+                query = sorting.Descending
+                    ? query.OrderByDescending(x => x.AccountNumber)
+                    : query.OrderBy(x => x.AccountNumber);
+                break;
+
+            case SortingConstants.LEADER:
+                query = sorting.Descending
+                    ? query.OrderByDescending(x => x.RoleEntity
+                        .Where(r => r.IsSignatory == true)
+                        .Select(r => r.Contact.FirstName + r.Contact.LastName)
+                        .FirstOrDefault())
+                    : query.OrderBy(x => x.RoleEntity
+                        .Where(r => r.IsSignatory == true)
+                        .Select(r => r.Contact.FirstName + r.Contact.LastName)
+                        .FirstOrDefault());
+                break;
+
+            case SortingConstants.EMAIL:
+                query = sorting.Descending
+                    ? query.OrderByDescending(x => x.RoleEntity
+                        .Where(r => r.IsSignatory == true)
+                        .Select(r => r.Contact.Email)
+                        .FirstOrDefault())
+                    : query.OrderBy(x => x.RoleEntity
+                        .Where(r => r.IsSignatory == true)
+                        .Select(r => r.Contact.Email)
+                        .FirstOrDefault());
+                break;
+
+            case SortingConstants.CITY:
+                query = sorting.Descending
+                    ? query.OrderByDescending(x => x.AddressEntity
+                        .Select(a => a.City)
+                        .FirstOrDefault())
+                    : query.OrderBy(x => x.AddressEntity
+                        .Select(a => a.City)
+                        .FirstOrDefault());
+                break;
+
+            default:
+                throw new BadRequestException(
+                    Errors.BadRequestContactsAccountCode,
+                    string.Format(Errors.BadRequestContactsAccountMessage, sorting.Field));
+        }
+
+        return query;
     }
 
     public async Task<Paging<AccountModel>> GetAllAccountsAsync(string? accountNumber, Pagination pagination)
@@ -292,13 +358,15 @@ public class AccountRepository : IAccountRepository
             var totalItems = await query.CountAsync();
             var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
 
-            query = query.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
-            query = query.Take(pagination!.PageSize);
-
-            return (await query
+            var contacts = (await query
                     .ToListAsync())
-                    .MapToContacts()
-                    .MapToPagingContact(pagination!.PageNumber, totalItems, totalPages);
+                    .MapToContacts();
+
+            var contactsSorted = GetContactAssociateSorted(contacts, request.Sorting).AsQueryable();
+            contactsSorted = contactsSorted.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
+            contactsSorted = contactsSorted.Take(pagination!.PageSize);
+
+            return contactsSorted.AsEnumerable().MapToPagingContact(pagination!.PageNumber, totalItems, totalPages);
         });
     }
 
@@ -375,6 +443,46 @@ public class AccountRepository : IAccountRepository
             else
             {
                 query = query.OrderBy(exp);
+            }
+        }
+        else
+        {
+            query = query.OrderBy(x => x.FirstName + x.LastName);
+        }
+
+        return query;
+    }
+
+    private static IEnumerable<Contact> GetContactAssociateSorted(IEnumerable<Contact> query, Sorting? sorting)
+    {
+        if (sorting != null)
+        {
+            Expression<Func<Contact, object>> exp = null!;
+            switch (sorting.Field)
+            {
+                case SortingConstants.NAME:
+                    exp = c => c.FirstName + c.LastName;
+                    break;
+
+                case SortingConstants.EMAIL:
+                    exp = c => c.Email;
+                    break;
+
+                case SortingConstants.DATE:
+                    exp = c => c.CreationDate;
+                    break;
+
+                default:
+                    throw new BadRequestException(Errors.BadRequestContactsAccountCode, string.Format(Errors.BadRequestContactsAccountMessage, sorting.Field));
+            }
+
+            if (sorting.Descending)
+            {
+                query = query.AsQueryable().OrderByDescending(exp);
+            }
+            else
+            {
+                query = query.AsQueryable().OrderBy(exp);
             }
         }
         else

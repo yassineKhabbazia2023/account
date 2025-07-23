@@ -18,5 +18,8 @@ namespace Pulse.Account.Core.Requests
         public bool? IsFavoriteFilter { get; set; }
 
         public bool? IsCustomerRelationFilter { get; set; }
+
+        public Sorting? Sorting { get; set; }
+
     }
 }

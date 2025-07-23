@@ -16,6 +16,14 @@ namespace Pulse.Account.Core.Constants
 
         public const string STATUS = "status";
 
-        public const string DATE = "date";
+        public const string DATE = "creationDate";
+
+        public const string COMPANYNAME = "companyName";
+
+        public const string CUSTOMERCODE = "customerCode";
+
+        public const string LEADER = "leader";
+
+        public const string CITY = "city";
     }
 }

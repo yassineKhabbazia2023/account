@@ -285,6 +285,237 @@ public class AccountRepositoryTests
         }
     }
 
+    [Theory]
+    [InlineData(SortingConstants.COMPANYNAME, false, "test sca 1")]
+    [InlineData(SortingConstants.CUSTOMERCODE, false, "test sca 3")]
+    [InlineData(SortingConstants.LEADER, false, "test sca 3")]
+    [InlineData(SortingConstants.CITY, false, "test sca 1")]
+    [InlineData(SortingConstants.EMAIL, false, "test sca 3")]
+    public async Task GetAccountsAsync_SortsCorrectly(string field, bool descending, string expectedFirst)
+    {
+        using (var context = new TestAccountContext(_dbContextOptions))
+        {
+            var contactEntity = new ContactEntity
+            {
+                ContactId = 1,
+                Type = "Customer",
+                FirstName = "firstUser",
+                LastName = "lastUser",
+                Email = "firstLastUser@test.fr",
+                CreationDate = DateTime.Now,
+                PersonaName = "toto",
+                IsActive = true,
+            };
+            var contactEntity2 = new ContactEntity
+            {
+                ContactId = 2,
+                Type = "Customer",
+                FirstName = "firstUser",
+                LastName = "castUser",
+                Email = "dirstLastUser@test.fr",
+                CreationDate = DateTime.Now,
+                PersonaName = "toto",
+                IsActive = true,
+            };
+
+            var addressEntity = new AddressEntity
+            {
+                Country = "France",
+                City = "Paris"
+            };
+            var addressEntity2 = new AddressEntity
+            {
+                Country = "France",
+                City = "Toulouse"
+            };
+
+            var accountEntity = new AccountEntity
+            {
+                AccountId = 1,
+                AccountNumber = "199900046524",
+                LegalName = "test sca 1",
+                Hub = new HubEntity { HubId = 1, HubName = "HubName" },
+                CreatedBy = "me",
+                IsActive = true,
+                AddressEntity = new List<AddressEntity> { addressEntity },
+            };
+            var accountEntity2 = new AccountEntity
+            {
+                AccountId = 2,
+                AccountNumber = "199900046523",
+                LegalName = "test sca 3",
+                Hub = new HubEntity { HubId = 2, HubName = "HubName" },
+                CreatedBy = "me",
+                IsActive = true,
+                AddressEntity = new List<AddressEntity> { addressEntity2 },
+            };
+
+            var deploymentENtity = new DeploymentEntity
+            {
+                Account = accountEntity,
+                Status = 1,
+            };
+            var deploymentENtity2 = new DeploymentEntity
+            {
+                Account = accountEntity2,
+                Status = 1,
+            };
+
+            var roleEntities = new List<RoleEntity>
+            {
+                new()
+                {
+                    IsSignatory = true,
+                    Contact = contactEntity,
+                    Account = accountEntity
+                },
+                new()
+                {
+                    IsSignatory = false,
+                    Contact = contactEntity,
+                    Account = accountEntity2
+                },
+                new()
+                {
+                    IsSignatory = true,
+                    Contact = contactEntity2,
+                    Account = accountEntity2
+                }
+            };
+
+            context.RoleEntity.AddRange(roleEntities);
+            context.DeploymentEntity.AddRange([deploymentENtity, deploymentENtity2]);
+            await context.SaveChangesAsync();
+
+            var repo = new AccountRepository(context);
+            var criteria = new SearchAccountCriteria
+            {
+                ContactId = 1,
+                Sorting = new Sorting { Field = field, Descending = descending },
+            };
+
+            var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+            var result = await repo.GetAccountsAsync(criteria, pagination);
+
+            Assert.NotNull(result);
+            Assert.True(result.Items.Count() > 0);
+            Assert.Equal(expectedFirst, result.Items.First().LegalName);
+        }
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_ThrowException()
+    {
+        using (var context = new TestAccountContext(_dbContextOptions))
+        {
+            var contactEntity = new ContactEntity
+            {
+                ContactId = 1,
+                Type = "Customer",
+                FirstName = "firstUser",
+                LastName = "lastUser",
+                Email = "firstLastUser@test.fr",
+                CreationDate = DateTime.Now,
+                PersonaName = "toto",
+                IsActive = true,
+            };
+            var contactEntity2 = new ContactEntity
+            {
+                ContactId = 2,
+                Type = "Customer",
+                FirstName = "firstUser",
+                LastName = "castUser",
+                Email = "dirstLastUser@test.fr",
+                CreationDate = DateTime.Now,
+                PersonaName = "toto",
+                IsActive = true,
+            };
+
+            var addressEntity = new AddressEntity
+            {
+                Country = "France",
+                City = "Paris"
+            };
+            var addressEntity2 = new AddressEntity
+            {
+                Country = "France",
+                City = "Toulouse"
+            };
+
+            var accountEntity = new AccountEntity
+            {
+                AccountId = 1,
+                AccountNumber = "199900046524",
+                LegalName = "test sca 1",
+                Hub = new HubEntity { HubId = 1, HubName = "HubName" },
+                CreatedBy = "me",
+                IsActive = true,
+                AddressEntity = new List<AddressEntity> { addressEntity },
+            };
+            var accountEntity2 = new AccountEntity
+            {
+                AccountId = 2,
+                AccountNumber = "199900046523",
+                LegalName = "test sca 3",
+                Hub = new HubEntity { HubId = 2, HubName = "HubName" },
+                CreatedBy = "me",
+                IsActive = true,
+                AddressEntity = new List<AddressEntity> { addressEntity2 },
+            };
+
+            var deploymentENtity = new DeploymentEntity
+            {
+                Account = accountEntity,
+                Status = 1,
+            };
+            var deploymentENtity2 = new DeploymentEntity
+            {
+                Account = accountEntity2,
+                Status = 1,
+            };
+
+            var roleEntities = new List<RoleEntity>
+            {
+                new()
+                {
+                    IsSignatory = true,
+                    Contact = contactEntity,
+                    Account = accountEntity
+                },
+                new()
+                {
+                    IsSignatory = false,
+                    Contact = contactEntity,
+                    Account = accountEntity2
+                },
+                new()
+                {
+                    IsSignatory = true,
+                    Contact = contactEntity2,
+                    Account = accountEntity2
+                }
+            };
+
+            context.RoleEntity.AddRange(roleEntities);
+            context.DeploymentEntity.AddRange([deploymentENtity, deploymentENtity2]);
+            await context.SaveChangesAsync();
+
+            var repo = new AccountRepository(context);
+            var criteria = new SearchAccountCriteria
+            {
+                ContactId = 1,
+                Sorting = new Sorting { Descending = true, Field = "hahah" }
+            };
+
+            var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+            Task Accounts() => repo.GetAccountsAsync(criteria, pagination);
+
+            await Assert.ThrowsAsync<BadRequestException>(Accounts);
+        }
+    }
+
     [Fact]
     public async Task GetAccountList_ReturnOnlyAccountActive()
     {
@@ -1237,6 +1468,354 @@ public class AccountRepositoryTests
 
             // Assert
             await action.Should().ThrowAsync<NotFoundException>();
+        }
+    }
+
+    [Fact]
+    public async Task GetAssociatedContactsAsync_WithSearch_ShouldFilterResultsOrderByName()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Arrange
+            var accountId = 1;
+            var contactId = 1;
+
+            var account = _fixture.Build<AccountEntity>()
+                    .With(x => x.AccountId, accountId)
+                    .Without(x => x.RoleEntity)
+                    .Without(x => x.PhoneEntity)
+                    .Without(x => x.AddressEntity)
+                    .Without(x => x.DeploymentEntity)
+                    .Without(x => x.Office)
+                    .Without(x => x.Delegation)
+                    .Without(x => x.RoleLabelEntity)
+                    .With(x => x.IsActive, true)
+                    .Create();
+
+            var contact1 = _fixture.Build<ContactEntity>()
+                .With(x => x.FirstName, "Mostapha")
+                .With(x => x.Type, ContactType.Collaborator.ToString())
+                .With(x => x.ContactId, contactId)
+                .Without(x => x.RoleEntity)
+                .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleLabelEntityContact)
+                .Without(x => x.RoleLabelEntityCreatedByNavigation)
+                .With(x => x.IsActive, true)
+                .Create();
+
+            var contact2 = _fixture.Build<ContactEntity>()
+                .With(x => x.FirstName, "Nadim")
+                .With(x => x.Type, ContactType.Collaborator.ToString())
+                .Without(x => x.RoleEntity)
+                .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleLabelEntityContact)
+                .Without(x => x.RoleLabelEntityCreatedByNavigation)
+                .With(x => x.IsActive, true)
+                .Create();
+
+            var contact3 = _fixture.Build<ContactEntity>()
+                .With(x => x.FirstName, "Awad")
+                .With(x => x.Type, ContactType.Collaborator.ToString())
+                .Without(x => x.RoleEntity)
+                .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleLabelEntityContact)
+                .Without(x => x.RoleLabelEntityCreatedByNavigation)
+                .Create();
+
+            var role1 = _fixture.Build<RoleEntity>()
+                .Without(x => x.Account)
+                .Without(x => x.Contact)
+                .With(x => x.AccountId, account.AccountId)
+                .With(x => x.ContactId, contact1.ContactId)
+                .With(x => x.IsCustomerRelation, true)
+                .With(x => x.ActionLevel, 1)
+                .Create();
+
+            var role2 = _fixture.Build<RoleEntity>()
+               .Without(x => x.Account)
+               .Without(x => x.Contact)
+               .With(x => x.AccountId, account.AccountId)
+               .With(x => x.ContactId, contact2.ContactId)
+               .With(x => x.IsCustomerRelation, true)
+               .With(x => x.ActionLevel, 2)
+               .Create();
+
+            var role3 = _fixture.Build<RoleEntity>()
+               .Without(x => x.Account)
+               .Without(x => x.Contact)
+               .With(x => x.AccountId, account.AccountId)
+               .With(x => x.ContactId, contact3.ContactId)
+               .With(x => x.IsCustomerRelation, true)
+               .With(x => x.ActionLevel, 3)
+               .Create();
+
+            var searchTerm = string.Empty;
+
+            var request = new GetAssociatedContactsRequest
+            {
+                Search = searchTerm,
+                Sorting = new Sorting
+                {
+                    Field = SortingConstants.NAME,
+                    Descending = false
+                },
+                ContactType = ContactType.Collaborator
+            };
+            var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+            context.AccountEntity.Add(account);
+            context.ContactEntity.AddRange(new List<ContactEntity>() { contact1, contact2, contact3 });
+            context.SaveChanges();
+            context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
+            context.SaveChanges();
+            var accountRepository = new AccountRepository(context);
+
+            // Act
+            var result = await accountRepository.GetAssociatedContactsAsync(contactId, request, pagination);
+
+            // Assert
+            Assert.Equal(3, result.Items!.Count());
+            Assert.Equal("Awad", result.Items.ToList()[0].FirstName);
+            Assert.Equal("Mostapha", result.Items.ToList()[1].FirstName);
+            Assert.Equal("Nadim", result.Items.ToList()[2].FirstName);
+        }
+    }
+
+    [Fact]
+    public async Task GetAssociatedContactsAsync_WithSearch_ShouldFilterResultsOrderByEmailDescending()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Arrange
+            var accountId = 1;
+            var contactId = 1;
+
+            var account = _fixture.Build<AccountEntity>()
+                    .With(x => x.AccountId, accountId)
+                    .Without(x => x.RoleEntity)
+                    .Without(x => x.PhoneEntity)
+                    .Without(x => x.AddressEntity)
+                    .Without(x => x.DeploymentEntity)
+                    .Without(x => x.Office)
+                    .Without(x => x.Delegation)
+                    .Without(x => x.RoleLabelEntity)
+                    .With(x => x.IsActive, true)
+                    .Create();
+
+            var contact1 = _fixture.Build<ContactEntity>()
+                .With(x => x.FirstName, "Mostapha")
+                .With(x => x.Email, "mostapha@abc.com")
+                .With(x => x.Type, ContactType.Collaborator.ToString())
+                .With(x => x.ContactId, contactId)
+                .Without(x => x.RoleEntity)
+                .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleLabelEntityContact)
+                .Without(x => x.RoleLabelEntityCreatedByNavigation)
+                .With(x => x.IsActive, true)
+                .Create();
+
+            var contact2 = _fixture.Build<ContactEntity>()
+                .With(x => x.FirstName, "Nadim")
+                .With(x => x.Email, "nadim@abc.com")
+                .With(x => x.Type, ContactType.Collaborator.ToString())
+                .Without(x => x.RoleEntity)
+                .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleLabelEntityContact)
+                .Without(x => x.RoleLabelEntityCreatedByNavigation)
+                .With(x => x.IsActive, true)
+                .Create();
+
+            var contact3 = _fixture.Build<ContactEntity>()
+                .With(x => x.FirstName, "Awad")
+                .With(x => x.Email, "awad@abc.com")
+                .With(x => x.Type, ContactType.Collaborator.ToString())
+                .Without(x => x.RoleEntity)
+                .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleLabelEntityContact)
+                .Without(x => x.RoleLabelEntityCreatedByNavigation)
+                .Create();
+
+            var role1 = _fixture.Build<RoleEntity>()
+                .Without(x => x.Account)
+                .Without(x => x.Contact)
+                .With(x => x.AccountId, account.AccountId)
+                .With(x => x.ContactId, contact1.ContactId)
+                .With(x => x.IsCustomerRelation, true)
+                .With(x => x.ActionLevel, 1)
+                .Create();
+
+            var role2 = _fixture.Build<RoleEntity>()
+               .Without(x => x.Account)
+               .Without(x => x.Contact)
+               .With(x => x.AccountId, account.AccountId)
+               .With(x => x.ContactId, contact2.ContactId)
+               .With(x => x.IsCustomerRelation, true)
+               .With(x => x.ActionLevel, 2)
+               .Create();
+
+            var role3 = _fixture.Build<RoleEntity>()
+               .Without(x => x.Account)
+               .Without(x => x.Contact)
+               .With(x => x.AccountId, account.AccountId)
+               .With(x => x.ContactId, contact3.ContactId)
+               .With(x => x.IsCustomerRelation, true)
+               .With(x => x.ActionLevel, 3)
+               .Create();
+
+            var searchTerm = string.Empty;
+
+            var request = new GetAssociatedContactsRequest
+            {
+                Search = searchTerm,
+                Sorting = new Sorting
+                {
+                    Field = SortingConstants.EMAIL,
+                    Descending = true
+                },
+                ContactType = ContactType.Collaborator
+            };
+            var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+            context.AccountEntity.Add(account);
+            context.ContactEntity.AddRange(new List<ContactEntity>() { contact1, contact2, contact3 });
+            context.SaveChanges();
+            context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
+            context.SaveChanges();
+            var accountRepository = new AccountRepository(context);
+
+            // Act
+            var result = await accountRepository.GetAssociatedContactsAsync(contactId, request, pagination);
+
+            // Assert
+            Assert.Equal(3, result.Items!.Count());
+            Assert.Equal("Nadim", result.Items.ToList()[0].FirstName);
+            Assert.Equal("Mostapha", result.Items.ToList()[1].FirstName);
+            Assert.Equal("Awad", result.Items.ToList()[2].FirstName);
+        }
+    }
+
+    [Fact]
+    public async Task GetAssociatedContactsAsync_WithSearch_ShouldFilterResultsOrderByCreationDateDescending()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Arrange
+            var accountId = 1;
+            var contactId = 1;
+
+            var account = _fixture.Build<AccountEntity>()
+                    .With(x => x.AccountId, accountId)
+                    .Without(x => x.RoleEntity)
+                    .Without(x => x.PhoneEntity)
+                    .Without(x => x.AddressEntity)
+                    .Without(x => x.DeploymentEntity)
+                    .Without(x => x.Office)
+                    .Without(x => x.Delegation)
+                    .Without(x => x.RoleLabelEntity)
+                    .With(x => x.IsActive, true)
+                    .Create();
+
+            var contact1 = _fixture.Build<ContactEntity>()
+                .With(x => x.FirstName, "Mostapha")
+                .With(x => x.Email, "mostapha@abc.com")
+                .With(x => x.CreationDate, DateTime.Now)
+                .With(x => x.Type, ContactType.Collaborator.ToString())
+                .With(x => x.ContactId, contactId)
+                .Without(x => x.RoleEntity)
+                .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleLabelEntityContact)
+                .Without(x => x.RoleLabelEntityCreatedByNavigation)
+                .With(x => x.IsActive, true)
+                .Create();
+
+            var contact2 = _fixture.Build<ContactEntity>()
+                .With(x => x.FirstName, "Nadim")
+                .With(x => x.Email, "nadim@abc.com")
+                .With(x => x.CreationDate, DateTime.Now.AddDays(1))
+                .With(x => x.Type, ContactType.Collaborator.ToString())
+                .Without(x => x.RoleEntity)
+                .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleLabelEntityContact)
+                .Without(x => x.RoleLabelEntityCreatedByNavigation)
+                .With(x => x.IsActive, true)
+                .Create();
+
+            var contact3 = _fixture.Build<ContactEntity>()
+                .With(x => x.FirstName, "Awad")
+                .With(x => x.Email, "awad@abc.com")
+                .With(x => x.CreationDate, DateTime.Now.AddDays(2))
+                .With(x => x.Type, ContactType.Collaborator.ToString())
+                .Without(x => x.RoleEntity)
+                .Without(x => x.DelegationEntityDelegatee)
+                .Without(x => x.DelegationEntityDelegator)
+                .Without(x => x.RoleLabelEntityContact)
+                .Without(x => x.RoleLabelEntityCreatedByNavigation)
+                .Create();
+
+            var role1 = _fixture.Build<RoleEntity>()
+                .Without(x => x.Account)
+                .Without(x => x.Contact)
+                .With(x => x.AccountId, account.AccountId)
+                .With(x => x.ContactId, contact1.ContactId)
+                .With(x => x.IsCustomerRelation, true)
+                .With(x => x.ActionLevel, 1)
+                .Create();
+
+            var role2 = _fixture.Build<RoleEntity>()
+               .Without(x => x.Account)
+               .Without(x => x.Contact)
+               .With(x => x.AccountId, account.AccountId)
+               .With(x => x.ContactId, contact2.ContactId)
+               .With(x => x.IsCustomerRelation, true)
+               .With(x => x.ActionLevel, 2)
+               .Create();
+
+            var role3 = _fixture.Build<RoleEntity>()
+               .Without(x => x.Account)
+               .Without(x => x.Contact)
+               .With(x => x.AccountId, account.AccountId)
+               .With(x => x.ContactId, contact3.ContactId)
+               .With(x => x.IsCustomerRelation, true)
+               .With(x => x.ActionLevel, 3)
+               .Create();
+
+            var searchTerm = string.Empty;
+
+            var request = new GetAssociatedContactsRequest
+            {
+                Search = searchTerm,
+                Sorting = new Sorting
+                {
+                    Field = SortingConstants.DATE,
+                    Descending = true
+                },
+                ContactType = ContactType.Collaborator
+            };
+            var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+            context.AccountEntity.Add(account);
+            context.ContactEntity.AddRange(new List<ContactEntity>() { contact1, contact2, contact3 });
+            context.SaveChanges();
+            context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
+            context.SaveChanges();
+            var accountRepository = new AccountRepository(context);
+
+            // Act
+            var result = await accountRepository.GetAssociatedContactsAsync(contactId, request, pagination);
+
+            // Assert
+            Assert.Equal(3, result.Items!.Count());
+            Assert.Equal("Awad", result.Items.ToList()[0].FirstName);
+            Assert.Equal("Nadim", result.Items.ToList()[1].FirstName);
+            Assert.Equal("Mostapha", result.Items.ToList()[2].FirstName);
         }
     }
 

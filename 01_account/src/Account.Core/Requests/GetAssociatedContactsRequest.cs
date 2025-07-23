@@ -19,5 +19,7 @@ namespace Pulse.Account.Core.Requests
         /// Type de contacts à retourner.
         /// </summary>
         public ContactType ContactType { get; set; } = ContactType.Customer;
+
+        public Sorting? Sorting { get; set; }
     }
 }
