@@ -190,7 +190,8 @@ public class MapAccountDbToAccountModelTests
             {
                 new()
                 {
-                    Label = label
+                    Label = label,
+                    AccountId = 1,
                 }
             }
         };

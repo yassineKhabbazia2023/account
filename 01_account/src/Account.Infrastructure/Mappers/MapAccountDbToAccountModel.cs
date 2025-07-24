@@ -166,13 +166,13 @@ public static class MapAccountDbToAccountModel
             IsActive = tContact.IsActive,
             IsCustomerRelation = tContact.RoleEntity.FirstOrDefault(r => r.AccountId == accountId)?.IsCustomerRelation,
             ActionLevel = tContact.RoleEntity.FirstOrDefault(r => r.AccountId == accountId)?.ActionLevel ?? 0,
-            Labels = tContact.RoleLabelEntityContact.MapToLabels(),
+            Labels = tContact.RoleLabelEntityContact.MapToLabels(accountId ?? 0),
         };
     }
 
-    private static IEnumerable<Label> MapToLabels(this IEnumerable<RoleLabelEntity> source)
+    private static IEnumerable<Label> MapToLabels(this IEnumerable<RoleLabelEntity> source, int accountId)
     {
-        return source?.Select(l => l.Label.Map() !) ?? Enumerable.Empty<Label>();
+        return source?.Where(l => l.AccountId == accountId).Select(l => l.Label.Map() !) ?? Enumerable.Empty<Label>();
     }
 
     public static Deployment? MapToDeployment(this AccountEntity tAccount)
