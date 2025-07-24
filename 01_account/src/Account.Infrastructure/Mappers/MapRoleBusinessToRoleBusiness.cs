@@ -19,6 +19,7 @@ public static class MapRoleBusinessToRoleBusiness
             IsSignatory = role.IsSignatory,
             IsDelegation = role.IsDelegation,
             IsCustomerRelation = role.IsCustomerRelation,
+            ActionLevel = role.ActionLevel ?? 0,
         };
     }
 }

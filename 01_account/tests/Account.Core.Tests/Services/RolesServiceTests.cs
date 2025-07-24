@@ -322,10 +322,11 @@ public class RolesServiceTests
         };
 
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
-        roleRepository.Setup(repo => repo.UpdateRoleCustomerRelationAsync(
+        roleRepository.Setup(repo => repo.UpdateRoleCollaboratorInformationAsync(
                 It.Is<int>(a => a == accountId),
                 It.Is<int>(c => c == contactId),
-                It.Is<bool>(r => r == isCustomerRelation)))
+                It.Is<bool>(r => r == isCustomerRelation),
+                It.IsAny<int>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
 
@@ -335,7 +336,7 @@ public class RolesServiceTests
         await roleService.UpdateRoleCustomerRelationAsync(accountId, contactId, isCustomerRelation);
 
         // Assert
-        roleRepository.Verify(x => x.UpdateRoleCustomerRelationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Once);
+        roleRepository.Verify(x => x.UpdateRoleCollaboratorInformationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Once);
     }
 
     [Fact]
@@ -347,10 +348,11 @@ public class RolesServiceTests
         bool isCustomerRelation = true;
 
         var roleRepository = new Mock<IRoleRepository>(MockBehavior.Strict);
-        roleRepository.Setup(repo => repo.UpdateRoleCustomerRelationAsync(
+        roleRepository.Setup(repo => repo.UpdateRoleCollaboratorInformationAsync(
                 It.Is<int>(a => a == accountId),
                 It.Is<int>(c => c == contactId),
-                It.Is<bool>(r => r == isCustomerRelation)))
+                It.Is<bool>(r => r == isCustomerRelation),
+                It.IsAny<int>()))
             .ThrowsAsync(new NotFoundException(Errors.NotFoundRoleCode, Errors.NotFoundRoleMessage))
             .Verifiable();
 

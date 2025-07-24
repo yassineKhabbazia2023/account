@@ -459,7 +459,7 @@ public class RolesRepositoryTests
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        await rolesRepository.UpdateRoleCustomerRelationAsync(accountId, contactId, newIsCustomerRelation);
+        await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, newIsCustomerRelation);
 
         // Assert
         var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
@@ -468,9 +468,8 @@ public class RolesRepositoryTests
         Assert.Equal(4, updatedRole.ActionLevel);
     }
 
-
     [Fact]
-    public async Task UpdateRoleRelationClientAsyncToFalse_WithExistingRole_ShouldUpdateIsCustomerRelationAndSetActionLevelTo1()
+    public async Task UpdateRoleRelationClientAsyncToFalse_WithExistingRoleAndNoRoleLabel_ShouldUpdateIsCustomerRelationAndSetActionLevelTo1()
     {
         // Arrange
         const int accountId = 123;
@@ -502,13 +501,62 @@ public class RolesRepositoryTests
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        await rolesRepository.UpdateRoleCustomerRelationAsync(accountId, contactId, newIsCustomerRelation);
+        await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, newIsCustomerRelation, (int)ActionLevelType.Observator);
 
         // Assert
         var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
         Assert.NotNull(updatedRole);
         Assert.Equal(newIsCustomerRelation, updatedRole.IsCustomerRelation);
         Assert.Equal(1, updatedRole.ActionLevel);
+    }
+
+    [Fact]
+    public async Task UpdateRoleRelationClientAsyncToFalse_WithExistingRoleAndRoleLabel_ShouldUpdateIsCustomerRelationAndSetActionLevelTo3()
+    {
+        // Arrange
+        const int accountId = 123;
+        const int contactId = 456;
+        const bool newIsCustomerRelation = false;
+
+        using var context = new AccountContext(_dbContextOptions);
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, contactId)
+            .With(c => c.Type, ContactType.Collaborator.ToString())
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Create();
+        var roleEntity = new RoleEntity
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsCustomerRelation = true,
+            ActionLevel = 4
+        };
+        var roleLabel = new RoleLabelEntity
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            LabelId = 1
+        };
+        context.ContactEntity.Add(contact);
+        context.RoleEntity.Add(roleEntity);
+        context.RoleLabelEntity.Add(roleLabel);
+        await context.SaveChangesAsync();
+
+        context.ChangeTracker.Clear();
+        var rolesRepository = new RoleRepository(context);
+
+        // Act
+        await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, newIsCustomerRelation, (int)ActionLevelType.Observator);
+
+        // Assert
+        var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
+        Assert.NotNull(updatedRole);
+        Assert.Equal(newIsCustomerRelation, updatedRole.IsCustomerRelation);
+        Assert.Equal(3, updatedRole.ActionLevel);
     }
 
     [Fact]
@@ -535,7 +583,7 @@ public class RolesRepositoryTests
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        Func<Task> action = async () => await rolesRepository.UpdateRoleCustomerRelationAsync(accountId, contactId, newIsCustomerRelation);
+        Func<Task> action = async () => await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, newIsCustomerRelation);
 
         // Assert
         var exception = await Assert.ThrowsAsync<NotFoundException>(() => action());
@@ -574,7 +622,7 @@ public class RolesRepositoryTests
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        await rolesRepository.UpdateRoleCustomerRelationAsync(accountId, contactId, isCustomerRelation);
+        await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation);
 
         // Assert
         var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
@@ -606,7 +654,7 @@ public class RolesRepositoryTests
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        Func<Task> action = async () => await rolesRepository.UpdateRoleCustomerRelationAsync(accountId, contactId, newIsCustomerRelation);
+        Func<Task> action = async () => await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, newIsCustomerRelation);
 
         // Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationExceptionMiddleware>(() => action());

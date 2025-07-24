@@ -4,12 +4,13 @@
 
 using Pulse.Account.Core.Models;
 
-namespace Pulse.Account.Core.Interfaces
-{
-    public interface IRoleLabelRepository
-    {
-        Task DeleteRoleLabelAsync(int accountId, int contactId, int labelId);
+namespace Pulse.Account.Core.Interfaces;
 
-        Task AddRoleLabelAsync(RoleLabel roleLabel);
-    }
+public interface IRoleLabelRepository
+{
+    Task DeleteRoleLabelAsync(int accountId, int contactId, int labelId);
+
+    Task AddRoleLabelAsync(RoleLabel roleLabel);
+
+    Task<bool> HasRoleLabel(int contactId, int accountId, int labelId);
 }

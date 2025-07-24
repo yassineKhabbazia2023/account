@@ -110,4 +110,7 @@ public static class Errors
 
     public static readonly string NoClientLabelCode = "ACC035";
     public static readonly string NoClientLabelMessage = "Impossible d'ajouter des libellés pour un client.";
+
+    public static readonly string InvalidActionLevelCode = "ACC036";
+    public static readonly string InvalidActionLevelMessage = "Le niveau d'action ne peut pas être inférieur à 0.";
 }

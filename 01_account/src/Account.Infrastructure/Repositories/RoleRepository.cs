@@ -16,6 +16,7 @@ using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.ExceptionMiddleware.Exceptions;
 using InvalidOperationExceptionMiddleware = Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException;
@@ -174,7 +175,7 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task UpdateRoleCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation)
+    public async Task UpdateRoleCollaboratorInformationAsync(int accountId, int contactId, bool isCustomerRelation, int expectedActionLevel = (int)ActionLevelType.NotAssigned)
     {
         var isCollab = await _accountContext.ContactEntity.AsNoTracking().AnyAsync(c => c.ContactId == contactId && c.Type == ContactType.Collaborator.ToString());
 
@@ -190,13 +191,11 @@ public class RoleRepository : IRoleRepository
             throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
         }
 
-        if (roleDb.IsCustomerRelation != isCustomerRelation)
-        {
-            roleDb.ActionLevel = isCustomerRelation ? (int)ActionLevelType.DirectClientRelation : (int)ActionLevelType.Observator;
-            roleDb.IsCustomerRelation = isCustomerRelation;
-            _accountContext.Entry(roleDb).State = EntityState.Modified;
-            await _accountContext.SaveChangesAsync();
-        }
+        var hasRoleLabel = await HasRoleLabel(contactId, accountId);
+        roleDb.ActionLevel = ActionLevelHelper.SetupActionLevel(expectedActionLevel, isCustomerRelation, hasRoleLabel);
+        roleDb.IsCustomerRelation = isCustomerRelation;
+        _accountContext.Entry(roleDb).State = EntityState.Modified;
+        await _accountContext.SaveChangesAsync();
     }
 
     public async Task DeleteRoleAsync(int accountId, int contactId)
@@ -256,5 +255,10 @@ public class RoleRepository : IRoleRepository
 
             return totalRows > 0;
         });
+    }
+
+    private async Task<bool> HasRoleLabel(int contactId, int accountId)
+    {
+        return await _accountContext.RoleLabelEntity.AnyAsync(rl => rl.ContactId == contactId && rl.AccountId == accountId);
     }
 }

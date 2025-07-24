@@ -3,6 +3,7 @@
 // </copyright>
 
 using Microsoft.Extensions.Logging;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -73,7 +74,9 @@ public class RolesService : IRolesService
 
     public async Task UpdateRoleCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation)
     {
-        await _rolesRepository.UpdateRoleCustomerRelationAsync(accountId, contactId, isCustomerRelation);
+        var actionLevel = isCustomerRelation ? (int)ActionLevelType.DirectClientRelation : (int)ActionLevelType.Observator;
+
+        await _rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation, actionLevel);
     }
 
     public async Task DeleteRoleAsync(int accountId, int contactId)

@@ -12,69 +12,73 @@ using Pulse.Account.Infrastructure.Mappers;
 using Pulse.ExceptionMiddleware.Exceptions;
 using InvalidOperationException = Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException;
 
-namespace Pulse.Account.Infrastructure.Repositories
-{
-    public class RoleLabelRepository : IRoleLabelRepository
-    {
-        private readonly AccountContext _accountContext;
+namespace Pulse.Account.Infrastructure.Repositories;
 
-        public RoleLabelRepository(AccountContext accountContext)
+public class RoleLabelRepository : IRoleLabelRepository
+{
+    private readonly AccountContext _accountContext;
+
+    public RoleLabelRepository(AccountContext accountContext)
+    {
+        _accountContext = accountContext;
+    }
+
+    public async Task AddRoleLabelAsync(RoleLabel roleLabel)
+    {
+        if (roleLabel is null)
         {
-            _accountContext = accountContext;
+            throw new ArgumentNullException(Errors.NullArgumentCode, string.Format(Errors.NullArgumentMessage, nameof(roleLabel)));
         }
 
-        public async Task AddRoleLabelAsync(RoleLabel roleLabel)
+        var contact = await _accountContext.ContactEntity.AsNoTracking().FirstOrDefaultAsync(cnt => cnt.ContactId == roleLabel.ContactId);
+
+        if (contact is null)
         {
-            if (roleLabel is null)
-            {
-                throw new ArgumentNullException(Errors.NullArgumentCode, string.Format(Errors.NullArgumentMessage, nameof(roleLabel)));
-            }
+            throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, roleLabel.ContactId));
+        }
 
-            var contact = await _accountContext.ContactEntity.AsNoTracking().FirstOrDefaultAsync(cnt => cnt.ContactId == roleLabel.ContactId);
+        bool isClient = contact.Type == ContactType.Customer.ToString();
 
-            if (contact is null)
-            {
-                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, roleLabel.ContactId));
-            }
+        if (isClient)
+        {
+            throw new InvalidOperationException(Errors.NoClientLabelCode, Errors.NoClientLabelMessage);
+        }
 
-            bool isClient = contact.Type == ContactType.Customer.ToString();
+        bool roleLabelexists = await _accountContext.RoleLabelEntity
+            .AsNoTracking().AnyAsync(role => role.AccountId == roleLabel.AccountId && role.ContactId == roleLabel.ContactId && role.LabelId == roleLabel.LabelId);
 
-            if (isClient)
-            {
-                throw new InvalidOperationException(Errors.NoClientLabelCode, Errors.NoClientLabelMessage);
-            }
+        if (roleLabelexists)
+        {
+            throw new ConflictException(Errors.RoleLabelAlreadyExistsCode, Errors.RoleLabelAlreadyExistsMessage);
+        }
 
-            bool roleLabelexists = await _accountContext.RoleLabelEntity
-                .AsNoTracking().AnyAsync(role => role.AccountId == roleLabel.AccountId && role.ContactId == roleLabel.ContactId && role.LabelId == roleLabel.LabelId);
+        bool roleExists = await _accountContext.RoleEntity.AsNoTracking().AnyAsync(role => role.AccountId == roleLabel.AccountId && role.ContactId == roleLabel.ContactId);
 
-            if (roleLabelexists)
-            {
-                throw new ConflictException(Errors.RoleLabelAlreadyExistsCode, Errors.RoleLabelAlreadyExistsMessage);
-            }
+        if (!roleExists)
+        {
+            throw new NotFoundException(Errors.RoleNotFoundCode, string.Format(Errors.RoleNotFoundMessage, roleLabel.AccountId, roleLabel.ContactId));
+        }
 
-            bool roleExists = await _accountContext.RoleEntity.AsNoTracking().AnyAsync(role => role.AccountId == roleLabel.AccountId && role.ContactId == roleLabel.ContactId);
+        var roleLabelEntity = roleLabel.Map();
 
-            if (!roleExists)
-            {
-                throw new NotFoundException(Errors.RoleNotFoundCode, string.Format(Errors.RoleNotFoundMessage, roleLabel.AccountId, roleLabel.ContactId));
-            }
+        await _accountContext.RoleLabelEntity.AddAsync(roleLabelEntity);
+        await _accountContext.SaveChangesAsync();
+    }
 
-            var roleLabelEntity = roleLabel.Map();
+    public async Task DeleteRoleLabelAsync(int accountId, int contactId, int labelId)
+    {
+        var roleLabel = await _accountContext.RoleLabelEntity
+            .FirstOrDefaultAsync(role => role.AccountId == accountId && role.ContactId == contactId && role.LabelId == labelId);
 
-            await _accountContext.RoleLabelEntity.AddAsync(roleLabelEntity);
+        if (roleLabel is not null)
+        {
+            _accountContext.RoleLabelEntity.Remove(roleLabel);
             await _accountContext.SaveChangesAsync();
         }
+    }
 
-        public async Task DeleteRoleLabelAsync(int accountId, int contactId, int labelId)
-        {
-            var roleLabel = await _accountContext.RoleLabelEntity
-               .FirstOrDefaultAsync(role => role.AccountId == accountId && role.ContactId == contactId && role.LabelId == labelId);
-
-            if (roleLabel is not null)
-            {
-                _accountContext.RoleLabelEntity.Remove(roleLabel);
-                await _accountContext.SaveChangesAsync();
-            }
-        }
+    public async Task<bool> HasRoleLabel(int contactId, int accountId, int labelId)
+    {
+        return await _accountContext.RoleLabelEntity.AnyAsync(rl => rl.ContactId == contactId && rl.AccountId == accountId && rl.LabelId == labelId);
     }
 }

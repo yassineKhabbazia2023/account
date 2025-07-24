@@ -112,7 +112,7 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult> IsContactHasRoleOnAccount([Required] int contactId, int? accountId, string? accountNumber)
     {
-        if(!accountId.HasValue && accountNumber.IsNullOrEmpty())
+        if(!accountId.HasValue && string.IsNullOrEmpty(accountNumber))
         {
             throw new BadRequestException(Errors.BadRequestAccountIdAndAccountNumberNullCode, Errors.BadRequestAccountIdAndAccountNumberNullMessage);
         }

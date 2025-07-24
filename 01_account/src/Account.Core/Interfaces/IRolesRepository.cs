@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
@@ -26,5 +27,5 @@ public interface IRoleRepository
 
     Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber);
 
-    Task UpdateRoleCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation);
+    Task UpdateRoleCollaboratorInformationAsync(int accountId, int contactId, bool isCustomerRelation, int expectedActionLevel = (int)ActionLevelType.NotAssigned);
 }
