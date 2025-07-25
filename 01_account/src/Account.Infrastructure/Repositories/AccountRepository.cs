@@ -345,7 +345,7 @@ public class AccountRepository : IAccountRepository
                     .Where(x => accountIds.Contains(x.AccountId)
                     && x.Contact.Type == request.ContactType.ToString());
 
-            if (!request.Search.IsNullOrEmpty())
+            if (!string.IsNullOrEmpty(request.Search))
             {
                 query = query.Where(role => role.Contact.Email.Contains(request.Search!)
                                                             || role.Contact.FirstName.Contains(request.Search)
