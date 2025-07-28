@@ -3,6 +3,7 @@
 // </copyright>
 
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
@@ -62,11 +63,12 @@ public class SubscriptionValidatedEventHandler : IEventHandler
         {
             var contactId = collabFunction.ContactId;
             var role = await _roleRepository.GetContactRoleAsync(accountId, contactId);
+            var actionLevel = collabFunction.FunctionNames?.Any() == true ? (int)ActionLevelType.Contributor : (int)ActionLevelType.Observator;
 
             if (role != null)
             {
                 var isCustomerRelation = role.IsCustomerRelation.HasValue ? role.IsCustomerRelation.Value : false;
-                await _roleRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation, (int)ActionLevelType.Contributor);
+                await _roleRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation, actionLevel);
                 _logger.LogInformation($"Le rôle AccountId {accountId}/ContactId {contactId} a été mis à jour.");
             }
             else
@@ -76,7 +78,7 @@ public class SubscriptionValidatedEventHandler : IEventHandler
                     AccountId = accountId,
                     ContactId = contactId,
                     IsCustomerRelation = false,
-                    ActionLevel = (int)ActionLevelType.Contributor,
+                    ActionLevel = actionLevel,
                 };
 
                 await _roleRepository.CreateRoleAsync(request);
