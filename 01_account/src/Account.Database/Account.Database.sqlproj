@@ -63,6 +63,8 @@
     <Folder Include="Log" />
     <Folder Include="ScriptsRattrapage" />
     <Folder Include="Scripts" />
+    <Folder Include="ext" />
+    <Folder Include="ext\Vues" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="account\Tables\Account.sql" />
@@ -85,6 +87,7 @@
     <None Include="Log\Script.Delegation.sql" />
     <None Include="Scripts\002_Synchro_taille_colonne_Account.sql" />
     <None Include="Scripts\004_Recuperation_Libelle_Role_Pennylane.sql" />
+    <Build Include="ext\Vues\vw_SignatoryPerAccount.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Account.Database.refactorlog" />
@@ -100,5 +103,6 @@
   <ItemGroup>
     <None Include="ScriptsRattrapage\Suppression_deployment_doublon.sql" />
     <None Include="Scripts\003_Update_ActionLevel.sql" />
+    <Build Include="Security\Schemas\ext.sql" />
   </ItemGroup>
 </Project>
