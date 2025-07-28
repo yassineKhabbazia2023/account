@@ -8,7 +8,6 @@ using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.IntegrationEvents;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
-using Microsoft.IdentityModel.Tokens;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Entities;
 
@@ -74,7 +73,7 @@ public class ContactCreatedEventHandler : IEventHandler
 
     private async Task CreateRole(int contactId, string accountNumber)
     {
-        if (!accountNumber.IsNullOrEmpty())
+        if (!string.IsNullOrEmpty(accountNumber))
         {
             var accountEntity = await _accountEventRepository.GetAccountByNumberAsync(accountNumber!);
 
