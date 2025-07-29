@@ -3037,7 +3037,10 @@ VALUES
 (8, 122668, 889000, 1, N'Expert comptable'),
 (8, 122668, 889000, 2, N'Chef de mission'),
 (8, 122669, 889000, 1, N'Expert comptable'),
-(8, 122669, 889000, 2, N'Chef de mission');
+(8, 122669, 889000, 2, N'Chef de mission'),
+(8, 126968, 890531, 2, 'Chef de mission'),
+(8, 126968, 892434, 3, 'Collaborateur principal'),
+(8, 126968, 892825, 1, 'Expert comptable');
 
 -- Insérer ou mettre à jour les rôles
 MERGE [account].[Role] AS target
@@ -3065,7 +3068,7 @@ SET
 FROM [account].[Role] r
 JOIN #TempSubscriptionFunctions tsf 
     ON r.AccountId = tsf.AccountId AND r.ContactId = tsf.ContactId
-WHERE r.IsCustomerRelation IS NULL;
+WHERE (r.IsCustomerRelation IS NULL OR r.IsCustomerRelation = 0) AND r.AccountId <> 3;
 
 -- Mapping FunctionName → LabelId
 WITH FunctionLabelMapping AS (
