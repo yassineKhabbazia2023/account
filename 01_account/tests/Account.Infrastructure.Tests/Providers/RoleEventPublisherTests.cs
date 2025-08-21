@@ -83,14 +83,31 @@ public class RoleEventPublisherTests
         };
 
         var contactRepository = new Mock<IContactRepository>();
-        contactRepository.Setup(repository => repository.GetContactAsync(It.IsAny<int>(), true))
+        contactRepository.Setup(r => r.GetContactAsync(It.IsAny<int>(), true))
             .ReturnsAsync(contact);
         var accountRepository = new Mock<IAccountRepository>();
-        accountRepository.Setup(repo => repo.GetAccountAsync(It.IsAny<int>())).ReturnsAsync(account);
+        accountRepository.Setup(r => r.GetAccountAsync(It.IsAny<int>()))
+            .ReturnsAsync(account);
 
         var publisherMock = new Mock<IEventPublisher>();
-        var scopeMock = new Mock<IServiceScopeFactory>();
-        var roleEventPublisher = new RoleEventPublisher(publisherMock.Object, contactRepository.Object, accountRepository.Object, scopeMock.Object);
+
+        var serviceProviderMock = new Mock<IServiceProvider>();
+        serviceProviderMock.Setup(sp => sp.GetService(typeof(IContactRepository)))
+            .Returns(contactRepository.Object);
+        serviceProviderMock.Setup(sp => sp.GetService(typeof(IAccountRepository)))
+            .Returns(accountRepository.Object);
+
+        var scopeMock = new Mock<IServiceScope>();
+        scopeMock.Setup(s => s.ServiceProvider).Returns(serviceProviderMock.Object);
+
+        var scopeFactoryMock = new Mock<IServiceScopeFactory>();
+        scopeFactoryMock.Setup(f => f.CreateScope()).Returns(scopeMock.Object);
+
+        var roleEventPublisher = new RoleEventPublisher(
+            publisherMock.Object,
+            contactRepository.Object,
+            accountRepository.Object,
+            scopeFactoryMock.Object);
 
         // Act
         await roleEventPublisher.PublishRoleDeletedEventAsync(1, 1);

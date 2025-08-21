@@ -54,10 +54,10 @@ public class ContactRemovedEventHandler : IEventHandler
         await _delegationEventRepository.DeleteContactDelegationsAsync(contactEvent!.Data.ContactId);
         var rolesToDelete = await _roleEventRepository.DeleteContactRolesAsync(contactEvent!.Data.ContactId);
 
-        rolesToDelete.ToList().ForEach(async role =>
-        {
-            await _roleEventPublisher.PublishRoleDeletedEventAsync(role.AccountId, role.ContactId);
-        });
+        var publishTasks = rolesToDelete.Select(role =>
+            _roleEventPublisher.PublishRoleDeletedEventAsync(role.AccountId, role.ContactId));
+
+        await Task.WhenAll(publishTasks);
 
         _logger.LogInformation("Le contact avec l'identifiant: {ContactId} vient d'être supprimé.", contactEvent!.Data.ContactId);
     }

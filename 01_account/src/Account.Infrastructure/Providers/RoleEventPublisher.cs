@@ -107,11 +107,12 @@ namespace Pulse.Account.Infrastructure.Providers
 
         public async Task PublishRoleDeletedEventAsync(int accountId, int contactId)
         {
-            var contact = await _contactRepository.GetContactAsync(contactId, true);
+            using var scope = _serviceScope.CreateScope();
+            var contactRepository = scope.ServiceProvider.GetRequiredService<IContactRepository>();
+            var accountRepository = scope.ServiceProvider.GetRequiredService<IAccountRepository>();
 
-            var account = await _accountRepository.GetAccountAsync(accountId);
-
-            var roleDataReg = await GetEmailAndAccountNumber(accountId, contactId);
+            var contact = await contactRepository.GetContactAsync(contactId, true);
+            var account = await accountRepository.GetAccountAsync(accountId);
 
             var data = new RoleDeletedEventData
             {
@@ -119,19 +120,11 @@ namespace Pulse.Account.Infrastructure.Providers
                 ContactId = contactId,
                 AccountGlobalUniqueId = account!.AccountGlobalUniqueId,
                 ContactGlobalUniqueId = contact!.ContactGlobalUniqueId,
-                AccountNumber = roleDataReg.AccountNumber,
-                ContactEmail = roleDataReg.ContactEmail
+                AccountNumber = account.AccountNumber ?? string.Empty,
+                ContactEmail = contact.Email ?? string.Empty,
             };
 
             await _eventPublisher.PublishAsync(new RoleDeletedEvent(data));
-        }
-
-        private async Task<(string AccountNumber, string ContactEmail)> GetEmailAndAccountNumber(int accountId, int contactId)
-        {
-            var accountNumber = (await _accountRepository.GetAccountAsync(accountId))?.AccountNumber ?? string.Empty;
-            var contactEmail = (await _contactRepository.GetContactAsync(contactId, true))?.Email ?? string.Empty;
-
-            return (accountNumber, contactEmail);
         }
     }
 }
