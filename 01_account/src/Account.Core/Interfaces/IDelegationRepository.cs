@@ -14,7 +14,7 @@ public interface IDelegationRepository
 
     Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId);
 
-    Task<IEnumerable<CreateRoleRequest>> CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles);
+    Task<IEnumerable<CreateRoleRequest>> CreateDelegationAsync(int contactId, CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles);
 
     Task<IEnumerable<Role>> DeleteDelegationAsync(int delegationId);
 

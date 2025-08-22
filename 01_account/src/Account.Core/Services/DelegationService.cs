@@ -29,7 +29,7 @@ public class DelegationService : IDelegationService
         _logger = logger;
     }
 
-    public async Task CreateDelegationAsync(CreateDelegationRequest delegation)
+    public async Task CreateDelegationAsync(int contactId, CreateDelegationRequest delegation)
     {
         if (delegation is null || !delegation.DelegationDetails.Any() || (!delegation.IsFullDelegation && delegation.AccountIds?.Any() is not true))
         {
@@ -37,7 +37,7 @@ public class DelegationService : IDelegationService
         }
 
         var contactList = delegation.DelegationDetails.Select(d => d.DelegateeId).ToList();
-        contactList.Add(delegation.DelegatorId);
+        contactList.Add(contactId);
 
         if (await _delegationRepository.IsClient(contactList))
         {
@@ -53,11 +53,11 @@ public class DelegationService : IDelegationService
 
         if (delegation.IsFullDelegation)
         {
-            delegation.AccountIds = await _delegationRepository.GetAccountIdsForFullDelegationAsync(delegation.DelegatorId);
+            delegation.AccountIds = await _delegationRepository.GetAccountIdsForFullDelegationAsync(contactId);
         }
 
-        var roles = CreateRoleRequests(delegation).ToList();
-        var rolesCreated = await _delegationRepository.CreateDelegationAsync(delegation, roles);
+        var roles = CreateRoleRequests(contactId, delegation).ToList();
+        var rolesCreated = await _delegationRepository.CreateDelegationAsync(contactId, delegation, roles);
 
         if (rolesCreated.Any())
         {
@@ -123,7 +123,7 @@ public class DelegationService : IDelegationService
         return await _delegationRepository.GetContactDelegationsHistoryAsync(contactId, pagination, sortAscending);
     }
 
-    public static IEnumerable<CreateRoleRequest> CreateRoleRequests(CreateDelegationRequest delegationRequest)
+    public static IEnumerable<CreateRoleRequest> CreateRoleRequests(int contactId, CreateDelegationRequest delegationRequest)
     {
         if (delegationRequest?.DelegationDetails?.Any() != true)
         {
@@ -145,7 +145,7 @@ public class DelegationService : IDelegationService
                         IsFavorite = false,
                         IsSignatory = false,
                         IsDelegation = true,
-                        DelegatorId = delegationRequest.DelegatorId
+                        DelegatorId = contactId
                     });
                 }
             }

@@ -14,7 +14,7 @@ public interface IDelegationService
 
     Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId);
 
-    Task CreateDelegationAsync(CreateDelegationRequest delegation);
+    Task CreateDelegationAsync(int contactId, CreateDelegationRequest delegation);
 
     Task DeleteDelegationAsync(int delegationId);
 

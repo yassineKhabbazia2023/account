@@ -8,8 +8,6 @@ namespace Pulse.Account.Core.Requests;
 
 public class CreateDelegationRequest
 {
-    required public int DelegatorId { get; set; }
-
     required public IEnumerable<DelegationDetails> DelegationDetails { get; set; }
 
     public IEnumerable<int>? AccountIds { get; set; }

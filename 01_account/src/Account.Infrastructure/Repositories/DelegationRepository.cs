@@ -37,7 +37,7 @@ public class DelegationRepository : IDelegationRepository
                 sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(3000));
     }
 
-    public async Task<IEnumerable<CreateRoleRequest>> CreateDelegationAsync(CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles)
+    public async Task<IEnumerable<CreateRoleRequest>> CreateDelegationAsync(int contactId, CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles)
     {
         if (delegation == default(CreateDelegationRequest))
         {
@@ -45,7 +45,7 @@ public class DelegationRepository : IDelegationRepository
         }
 
         var contactsToCheck = delegation.DelegationDetails.Select(d => d.DelegateeId).ToList();
-        contactsToCheck.Add(delegation.DelegatorId);
+        contactsToCheck.Add(contactId);
 
         return await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -59,13 +59,13 @@ public class DelegationRepository : IDelegationRepository
                 throw new NotFoundException(Errors.NotFoundAccountsCode, Errors.NotFoundAccountsMessage);
             }
 
-            if (!await CheckContactHasAccounts(delegation.DelegatorId, delegation.AccountIds!))
+            if (!await CheckContactHasAccounts(contactId, delegation.AccountIds!))
             {
                 throw new ExceptionMiddleware.Exceptions.InvalidOperationException(Errors.DontHaveRightAccountsCode, Errors.DontHaveRightAccountsMessage);
             }
 
             var accounts = await GetAccounts(delegation.AccountIds!);
-            var delegationEntities = delegation.MapDelegationRequestToDelegationsDb(accounts.ToList());
+            var delegationEntities = delegation.MapDelegationRequestToDelegationsDb(contactId, accounts.ToList());
             var roleEntities = await RemoveDuplicateRoles(roles.MapRolesToRoleDb());
 
             if (roleEntities.Any())
@@ -76,7 +76,7 @@ public class DelegationRepository : IDelegationRepository
             await _accountContext.DelegationEntity.AddRangeAsync(delegationEntities);
             await _accountContext.SaveChangesAsync();
 
-            return roleEntities.ToCreateRoleRequests(delegation.DelegatorId, delegation.IncludePennylaneAccess);
+            return roleEntities.ToCreateRoleRequests(contactId, delegation.IncludePennylaneAccess);
         });
     }
 

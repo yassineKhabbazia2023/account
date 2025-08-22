@@ -35,6 +35,7 @@ public class DelegationServiceTest
     [Fact]
     public async Task CreateDelegationAsync_WhenRequestIsValid_ShouldCreateDelegation()
     {
+        var contactId = 25;
         var details = _fixture.Build<DelegationDetails>()
             .With(p => p.StartDate, DateTime.UtcNow)
             .With(p => p.EndDate, DateTime.UtcNow.AddDays(1))
@@ -44,16 +45,15 @@ public class DelegationServiceTest
             .With(p => p.DelegationDetails, details)
             .Create();
 
-        _repository.Setup(x => x.CreateDelegationAsync(createDelegation, It.IsAny<IEnumerable<CreateRoleRequest>>()))
-            .Callback<CreateDelegationRequest, IEnumerable<CreateRoleRequest>>((request, roles) =>
+        _repository.Setup(x => x.CreateDelegationAsync(contactId, createDelegation, It.IsAny<IEnumerable<CreateRoleRequest>>()))
+            .Callback<int, CreateDelegationRequest, IEnumerable<CreateRoleRequest>>((id, request, roles) =>
             {
                 request.DelegationDetails.FirstOrDefault() !.StartDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.StartDate);
                 request.DelegationDetails.FirstOrDefault() !.EndDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate);
-                request.DelegatorId.Should().Be(createDelegation.DelegatorId);
             });
 
         var service = new DelegationService(_repository.Object, _publisher.Object, _logger.Object);
-        await service.CreateDelegationAsync(createDelegation);
+        await service.CreateDelegationAsync(contactId, createDelegation);
 
         _repository.VerifyAll();
         _publisher.VerifyAll();
@@ -63,10 +63,11 @@ public class DelegationServiceTest
     [MemberData(nameof(CreateDelegationData))]
     public void CreateDelegationAsync_WithInvalidParameters_ShouldThrowBadRequestException(CreateDelegationRequest delegation)
     {
+        var contactId = 25;
         var service = new DelegationService(null!, null!, null!);
 
         // Act
-        var act = async () => await service.CreateDelegationAsync(delegation);
+        var act = async () => await service.CreateDelegationAsync(contactId, delegation);
 
         // Assert
         var exception = Assert.ThrowsAsync<BadRequestException>(act);
@@ -78,6 +79,7 @@ public class DelegationServiceTest
     public void CreateDelegationAsync_WhenEndDateIsInvalid_ShouldThrowException()
     {
         // Arrange
+        var contactId = 25;
         var details = _fixture.Build<DelegationDetails>()
             .With(p => p.StartDate, DateTime.UtcNow)
             .With(p => p.EndDate, DateTime.UtcNow.AddDays(-1))
@@ -91,7 +93,7 @@ public class DelegationServiceTest
         var service = new DelegationService(_repository.Object, null!, null!);
 
         // Act
-        var act = async () => await service.CreateDelegationAsync(createDelegation);
+        var act = async () => await service.CreateDelegationAsync(contactId, createDelegation);
 
         // Assert
         var exception = Assert.ThrowsAsync<BadRequestException>(act);
@@ -102,12 +104,13 @@ public class DelegationServiceTest
     [Fact]
     public void CreateDelegationAsync_ShouldThrowBadRequestException_IfRequestContainsClient()
     {
+        var contactId = 25;
         var createDelegation = _fixture.Create<CreateDelegationRequest>();
         _repository.Setup(x => x.IsClient(It.IsAny<IEnumerable<int>>())).ReturnsAsync(true);
 
         var service = new DelegationService(_repository.Object, null!, null!);
 
-        var act = async () => await service.CreateDelegationAsync(createDelegation);
+        var act = async () => await service.CreateDelegationAsync(contactId, createDelegation);
 
         var result = Assert.ThrowsAsync<BadRequestException>(act);
         Assert.Equal("ACC023", result.Result.Code);
@@ -303,6 +306,7 @@ public class DelegationServiceTest
     [Fact]
     public void CreateRoleRequests_ShouldCreateRoleRequestList()
     {
+        var contactId = 25;
         var details = _fixture.Build<DelegationDetails>()
             .With(x => x.IsRoleToCreate, true)
             .CreateMany(1);
@@ -312,7 +316,7 @@ public class DelegationServiceTest
             .With(x => x.AccountIds, accounts)
             .Create();
 
-        var result = DelegationService.CreateRoleRequests(expected);
+        var result = DelegationService.CreateRoleRequests(contactId, expected);
         result.Should().NotBeNull();
         result.Should().HaveCount(1);
 
@@ -328,7 +332,8 @@ public class DelegationServiceTest
     [MemberData(nameof(CreateRoleRequestData))]
     public void CreateRoleRequestsWithNullOrEmtpyDelegationDetail_ShouldReturnEmptyList(CreateDelegationRequest delegation)
     {
-        var result = DelegationService.CreateRoleRequests(delegation);
+        var contactId = 25;
+        var result = DelegationService.CreateRoleRequests(contactId, delegation);
 
         result.Should().NotBeNull();
         result.Should().BeEmpty();
@@ -341,7 +346,6 @@ public class DelegationServiceTest
             {
                 new CreateDelegationRequest
                 {
-                    DelegatorId = 0,
                     DelegationDetails = Enumerable.Empty<DelegationDetails>(),
                     AccountIds = null!,
                     IsFullDelegation = true
@@ -351,7 +355,6 @@ public class DelegationServiceTest
             {
                 new CreateDelegationRequest
                 {
-                    DelegatorId = 0,
                     DelegationDetails = new List<DelegationDetails> { new DelegationDetails { DelegateeId = 1 } },
                     AccountIds = null!,
                     IsFullDelegation = false
@@ -361,7 +364,6 @@ public class DelegationServiceTest
             {
                 new CreateDelegationRequest
                 {
-                    DelegatorId = 0,
                     DelegationDetails = new List<DelegationDetails> { new DelegationDetails { DelegateeId = 1 } },
                     AccountIds = Enumerable.Empty<int>(),
                     IsFullDelegation = false
@@ -376,7 +378,6 @@ public class DelegationServiceTest
             {
                 new CreateDelegationRequest
                 {
-                    DelegatorId = 0,
                     DelegationDetails = null!,
                     AccountIds = null!,
                 }
@@ -385,7 +386,6 @@ public class DelegationServiceTest
             {
                 new CreateDelegationRequest
                 {
-                    DelegatorId = 0,
                     DelegationDetails = Enumerable.Empty<DelegationDetails>(),
                     AccountIds = null!,
                 }

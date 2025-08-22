@@ -9,8 +9,7 @@ namespace Pulse.Account.Infrastructure.Mappers
 {
     public static class MapDelegationBusinessToDelegationDb
     {
-        public static IEnumerable<DelegationEntity> MapDelegationRequestToDelegationsDb(this CreateDelegationRequest delegation,
-            IEnumerable<AccountEntity> accounts)
+        public static IEnumerable<DelegationEntity> MapDelegationRequestToDelegationsDb(this CreateDelegationRequest delegation, int delegatorId, IEnumerable<AccountEntity> accounts)
         {
             if (delegation?.DelegationDetails?.Any() != true)
             {
@@ -24,7 +23,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 var delegationEntity = new DelegationEntity
                 {
                     CreationDate = DateTime.UtcNow,
-                    DelegatorId = delegation.DelegatorId,
+                    DelegatorId = delegatorId,
                     DelegateeId = detail.DelegateeId,
                     StartDate = detail.StartDate!.Value,
                     EndDate = detail.EndDate,

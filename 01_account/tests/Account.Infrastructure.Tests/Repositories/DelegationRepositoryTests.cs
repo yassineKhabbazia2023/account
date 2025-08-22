@@ -39,6 +39,7 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task CreateDelegationAsync_ShouldThrowNotFoundException_WhenNoExistingContactsFound()
     {
+        var contactId = 25;
         CreateDelegationRequest createDelegationRequest = _fixture
             .Build<CreateDelegationRequest>()
             .Create();
@@ -52,7 +53,7 @@ public class DelegationRepositoryTests
         {
             var repos = new DelegationRepository(context);
 
-            var action = async () => await repos.CreateDelegationAsync(createDelegationRequest, roleRequestList);
+            var action = async () => await repos.CreateDelegationAsync(contactId, createDelegationRequest, roleRequestList);
 
             var exception = await action.Should().ThrowAsync<NotFoundException>();
 
@@ -64,6 +65,7 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task CreateDelegationAsync_ShouldThrowNotFoundException_WhenNoExistingAccountsFound()
     {
+        var contactId = 25;
         CreateDelegationRequest createDelegationRequest = _fixture
             .Build<CreateDelegationRequest>()
             .Create();
@@ -91,7 +93,7 @@ public class DelegationRepositoryTests
         }
 
         var contactDelegator = _fixture.Build<ContactEntity>()
-            .With(x => x.ContactId, createDelegationRequest.DelegatorId)
+            .With(x => x.ContactId, contactId)
             .With(x => x.IsActive, true)
             .Without(x => x.DelegationEntityDelegatee)
             .Without(x => x.DelegationEntityDelegator)
@@ -109,7 +111,7 @@ public class DelegationRepositoryTests
 
             var repos = new DelegationRepository(context);
 
-            var action = async () => await repos.CreateDelegationAsync(createDelegationRequest, roleRequestList);
+            var action = async () => await repos.CreateDelegationAsync(contactId, createDelegationRequest, roleRequestList);
 
             var exception = await action.Should().ThrowAsync<NotFoundException>();
 
@@ -131,11 +133,11 @@ public class DelegationRepositoryTests
 
             // Create Contacts
             var tDelegator = _fixture.Build<ContactEntity>()
-                .With(c => c.ContactId, 123)
+                .With(c => c.ContactId, 25)
                 .With(c => c.IsActive, true)
                 .Create();
             var tDelegatee = _fixture.Build<ContactEntity>()
-                .With(c => c.ContactId, 456)
+                .With(c => c.ContactId, 26)
                 .With(c => c.IsActive, true)
                 .Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
@@ -154,7 +156,6 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var createDelegation = new CreateDelegationRequest()
             {
-                DelegatorId = tDelegator.ContactId,
                 DelegationDetails = new List<DelegationDetails>
                 {
                     new()
@@ -181,7 +182,7 @@ public class DelegationRepositoryTests
                 }
             };
 
-            var result = await repository.CreateDelegationAsync(createDelegation, roles);
+            var result = await repository.CreateDelegationAsync(tDelegator.ContactId, createDelegation, roles);
 
             Assert.NotNull(result);
             Assert.Single(result);
@@ -190,6 +191,7 @@ public class DelegationRepositoryTests
 
             var createdDelegation = await context
                 .DelegationEntity
+                .Include(d => d.Account)
                 .FirstOrDefaultAsync(d => d.DelegatorId == tDelegator.ContactId
                 && d.DelegateeId == tDelegatee.ContactId
                 && d.Account.FirstOrDefault(a => a.AccountId == tAccount.AccountId) != null);
@@ -250,7 +252,6 @@ public class DelegationRepositoryTests
                 var repository = new DelegationRepository(newContext);
                 var createDelegation = new CreateDelegationRequest()
                 {
-                    DelegatorId = tDelegator.ContactId,
                     DelegationDetails = new List<DelegationDetails>
                 {
                     new()
@@ -276,12 +277,12 @@ public class DelegationRepositoryTests
                 }
             };
 
-                await repository.CreateDelegationAsync(createDelegation, roles);
+                await repository.CreateDelegationAsync(tDelegator.ContactId, createDelegation, roles);
 
                 var createdDelegation = await context
                     .DelegationEntity
                     .FirstOrDefaultAsync(d => d.DelegatorId == tDelegator.ContactId
-                    && d.DelegateeId == 124
+                    && d.DelegateeId == tDelegatee.ContactId
                     && d.Account.FirstOrDefault(a => a.AccountId == tAccount.AccountId) != null);
 
                 Assert.NotNull(createdDelegation);
@@ -312,7 +313,6 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var createDelegation = new CreateDelegationRequest()
             {
-                DelegatorId = 0,
                 DelegationDetails = new List<DelegationDetails>
                 {
                     new()
@@ -326,7 +326,7 @@ public class DelegationRepositoryTests
                 AccountIds = new List<int> { tAccount.AccountId }
             };
             var contacts = new List<int> { tDelegatee.ContactId, 0 };
-            var action = async () => await repository.CreateDelegationAsync(createDelegation, null!);
+            var action = async () => await repository.CreateDelegationAsync(0, createDelegation, null!);
             var result = await action.Should().ThrowAsync<NotFoundException>();
             result.Which.Code.Should().Be(Errors.NotFoundContactsCode);
             result.WithMessage(Errors.NotFoundContactsMessage);
@@ -352,7 +352,6 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var createDelegation = new CreateDelegationRequest()
             {
-                DelegatorId = tDelegator.ContactId,
                 DelegationDetails = new List<DelegationDetails>
                 {
                     new()
@@ -367,9 +366,9 @@ public class DelegationRepositoryTests
             };
 
             var contacts = createDelegation.DelegationDetails.Select(x => x.DelegateeId).ToList();
-            contacts.Add(createDelegation.DelegatorId);
+            contacts.Add(tDelegator.ContactId);
 
-            var action = async () => await repository.CreateDelegationAsync(createDelegation, null!);
+            var action = async () => await repository.CreateDelegationAsync(tDelegator.ContactId, createDelegation, null!);
             var result = await action.Should().ThrowAsync<NotFoundException>();
             result.Where(x => x.Code == Errors.NotFoundContactsCode);
             result.WithMessage(Errors.NotFoundContactsMessage);
@@ -391,7 +390,6 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var createDelegation = new CreateDelegationRequest()
             {
-                DelegatorId = tDelegator.ContactId,
                 DelegationDetails = new List<DelegationDetails>
                 {
                     new()
@@ -405,7 +403,7 @@ public class DelegationRepositoryTests
                 AccountIds = new List<int> { 3 }
             };
 
-            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(createDelegation, null!));
+            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CreateDelegationAsync(tDelegator.ContactId, createDelegation, null!));
             Assert.Equal(Errors.NotFoundAccountsCode, result.Code);
             Assert.Equal(Errors.NotFoundAccountsMessage, result.Message);
         }
@@ -431,7 +429,6 @@ public class DelegationRepositoryTests
             var repository = new DelegationRepository(context);
             var createDelegation = new CreateDelegationRequest()
             {
-                DelegatorId = tDelegator.ContactId,
                 DelegationDetails = new List<DelegationDetails>
                 {
                     new()
@@ -445,7 +442,7 @@ public class DelegationRepositoryTests
                 AccountIds = new List<int> { tAccount.AccountId }
             };
 
-            var result = await Assert.ThrowsAsync<InvalidOperationException>(async () => await repository.CreateDelegationAsync(createDelegation, null!));
+            var result = await Assert.ThrowsAsync<InvalidOperationException>(async () => await repository.CreateDelegationAsync(tDelegator.ContactId, createDelegation, null!));
             Assert.Equal(Errors.DontHaveRightAccountsCode, result.Code);
             Assert.Equal(Errors.DontHaveRightAccountsMessage, result.Message);
         }

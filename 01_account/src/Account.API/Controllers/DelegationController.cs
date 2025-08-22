@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -63,15 +64,16 @@ public class DelegationController : ControllerBase
     /// <summary>
     /// Ajouter une délégation sur une entité morale.
     /// </summary>
+    /// <param name="contactId">Identification de l'utilisateur connecté.</param>
     /// <param name="delegation">Le détail relatif à la délégation.</param>
     /// <returns>Un entitier positif si la délégation a été bien ajouter, sinon une valeur 0. </returns>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult> CreateDelegationAsync([FromBody] CreateDelegationRequest delegation)
+    public async Task<ActionResult> CreateDelegationAsync([Required] int contactId, [FromBody] CreateDelegationRequest delegation)
     {
-        await _delegationService.CreateDelegationAsync(delegation);
+        await _delegationService.CreateDelegationAsync(contactId, delegation);
 
         return Ok();
     }

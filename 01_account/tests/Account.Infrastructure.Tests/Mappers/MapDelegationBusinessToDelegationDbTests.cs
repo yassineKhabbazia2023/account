@@ -25,12 +25,13 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [Fact]
         public void MapDelegationRequestToDelegationsDb_ShouldMapDelegation()
         {
+            var contactId = 25;
             var accounts = _fixture.CreateMany<AccountEntity>();
             var expected = _fixture.Build<CreateDelegationRequest>()
                 .With(x => x.AccountIds, accounts.Select(a => a.AccountId))
                 .Create();
 
-            var result = expected.MapDelegationRequestToDelegationsDb(accounts);
+            var result = expected.MapDelegationRequestToDelegationsDb(contactId, accounts);
 
             result.Should().NotBeNull();
             result.Should().HaveCount(expected.DelegationDetails.Count());
@@ -39,7 +40,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             {
                 var resultItem = result.ElementAt(i);
                 var expectedItem = expected.DelegationDetails.ElementAt(i);
-                resultItem.DelegatorId.Should().Be(expected.DelegatorId);
+                resultItem.DelegatorId.Should().Be(contactId);
                 resultItem.DelegateeId.Should().Be(expectedItem.DelegateeId);
                 resultItem.StartDate.Should().Be(expectedItem.StartDate);
                 resultItem.EndDate.Should().Be(expectedItem.EndDate);
@@ -60,7 +61,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [MemberData(nameof(DelegationRequestData))]
         public void MapDelegationRequestToDelegationsDbWithNullOrEmptyDelegationDetails_ShouldReturnEmptyList(CreateDelegationRequest delegation)
         {
-            var result = MapDelegationBusinessToDelegationDb.MapDelegationRequestToDelegationsDb(delegation, null!);
+            var result = MapDelegationBusinessToDelegationDb.MapDelegationRequestToDelegationsDb(delegation, 0, null!);
 
             result.Should().NotBeNull();
             result.Should().BeEmpty();
@@ -73,7 +74,6 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             {
                 new CreateDelegationRequest
                 {
-                    DelegatorId = 0,
                     DelegationDetails = null!,
                     AccountIds = null!,
                 }
@@ -82,7 +82,6 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             {
                 new CreateDelegationRequest
                 {
-                    DelegatorId = 0,
                     DelegationDetails = Enumerable.Empty<DelegationDetails>(),
                     AccountIds = null!,
                 }
