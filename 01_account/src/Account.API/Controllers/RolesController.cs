@@ -183,6 +183,7 @@ public class RolesController : ControllerBase
     /// <summary>
     /// Supprimer le role d'un contact dans une entité morale.
     /// </summary>
+    /// <param name="currentUserId">Identifiant du contact à l'origine de l'action.</param>
     /// <param name="accountId">Identifiant de l'entitié morale.</param>
     /// <param name="contactId">Identifiant de l'utilisateur.</param>
     /// <returns>http 200.</returns>
@@ -190,9 +191,9 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult> DeleteRoleAsync([Required] int accountId, [Required] int contactId)
+    public async Task<ActionResult> DeleteRoleAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [Required] int accountId, [Required] int contactId)
     {
-        await _rolesService.DeleteRoleAsync(accountId, contactId);
+        await _rolesService.DeleteRoleAsync(currentUserId, accountId, contactId);
         return Ok();
     }
 }

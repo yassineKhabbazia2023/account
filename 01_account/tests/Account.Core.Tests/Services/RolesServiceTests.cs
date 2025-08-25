@@ -12,6 +12,7 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
+using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.ExceptionMiddleware.Exceptions;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
@@ -20,12 +21,14 @@ namespace Pulse.Account.Core.Tests.Services;
 public class RolesServiceTests
 {
     private readonly Mock<IRoleEventPublisher>? _rolePublisher;
+    private readonly Mock<IHistoryEventPublisher>? _historyPublisher;
     private readonly Mock<ILogger<RolesService>>? _logger;
     private readonly Fixture _fixture;
 
     public RolesServiceTests()
     {
         _rolePublisher = new Mock<IRoleEventPublisher>();
+        _historyPublisher = new Mock<IHistoryEventPublisher>();
         _logger = new Mock<ILogger<RolesService>>();
         _fixture = new Fixture();
     }
@@ -37,7 +40,7 @@ public class RolesServiceTests
         var accountList = _fixture.Create<Paging<AccountModel>>();
         var rolesRepository = new Mock<IRoleRepository>();
         rolesRepository.Setup(repository => repository.GetContactRolesAsync(It.IsAny<int>(), It.IsAny<Pagination>())).ReturnsAsync(accountList);
-        var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _logger!.Object);
+        var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
         var accounts = await rolesService.GetContactRolesAsync(contactId: 123, null!);
@@ -59,7 +62,7 @@ public class RolesServiceTests
             .Callback<int>(id => id.Should().Be(accountId))
         .ReturnsAsync(expected);
 
-        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
         var result = await roleService.GetSignatoryAsync(accountId);
@@ -105,7 +108,7 @@ public class RolesServiceTests
          .Returns(Task.CompletedTask)
          .Verifiable();
 
-        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
         await roleService.CreateRoleAsync(createRoleRequest, contactId);
@@ -124,7 +127,7 @@ public class RolesServiceTests
             .ThrowsAsync(new BadRequestException(Errors.NotFoundAccountMessage, Errors.NotFoundAccountMessage));
         var contactId = 123;
 
-        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
         Task Roles() => roleService.CreateRoleAsync(null!, contactId);
@@ -162,7 +165,7 @@ public class RolesServiceTests
           .Returns(Task.CompletedTask)
           .Verifiable();
 
-        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
         await roleService.UpdateRoleSignatoryAsync(accountId, contactId, true);
@@ -203,11 +206,12 @@ public class RolesServiceTests
     public void DeleteRoleAsync_ShouldDeleteRole()
     {
         // Arrange
+        var currentUserId = 25;
         var roleRepository = DeleteRole_MockRepo();
-        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
-        Task DeleteRole() => roleService!.DeleteRoleAsync(1, 1);
+        Task DeleteRole() => roleService!.DeleteRoleAsync(currentUserId, 1, 1);
 
         // Assert
         Assert.Equal(Task.CompletedTask, DeleteRole());
@@ -218,13 +222,14 @@ public class RolesServiceTests
     public void DeleteRoleAsync_ShouldDeleteRole_Cas2Signatory()
     {
         // Arrange
+        var currentUserId = 25;
         var roleRepository = DeleteRole_MockRepo();
         roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
             .ReturnsAsync(_fixture.CreateMany<Contact>(2));
-        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
-        Task DeleteRole() => roleService!.DeleteRoleAsync(1, 1);
+        Task DeleteRole() => roleService!.DeleteRoleAsync(currentUserId, 1, 1);
 
         // Assert
         Assert.Equal(Task.CompletedTask, DeleteRole());
@@ -235,11 +240,12 @@ public class RolesServiceTests
     public async Task DeleteRoleAsync_ShouldThrow_NotFoundException()
     {
         // Arrange
+        var currentUserId = 25;
         var roleRepository = DeleteRole_MockRepo();
-        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
-        Task DeleteRole() => roleService.DeleteRoleAsync(1, 2);
+        Task DeleteRole() => roleService.DeleteRoleAsync(currentUserId, 1, 2);
 
         // Assert
         await Assert.ThrowsAsync<NotFoundException>(DeleteRole);
@@ -250,13 +256,14 @@ public class RolesServiceTests
     public async Task DeleteRoleAsync_ShouldThrow_BadRequestException()
     {
         // Arrange
+        var currentUserId = 25;
         var roleRepository = DeleteRole_MockRepo();
         roleRepository.Setup(repo => repo.GetSignatoryAsync(It.IsAny<int>()))
             .ReturnsAsync(new List<Contact> { _fixture.Create<Contact>() });
-        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _logger!.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
-        Task DeleteRole() => roleService.DeleteRoleAsync(1, 3);
+        Task DeleteRole() => roleService.DeleteRoleAsync(currentUserId, 1, 3);
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(DeleteRole);
@@ -269,7 +276,7 @@ public class RolesServiceTests
         // Arrange
         var rolesRepository = new Mock<IRoleRepository>();
         rolesRepository.Setup(repository => repository.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(true);
-        var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _logger!.Object);
+        var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
         var contactHasRoleOnAccount = await rolesService.CheckRoleExistsAsync(2, 1, 1, "test@test.fr");
@@ -285,7 +292,7 @@ public class RolesServiceTests
         // Arrange
         var rolesRepository = new Mock<IRoleRepository>();
         rolesRepository.Setup(repository => repository.IsContactHasRoleOnAccount(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(true);
-        var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _logger!.Object);
+        var rolesService = new RolesService(rolesRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
         var contactHasRoleOnAccount = await rolesService.IsContactHasRoleOnAccount(1, 1, "accountNumber");
@@ -330,7 +337,7 @@ public class RolesServiceTests
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        var roleService = new RolesService(roleRepository.Object, _rolePublisher.Object, _logger.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
         await roleService.UpdateRoleCustomerRelationAsync(accountId, contactId, isCustomerRelation);
@@ -356,7 +363,7 @@ public class RolesServiceTests
             .ThrowsAsync(new NotFoundException(Errors.NotFoundRoleCode, Errors.NotFoundRoleMessage))
             .Verifiable();
 
-        var roleService = new RolesService(roleRepository.Object, _rolePublisher.Object, _logger.Object);
+        var roleService = new RolesService(roleRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
         Func<Task> act = async () => await roleService.UpdateRoleCustomerRelationAsync(accountId, contactId, isCustomerRelation);

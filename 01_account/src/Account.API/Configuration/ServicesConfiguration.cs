@@ -103,6 +103,7 @@ namespace Pulse.Account.API.Configuration
 
             services.AddScoped<IAccountEventPublisher, AccountEventPublisher>();
             services.AddScoped<IRoleEventPublisher, RoleEventPublisher>();
+            services.AddScoped<IHistoryEventPublisher, HistoryEventPublisher>();
 
             services.AddEventPushServices(options);
             services.AddEventPullServices(options);

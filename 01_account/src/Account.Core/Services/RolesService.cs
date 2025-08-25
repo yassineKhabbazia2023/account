@@ -3,6 +3,7 @@
 // </copyright>
 
 using Microsoft.Extensions.Logging;
+using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
@@ -18,14 +19,17 @@ public class RolesService : IRolesService
 {
     private readonly IRoleRepository _rolesRepository;
     private readonly IRoleEventPublisher _roleEventPublisher;
+    private readonly IHistoryEventPublisher _historyEventPublisher;
     private readonly ILogger<RolesService> _logger;
 
     public RolesService(IRoleRepository rolesRepository,
         IRoleEventPublisher roleEventPublisher,
+        IHistoryEventPublisher historyEventPublisher,
         ILogger<RolesService> logger)
     {
         _rolesRepository = rolesRepository;
         _roleEventPublisher = roleEventPublisher;
+        _historyEventPublisher = historyEventPublisher;
         _logger = logger;
     }
 
@@ -79,7 +83,7 @@ public class RolesService : IRolesService
         await _rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation, actionLevel);
     }
 
-    public async Task DeleteRoleAsync(int accountId, int contactId)
+    public async Task DeleteRoleAsync(int currentUserId, int accountId, int contactId)
     {
         var role = await _rolesRepository.GetContactRoleAsync(accountId, contactId);
 
@@ -100,6 +104,7 @@ public class RolesService : IRolesService
         await _rolesRepository.DeleteRoleAsync(accountId, contactId);
 
         await PublishRoleDeletedEvent(accountId, contactId);
+        await PublishHistoryCreatedEvent(currentUserId, contactId, accountId);
     }
 
     public async Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email)
@@ -137,5 +142,14 @@ public class RolesService : IRolesService
         await _roleEventPublisher.PublishRoleDeletedEventAsync(accountId, contactId);
 
         _logger.LogInformation("RoleService: End send delete role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
+    }
+
+    private async Task PublishHistoryCreatedEvent(int currentUserId, int contactId, int accountId)
+    {
+        _logger.LogInformation("RoleService: Start send history created event. CurrentUserId: {currentUserId} AccountId : {accountId} - ContactId : {contactId}", currentUserId, accountId, contactId);
+
+        await _historyEventPublisher.PublishHistoryCreatedEventAsync(currentUserId, contactId, accountId);
+
+        _logger.LogInformation("RoleService: End send history created event. CurrentUserId: {currentUserId} AccountId : {accountId} - ContactId : {contactId}", currentUserId, accountId, contactId);
     }
 }

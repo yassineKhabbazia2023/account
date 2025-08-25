@@ -18,7 +18,7 @@ public interface IRolesService
 
     Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory);
 
-    Task DeleteRoleAsync(int accountId, int contactId);
+    Task DeleteRoleAsync(int currentUserId, int accountId, int contactId);
 
     Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email);
 
