@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq.Expressions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
@@ -310,13 +311,7 @@ public class AccountRepository : IAccountRepository
                 query = query.Where(x => x.Type.Equals(criteria.Type.ToString()));
             }
 
-            query = GetContactEntitiesSorted(query, criteria.Sorting);
-
-            if (criteria.Type == ContactType.Collaborator)
-            {
-                query = query.OrderByDescending(x => x.RoleEntity.Where(x => x.AccountId == accountId).Select(r => r.ActionLevel).FirstOrDefault())
-                .ThenBy(cnt => cnt.FirstName);
-            }
+            query = GetContactEntitiesSorted(query, criteria.Sorting, criteria.Type == ContactType.Collaborator, accountId);
 
             var totalItems = await query.CountAsync();
 
@@ -408,7 +403,7 @@ public class AccountRepository : IAccountRepository
         return query;
     }
 
-    private static IQueryable<ContactEntity> GetContactEntitiesSorted(IQueryable<ContactEntity> query, Sorting? sorting)
+    private static IQueryable<ContactEntity> GetContactEntitiesSorted(IQueryable<ContactEntity> query, Sorting? sorting, bool isCollab, int accountId)
     {
         if (sorting != null)
         {
@@ -454,7 +449,15 @@ public class AccountRepository : IAccountRepository
         }
         else
         {
-            query = query.OrderBy(x => x.FirstName + x.LastName);
+            if (isCollab)
+            {
+                query = query.OrderByDescending(x => x.RoleEntity.Where(x => x.AccountId == accountId).Select(r => r.ActionLevel).FirstOrDefault())
+                .ThenBy(cnt => cnt.FirstName);
+            }
+            else
+            {
+                query = query.OrderBy(x => x.FirstName + x.LastName);
+            }
         }
 
         return query;
