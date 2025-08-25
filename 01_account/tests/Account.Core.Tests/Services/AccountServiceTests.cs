@@ -3,6 +3,7 @@
 // </copyright>
 
 using AutoFixture;
+using AutoFixture.Kernel;
 using FluentAssertions;
 using Moq;
 using Pulse.Account.Core.Enum;
@@ -87,7 +88,7 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>()))
+                    repository.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>(), It.IsAny<SearchAccountCriteria>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
@@ -98,7 +99,7 @@ namespace Pulse.Account.Core.Tests.Services
             };
 
             // Act
-            var accounts = await accountService.GetAllAccountsAsync("123456789", pagination)
+            var accounts = await accountService.GetAllAccountsAsync("123456789", pagination, null!)
             ;
 
             // Assert
@@ -110,13 +111,13 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>()))
+                    repository.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>(), It.IsAny<SearchAccountCriteria>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
 
             // Act
-            var accounts = await accountService.GetAllAccountsAsync("123456789", null!);
+            var accounts = await accountService.GetAllAccountsAsync("123456789", null!, null!);
 
             // Assert
             Assert.Equal(accountMocked, accounts);
@@ -127,7 +128,7 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>()))
+                    repository.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>(), It.IsAny<SearchAccountCriteria>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
@@ -138,7 +139,7 @@ namespace Pulse.Account.Core.Tests.Services
             };
 
             // Act
-            var accounts = await accountService.GetAllAccountsAsync(null, pagination);
+            var accounts = await accountService.GetAllAccountsAsync(null, pagination, null!);
 
             // Assert
             Assert.Equal(accountMocked, accounts);

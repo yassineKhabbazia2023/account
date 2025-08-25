@@ -50,15 +50,18 @@ public class AccountController : ControllerBase
     /// </summary>
     /// <param name="accountNumber">AccountNumber de l'entité morale.</param>
     /// <param name="pagination">Paramètres de pagination.</param>
+    /// <param name="criteria">Paramètres de sort.</param>
     /// <returns>Liste d'entités morales.</returns>
     [HttpGet("all")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<AccountModel>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult<Paging<AccountModel>>> GetAllAccountsAsync(string? accountNumber,
-        [FromQuery] Pagination? pagination)
+    public async Task<ActionResult<Paging<AccountModel>>> GetAllAccountsAsync(
+        string? accountNumber,
+        [FromQuery] Pagination? pagination,
+        [FromQuery] SearchAccountCriteria? criteria)
     {
-        var result = await _accountService.GetAllAccountsAsync(accountNumber, pagination);
+        var result = await _accountService.GetAllAccountsAsync(accountNumber, pagination, criteria);
 
         return Ok(result);
     }

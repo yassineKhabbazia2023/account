@@ -276,7 +276,7 @@ public class AccountRepositoryTests
             };
 
             // Act
-            var accounts = await accountRepository.GetAllAccountsAsync(null, pagination);
+            var accounts = await accountRepository.GetAllAccountsAsync(null, pagination, new SearchAccountCriteria());
 
             // Assert
             Assert.Equal(accountPaging.TotalPage, accounts.TotalPage);
@@ -1281,10 +1281,135 @@ public class AccountRepositoryTests
             var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
 
             // Act
-            var result = await accountRepository.GetAllAccountsAsync(accountNumber, pagination);
+            var result = await accountRepository.GetAllAccountsAsync(accountNumber, pagination, new SearchAccountCriteria());
 
             // Assert
             Assert.All(result.Items, item => Assert.Contains(accountNumber, item.AccountNumber));
+        }
+    }
+
+    [Theory]
+    [InlineData(SortingConstants.COMPANYNAME, false, "legalName1")]
+    [InlineData(SortingConstants.COMPANYNAME, true, "legalName2")]
+    [InlineData(SortingConstants.CUSTOMERCODE, true, "legalName2")]
+    [InlineData(SortingConstants.CITY, true, "legalName2")]
+    [InlineData(SortingConstants.CITY, false, "legalName1")]
+    [InlineData(SortingConstants.STATUS, true, "legalName1")]
+    [InlineData(SortingConstants.STATUS, false, "legalName1")]
+    public async Task GetAllAccountsAsync_WithAccountNumber_ShouldSortResults(string field, bool isDescending, string accountLegalnameExpected)
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Arrange
+            context.Database.EnsureDeleted();
+            context.Database.EnsureCreated();
+            var contact1 = _fixture.Build<ContactEntity>()
+                .With(c => c.ContactId, 1)
+                .With(c => c.FirstName, "fname1")
+                .With(c => c.Email, "email1")
+                .Without(c => c.RoleEntity)
+                .Without(c => c.DelegationEntityDelegatee)
+                .Without(c => c.DelegationEntityDelegator)
+                .Without(c => c.RoleLabelEntityContact)
+                .Without(c => c.RoleLabelEntityCreatedByNavigation)
+                .Create();
+            var contact2 = _fixture.Build<ContactEntity>()
+                .With(c => c.ContactId, 22)
+                .With(c => c.FirstName, "fname2")
+                .With(c => c.Email, "email2")
+                .Without(c => c.RoleEntity)
+                .Without(c => c.DelegationEntityDelegatee)
+                .Without(c => c.DelegationEntityDelegator)
+                .Without(c => c.RoleLabelEntityContact)
+                .Without(c => c.RoleLabelEntityCreatedByNavigation)
+                .Create();
+            var role1 = _fixture.Build<RoleEntity>()
+                .With(r => r.IsSignatory, true)
+                .With(r => r.AccountId, 1)
+                .With(r => r.ContactId, 1)
+                .Without(r => r.Account)
+                .Without(r => r.Contact)
+                .Create();
+            var address1 = _fixture.Build<AddressEntity>()
+                .With(adr => adr.City, "city1")
+                .With(adr => adr.AccountId, 1)
+                .Without(adr => adr.Account)
+                .Without(adr => adr.OfficeEntity)
+                .Create();
+            var deploi1 = _fixture.Build<DeploymentEntity>()
+                .With(d => d.Status, (int)DeploymentStatus.Connected)
+                .With(d => d.AccountId, 1)
+                .Without(d => d.Account)
+                .Create();
+            var role2 = _fixture.Build<RoleEntity>()
+                .With(r => r.IsSignatory, true)
+                .With(r => r.AccountId, 2)
+                .With(r => r.ContactId, 22)
+                .Without(r => r.Account)
+                .Without(r => r.Contact)
+                .Create();
+            var address2 = _fixture.Build<AddressEntity>()
+                .With(adr => adr.City, "city2")
+                .With(adr => adr.AccountId, 2)
+                .Without(adr => adr.Account)
+                .Without(adr => adr.OfficeEntity)
+                .Create();
+            var deploi2 = _fixture.Build<DeploymentEntity>()
+                .With(d => d.Status, (int)DeploymentStatus.Connected)
+                .With(d => d.AccountId, 2)
+                .Without(d => d.Account)
+                .Create();
+            var account1 = _fixture.Build<AccountEntity>()
+                .With(a => a.AccountId, 1)
+                .With(a => a.AccountNumber, "accountNumber1")
+                .With(a => a.LegalName, "legalName1")
+                .Without(a => a.RoleEntity)
+                .Without(a => a.AddressEntity)
+                .Without(a => a.DeploymentEntity)
+                .Without(a => a.PhoneEntity)
+                .Without(a => a.RoleLabelEntity)
+                .Without(a => a.Delegation)
+                .With(x => x.IsActive, true)
+                .Create();
+            var account2 = _fixture.Build<AccountEntity>()
+                .With(a => a.AccountId, 2)
+                .With(a => a.AccountNumber, "accountNumber2")
+                .With(a => a.LegalName, "legalName2")
+                .Without(a => a.RoleEntity)
+                .Without(a => a.AddressEntity)
+                .Without(a => a.DeploymentEntity)
+                .Without(a => a.PhoneEntity)
+                .Without(a => a.RoleLabelEntity)
+                .Without(a => a.Delegation)
+                .With(x => x.IsActive, true)
+                .Create();
+
+            context.DeploymentEntity.AddRange(deploi1, deploi2);
+            context.AddressEntity.AddRange(address1, address2);
+            context.ContactEntity.AddRange(contact1, contact2);
+            context.AccountEntity.AddRange(account1, account2);
+            context.RoleEntity.AddRange(role1, role2);
+
+            await context.SaveChangesAsync();
+            var accountRepository = new AccountRepository(context);
+
+            // Add test data with different account numbers
+            // ... (add test data setup here)
+            var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+            var searchAccountCriteria = new SearchAccountCriteria
+            {
+                Sorting = new Sorting
+                {
+                    Descending = isDescending,
+                    Field = field
+                }
+            };
+
+            // Act
+            var result = await accountRepository.GetAllAccountsAsync(null, pagination, searchAccountCriteria);
+
+            // Assert
+            Assert.Equal(accountLegalnameExpected, result.Items.First().LegalName);
         }
     }
 

@@ -6,7 +6,6 @@ using System.Data;
 using System.Linq.Expressions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
@@ -105,7 +104,7 @@ public class AccountRepository : IAccountRepository
 
     private static IQueryable<AccountEntity> GetAccountEntitiesSorted(IQueryable<AccountEntity> query, Sorting? sorting)
     {
-        if (sorting == null)
+        if (sorting == null || string.IsNullOrEmpty(sorting.Field))
         {
             return query.OrderBy(x => x.LegalName);
         }
@@ -158,6 +157,12 @@ public class AccountRepository : IAccountRepository
                         .FirstOrDefault());
                 break;
 
+            case SortingConstants.STATUS:
+                query = sorting.Descending
+                    ? query.OrderByDescending(x => x.DeploymentEntity.Status)
+                    : query.OrderBy(x => x.DeploymentEntity.Status);
+                break;
+
             default:
                 throw new BadRequestException(
                     Errors.BadRequestContactsAccountCode,
@@ -167,7 +172,7 @@ public class AccountRepository : IAccountRepository
         return query;
     }
 
-    public async Task<Paging<AccountModel>> GetAllAccountsAsync(string? accountNumber, Pagination pagination)
+    public async Task<Paging<AccountModel>> GetAllAccountsAsync(string? accountNumber, Pagination pagination, SearchAccountCriteria criteria)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -179,6 +184,8 @@ public class AccountRepository : IAccountRepository
                         where n.AccountNumber.Contains(accountNumber)
                         select n;
             }
+
+            query = GetAccountEntitiesSorted(query, criteria.Sorting);
 
             var totalItems = await query.CountAsync();
             var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);

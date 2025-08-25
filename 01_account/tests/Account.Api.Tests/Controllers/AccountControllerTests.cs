@@ -138,11 +138,11 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         };
 
         var service = new Mock<IAccountService>();
-        service.Setup(x => x.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>())).ReturnsAsync(expected);
+        service.Setup(x => x.GetAllAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>(), It.IsAny<SearchAccountCriteria>())).ReturnsAsync(expected);
         var controller = new AccountController(service.Object);
 
         // Act
-        var accounts = await controller.GetAllAccountsAsync(account.AccountNumber, pagination);
+        var accounts = await controller.GetAllAccountsAsync(account.AccountNumber, pagination, null!);
         var resultAccounts = accounts?.Result as OkObjectResult;
 
         // Assert
