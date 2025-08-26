@@ -125,6 +125,7 @@ public class RolesController : ControllerBase
     /// <summary>
     /// Créer un role pour un contact dans une entité morale.
     /// </summary>
+    /// <param name="currentUserId">L'identifiant de l'utilisateur courant.</param>
     /// <param name="accountId">L'identifiant de l'entité.</param>
     /// <param name="role">Objet role qui va lier un contact à une entité morale.</param>
     /// <returns>http 201.</returns>
@@ -132,24 +133,14 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult> CreateRoleAsync([Required] int accountId, CreateRoleRequest role)
+    public async Task<ActionResult> CreateRoleAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [Required] int accountId, [Required] CreateRoleRequest role)
     {
-        if (!Request.Headers.TryGetValue("CurrentUser", out StringValues contactIdValue))
-        {
-            throw new BadRequestException(Errors.CurrentUserWasNotFoundInHeadersCode, Errors.CurrentUserWasNotFoundInHeadersMessage);
-        }
-
-        if (!int.TryParse(contactIdValue, out int contactId))
-        {
-            throw new BadRequestException(Errors.InvalidCurrentUserFormatCode, Errors.InvalidCurrentUserFormatMessage);
-        }
-
         if (role != null)
         {
             role.AccountId = accountId;
         }
 
-        await _rolesService.CreateRoleAsync(role, contactId);
+        await _rolesService.CreateRoleAsync(role!, currentUserId);
         return Created();
     }
 

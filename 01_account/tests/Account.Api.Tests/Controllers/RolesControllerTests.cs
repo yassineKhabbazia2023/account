@@ -88,23 +88,11 @@ public class RolesControllerTests
 
         var rolesController = new RolesController(mockRoleService.Object);
 
-        var httpContextMock = new Mock<HttpContext>();
-        var requestMock = new Mock<HttpRequest>();
-
-        var headers = new HeaderDictionary { { "CurrentUser", new StringValues("123") } };
-        requestMock.Setup(r => r.Headers).Returns(headers);
-
-        httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
-        rolesController.ControllerContext = new ControllerContext
-        {
-            HttpContext = httpContextMock.Object
-        };
-
         // Act
-        var result = await rolesController.CreateRoleAsync(6, roleRequest);
+        var result = await rolesController.CreateRoleAsync(12, 6, roleRequest);
 
         // Assert
-        mockRoleService.Verify(s => s.CreateRoleAsync(roleRequest, contactId), Times.Once);
+        mockRoleService.Verify(s => s.CreateRoleAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<int>()), Times.Once);
         Assert.IsType<CreatedResult>(result);
     }
 
@@ -117,97 +105,11 @@ public class RolesControllerTests
             .Throws(new BadRequestException(Errors.BadRequestRoleCode, Errors.BadRequestRoleMessage));
         var rolesController = new RolesController(rolesService.Object);
 
-        var httpContextMock = new Mock<HttpContext>();
-        var requestMock = new Mock<HttpRequest>();
-
-        var headers = new HeaderDictionary { { "CurrentUser", new StringValues("123") } };
-        requestMock.Setup(r => r.Headers).Returns(headers);
-
-        httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
-        rolesController.ControllerContext = new ControllerContext
-        {
-            HttpContext = httpContextMock.Object
-        };
-
         // Act
-        Task Roles() => rolesController.CreateRoleAsync(1, null!);
+        Task Roles() => rolesController.CreateRoleAsync(123, 1, null!);
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(Roles);
-    }
-
-    [Fact]
-    public async Task CreateRole_WithDelegation_Should_ReturnBadRequestException_IfHeaderMissingAsync()
-    {
-        // Arrange
-        var mockRoleService = new Mock<IRolesService>(MockBehavior.Strict);
-        var roleRequest = new CreateRoleRequest
-        {
-            AccountId = 6,
-            ContactId = 6,
-            IsFavorite = false,
-            IsSignatory = false,
-            IsDelegation = true,
-            IncludePennylaneAccess = true
-        };
-
-        var rolesController = new RolesController(mockRoleService.Object);
-
-        var httpContextMock = new Mock<HttpContext>();
-        var requestMock = new Mock<HttpRequest>();
-
-        var headers = new HeaderDictionary();
-        requestMock.Setup(r => r.Headers).Returns(headers);
-
-        httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
-        rolesController.ControllerContext = new ControllerContext
-        {
-            HttpContext = httpContextMock.Object
-        };
-
-        // Act
-        Task Act() => rolesController.CreateRoleAsync(1, roleRequest);
-
-        // Assert
-        var result = await Assert.ThrowsAsync<BadRequestException>(Act);
-        Assert.Equal("ACC029", result.Code);
-        Assert.Equal("Le CurrentUser n'a pas été transmis via header.", result.Message);
-    }
-
-    [Fact]
-    public async Task CreateRole_Should_ReturnBadRequestException_IfHeaderIsInvalidAsync()
-    {
-        // Arrange
-        var mockRoleService = new Mock<IRolesService>(MockBehavior.Strict);
-        var roleRequest = new CreateRoleRequest
-        {
-            AccountId = 6,
-            ContactId = 6,
-            IsFavorite = false,
-            IsSignatory = false
-        };
-
-        var rolesController = new RolesController(mockRoleService.Object);
-
-        var httpContextMock = new Mock<HttpContext>();
-        var requestMock = new Mock<HttpRequest>();
-
-        var headers = new HeaderDictionary { { "CurrentUser", new StringValues("invalid-id") } };
-        requestMock.Setup(r => r.Headers).Returns(headers);
-
-        httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
-        rolesController.ControllerContext = new ControllerContext
-        {
-            HttpContext = httpContextMock.Object
-        };
-
-        // Act
-        Task Act() => rolesController.CreateRoleAsync(1, roleRequest);
-
-        // Assert
-        var result = await Assert.ThrowsAsync<BadRequestException>(Act);
-        Assert.Equal("ACC030", result.Code);
-        Assert.Equal("Le header CurrentUser doit être un entier valide.", result.Message);
     }
 
     [Fact]

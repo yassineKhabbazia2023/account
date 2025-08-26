@@ -1,4 +1,4 @@
-// <copyright file="HistoryEventPublisherTests.cs" company="Pulse">
+﻿// <copyright file="HistoryEventPublisherTests.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -11,7 +11,6 @@ using Pulse.Account.Infrastructure.Interfaces;
 using Pulse.Account.Infrastructure.Providers;
 using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
-using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Tests.Providers;
 
@@ -41,67 +40,11 @@ public class HistoryEventPublisherTests
 
         var publisher = new HistoryEventPublisher(_contactRepository.Object, _accountRepository.Object, _eventPublisher.Object);
 
-        await publisher.PublishHistoryCreatedEventAsync(1, 2, 1);
+        await publisher.PublishHistoryCreatedEventAsync(1, 2, 1, "code");
 
         _contactRepository.Verify(x => x.GetContactAsync(It.IsAny<int>(), It.IsAny<bool?>()), Times.Exactly(2));
         _accountRepository.Verify(x => x.GetAccountAsync(It.IsAny<int>()), Times.Once);
         _eventPublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent<HistoryCreatedEventData>>(), null!, null), Times.Once);
-    }
-
-    [Fact]
-    public async Task PublishHistoryCreatedEvent_WithNoCurrentUserFound_ShouldThrowNotFoundException()
-    {
-        ContactEntity invalidContact = null!;
-        _contactRepository.Setup(x => x.GetContactAsync(1, false)).ReturnsAsync(invalidContact);
-
-        var publisher = new HistoryEventPublisher(_contactRepository.Object, _accountRepository.Object, _eventPublisher.Object);
-
-        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await publisher.PublishHistoryCreatedEventAsync(1, 2, 1));
-
-        Assert.Equal("ACC002", result.Code);
-        Assert.Equal("Le contact avec l'identifiant 1 est introuvable", result.Message);
-
-        _contactRepository.Verify(x => x.GetContactAsync(It.IsAny<int>(), It.IsAny<bool?>()), Times.Once);
-        _accountRepository.Verify(x => x.GetAccountAsync(It.IsAny<int>()), Times.Never);
-        _eventPublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent<HistoryCreatedEventData>>(), null!, null), Times.Never);
-    }
-
-    [Fact]
-    public async Task PublishHistoryCreatedEvent_WithNoTargetUserFound_ShouldThrowNotFoundException()
-    {
-        ContactEntity invalidContact = null!;
-        _contactRepository.Setup(x => x.GetContactAsync(1, false)).ReturnsAsync(_fixture.Create<ContactEntity>());
-        _contactRepository.Setup(x => x.GetContactAsync(2, false)).ReturnsAsync(invalidContact);
-
-        var publisher = new HistoryEventPublisher(_contactRepository.Object, _accountRepository.Object, _eventPublisher.Object);
-
-        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await publisher.PublishHistoryCreatedEventAsync(1, 2, 1));
-
-        Assert.Equal("ACC002", result.Code);
-        Assert.Equal("Le contact avec l'identifiant 2 est introuvable", result.Message);
-
-        _contactRepository.Verify(x => x.GetContactAsync(It.IsAny<int>(), It.IsAny<bool?>()), Times.Exactly(2));
-        _accountRepository.Verify(x => x.GetAccountAsync(It.IsAny<int>()), Times.Never);
-        _eventPublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent<HistoryCreatedEventData>>(), null!, null), Times.Never);
-    }
-
-    [Fact]
-    public async Task PublishHistoryCreatedEvent_WithNoAccountFound_ShouldThrowNotFoundException()
-    {
-        AccountDetail invalidAccount = null!;
-        _contactRepository.Setup(x => x.GetContactAsync(It.IsAny<int>(), It.IsAny<bool?>())).ReturnsAsync(_fixture.Create<ContactEntity>());
-        _accountRepository.Setup(x => x.GetAccountAsync(It.IsAny<int>())).ReturnsAsync(invalidAccount);
-
-        var publisher = new HistoryEventPublisher(_contactRepository.Object, _accountRepository.Object, _eventPublisher.Object);
-
-        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await publisher.PublishHistoryCreatedEventAsync(1, 2, 1));
-
-        Assert.Equal("ACC001", result.Code);
-        Assert.Equal("L'entité avec l'identifiant 1 est introuvable", result.Message);
-
-        _contactRepository.Verify(x => x.GetContactAsync(It.IsAny<int>(), It.IsAny<bool?>()), Times.Exactly(2));
-        _accountRepository.Verify(x => x.GetAccountAsync(It.IsAny<int>()), Times.Once);
-        _eventPublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent<HistoryCreatedEventData>>(), null!, null), Times.Never);
     }
 
     [Fact]

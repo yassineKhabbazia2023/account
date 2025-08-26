@@ -46,7 +46,7 @@ public class RolesService : IRolesService
         return await _rolesRepository.GetSignatoryAsync(accountId);
     }
 
-    public async Task CreateRoleAsync(CreateRoleRequest role, int contactId)
+    public async Task CreateRoleAsync(CreateRoleRequest role, int currentUserId)
     {
         var rolesCreated = await _rolesRepository.CreateRoleAsync(role);
 
@@ -57,10 +57,11 @@ public class RolesService : IRolesService
             IsSignatory = r.IsSignatory,
             IsFavorite = r.IsFavorite,
             IsDelegation = r.IsDelegation,
-            DelegatorId = contactId
+            DelegatorId = currentUserId
         }).ToList();
 
         await Task.WhenAll(roles.Select(PublishRoleCreatedEvent));
+        await Task.WhenAll(rolesCreated.Select(r => PublishHistoryCreatedEvent(currentUserId, r.ContactId, r.AccountId, ActionCode.ADDCMANU.ToString())));
     }
 
     public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
@@ -103,7 +104,7 @@ public class RolesService : IRolesService
         await _rolesRepository.DeleteRoleAsync(accountId, contactId);
 
         await PublishRoleDeletedEvent(accountId, contactId);
-        await PublishHistoryCreatedEvent(currentUserId, contactId, accountId);
+        await PublishHistoryCreatedEvent(currentUserId, contactId, accountId, ActionCode.DELCMANU.ToString());
     }
 
     public async Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email)
@@ -143,11 +144,11 @@ public class RolesService : IRolesService
         _logger.LogInformation("RoleService: End send delete role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
     }
 
-    private async Task PublishHistoryCreatedEvent(int currentUserId, int contactId, int accountId)
+    private async Task PublishHistoryCreatedEvent(int currentUserId, int contactId, int accountId, string actionCode)
     {
         _logger.LogInformation("RoleService: Start send history created event. CurrentUserId: {currentUserId} AccountId : {accountId} - ContactId : {contactId}", currentUserId, accountId, contactId);
 
-        await _historyEventPublisher.PublishHistoryCreatedEventAsync(currentUserId, contactId, accountId);
+        await _historyEventPublisher.PublishHistoryCreatedEventAsync(currentUserId, contactId, accountId, actionCode);
 
         _logger.LogInformation("RoleService: End send history created event. CurrentUserId: {currentUserId} AccountId : {accountId} - ContactId : {contactId}", currentUserId, accountId, contactId);
     }

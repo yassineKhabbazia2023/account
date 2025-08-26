@@ -116,6 +116,7 @@ public class RolesServiceTests
         // Assert
         roleRepository.VerifyAll();
         _rolePublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Once);
+        _historyPublisher.Verify(x => x.PublishHistoryCreatedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Once);
     }
 
     [Fact]
@@ -135,6 +136,7 @@ public class RolesServiceTests
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(Roles);
         _rolePublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
+        _historyPublisher.Verify(x => x.PublishHistoryCreatedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]

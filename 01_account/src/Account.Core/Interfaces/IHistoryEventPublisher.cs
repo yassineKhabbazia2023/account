@@ -8,5 +8,5 @@ public interface IHistoryEventPublisher
 {
     Task PublishHistoryCreatedEventAsync(string registryApproverEmail, int contactId, int accountId);
 
-    Task PublishHistoryCreatedEventAsync(int currentUserId, int contactId, int accountId);
+    Task PublishHistoryCreatedEventAsync(int currentUserId, int contactId, int accountId, string actionCode);
 }

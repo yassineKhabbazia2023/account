@@ -10,6 +10,7 @@ using Pulse.Back.Events.IntegrationEvents;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Core.Enum;
 
 namespace Pulse.Account.Infrastructure.Providers;
 
@@ -20,19 +21,22 @@ public class ContactCreatedEventHandler : IEventHandler
     private readonly IRoleEventRepository _roleEventRepository;
     private readonly IAccountEventRepository _accountEventRepository;
     private readonly IRoleEventPublisher _roleEventPublisher;
+    private readonly IHistoryEventPublisher _historyEventPublisher;
 
     public ContactCreatedEventHandler(
         ILogger<ContactCreatedEventHandler> logger,
         IContactEventRepository contactEventRepository,
         IRoleEventRepository roleEventRepository,
         IAccountEventRepository accountEventRepository,
-        IRoleEventPublisher roleEventPublisher)
+        IRoleEventPublisher roleEventPublisher,
+        IHistoryEventPublisher historyEventPublisher)
     {
         _logger = logger;
         _contactEventRepository = contactEventRepository;
         _roleEventRepository = roleEventRepository;
         _accountEventRepository = accountEventRepository;
         _roleEventPublisher = roleEventPublisher;
+        _historyEventPublisher = historyEventPublisher;
     }
 
     public async Task HandleAsync(string message)
@@ -52,10 +56,10 @@ public class ContactCreatedEventHandler : IEventHandler
             return;
         }
 
-        var contactEntity = contactEvent.Data.ToContactEntity();
+        var contactEntity = contactEvent.Data.ToContactEntity() !;
 
         await CreateContact(contactEntity);
-        await CreateRole(contactEntity.ContactId, contactEvent.Data.AccountNumber!);
+        await CreateRole(contactEvent.Data.CurrentUserId ?? 0, contactEntity.ContactId, contactEvent.Data.AccountNumber!);
     }
 
     private async Task CreateContact(ContactEntity contact)
@@ -71,7 +75,7 @@ public class ContactCreatedEventHandler : IEventHandler
         }
     }
 
-    private async Task CreateRole(int contactId, string accountNumber)
+    private async Task CreateRole(int currentUserId, int contactId, string accountNumber)
     {
         if (!string.IsNullOrEmpty(accountNumber))
         {
@@ -82,6 +86,7 @@ public class ContactCreatedEventHandler : IEventHandler
                 var role = await _roleEventRepository.CreateRoleForNewContactAsync(contactId, accountEntity.AccountId);
                 _logger.LogInformation("Le rôle du contact {ContactId} sur l'entité {AccountId} vient d'être créé.", contactId, accountEntity.AccountId);
                 await _roleEventPublisher.PublishRoleCreatedEventAsync(role!);
+                await _historyEventPublisher.PublishHistoryCreatedEventAsync(currentUserId, contactId, accountEntity.AccountId, ActionCode.ADDCMANU.ToString());
             }
             else
             {
