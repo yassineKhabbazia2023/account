@@ -3,7 +3,6 @@
 // </copyright>
 
 using Microsoft.Extensions.Logging;
-using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;

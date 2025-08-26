@@ -40,5 +40,19 @@ namespace Pulse.Account.Infrastructure.Repositories
 
             return contact;
         }
+
+        public async Task<ContactEntity> GetContactByEmailAsync(string email)
+        {
+            var query = _accountContext.ContactEntity
+                .AsNoTracking();
+
+            var contact = await query.FirstOrDefaultAsync(c => c.Email == email);
+            if (contact == null)
+            {
+                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, email));
+            }
+
+            return contact;
+        }
     }
 }

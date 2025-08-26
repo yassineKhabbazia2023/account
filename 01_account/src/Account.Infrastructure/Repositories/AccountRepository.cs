@@ -223,7 +223,7 @@ public class AccountRepository : IAccountRepository
         return account.MapToAccount();
     }
 
-    public async Task<AccountDetail?> GetAccountAsync(int accountId)
+    public async Task<AccountDetail> GetAccountAsync(int accountId)
     {
         AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>
         {

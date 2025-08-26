@@ -16,7 +16,7 @@ namespace Pulse.Account.Core.Interfaces
 
         Task<Models.Account?> GetAccountSummaryAsync(int accountId);
 
-        Task<AccountDetail?> GetAccountAsync(int accountId);
+        Task<AccountDetail> GetAccountAsync(int accountId);
 
         Task<AccountDetail?> GetAccountDetailAsync(int accountId);
 

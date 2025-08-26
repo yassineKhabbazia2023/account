@@ -132,4 +132,66 @@ public class ContactRepositoryTests
             result.ContactId.Should().Be(contactId);
         }
     }
+
+    [Fact]
+    public async Task GetContactByEmailAsync_ShouldThrowNotFoundExceptionIfNotExists()
+    {
+        ContactEntity contact = new ContactEntity()
+        {
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            ContactId = 1,
+            CreationDate = DateTime.UtcNow,
+            Email = "test@email.com",
+            FirstName = "Marc",
+            LastName = "Dibeh",
+            Type = "Client",
+            Status = "Active",
+            PersonaName = "HakounaMatata"
+        };
+
+        using (var context = new AccountContext(_contextOptions))
+        {
+            // arrange
+            context.Add(contact);
+            context.SaveChanges();
+
+            // Act
+            var action = async () => await _contactRepository.GetContactByEmailAsync(string.Empty);
+
+            // assert
+            await action.Should().ThrowAsync<NotFoundException>();
+        }
+    }
+
+    [Fact]
+    public async Task GetContactByEmailAsync_ShouldReturnContactIfExists()
+    {
+        ContactEntity contact = new ContactEntity()
+        {
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            ContactId = 1,
+            CreationDate = DateTime.UtcNow,
+            Email = "test@email.com",
+            FirstName = "Marc",
+            LastName = "Dibeh",
+            Type = "Client",
+            Status = "Active",
+            PersonaName = "HakounaMatata",
+            IsActive = true
+        };
+
+        using (var context = new AccountContext(_contextOptions))
+        {
+            // arrange
+            context.Add(contact);
+            context.SaveChanges();
+
+            // Act
+            var dbContact = await _contactRepository.GetContactByEmailAsync("test@email.com");
+
+            // assert
+            dbContact.Should().NotBeNull();
+            dbContact.Should().BeEquivalentTo(contact);
+        }
+    }
 }

@@ -9,5 +9,7 @@ namespace Pulse.Account.Infrastructure.Interfaces
     public interface IContactRepository
     {
         Task<ContactEntity> GetContactAsync(int contactId, bool? searchDeleted = false);
+
+        Task<ContactEntity> GetContactByEmailAsync(string email);
     }
 }

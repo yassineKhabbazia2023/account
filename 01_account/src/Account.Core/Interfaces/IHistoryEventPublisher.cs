@@ -1,10 +1,12 @@
-// <copyright file="IHistoryEventPublisher.cs" company="Pulse">
+﻿// <copyright file="IHistoryEventPublisher.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-namespace Pulse.Account.Infrastructure.Providers.Interfaces;
+namespace Pulse.Account.Core.Interfaces;
 
 public interface IHistoryEventPublisher
 {
-  Task PublishHistoryCreatedEventAsync(int currentUserId, int contactId, int accountId);
+    Task PublishHistoryCreatedEventAsync(string registryApproverEmail, int contactId, int accountId);
+
+    Task PublishHistoryCreatedEventAsync(int currentUserId, int contactId, int accountId);
 }

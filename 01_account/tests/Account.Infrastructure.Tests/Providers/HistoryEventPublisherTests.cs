@@ -103,4 +103,21 @@ public class HistoryEventPublisherTests
         _accountRepository.Verify(x => x.GetAccountAsync(It.IsAny<int>()), Times.Once);
         _eventPublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent<HistoryCreatedEventData>>(), null!, null), Times.Never);
     }
+
+    [Fact]
+    public async Task PublishHistoryCreatedEventRegistry_ShouldPublishEvent()
+    {
+        _contactRepository.Setup(x => x.GetContactByEmailAsync(It.IsAny<string>())).ReturnsAsync(_fixture.Create<ContactEntity>());
+        _contactRepository.Setup(x => x.GetContactAsync(It.IsAny<int>(), It.IsAny<bool?>())).ReturnsAsync(_fixture.Create<ContactEntity>());
+        _accountRepository.Setup(x => x.GetAccountAsync(It.IsAny<int>())).ReturnsAsync(_fixture.Create<AccountDetail>());
+
+        var publisher = new HistoryEventPublisher(_contactRepository.Object, _accountRepository.Object, _eventPublisher.Object);
+
+        await publisher.PublishHistoryCreatedEventAsync("approver@rydge.fr", 2, 1);
+
+        _contactRepository.Verify(x => x.GetContactByEmailAsync(It.IsAny<string>()), Times.Once);
+        _contactRepository.Verify(x => x.GetContactAsync(It.IsAny<int>(), It.IsAny<bool?>()), Times.Once);
+        _accountRepository.Verify(x => x.GetAccountAsync(It.IsAny<int>()), Times.Once);
+        _eventPublisher.Verify(x => x.PublishAsync(It.IsAny<BaseEvent<HistoryCreatedEventData>>(), null!, null), Times.Once);
+    }
 }

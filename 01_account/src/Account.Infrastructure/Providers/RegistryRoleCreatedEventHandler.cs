@@ -18,17 +18,20 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
     private readonly ILogger<RegistryRoleCreatedEventHandler> _logger;
     private readonly IRegistryRoleEventRepository _roleEventRepository;
     private readonly IRoleEventPublisher _roleEventPublisher;
+    private readonly IHistoryEventPublisher _historyEventPublisher;
     private readonly IRoleRepository _roleRepository;
 
     public RegistryRoleCreatedEventHandler(
         ILogger<RegistryRoleCreatedEventHandler> logger,
         IRegistryRoleEventRepository roleEventRepository,
         IRoleEventPublisher roleEventPublisher,
+        IHistoryEventPublisher historyEventPublisher,
         IRoleRepository roleRepository)
     {
         _logger = logger;
         _roleEventRepository = roleEventRepository;
         _roleEventPublisher = roleEventPublisher;
+        _historyEventPublisher = historyEventPublisher;
         _roleRepository = roleRepository;
     }
 
@@ -40,12 +43,13 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
         }
 
         var @event = JsonConvert.DeserializeObject<RegistryRoleCreatedEvent>(message);
-        _logger.LogInformation("Consommation de l'event type: {EventType}, AccountId: {AccountId}, ContactId: {ContactId} | AccountGuid: {AccountGuid}, ContactGuid: {ContactGuid}, IsCustomerRelation: {IsCustomerRelation}",
+        _logger.LogInformation("Consommation de l'event type: {EventType}, AccountId: {AccountId}, ContactId: {ContactId} | AccountGuid: {AccountGuid}, ContactGuid: {ContactGuid}, IsCustomerRelation: {IsCustomerRelation}, RegistryApproverEmail: {RegistryApproverEmail}",
             @event?.EventType,
             @event?.Data?.AccountId,
             @event?.Data?.ContactId,
             @event?.Data?.AccountGuid,
             @event?.Data?.ContactGuid,
+            @event?.Data?.RegistryApproverEmail,
             @event?.Data?.IsCustomerRelation);
 
         if (@event?.Data == null)
@@ -55,6 +59,7 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
 
         var accountId = @event.Data.AccountId ?? 0;
         var contactId = @event.Data.ContactId ?? 0;
+        var registryApproverEmail = @event.Data.RegistryApproverEmail ?? string.Empty;
         bool? isCustomerRelation = null;
 
         // Vérifier l'existence des Guids
@@ -79,6 +84,8 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
             _logger.LogInformation("Le role avec l'identifiant suivant: AccountId: {AccountId} - ContactId: {ContactId} vient d'être mise à jour.", createdRole.AccountId, createdRole.ContactId);
 
             await _roleEventPublisher.PublishRoleCreatedEventAsync(createdRole);
+
+            await _historyEventPublisher.PublishHistoryCreatedEventAsync(registryApproverEmail, contactId, accountId);
         }
     }
 }
