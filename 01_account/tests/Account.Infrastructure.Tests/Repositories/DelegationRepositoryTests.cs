@@ -219,7 +219,7 @@ public class DelegationRepositoryTests
             var tDelegator = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             var tDelegatee = _fixture.Build<ContactEntity>()
                 .With(c => c.IsActive, true)
-                .With(c => c.ContactId, 124)
+                .With(c => c.ContactId, 1245)
                 .Without(c => c.RoleEntity)
                 .Without(c => c.DelegationEntityDelegatee)
                 .Without(c => c.DelegationEntityDelegator)
@@ -256,7 +256,7 @@ public class DelegationRepositoryTests
                 {
                     new()
                     {
-                        DelegateeId = 124,
+                        DelegateeId = 1245,
                         StartDate = DateTime.UtcNow,
                         Status = "enabled",
                         IsRoleToCreate = true,
@@ -270,7 +270,7 @@ public class DelegationRepositoryTests
                 new()
                 {
                     AccountId = tAccount.AccountId,
-                    ContactId = 124,
+                    ContactId = 1245,
                     IsFavorite = false,
                     IsSignatory = false,
                     IsDelegation = true,
@@ -287,7 +287,7 @@ public class DelegationRepositoryTests
 
                 Assert.NotNull(createdDelegation);
 
-                var createdRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == 124);
+                var createdRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == 1245);
                 createdRole.Should().NotBeNull();
                 createdRole.Should().BeEquivalentTo(existingRole);
             }

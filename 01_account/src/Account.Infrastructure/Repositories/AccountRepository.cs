@@ -411,7 +411,7 @@ public class AccountRepository : IAccountRepository
             switch (sorting.Field)
             {
                 case SortingConstants.NAME:
-                    exp = c => c.FirstName + c.LastName;
+                    exp = c => c.LastName;
                     break;
 
                 case SortingConstants.EMAIL:
@@ -452,11 +452,11 @@ public class AccountRepository : IAccountRepository
             if (isCollab)
             {
                 query = query.OrderByDescending(x => x.RoleEntity.Where(x => x.AccountId == accountId).Select(r => r.ActionLevel).FirstOrDefault())
-                .ThenBy(cnt => cnt.FirstName);
+                .ThenBy(cnt => cnt.LastName);
             }
             else
             {
-                query = query.OrderBy(x => x.FirstName + x.LastName);
+                query = query.OrderBy(x => x.LastName);
             }
         }
 
