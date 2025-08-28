@@ -4,7 +4,7 @@
 
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
-using Pulse.Account.Infrastructure.Interfaces;
+using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.IntegrationEvents;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
@@ -13,23 +13,23 @@ namespace Pulse.Account.Infrastructure.Providers;
 
 public class HistoryEventPublisher : IHistoryEventPublisher
 {
-    private readonly IContactRepository _contactRepository;
+    private readonly IContactEventRepository _contactEventRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly IEventPublisher _eventPublisher;
 
-    public HistoryEventPublisher(IContactRepository contactRepository, IAccountRepository accountRepository, IEventPublisher eventPublisher)
+    public HistoryEventPublisher(IContactEventRepository contactEventRepository, IAccountRepository accountRepository, IEventPublisher eventPublisher)
     {
-        _contactRepository = contactRepository;
+        _contactEventRepository = contactEventRepository;
         _accountRepository = accountRepository;
         _eventPublisher = eventPublisher;
     }
 
     public async Task PublishHistoryCreatedEventAsync(string registryApproverEmail, int contactId, int accountId)
     {
-        var currentUser = await _contactRepository.GetContactByEmailAsync(registryApproverEmail);
+        var currentUser = await _contactEventRepository.GetContactByEmailAsync(registryApproverEmail);
         var currentUserName = currentUser.FirstName + " " + currentUser.LastName;
 
-        var targetUser = await _contactRepository.GetContactAsync(contactId);
+        var targetUser = await _contactEventRepository.GetContactAsync(contactId);
         var targetUserName = targetUser.FirstName + " " + targetUser.LastName;
 
         var account = await _accountRepository.GetAccountAsync(accountId);
@@ -66,10 +66,10 @@ public class HistoryEventPublisher : IHistoryEventPublisher
 
     public async Task PublishHistoryCreatedEventAsync(int currentUserId, int contactId, int accountId, string actionCode)
     {
-        var currentUser = await _contactRepository.GetContactAsync(currentUserId);
+        var currentUser = await _contactEventRepository.GetContactAsync(currentUserId);
         var currentUserName = currentUser.FirstName + " " + currentUser.LastName;
 
-        var contact = await _contactRepository.GetContactAsync(contactId);
+        var contact = await _contactEventRepository.GetContactAsync(contactId);
         var contactName = contact.FirstName + " " + contact.LastName;
 
         var account = await _accountRepository.GetAccountAsync(accountId);

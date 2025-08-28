@@ -53,7 +53,7 @@ public class ContactUpdatedEventHandler : IEventHandler
 
         if (accountEntity != null && accountEntity.Count != 0)
         {
-            var contactStatus = _contactEventRepository.GetContactById(contactEntity.ContactId)!.Status;
+            var contactStatus = (await _contactEventRepository.GetContactById(contactEntity.ContactId))!.Status;
             int deploymentStatus = 0;
 
             if (contactStatus.Equals(ContactStatus.Invited.ToString(), StringComparison.OrdinalIgnoreCase))

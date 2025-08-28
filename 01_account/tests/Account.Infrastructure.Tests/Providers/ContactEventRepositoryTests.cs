@@ -2,16 +2,33 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using AutoFixture;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Providers;
+using Pulse.Account.Infrastructure.Repositories;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Tests.Providers;
 
 public class ContactEventRepositoryTests
 {
+    private readonly DbContextOptions<AccountContext> _contextOptions;
+    private readonly Fixture _fixture;
+
+    public ContactEventRepositoryTests()
+    {
+        _contextOptions = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        _fixture = new Fixture();
+        _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
+        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+    }
+
     [Fact]
     public async Task CreateContactAsync_WithContactData_ShouldCreateContact()
     {
@@ -178,7 +195,7 @@ public class ContactEventRepositoryTests
 
         var repository = new ContactEventRepository(context);
 
-        var result = repository.GetContactById(2);
+        var result = await repository.GetContactById(2);
 
         Assert.NotNull(result);
         Assert.Equivalent(contact, result);
@@ -228,5 +245,174 @@ public class ContactEventRepositoryTests
         var result = await repository.DoesContactExistAsync(3);
 
         Assert.False(result);
+    }
+
+    [Fact]
+    public async Task GetContacts_Will_Return_Only_DifferentThan_Removed()
+    {
+        using (var context = new AccountContext(_contextOptions))
+        {
+            var contactEntitiesWithStatusRemoved = _fixture.CreateMany<ContactEntity>(5).ToList();
+            var contactEntitiesWithStatusInvited = _fixture.CreateMany<ContactEntity>(10).ToList();
+            contactEntitiesWithStatusInvited.ForEach((e) => e.Status = "Invited");
+            contactEntitiesWithStatusRemoved.ForEach((e) => e.Status = "Removed");
+            context.ContactEntity.AddRange(contactEntitiesWithStatusInvited);
+            context.ContactEntity.AddRange(contactEntitiesWithStatusInvited);
+            await context.SaveChangesAsync();
+            var repository = new ContactRepository(context);
+            var contactsViewed = context.ContactEntity.ToList();
+
+            Assert.True(contactsViewed.All(x => x.Status == "Invited"));
+        }
+    }
+
+    [Fact]
+    public async Task GetContactAsync_ShouldThrowNotFoundExceptionIfNotExists()
+    {
+        ContactEntity contact = new ContactEntity()
+        {
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            ContactId = 1,
+            CreationDate = DateTime.UtcNow,
+            Email = "mdibeh@hakouna.com",
+            FirstName = "Marc",
+            LastName = "Dibeh",
+            Type = "Client",
+            Status = "Active",
+            PersonaName = "HakounaMatata"
+        };
+
+        using (var context = new AccountContext(_contextOptions))
+        {
+            // arrange
+            context.Add(contact);
+            context.SaveChanges();
+            var repository = new ContactEventRepository(context);
+
+            // Act
+            var action = async () => await repository.GetContactAsync(2);
+
+            // assert
+            await action.Should().ThrowAsync<NotFoundException>();
+        }
+    }
+
+    [Fact]
+    public async Task GetContactAsync_ShouldReturnContactIfExists()
+    {
+        ContactEntity contact = new ContactEntity()
+        {
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            ContactId = 1,
+            CreationDate = DateTime.UtcNow,
+            Email = "mdibeh@hakouna.com",
+            FirstName = "Marc",
+            LastName = "Dibeh",
+            Type = "Client",
+            Status = "Active",
+            PersonaName = "HakounaMatata",
+            IsActive = true
+        };
+
+        using (var context = new AccountContext(_contextOptions))
+        {
+            // arrange
+            context.Add(contact);
+            context.SaveChanges();
+            var repository = new ContactEventRepository(context);
+
+            // Act
+            var dbContact = await repository.GetContactAsync(1);
+
+            // assert
+            dbContact.Should().NotBeNull();
+            dbContact.Should().BeEquivalentTo(contact);
+        }
+    }
+
+    [Fact]
+    public async Task GetContactAsync_ShouldReturn_InactiveContactsIfRequested()
+    {
+        var inactiveContacts = _fixture.Build<ContactEntity>().With(x => x.IsActive, false).CreateMany(3);
+
+        var contactId = inactiveContacts.First().ContactId;
+
+        using (var context = new AccountContext(_contextOptions))
+        {
+            context.AddRange(inactiveContacts);
+            context.SaveChanges();
+
+            context.ChangeTracker.Clear();
+
+            var contactRepos = new ContactEventRepository(context);
+            var result = await contactRepos.GetContactAsync(contactId, searchDeleted: true);
+
+            result.Should().NotBe(null);
+            result.ContactId.Should().Be(contactId);
+        }
+    }
+
+    [Fact]
+    public async Task GetContactByEmailAsync_ShouldThrowNotFoundExceptionIfNotExists()
+    {
+        ContactEntity contact = new ContactEntity()
+        {
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            ContactId = 1,
+            CreationDate = DateTime.UtcNow,
+            Email = "test@email.com",
+            FirstName = "Marc",
+            LastName = "Dibeh",
+            Type = "Client",
+            Status = "Active",
+            PersonaName = "HakounaMatata"
+        };
+
+        using (var context = new AccountContext(_contextOptions))
+        {
+            // arrange
+            context.Add(contact);
+            context.SaveChanges();
+            var repository = new ContactEventRepository(context);
+
+            // Act
+            var action = async () => await repository.GetContactByEmailAsync(string.Empty);
+
+            // assert
+            await action.Should().ThrowAsync<NotFoundException>();
+        }
+    }
+
+    [Fact]
+    public async Task GetContactByEmailAsync_ShouldReturnContactIfExists()
+    {
+        ContactEntity contact = new ContactEntity()
+        {
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            ContactId = 1,
+            CreationDate = DateTime.UtcNow,
+            Email = "test@email.com",
+            FirstName = "Marc",
+            LastName = "Dibeh",
+            Type = "Client",
+            Status = "Active",
+            PersonaName = "HakounaMatata",
+            IsActive = true
+        };
+
+        using (var context = new AccountContext(_contextOptions))
+        {
+            // arrange
+            context.Add(contact);
+            context.SaveChanges();
+            var repository = new ContactEventRepository(context);
+
+            // Act
+            var dbContact = await repository.GetContactByEmailAsync("test@email.com");
+
+            // assert
+            dbContact.Should().NotBeNull();
+            dbContact.Should().BeEquivalentTo(contact);
+        }
     }
 }

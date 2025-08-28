@@ -6,7 +6,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Pulse.Account.Core.Enum;
-using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Providers;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
@@ -95,7 +94,7 @@ public class ContactUpdatedEventHandlerTests
         var loggerMock = new Mock<ILogger<ContactUpdatedEventHandler>>();
         var repositoryContactMock = new Mock<IContactEventRepository>(MockBehavior.Strict);
         var repositoryAccountMock = new Mock<IAccountEventRepository>(MockBehavior.Strict);
-        repositoryContactMock.Setup(repository => repository.GetContactById(123)).Returns(new ContactEntity()
+        repositoryContactMock.Setup(repository => repository.GetContactById(123)).ReturnsAsync(new ContactEntity()
         {
             ContactId = 123,
             Status = "Connected"
@@ -137,7 +136,7 @@ public class ContactUpdatedEventHandlerTests
         var repositoryContactMock = new Mock<IContactEventRepository>();
         var repositoryAccountMock = new Mock<IAccountEventRepository>();
 
-        repositoryContactMock.Setup(repo => repo.GetContactById(123)).Returns(new ContactEntity
+        repositoryContactMock.Setup(repo => repo.GetContactById(123)).ReturnsAsync(new ContactEntity
         {
             ContactId = 123,
             Status = "Invited"
@@ -169,7 +168,7 @@ public class ContactUpdatedEventHandlerTests
         var repositoryContactMock = new Mock<IContactEventRepository>();
         var repositoryAccountMock = new Mock<IAccountEventRepository>();
 
-        repositoryContactMock.Setup(repo => repo.GetContactById(123)).Returns(new ContactEntity
+        repositoryContactMock.Setup(repo => repo.GetContactById(123)).ReturnsAsync(new ContactEntity
         {
             ContactId = 123,
             Status = "Connected"
@@ -201,7 +200,7 @@ public class ContactUpdatedEventHandlerTests
         var repositoryContactMock = new Mock<IContactEventRepository>();
         var repositoryAccountMock = new Mock<IAccountEventRepository>();
 
-        repositoryContactMock.Setup(repo => repo.GetContactById(123)).Returns(new ContactEntity
+        repositoryContactMock.Setup(repo => repo.GetContactById(123)).ReturnsAsync(new ContactEntity
         {
             ContactId = 123,
             Status = "OtherStatus"
@@ -233,7 +232,7 @@ public class ContactUpdatedEventHandlerTests
         var repositoryContactMock = new Mock<IContactEventRepository>();
         var repositoryAccountMock = new Mock<IAccountEventRepository>();
 
-        repositoryContactMock.Setup(repo => repo.GetContactById(123)).Returns(new ContactEntity
+        repositoryContactMock.Setup(repo => repo.GetContactById(123)).ReturnsAsync(new ContactEntity
         {
             ContactId = 123,
             Status = "Connected"

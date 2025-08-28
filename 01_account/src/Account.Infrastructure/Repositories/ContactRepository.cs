@@ -4,55 +4,36 @@
 
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
-using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Extensions;
-using Pulse.Account.Infrastructure.Interfaces;
+using Pulse.Account.Infrastructure.Mappers;
 using Pulse.ExceptionMiddleware.Exceptions;
 
-namespace Pulse.Account.Infrastructure.Repositories
+namespace Pulse.Account.Infrastructure.Repositories;
+
+public class ContactRepository : IContactRepository
 {
-    public class ContactRepository : IContactRepository
+    private readonly AccountContext _accountContext;
+
+    public ContactRepository(AccountContext accountContext)
     {
-        private readonly AccountContext _accountContext;
+        _accountContext = accountContext;
+        _accountContext.HandleEFCoreFailure();
+    }
 
-        public ContactRepository(AccountContext accountContext)
+    public async Task<Contact> GetContactByIdAsync(int contactId)
+    {
+        var query = _accountContext.ContactEntity.AsNoTracking();
+
+        var contact = await query.FirstOrDefaultAsync(c => c.ContactId == contactId);
+
+        if (contact == null)
         {
-            _accountContext = accountContext;
-            _accountContext.HandleEFCoreFailure();
+            throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
         }
 
-        public async Task<ContactEntity> GetContactAsync(int contactId, bool? searchDeleted = false)
-        {
-
-            var query = _accountContext.ContactEntity
-                .AsNoTracking();
-            if (searchDeleted == true)
-            {
-                query = query.IgnoreQueryFilters();
-            }
-
-            var contact = await query.FirstOrDefaultAsync(c => c.ContactId == contactId);
-            if (contact == null)
-            {
-                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
-            }
-
-            return contact;
-        }
-
-        public async Task<ContactEntity> GetContactByEmailAsync(string email)
-        {
-            var query = _accountContext.ContactEntity
-                .AsNoTracking();
-
-            var contact = await query.FirstOrDefaultAsync(c => c.Email == email);
-            if (contact == null)
-            {
-                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, email));
-            }
-
-            return contact;
-        }
+        return contact.MapToContact(null) !;
     }
 }

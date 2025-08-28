@@ -93,7 +93,7 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task<Role> GetContactRoleAsync(int accountId, int contactId)
+    public async Task<Role?> GetContactRoleAsync(int accountId, int contactId)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -104,7 +104,7 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task<IEnumerable<Role>> CreateRoleAsync(CreateRoleRequest role)
+    public async Task<Role?> CreateRoleAsync(CreateRoleRequest role)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -136,17 +136,16 @@ public class RoleRepository : IRoleRepository
             }
 
             role.IsCustomerRelation = contact.Type == ContactType.Collaborator.ToString() ? false : null;
-            var roles = new List<Role> { role.MapCreateRoleRequestToRole() };
-            var roleEntities = roles.MapRolesToRolesDb();
+            var roleEntity = role.MapRoleToRoleDb();
 
-            if (roleEntities.Any())
+            if (roleEntity != null)
             {
-                await _accountContext.RoleEntity.AddRangeAsync(roleEntities);
+                await _accountContext.RoleEntity.AddRangeAsync(roleEntity);
             }
 
             await _accountContext.SaveChangesAsync();
 
-            return roles;
+            return roleEntity!.MapToRole();
         });
     }
 
@@ -171,7 +170,7 @@ public class RoleRepository : IRoleRepository
                 await _accountContext.SaveChangesAsync();
             }
 
-            return role!.MapToRole();
+            return role.MapToRole() !;
         });
     }
 

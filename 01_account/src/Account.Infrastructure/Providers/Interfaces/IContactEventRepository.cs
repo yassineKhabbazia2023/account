@@ -14,7 +14,11 @@ public interface IContactEventRepository
 
     Task RemoveContactAsync(int contactId);
 
-    ContactEntity? GetContactById(int contactId);
+    Task<ContactEntity?> GetContactById(int contactId);
 
     Task<bool> DoesContactExistAsync(int contactId);
+
+    Task<ContactEntity> GetContactAsync(int contactId, bool? searchDeleted = false);
+
+    Task<ContactEntity> GetContactByEmailAsync(string email);
 }

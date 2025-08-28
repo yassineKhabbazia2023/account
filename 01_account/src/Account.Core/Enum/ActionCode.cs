@@ -8,5 +8,7 @@ public enum ActionCode
 {
     ADDCVREG,
     ADDCMANU,
-    DELCMANU
+    ADDKMANU,
+    DELCMANU,
+    DELKMANU
 }

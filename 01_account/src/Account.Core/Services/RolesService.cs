@@ -17,16 +17,19 @@ namespace Pulse.Account.Core.Services;
 public class RolesService : IRolesService
 {
     private readonly IRoleRepository _rolesRepository;
+    private readonly IContactRepository _contactRepository;
     private readonly IRoleEventPublisher _roleEventPublisher;
     private readonly IHistoryEventPublisher _historyEventPublisher;
     private readonly ILogger<RolesService> _logger;
 
     public RolesService(IRoleRepository rolesRepository,
+        IContactRepository contactRepository,
         IRoleEventPublisher roleEventPublisher,
         IHistoryEventPublisher historyEventPublisher,
         ILogger<RolesService> logger)
     {
         _rolesRepository = rolesRepository;
+        _contactRepository = contactRepository;
         _roleEventPublisher = roleEventPublisher;
         _historyEventPublisher = historyEventPublisher;
         _logger = logger;
@@ -48,20 +51,26 @@ public class RolesService : IRolesService
 
     public async Task CreateRoleAsync(CreateRoleRequest role, int currentUserId)
     {
-        var rolesCreated = await _rolesRepository.CreateRoleAsync(role);
+        var roleCreated = await _rolesRepository.CreateRoleAsync(role);
 
-        var roles = rolesCreated.Select(r => new CreateRoleRequest
+        if (roleCreated != null)
         {
-            ContactId = r.ContactId,
-            AccountId = r.AccountId,
-            IsSignatory = r.IsSignatory,
-            IsFavorite = r.IsFavorite,
-            IsDelegation = r.IsDelegation,
-            DelegatorId = currentUserId
-        }).ToList();
+            var roleToPublish = new CreateRoleRequest
+            {
+                ContactId = roleCreated.ContactId,
+                AccountId = roleCreated.AccountId,
+                IsSignatory = roleCreated.IsSignatory,
+                IsFavorite = roleCreated.IsFavorite,
+                IsDelegation = roleCreated.IsDelegation,
+                DelegatorId = currentUserId
+            };
 
-        await Task.WhenAll(roles.Select(PublishRoleCreatedEvent));
-        await Task.WhenAll(rolesCreated.Select(r => PublishHistoryCreatedEvent(currentUserId, r.ContactId, r.AccountId, ActionCode.ADDCMANU.ToString())));
+            var contact = await _contactRepository.GetContactByIdAsync(roleCreated.ContactId);
+            var actionCode = ContactType.Collaborator.ToString().Equals(contact.Type) ? ActionCode.ADDKMANU.ToString() : ActionCode.ADDCMANU.ToString();
+
+            await PublishRoleCreatedEvent(roleToPublish);
+            await PublishHistoryCreatedEvent(currentUserId, roleCreated.ContactId, roleCreated.AccountId, actionCode);
+        }
     }
 
     public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
@@ -103,8 +112,11 @@ public class RolesService : IRolesService
 
         await _rolesRepository.DeleteRoleAsync(accountId, contactId);
 
+        var contact = await _contactRepository.GetContactByIdAsync(contactId);
+        var actionCode = ContactType.Collaborator.ToString().Equals(contact.Type) ? ActionCode.DELKMANU.ToString() : ActionCode.DELCMANU.ToString();
+
         await PublishRoleDeletedEvent(accountId, contactId);
-        await PublishHistoryCreatedEvent(currentUserId, contactId, accountId, ActionCode.DELCMANU.ToString());
+        await PublishHistoryCreatedEvent(currentUserId, contactId, accountId, actionCode);
     }
 
     public async Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email)

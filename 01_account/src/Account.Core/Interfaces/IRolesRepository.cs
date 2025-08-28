@@ -15,7 +15,7 @@ public interface IRoleRepository
 
     Task<IEnumerable<Contact>> GetSignatoryAsync(int accountId);
 
-    Task<IEnumerable<Role>> CreateRoleAsync(CreateRoleRequest role);
+    Task<Role?> CreateRoleAsync(CreateRoleRequest role);
 
     Task<Role> UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory);
 
@@ -23,7 +23,7 @@ public interface IRoleRepository
 
     Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email);
 
-    Task<Role> GetContactRoleAsync(int accountId, int contactId);
+    Task<Role?> GetContactRoleAsync(int accountId, int contactId);
 
     Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber);
 

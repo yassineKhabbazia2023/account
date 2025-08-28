@@ -245,7 +245,6 @@ public class RolesRepositoryTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Single(result);
     }
 
     [Fact]
@@ -313,8 +312,7 @@ public class RolesRepositoryTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal(contactId, result.First().ContactId);
+        Assert.Equal(contactId, result.ContactId);
     }
 
     [Fact]
