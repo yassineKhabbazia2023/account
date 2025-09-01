@@ -87,6 +87,7 @@
     <None Include="Log\Script.Delegation.sql" />
     <None Include="Scripts\002_Synchro_taille_colonne_Account.sql" />
     <None Include="Scripts\004_Recuperation_Libelle_Role_Pennylane.sql" />
+    <None Include="Scripts\005_Nettoyage_DataTest_Table_REC.sql" />
     <Build Include="ext\Vues\vw_SignatoryPerAccount.sql" />
   </ItemGroup>
   <ItemGroup>
