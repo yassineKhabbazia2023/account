@@ -89,6 +89,7 @@
     <None Include="Scripts\004_Recuperation_Libelle_Role_Pennylane.sql" />
     <None Include="Scripts\005_Nettoyage_DataTest_Table_REC.sql" />
     <Build Include="ext\Vues\vw_SignatoryPerAccount.sql" />
+    <Build Include="account\Tables\OfferEligibility.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Account.Database.refactorlog" />
