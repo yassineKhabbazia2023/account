@@ -61,10 +61,10 @@ public class DelegationService : IDelegationService
 
         if (rolesCreated.Any())
         {
-            rolesCreated.ToList().ForEach(async r =>
+            foreach (var role in rolesCreated)
             {
-                await PublishRoleCreatedEvent(r);
-            });
+                await PublishRoleCreatedEvent(role);
+            }
         }
     }
 

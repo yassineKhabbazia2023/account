@@ -59,12 +59,12 @@ public class RoleCreatedEventHandler : IEventHandler
 
         if (rolesCreated.Any())
         {
-            rolesCreated.ToList().ForEach(async r =>
+            foreach (var roleCreated in rolesCreated)
             {
-                _logger.LogInformation("Le role de contact: {ContactId}, account: {AccountId} vient d'être crée.", r.ContactId, r.AccountId);
+                _logger.LogInformation("Le role de contact: {ContactId}, account: {AccountId} vient d'être crée.", roleCreated.ContactId, roleCreated.AccountId);
 
-                await PublishRoleCreatedEvent(r);
-            });
+                await PublishRoleCreatedEvent(roleCreated);
+            }
         }
     }
 

@@ -2,12 +2,12 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Pulse.Back.Events.Abstractions;
-using Pulse.Back.Events.IntegrationEvents.EventsData;
-using Pulse.Back.Events.IntegrationEvents;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
+using Pulse.Back.Events.Abstractions;
+using Pulse.Back.Events.IntegrationEvents;
+using Pulse.Back.Events.IntegrationEvents.EventsData;
 
 namespace Pulse.Account.Infrastructure.Providers;
 
