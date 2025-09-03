@@ -766,6 +766,49 @@ public class MapAccountDbToAccountModelTests
         result.ContactInvited.Should().Be(70);
     }
 
+    [Theory]
+    [InlineData(false, null, false)]
+    [InlineData(true, "2024-01-01", false)]
+    [InlineData(true, null, true)]
+    public void MapToIsClarityVisible_ShouldReturnExpectedResult(
+        bool isEligible,
+        string? approvedDateString,
+        bool expectedResult)
+    {
+        // Arrange
+        DateTime? approvedDate = approvedDateString != null
+            ? DateTime.Parse(approvedDateString)
+            : (DateTime?)null;
+
+        var account = new AccountEntity
+        {
+            OfferEligibilityEntity = new OfferEligibilityEntity
+            {
+                IsEligible = isEligible,
+                ApprovedDate = approvedDate
+            }
+        };
+
+        // Act
+        var result = account.MapToIsClarityVisible();
+
+        // Assert
+        result.Should().Be(expectedResult);
+    }
+
+    [Fact]
+    public void MapToIsClarityVisible_ReturnsFalse_WhenSourceIsNull()
+    {
+        // Arrange
+        AccountEntity? account = null;
+
+        // Act
+        var result = account.MapToIsClarityVisible();
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
     // This interface is added to make the MapToAccounts method mockable
     public interface IAccountMapper
     {

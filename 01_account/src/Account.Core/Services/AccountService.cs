@@ -42,9 +42,9 @@ namespace Pulse.Account.Core.Services
             return await _accountRepository.GetAllAccountsAsync(accountNumber, pagination, criteria ?? new SearchAccountCriteria());
         }
 
-        public async Task<Models.Account?> GetAccountSummaryAsync(int accountId)
+        public async Task<Models.Account?> GetAccountSummaryAsync(int contactId, int accountId)
         {
-            return await _accountRepository.GetAccountSummaryAsync(accountId);
+            return await _accountRepository.GetAccountSummaryAsync(contactId, accountId);
         }
 
         public async Task<AccountDetail?> GetAccountAsync(int accountId)

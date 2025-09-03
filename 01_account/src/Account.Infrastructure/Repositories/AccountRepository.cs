@@ -203,13 +203,15 @@ public class AccountRepository : IAccountRepository
         });
     }
 
-    public async Task<AccountModel?> GetAccountSummaryAsync(int accountId)
+    public async Task<AccountModel?> GetAccountSummaryAsync(int contactId, int accountId)
     {
         AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>
         {
             return await _accountContext.AccountEntity
                     .AsNoTracking()
                     .Include(a => a.DeploymentEntity)
+                    .Include(a => a.OfferEligibilityEntity)
+                    .Include(a => a.RoleEntity)
                     .Include(x => x.Office)
                     .ThenInclude(x => x.Address)
                     .FirstOrDefaultAsync(a => a.AccountId == accountId);
@@ -220,7 +222,7 @@ public class AccountRepository : IAccountRepository
             throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
         }
 
-        return account.MapToAccount();
+        return account.MapToAccountSummary(contactId);
     }
 
     public async Task<AccountDetail> GetAccountAsync(int accountId)
@@ -252,6 +254,7 @@ public class AccountRepository : IAccountRepository
                     .ThenInclude(r => r.Contact)
                     .Include(a => a.AddressEntity)
                     .Include(x => x.DeploymentEntity)
+                    .Include(x => x.OfferEligibilityEntity)
                     .Include(x => x.Hub)
                     .Include(x => x.Naf)
                     .Include(x => x.Office)

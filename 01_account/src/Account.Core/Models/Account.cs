@@ -31,4 +31,8 @@ public class Account
     public Deployment? Deployment { get; set; }
 
     public Hub? Hub { get; set; }
+
+    public bool IsClarityVisible { get; set; }
+
+    public bool IsSignatory { get; set; }
 }

@@ -150,12 +150,12 @@ namespace Pulse.Account.Core.Tests.Services
         {
             // Arrange
             var accountMocked = _fixture.Create<AccountModel>();
-            _accountRepository.Setup(repository => repository.GetAccountSummaryAsync(It.IsAny<int>())).ReturnsAsync(accountMocked);
+            _accountRepository.Setup(repository => repository.GetAccountSummaryAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
 
             // Act
-            var accountSummary = await accountService.GetAccountSummaryAsync(accountId: 1);
+            var accountSummary = await accountService.GetAccountSummaryAsync(1, 1);
 
             // Assert
             Assert.Equal(accountMocked, accountSummary);

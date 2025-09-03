@@ -13,7 +13,7 @@ public partial class OfferEligibilityEntity
     public int AccountId { get; set; }
 
     /// <summary>
-    /// Nom de l&apos;&apos;offre associée à ce compte
+    /// Nom de l'offre associée à ce compte
     /// </summary>
     public string OfferName { get; set; }
 
@@ -25,7 +25,7 @@ public partial class OfferEligibilityEntity
     /// <summary>
     /// Date de validation de l&apos;&apos;offre
     /// </summary>
-    public DateTime ApprovedDate { get; set; }
+    public DateTime? ApprovedDate { get; set; }
 
     /// <summary>
     /// Utilisateur ou processus ayant validé l&apos;&apos;offre

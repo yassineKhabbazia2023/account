@@ -639,19 +639,21 @@ public class AccountRepositoryTests
         {
             // Arrange
             var accountsModel = _fixture.Create<List<AccountEntity>>();
+            var contactId = 1;
             var accountFirst = accountsModel[0];
-            var accountSummary = accountFirst?.MapToAccountDetail();
+            var accountSummary = accountFirst?.MapToAccountSummary(contactId);
             context.AccountEntity.AddRange(accountsModel);
             await context.SaveChangesAsync();
             var accountRepository = new AccountRepository(context);
 
             // Act
-            var accounts = await accountRepository.GetAccountSummaryAsync(accountFirst!.AccountId);
+            var accounts = await accountRepository.GetAccountSummaryAsync(contactId, accountFirst!.AccountId);
 
             // Assert
             Assert.Equal(accountSummary?.AccountNumber, accounts!.AccountNumber);
             Assert.Equal(accountSummary?.AccountId, accounts.AccountId);
-            Assert.Equal(accountSummary?.Legal?.LegalName, accounts.LegalName);
+            Assert.Equal(accountSummary?.LegalName, accounts.LegalName);
+            Assert.Equal(accountSummary?.IsClarityVisible, accounts.IsClarityVisible);
         }
     }
 

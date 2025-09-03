@@ -78,8 +78,10 @@ public static class MapAccountDbToAccountModel
             };
     }
 
-    public static AccountModel? MapToAccount(this AccountEntity source)
+    public static AccountModel? MapToAccountSummary(this AccountEntity source, int contactId)
     {
+        var isSignatory = source.RoleEntity.Any(role => role.ContactId == contactId && role.IsSignatory == true);
+
         return source == null ? null : new AccountModel
         {
             AccountId = source.AccountId,
@@ -91,6 +93,8 @@ public static class MapAccountDbToAccountModel
             MissionType = source.MissionType,
             Address = source.MapToAddressDelivery(),
             Deployment = source.MapToDeployment(),
+            IsClarityVisible = source.MapToIsClarityVisible(),
+            IsSignatory = isSignatory
         };
     }
 
@@ -104,6 +108,18 @@ public static class MapAccountDbToAccountModel
             PhoneNumber = source.PhoneNumber,
             AddressId = source.AddressId,
         };
+    }
+
+    public static bool MapToIsClarityVisible(this AccountEntity? source)
+    {
+        if (source == null || source.OfferEligibilityEntity == null)
+        {
+            return false;
+        }
+
+        var offerEligibility = source.OfferEligibilityEntity;
+
+        return offerEligibility.IsEligible && (!offerEligibility.ApprovedDate.HasValue || offerEligibility.ApprovedDate == DateTime.MinValue);
     }
 
     public static OfficeEntity? MapToOffice(this Office source)

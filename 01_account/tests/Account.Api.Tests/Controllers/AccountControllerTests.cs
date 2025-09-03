@@ -96,7 +96,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         {
             Items = new List<AccountModel>
             {
-                account.MapToAccount() !
+                account.MapToAccountSummary(contact.ContactId) !
             },
             CurrentPage = pagination.PageNumber,
             TotalItems = pagination.PageSize,
@@ -120,6 +120,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
     {
         // Arrange
         var account = _context.AccountEntity.First();
+        var contactId = 1;
         var pagination = new Pagination
         {
             PageNumber = 1,
@@ -130,7 +131,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         {
             Items = new List<AccountModel>
             {
-                account.MapToAccount() !
+                account.MapToAccountSummary(contactId) !
             },
             CurrentPage = pagination.PageNumber,
             TotalItems = pagination.PageSize,
@@ -154,10 +155,11 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
     {
         // Arrange
         var accountMocked = await _context.AccountEntity.FirstAsync();
-        var expected = accountMocked.MapToAccount();
+        var contactId = 1;
+        var expected = accountMocked.MapToAccountSummary(contactId);
 
         // Act
-        var account = await _accountController.GetAccountSummaryAsync(accountMocked.AccountId);
+        var account = await _accountController.GetAccountSummaryAsync(contactId, accountMocked.AccountId);
         var resultAccounts = account?.Result as OkObjectResult;
         var accountSummaryResult = resultAccounts!.Value.As<AccountModel>();
 
@@ -330,7 +332,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         {
             Items = new List<AccountModel>
             {
-                account!.MapToAccount()!
+                account!.MapToAccountSummary(contact!.ContactId)!
             },
             CurrentPage = pagination.PageNumber,
             TotalItems = pagination.PageSize,

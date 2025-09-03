@@ -108,14 +108,15 @@ public class AccountController : ControllerBase
     /// <summary>
     /// Récupère un résumé des informations d'une entité morale à partir de son identifiant.
     /// </summary>
+    /// <param name="currentUserId">Identifiant de l'utilisateur connecté.</param>
     /// <param name="accountId">Identifiant unique de l'entité morale.</param>
     /// <returns>Un résumé des informations de l'entité morale.</returns>
     [HttpGet("{accountId}/summary")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountModel))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult<AccountModel>> GetAccountSummaryAsync(int accountId)
+    public async Task<ActionResult<AccountModel>> GetAccountSummaryAsync([FromHeader(Name = "CurrentUser")] int currentUserId, int accountId)
     {
-        var result = await _accountService.GetAccountSummaryAsync(accountId);
+        var result = await _accountService.GetAccountSummaryAsync(currentUserId, accountId);
         return Ok(result);
     }
 
