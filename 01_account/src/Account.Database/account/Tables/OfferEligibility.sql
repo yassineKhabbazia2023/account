@@ -3,8 +3,8 @@
     [AccountId]   INT           NOT NULL,
     [OfferName]   VARCHAR(100)  NOT NULL,
     [IsEligible]  BIT           NOT NULL,
-    [ApprovedDate] DATETIME2    NOT NULL,
-    [ApprovedBy]  VARCHAR(255)  NOT NULL,
+    [ApprovedDate] DATETIME2    NULL,
+    [ApprovedBy]  VARCHAR(255)  NULL,
     CONSTRAINT [C_AccountId_PK] 
         PRIMARY KEY CLUSTERED ([AccountId] ASC),
     CONSTRAINT [C_Account_OfferEligibility_FK] 
