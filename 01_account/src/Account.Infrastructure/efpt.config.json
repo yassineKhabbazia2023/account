@@ -48,6 +48,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[account].[OfferEligibility]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[account].[Office]",
          "ObjectType": 0
       },

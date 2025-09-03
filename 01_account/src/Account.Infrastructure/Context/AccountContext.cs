@@ -30,6 +30,8 @@ public partial class AccountContext : DbContext
 
     public virtual DbSet<NafEntity> NafEntity { get; set; }
 
+    public virtual DbSet<OfferEligibilityEntity> OfferEligibilityEntity { get; set; }
+
     public virtual DbSet<OfficeEntity> OfficeEntity { get; set; }
 
     public virtual DbSet<PhoneEntity> PhoneEntity { get; set; }
@@ -436,6 +438,34 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.NafLabel)
                 .HasMaxLength(255)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<OfferEligibilityEntity>(entity =>
+        {
+            entity.HasKey(e => e.AccountId).HasName("C_AccountId_PK");
+
+            entity.ToTable("OfferEligibility", "account");
+
+            entity.Property(e => e.AccountId)
+                .ValueGeneratedNever()
+                .HasComment("Identifiant technique du compte (clé primaire et étrangère vers account.Account)");
+            entity.Property(e => e.ApprovedBy)
+                .IsRequired()
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasComment("Utilisateur ou processus ayant validé l''offre");
+            entity.Property(e => e.ApprovedDate).HasComment("Date de validation de l''offre");
+            entity.Property(e => e.IsEligible).HasComment("Indique si le compte est éligible à l''offre (1 = Oui, 0 = Non)");
+            entity.Property(e => e.OfferName)
+                .IsRequired()
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasComment("Nom de l''offre associée à ce compte");
+
+            entity.HasOne(d => d.Account).WithOne(p => p.OfferEligibilityEntity)
+                .HasForeignKey<OfferEligibilityEntity>(d => d.AccountId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_Account_OfferEligibility_FK");
         });
 
         modelBuilder.Entity<OfficeEntity>(entity =>

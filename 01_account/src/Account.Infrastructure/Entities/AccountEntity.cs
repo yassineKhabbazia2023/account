@@ -193,6 +193,8 @@ public partial class AccountEntity
 
     public virtual NafEntity Naf { get; set; }
 
+    public virtual OfferEligibilityEntity OfferEligibilityEntity { get; set; }
+
     public virtual OfficeEntity Office { get; set; }
 
     public virtual ICollection<PhoneEntity> PhoneEntity { get; set; } = new List<PhoneEntity>();

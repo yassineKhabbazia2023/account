@@ -1481,6 +1481,7 @@ public class AccountRepositoryTests
                 .Without(x => x.Office)
                 .Without(x => x.Delegation)
                 .Without(x => x.RoleLabelEntity)
+                .Without(x => x.OfferEligibilityEntity)
                 .With(x => x.IsActive, true)
                 .Create();
 
@@ -1614,6 +1615,7 @@ public class AccountRepositoryTests
                     .Without(x => x.Office)
                     .Without(x => x.Delegation)
                     .Without(x => x.RoleLabelEntity)
+                    .Without(x => x.OfferEligibilityEntity)
                     .With(x => x.IsActive, true)
                     .Create();
 
@@ -1727,6 +1729,7 @@ public class AccountRepositoryTests
                     .Without(x => x.Office)
                     .Without(x => x.Delegation)
                     .Without(x => x.RoleLabelEntity)
+                    .Without(x => x.OfferEligibilityEntity)
                     .With(x => x.IsActive, true)
                     .Create();
 
@@ -1843,6 +1846,7 @@ public class AccountRepositoryTests
                     .Without(x => x.Office)
                     .Without(x => x.Delegation)
                     .Without(x => x.RoleLabelEntity)
+                    .Without(x => x.OfferEligibilityEntity)
                     .With(x => x.IsActive, true)
                     .Create();
 

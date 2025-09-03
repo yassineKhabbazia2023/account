@@ -44,6 +44,11 @@
          },
          {
             "Columns": [ ],
+            "Name": "OfferEligibility",
+            "NewName": "OfferEligibilityEntity"
+         },
+         {
+            "Columns": [ ],
             "Name": "Office",
             "NewName": "OfficeEntity"
          },
