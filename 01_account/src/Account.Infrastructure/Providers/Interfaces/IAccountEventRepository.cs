@@ -13,4 +13,6 @@ public interface IAccountEventRepository
     List<AccountEntity> GetAccountBySignatory(int contactId);
 
     Task<AccountEntity> GetAccountByNumberAsync(string accountNumber);
+
+    Task<bool> DoesAccountExistAsync(int accountId);
 }

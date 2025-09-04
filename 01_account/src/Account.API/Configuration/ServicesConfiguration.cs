@@ -85,6 +85,7 @@ public static class ServicesConfiguration
         services.AddScoped<IAccountEventRepository, AccountEventRepository>();
         services.AddScoped<IRoleEventRepository, RoleEventRepository>();
         services.AddScoped<IDelegationEventRepository, DelegationEventRepository>();
+        services.AddScoped<IOfferEligibilityEventRepository, OfferEligibilityEventRepository>();
         services.AddKeyedScoped<IEventHandler, ContactCreatedEventHandler>(nameof(ContactCreatedEvent));
         services.AddKeyedScoped<IEventHandler, ContactUpdatedEventHandler>(nameof(ContactUpdatedEvent));
         services.AddKeyedScoped<IEventHandler, ContactRemovedEventHandler>(nameof(ContactRemovedEvent));
@@ -95,6 +96,7 @@ public static class ServicesConfiguration
         services.AddKeyedScoped<IEventHandler, RegistryRoleRemovedEventHandler>(nameof(RegistryRoleRemovedEvent));
         services.AddKeyedScoped<IEventHandler, RoleCreatedEventHandler>(nameof(RoleCreatedEvent));
         services.AddKeyedScoped<IEventHandler, SubscriptionValidatedEventHandler>(nameof(SubscriptionValidatedEvent));
+        services.AddKeyedScoped<IEventHandler, ReportCreatedEventHandler>(nameof(ReportCreatedEvent));
 
         services.AddScoped<IAccountEventPublisher, AccountEventPublisher>();
         services.AddScoped<IRoleEventPublisher, RoleEventPublisher>();

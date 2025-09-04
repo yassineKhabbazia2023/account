@@ -450,7 +450,6 @@ public partial class AccountContext : DbContext
                 .ValueGeneratedNever()
                 .HasComment("Identifiant technique du compte (clé primaire et étrangère vers account.Account)");
             entity.Property(e => e.ApprovedBy)
-                .IsRequired()
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasComment("Utilisateur ou processus ayant validé l''offre");

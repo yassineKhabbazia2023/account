@@ -61,4 +61,9 @@ public class AccountEventRepository : IAccountEventRepository
     {
         return await _accountContext.AccountEntity.FirstAsync(a => a.AccountNumber == accountNumber);
     }
+
+    public async Task<bool> DoesAccountExistAsync(int accountId)
+    {
+        return await _accountContext.AccountEntity.AnyAsync(a => a.AccountId == accountId);
+    }
 }

@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.10.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Polly" Version="8.5.2" />
-    <PackageReference Include="Pulse.Back.Events" Version="2.73.150" />
+    <PackageReference Include="Pulse.Back.Events" Version="2.73.155" />
   </ItemGroup>
 
   <ItemGroup>

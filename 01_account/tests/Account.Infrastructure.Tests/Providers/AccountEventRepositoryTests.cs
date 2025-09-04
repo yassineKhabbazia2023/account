@@ -154,4 +154,39 @@ public class AccountEventRepositoryTests
         Assert.NotNull(result);
         Assert.Equal("Sequence contains no elements", result.Message);
     }
+
+    [Fact]
+    public async Task DoesAccountExist_ShoudReturnTrue_WhenAccountExists()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using var context = new AccountContext(options);
+        var account = _fixture.Create<AccountEntity>();
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountEventRepository(context);
+
+        var result = await repository.DoesAccountExistAsync(account.AccountId);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task DoesAccountExist_ShoudReturnFalse_WhenAccountNotFound()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using var context = new AccountContext(options);
+        var repository = new AccountEventRepository(context);
+
+        var result = await repository.DoesAccountExistAsync(1);
+
+        Assert.False(result);
+    }
 }
