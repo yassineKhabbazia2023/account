@@ -7,46 +7,45 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
 
-namespace Pulse.Account.Infrastructure.Mappers
+namespace Pulse.Account.Infrastructure.Mappers;
+
+public static class MapRoleBusinessToRoleDb
 {
-    public static class MapRoleBusinessToRoleDb
+    public static IEnumerable<RoleEntity> MapRolesToRoleDb(this IEnumerable<CreateRoleRequest> role)
     {
-        public static IEnumerable<RoleEntity> MapRolesToRoleDb(this IEnumerable<CreateRoleRequest> role)
-        {
-            return role?.Select(r => r.MapRoleToRoleDb()) ?? Enumerable.Empty<RoleEntity>();
-        }
+        return role?.Select(r => r.MapRoleToRoleDb()) ?? Enumerable.Empty<RoleEntity>();
+    }
 
-        public static RoleEntity MapRoleToRoleDb(this CreateRoleRequest role)
+    public static RoleEntity MapRoleToRoleDb(this CreateRoleRequest role)
+    {
+        return role == null ? null! : new RoleEntity
         {
-            return role == null ? null! : new RoleEntity
-            {
-                AccountId = role.AccountId,
-                ContactId = (int)role.ContactId!,
-                IsFavorite = role.IsFavorite,
-                IsSignatory = role.IsSignatory,
-                IsDelegation = role.IsDelegation,
-                IsCustomerRelation = false,
-                ActionLevel = role.ActionLevel ?? (int)ActionLevelType.NotAssigned,
-            };
-        }
+            AccountId = role.AccountId,
+            ContactId = (int)role.ContactId!,
+            IsFavorite = role.IsFavorite,
+            IsSignatory = role.IsSignatory,
+            IsDelegation = role.IsDelegation,
+            IsCustomerRelation = false,
+            ActionLevel = role.ActionLevel ?? (int)ActionLevelType.NotAssigned,
+        };
+    }
 
-        public static RoleEntity MapRoleToRoleDb(this Role role)
+    public static RoleEntity MapRoleToRoleDb(this Role role)
+    {
+        return role == null ? null! : new RoleEntity
         {
-            return role == null ? null! : new RoleEntity
-            {
-                AccountId = role.AccountId,
-                ContactId = role.ContactId,
-                IsFavorite = role.IsFavorite,
-                IsSignatory = role.IsSignatory,
-                IsDelegation = role.IsDelegation,
-                IsCustomerRelation = role.IsCustomerRelation,
-                ActionLevel = role.ActionLevel,
-            };
-        }
+            AccountId = role.AccountId,
+            ContactId = role.ContactId,
+            IsFavorite = role.IsFavorite,
+            IsSignatory = role.IsSignatory,
+            IsDelegation = role.IsDelegation,
+            IsCustomerRelation = role.IsCustomerRelation,
+            ActionLevel = role.ActionLevel,
+        };
+    }
 
-        public static IEnumerable<RoleEntity> MapRolesToRolesDb(this IEnumerable<Role>? roles)
-        {
-            return roles?.Select(r => r.MapRoleToRoleDb()) ?? Enumerable.Empty<RoleEntity>();
-        }
+    public static IEnumerable<RoleEntity> MapRolesToRolesDb(this IEnumerable<Role>? roles)
+    {
+        return roles?.Select(r => r.MapRoleToRoleDb()) ?? Enumerable.Empty<RoleEntity>();
     }
 }

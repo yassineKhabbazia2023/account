@@ -326,6 +326,7 @@ public class DelegationServiceTest
         resultItem.IsFavorite.Should().BeFalse();
         resultItem.IsSignatory.Should().BeFalse();
         resultItem.IsDelegation.Should().BeTrue();
+        resultItem.ActionLevel.Should().Be(1);
     }
 
     [Theory]

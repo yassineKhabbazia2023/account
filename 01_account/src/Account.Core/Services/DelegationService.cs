@@ -3,6 +3,7 @@
 // </copyright>
 
 using Microsoft.Extensions.Logging;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -145,7 +146,8 @@ public class DelegationService : IDelegationService
                         IsFavorite = false,
                         IsSignatory = false,
                         IsDelegation = true,
-                        DelegatorId = contactId
+                        DelegatorId = contactId,
+                        ActionLevel = (int)ActionLevelType.Observator,
                     });
                 }
             }

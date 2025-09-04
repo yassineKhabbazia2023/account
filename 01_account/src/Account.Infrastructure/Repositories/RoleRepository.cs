@@ -135,7 +135,9 @@ public class RoleRepository : IRoleRepository
                 throw new ConflictException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, role.ContactId, role.AccountId));
             }
 
-            role.IsCustomerRelation = contact.Type == ContactType.Collaborator.ToString() ? false : null;
+            role.IsCustomerRelation = ContactType.Collaborator.ToString().Equals(contact.Type) ? false : null;
+            role.ActionLevel = ContactType.Collaborator.ToString().Equals(contact.Type) ? (int)ActionLevelType.Observator : null;
+
             var roleEntity = role.MapRoleToRoleDb();
 
             if (roleEntity != null)
