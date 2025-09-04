@@ -113,4 +113,16 @@ public static class Errors
 
     public static readonly string InvalidActionLevelCode = "ACC036";
     public static readonly string InvalidActionLevelMessage = "Le niveau d'action ne peut pas être inférieur à 0.";
+
+    public static readonly string BadRequestOfferEligibilityPatchCode = "ACC037";
+    public static readonly string BadRequestOfferEligibilityPatchMessage = "Impossible de mettre à jour l'éligibilité de l'offre : les informations fournies dans la requête sont incorrectes.";
+
+    public static readonly string NotFoundOfferEligibilityCode = "ACC038";
+    public static readonly string NotFoundOfferEligibilityMessage = "L'éligibilité de l'offre avec l'identifiant {0} est introuvable";
+
+    public static readonly string AlreadyActiveOfferEligibilityCode = "ACC039";
+    public static readonly string AlreadyActiveOfferEligibilityMessage = "L'offre est déjà active";
+
+    public static readonly string NotPermittedActionCode = "ACC040";
+    public static readonly string NotPermittedActionMessage = "L'utilisateur ne peut pas effectuer cette action";
 }

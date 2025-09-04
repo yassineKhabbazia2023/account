@@ -43,6 +43,8 @@ public static class ServicesConfiguration
         services.AddScoped<ILabelService, LabelService>();
         services.AddScoped<IRoleLabelRepository, RoleLabelRepository>();
         services.AddScoped<IRoleLabelService, RoleLabelService>();
+        services.AddScoped<IOfferEligibilityRepository, OfferEligibilityRepository>();
+        services.AddScoped<IOfferEligibilityService, OfferEligibilityService>();
     }
 
     public static void RegisterBrokerServices(this IServiceCollection services, IConfiguration configuration)

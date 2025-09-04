@@ -122,6 +122,27 @@ public static class MapAccountDbToAccountModel
         return offerEligibility.IsEligible && (!offerEligibility.ApprovedDate.HasValue || offerEligibility.ApprovedDate == DateTime.MinValue);
     }
 
+    public static void MapToActivatedOfferEligibility(this OfferEligibilityEntity? existingEntity, string approvedBy)
+    {
+        if (existingEntity != null)
+        {
+            existingEntity.IsEligible = false;
+            existingEntity.ApprovedBy = approvedBy;
+            existingEntity.ApprovedDate = DateTime.UtcNow;
+        }
+    }
+
+    public static OfferEligibility? MapToOfferEligibility(this OfferEligibilityEntity? offerEligibility)
+    {
+        return offerEligibility == null ? null : new OfferEligibility
+        {
+            AccountId = offerEligibility.AccountId,
+            ApprovedBy = offerEligibility.ApprovedBy,
+            ApprovedDate = offerEligibility.ApprovedDate,
+            IsEligible = offerEligibility.IsEligible,
+        };
+    }
+
     public static OfficeEntity? MapToOffice(this Office source)
     {
         return source == null ? null : new OfficeEntity

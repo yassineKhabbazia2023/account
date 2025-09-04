@@ -814,4 +814,76 @@ public class MapAccountDbToAccountModelTests
     {
         ICollection<Core.Models.Account> MapToAccounts(ICollection<AccountEntity> source, int? contactId);
     }
+
+    [Fact]
+    public void MapToActivatedOfferEligibility_Should_UpdateFields_WhenEntityNotNull()
+    {
+        // Arrange
+        var entity = new OfferEligibilityEntity
+        {
+            AccountId = 123,
+            IsEligible = true,
+            ApprovedBy = null,
+            ApprovedDate = null
+        };
+        var approvedBy = "admin@test.com";
+
+        // Act
+        entity.MapToActivatedOfferEligibility(approvedBy);
+
+        // Assert
+        entity.IsEligible.Should().BeFalse();
+        entity.ApprovedBy.Should().Be(approvedBy);
+        entity.ApprovedDate.Should().NotBeNull();
+        entity.ApprovedDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(2));
+    }
+
+    [Fact]
+    public void MapToActivatedOfferEligibility_Should_DoNothing_WhenEntityIsNull()
+    {
+        // Arrange
+        OfferEligibilityEntity? entity = null;
+
+        // Act
+        entity.MapToActivatedOfferEligibility("ignored@test.com");
+
+        // Assert
+        entity.Should().BeNull();
+    }
+
+    [Fact]
+    public void MapToOfferEligibility_Should_ReturnNull_WhenEntityIsNull()
+    {
+        // Arrange
+        OfferEligibilityEntity? entity = null;
+
+        // Act
+        var result = entity.MapToOfferEligibility();
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void MapToOfferEligibility_Should_MapPropertiesCorrectly()
+    {
+        // Arrange
+        var entity = new OfferEligibilityEntity
+        {
+            AccountId = 456,
+            ApprovedBy = "admin@test.com",
+            ApprovedDate = new DateTime(2024, 12, 15),
+            IsEligible = true
+        };
+
+        // Act
+        var result = entity.MapToOfferEligibility();
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.AccountId.Should().Be(entity.AccountId);
+        result.ApprovedBy.Should().Be(entity.ApprovedBy);
+        result.ApprovedDate.Should().Be(entity.ApprovedDate);
+        result.IsEligible.Should().Be(entity.IsEligible);
+    }
 }
