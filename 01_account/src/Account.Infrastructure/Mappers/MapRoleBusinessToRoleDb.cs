@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
@@ -25,6 +26,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 IsSignatory = role.IsSignatory,
                 IsDelegation = role.IsDelegation,
                 IsCustomerRelation = false,
+                ActionLevel = role.ActionLevel ?? (int)ActionLevelType.NotAssigned,
             };
         }
 
