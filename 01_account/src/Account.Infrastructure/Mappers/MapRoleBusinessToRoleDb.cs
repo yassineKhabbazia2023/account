@@ -25,7 +25,7 @@ public static class MapRoleBusinessToRoleDb
             IsFavorite = role.IsFavorite,
             IsSignatory = role.IsSignatory,
             IsDelegation = role.IsDelegation,
-            IsCustomerRelation = false,
+            IsCustomerRelation = role.IsCustomerRelation,
             ActionLevel = role.ActionLevel ?? (int)ActionLevelType.NotAssigned,
         };
     }

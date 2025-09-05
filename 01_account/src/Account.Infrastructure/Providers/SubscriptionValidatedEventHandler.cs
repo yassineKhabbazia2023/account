@@ -3,7 +3,6 @@
 // </copyright>
 
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;

@@ -34,22 +34,39 @@ public class MapRoleBusinessToRoleDbTests
     }
 
     [Fact]
-    public void MapContactEntityToSignatory_CaseSuccess()
+    public void MapRolesToRoleDb_CaseSuccess()
     {
         // Arrange
-        var role = _fixture.Create<CreateRoleRequest?>();
+        var role = _fixture.Create<CreateRoleRequest>();
 
         // Act
         var result = role.MapRoleToRoleDb();
 
         // Assert
+        Assert.NotNull(result);
         Assert.Equal(role.ContactId, result.ContactId);
         Assert.Equal(role.AccountId, result.AccountId);
         Assert.Equal(role.IsFavorite, result.IsFavorite);
         Assert.Equal(role.IsSignatory, result.IsSignatory);
         Assert.Equal(role.IsDelegation, result.IsDelegation);
-        Assert.False(role.IsCustomerRelation);
+        Assert.Equal(role.IsCustomerRelation, result.IsCustomerRelation);
         Assert.Equal(role.ActionLevel, result.ActionLevel);
+    }
+
+    [Fact]
+    public void MapRolesToRoleDb_ShouldSetActionLevelToDefault_WhenIsNull()
+    {
+        // Arrange
+        var role = _fixture.Build<CreateRoleRequest>()
+            .Without(c => c.ActionLevel)
+            .Create();
+
+        // Act
+        var result = role.MapRoleToRoleDb();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(0, result.ActionLevel);
     }
 
     [Fact]

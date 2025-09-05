@@ -157,6 +157,7 @@ public class RolesRepositoryTests
             context.ContactEntity.AddRange(contact);
             context.RoleEntity.AddRange(rolesMock);
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             var rolesRepository = new RoleRepository(context);
             var data = rolesMock.Where(r => r.IsSignatory!.Value).ToList();
@@ -182,7 +183,7 @@ public class RolesRepositoryTests
     }
 
     [Fact]
-    public async Task CreateRoleAsync_WithValidRequest_ShouldReturnRolesCreated()
+    public async Task CreateRoleAsync_ShouldSetIsCustomerRelationAndActionLevelToDefault_WhenContactIsCustomer()
     {
         // Arrange
         const int accountId = 123;
@@ -193,6 +194,8 @@ public class RolesRepositoryTests
             ContactId = contactId,
             IsFavorite = true,
             IsSignatory = false,
+            ActionLevel = 2,
+            IsCustomerRelation = true,
         };
 
         var deployment = new DeploymentEntity
@@ -226,25 +229,141 @@ public class RolesRepositoryTests
             IsActive = true
         });
 
-        accountContext.DelegationEntity.Add(new DelegationEntity
-        {
-            DelegatorId = contactId,
-            DelegateeId = 2,
-            StartDate = DateTime.UtcNow,
-            CreationDate = DateTime.UtcNow,
-            IsAutomaticDelegation = true,
-            Status = "enabled"
-        });
-
         await accountContext.SaveChangesAsync();
+        accountContext.ChangeTracker.Clear();
 
         var rolesRepository = new RoleRepository(accountContext);
 
         // Act
-        var result = await rolesRepository.CreateRoleAsync(roleRequest);
+        await rolesRepository.CreateRoleAsync(roleRequest);
+        var result = await accountContext.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
 
         // Assert
         Assert.NotNull(result);
+        Assert.Equal(0, result.ActionLevel);
+        Assert.Null(result.IsCustomerRelation);
+    }
+
+    [Fact]
+    public async Task CreateRoleAsync_ShouldSetIsCustomerRelationAndActionLevelToDefault_WhenContactIsCollab()
+    {
+        // Arrange
+        const int accountId = 456;
+        const int contactId = 789;
+        var roleRequest = new CreateRoleRequest
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsFavorite = true,
+            IsSignatory = false,
+        };
+
+        var deployment = new DeploymentEntity
+        {
+            Status = 1
+        };
+
+        using var accountContext = new AccountContext(_dbContextOptions);
+
+        accountContext.AccountEntity.Add(new AccountEntity
+        {
+            AccountId = accountId,
+            AccountNumber = "00001114455",
+            CreatedBy = "UnitTest@kpmg.fr",
+            Email = "account-mail@kpmg.fr",
+            LegalName = "Pulse",
+            DeploymentEntity = deployment,
+            IsActive = true
+        });
+        accountContext.ContactEntity.Add(new ContactEntity
+        {
+            ContactId = contactId,
+            Email = "Contact-mail@kpmg.fr",
+            FirstName = "Contact-FN",
+            LastName = "Contact-LT",
+            Type = "Collaborator",
+            Status = "Declared",
+            PersonaName = "Collaborateur ESC",
+            Office = "Paris",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true
+        });
+
+        await accountContext.SaveChangesAsync();
+        accountContext.ChangeTracker.Clear();
+
+        var rolesRepository = new RoleRepository(accountContext);
+
+        // Act
+        await rolesRepository.CreateRoleAsync(roleRequest);
+        var result = await accountContext.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(1, result.ActionLevel);
+        Assert.Equal(false, result.IsCustomerRelation);
+    }
+
+    [Fact]
+    public async Task CreateRoleAsync_ShouldSetIsCustomerRelationAndActionLevel_WhenContactIsCollab()
+    {
+        // Arrange
+        const int accountId = 456;
+        const int contactId = 789;
+        var roleRequest = new CreateRoleRequest
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsFavorite = true,
+            IsSignatory = false,
+            ActionLevel = 4,
+            IsCustomerRelation = true,
+        };
+
+        var deployment = new DeploymentEntity
+        {
+            Status = 1
+        };
+
+        using var accountContext = new AccountContext(_dbContextOptions);
+
+        accountContext.AccountEntity.Add(new AccountEntity
+        {
+            AccountId = accountId,
+            AccountNumber = "00001114455",
+            CreatedBy = "UnitTest@kpmg.fr",
+            Email = "account-mail@kpmg.fr",
+            LegalName = "Pulse",
+            DeploymentEntity = deployment,
+            IsActive = true
+        });
+        accountContext.ContactEntity.Add(new ContactEntity
+        {
+            ContactId = contactId,
+            Email = "Contact-mail@kpmg.fr",
+            FirstName = "Contact-FN",
+            LastName = "Contact-LT",
+            Type = "Collaborator",
+            Status = "Declared",
+            PersonaName = "Collaborateur ESC",
+            Office = "Paris",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true
+        });
+
+        await accountContext.SaveChangesAsync();
+        accountContext.ChangeTracker.Clear();
+
+        var rolesRepository = new RoleRepository(accountContext);
+
+        // Act
+        await rolesRepository.CreateRoleAsync(roleRequest);
+        var result = await accountContext.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(roleRequest.ActionLevel, result.ActionLevel);
+        Assert.Equal(roleRequest.IsCustomerRelation, result.IsCustomerRelation);
     }
 
     [Fact]
@@ -293,17 +412,8 @@ public class RolesRepositoryTests
             IsActive = true
         });
 
-        accountContext.DelegationEntity.Add(new DelegationEntity
-        {
-            DelegatorId = contactId,
-            DelegateeId = 2,
-            StartDate = DateTime.UtcNow,
-            CreationDate = DateTime.UtcNow,
-            IsAutomaticDelegation = true,
-            Status = "enabled"
-        });
-
         await accountContext.SaveChangesAsync();
+        accountContext.ChangeTracker.Clear();
 
         var rolesRepository = new RoleRepository(accountContext);
 
@@ -344,6 +454,7 @@ public class RolesRepositoryTests
         });
 
         await accountContext.SaveChangesAsync();
+        accountContext.ChangeTracker.Clear();
 
         var rolesRepository = new RoleRepository(accountContext);
 
@@ -388,6 +499,7 @@ public class RolesRepositoryTests
         });
 
         await accountContext.SaveChangesAsync();
+        accountContext.ChangeTracker.Clear();
 
         var rolesRepository = new RoleRepository(accountContext);
 
@@ -409,6 +521,7 @@ public class RolesRepositoryTests
             roleMock.IsSignatory = true;
             context.RoleEntity.Add(roleMock);
             context.SaveChanges();
+            context.ChangeTracker.Clear();
 
             var rolesRepository = new RoleRepository(context);
 
@@ -452,6 +565,7 @@ public class RolesRepositoryTests
         context.ContactEntity.Add(contact);
         context.RoleEntity.Add(roleEntity);
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         context.ChangeTracker.Clear();
         var rolesRepository = new RoleRepository(context);
@@ -494,6 +608,7 @@ public class RolesRepositoryTests
         context.ContactEntity.Add(contact);
         context.RoleEntity.Add(roleEntity);
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         context.ChangeTracker.Clear();
         var rolesRepository = new RoleRepository(context);
@@ -543,6 +658,7 @@ public class RolesRepositoryTests
         context.RoleEntity.Add(roleEntity);
         context.RoleLabelEntity.Add(roleLabel);
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         context.ChangeTracker.Clear();
         var rolesRepository = new RoleRepository(context);
@@ -577,6 +693,7 @@ public class RolesRepositoryTests
             .Create();
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         var rolesRepository = new RoleRepository(context);
 
@@ -616,6 +733,7 @@ public class RolesRepositoryTests
         context.ContactEntity.Add(contact);
         context.RoleEntity.Add(roleEntity);
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         var rolesRepository = new RoleRepository(context);
 
@@ -648,6 +766,7 @@ public class RolesRepositoryTests
             .Create();
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         var rolesRepository = new RoleRepository(context);
 
@@ -689,6 +808,7 @@ public class RolesRepositoryTests
             context.AccountEntity.Add(accountMock);
             context.ContactEntity.AddRange(contactMock);
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             var roleRepository = new RoleRepository(context);
             await roleRepository.CreateRoleAsync(new CreateRoleRequest
@@ -755,6 +875,7 @@ public class RolesRepositoryTests
 
             context.AccountEntity.AddRange(accountsEntity);
             context.SaveChanges();
+            context.ChangeTracker.Clear();
 
             var rolesRepository = new RoleRepository(context);
 
@@ -802,6 +923,7 @@ public class RolesRepositoryTests
 
             context.AccountEntity.AddRange(accountsEntity);
             context.SaveChanges();
+            context.ChangeTracker.Clear();
 
             var rolesRepository = new RoleRepository(context);
 
@@ -848,6 +970,7 @@ public class RolesRepositoryTests
 
             context.AccountEntity.AddRange(firstAccount);
             context.SaveChanges();
+            context.ChangeTracker.Clear();
 
             var rolesRepository = new RoleRepository(context);
 
@@ -896,6 +1019,7 @@ public class RolesRepositoryTests
             context.AccountEntity.AddRange(firstAccount);
             context.AccountEntity.AddRange(secondAccount);
             context.SaveChanges();
+            context.ChangeTracker.Clear();
 
             var rolesRepository = new RoleRepository(context);
 
@@ -944,6 +1068,7 @@ public class RolesRepositoryTests
             context.ContactEntity.Add(contactEntity);
             context.RoleEntity.Add(roleEntity);
             context.SaveChanges();
+            context.ChangeTracker.Clear();
 
             var rolesRepository = new RoleRepository(context);
 
@@ -977,6 +1102,7 @@ public class RolesRepositoryTests
 
             context.AccountEntity.AddRange(accountsEntity);
             context.SaveChanges();
+            context.ChangeTracker.Clear();
 
             var rolesRepository = new RoleRepository(context);
 

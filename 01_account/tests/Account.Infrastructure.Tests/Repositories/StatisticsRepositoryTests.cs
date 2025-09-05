@@ -158,6 +158,7 @@ public class StatisticsRepositoryTests
             context.RoleEntity.AddRange(roles);
             context.ContactEntity.AddRange(contacts);
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             var result = await repository.GetStatisticsAsync(2);
 
@@ -201,6 +202,7 @@ public class StatisticsRepositoryTests
         context.RoleEntity.AddRange(roleEntity);
         context.AccountEntity.AddRange(accountsEntity);
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         // Hack to fix the test quickly
         var accountsCount = context.AccountEntity.Count();
@@ -280,6 +282,7 @@ public class StatisticsRepositoryTests
             new RoleEntity { ContactId = 3, AccountId = 200 });
 
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         var repository = new StatisticsRepository(context);
 
@@ -360,6 +363,7 @@ public class StatisticsRepositoryTests
             new RoleEntity { ContactId = 3, AccountId = 200 });
 
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         var repository = new StatisticsRepository(context);
 

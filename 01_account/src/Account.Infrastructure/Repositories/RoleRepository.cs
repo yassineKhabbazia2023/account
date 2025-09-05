@@ -135,8 +135,7 @@ public class RoleRepository : IRoleRepository
                 throw new ConflictException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, role.ContactId, role.AccountId));
             }
 
-            role.IsCustomerRelation = ContactType.Collaborator.ToString().Equals(contact.Type) ? false : null;
-            role.ActionLevel = ContactType.Collaborator.ToString().Equals(contact.Type) ? (int)ActionLevelType.Observator : null;
+            SetIsCustomerRelationAndActionLevel(role, contact.Type);
 
             var roleEntity = role.MapRoleToRoleDb();
 
@@ -149,6 +148,20 @@ public class RoleRepository : IRoleRepository
 
             return roleEntity!.MapToRole();
         });
+    }
+
+    private static void SetIsCustomerRelationAndActionLevel(CreateRoleRequest role, string contactType)
+    {
+        if (ContactType.Collaborator.ToString().Equals(contactType))
+        {
+            role.IsCustomerRelation = role.IsCustomerRelation.HasValue ? role.IsCustomerRelation : false;
+            role.ActionLevel = role.ActionLevel.HasValue ? role.ActionLevel : (int)ActionLevelType.Observator;
+        }
+        else
+        {
+            role.IsCustomerRelation = null;
+            role.ActionLevel = null;
+        }
     }
 
     public async Task<Role> UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
