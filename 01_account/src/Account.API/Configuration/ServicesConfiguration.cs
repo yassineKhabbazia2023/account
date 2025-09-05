@@ -103,6 +103,7 @@ public static class ServicesConfiguration
         services.AddScoped<IAccountEventPublisher, AccountEventPublisher>();
         services.AddScoped<IRoleEventPublisher, RoleEventPublisher>();
         services.AddScoped<IHistoryEventPublisher, HistoryEventPublisher>();
+        services.AddScoped<IOfferActivatedEventPublisher, OfferActivatedEventPublisher>();
 
         services.AddEventPushServices(options);
         services.AddEventPullServices(options);

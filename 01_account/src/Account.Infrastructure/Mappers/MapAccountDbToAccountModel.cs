@@ -137,6 +137,7 @@ public static class MapAccountDbToAccountModel
         return offerEligibility == null ? null : new OfferEligibility
         {
             AccountId = offerEligibility.AccountId,
+            OfferName = offerEligibility.OfferName,
             ApprovedBy = offerEligibility.ApprovedBy,
             ApprovedDate = offerEligibility.ApprovedDate,
             IsEligible = offerEligibility.IsEligible,

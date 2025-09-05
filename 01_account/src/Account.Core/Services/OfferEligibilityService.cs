@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
@@ -15,11 +14,15 @@ public class OfferEligibilityService : IOfferEligibilityService
 {
     private readonly IOfferEligibilityRepository _offerEligibilityRepository;
     private readonly IContactRepository _contactRepository;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IOfferActivatedEventPublisher _offerActivatedEventPublisher;
 
-    public OfferEligibilityService(IOfferEligibilityRepository offerEligibilityRepository, IContactRepository contactRepository)
+    public OfferEligibilityService(IOfferEligibilityRepository offerEligibilityRepository, IContactRepository contactRepository, IRoleRepository roleRepository, IOfferActivatedEventPublisher offerActivatedEventPublisher)
     {
         _offerEligibilityRepository = offerEligibilityRepository;
         _contactRepository = contactRepository;
+        _roleRepository = roleRepository;
+        _offerActivatedEventPublisher = offerActivatedEventPublisher;
     }
 
     public async Task<OfferEligibility?> GetOfferEligibilityByIdAsync(int accountId)
@@ -31,9 +34,14 @@ public class OfferEligibilityService : IOfferEligibilityService
     {
         var contact = await _contactRepository.GetContactByIdAsync(currentUserId);
 
-        if (contact.Type!.Equals(ContactType.Collaborator.ToString()))
+        if (ContactType.Collaborator.ToString().Equals(contact.Type))
         {
             throw new BadRequestException(Errors.NotPermittedActionCode, Errors.NotPermittedActionMessage);
+        }
+
+        if (!await _roleRepository.IsContactHasRoleOnAccount(currentUserId, accountId, null))
+        {
+            throw new ForbiddenException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, currentUserId, accountId));
         }
 
         var isAlreadyActive = await _offerEligibilityRepository.IsOfferEligibilityActiveAsync(accountId);
@@ -42,6 +50,10 @@ public class OfferEligibilityService : IOfferEligibilityService
             throw new BadRequestException(Errors.AlreadyActiveOfferEligibilityCode, Errors.AlreadyActiveOfferEligibilityMessage);
         }
 
-        return await _offerEligibilityRepository.UpdateOfferEligibilityAsync(accountId, contact.Email);
+        var offerEligibility = await _offerEligibilityRepository.UpdateOfferEligibilityAsync(accountId, contact.Email);
+
+        await _offerActivatedEventPublisher.PublishOfferActivatedEventAsync(offerEligibility.AccountId, offerEligibility.OfferName);
+
+        return offerEligibility;
     }
 }

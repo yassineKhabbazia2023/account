@@ -108,6 +108,7 @@ public class DelegationRepositoryTests
         {
             context.ContactEntity.AddRange(contactEntities);
             context.SaveChanges();
+            context.ChangeTracker.Clear();
 
             var repos = new DelegationRepository(context);
 
@@ -151,6 +152,7 @@ public class DelegationRepositoryTests
                 .Create();
             context.RoleEntity.Add(roleDelegator);
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             // Try create a delegation
             var repository = new DelegationRepository(context);
@@ -213,7 +215,6 @@ public class DelegationRepositoryTests
                 .Without(a => a.RoleEntity)
                 .Create();
             context.AccountEntity.Add(tAccount);
-            await context.SaveChangesAsync();
 
             // Create Contacts
             var tDelegator = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
@@ -225,7 +226,6 @@ public class DelegationRepositoryTests
                 .Without(c => c.DelegationEntityDelegator)
                 .Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
-            await context.SaveChangesAsync();
 
             // Create role
             var existingRole = new RoleEntity
@@ -234,7 +234,6 @@ public class DelegationRepositoryTests
                 ContactId = tDelegatee.ContactId,
             };
             context.RoleEntity.Add(existingRole);
-            await context.SaveChangesAsync();
 
             // Create Role for Delegator
             var roleDelegator = _fixture.Build<RoleEntity>()
@@ -266,16 +265,16 @@ public class DelegationRepositoryTests
                     AccountIds = new List<int> { tAccount.AccountId }
                 };
                 var roles = new List<CreateRoleRequest>
-            {
-                new()
                 {
-                    AccountId = tAccount.AccountId,
-                    ContactId = 1245,
-                    IsFavorite = false,
-                    IsSignatory = false,
-                    IsDelegation = true,
-                }
-            };
+                    new()
+                    {
+                        AccountId = tAccount.AccountId,
+                        ContactId = 1245,
+                        IsFavorite = false,
+                        IsSignatory = false,
+                        IsDelegation = true,
+                    }
+                };
 
                 await repository.CreateDelegationAsync(tDelegator.ContactId, createDelegation, roles);
 
@@ -290,6 +289,7 @@ public class DelegationRepositoryTests
                 var createdRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == 1245);
                 createdRole.Should().NotBeNull();
                 createdRole.Should().BeEquivalentTo(existingRole);
+                context.ChangeTracker.Clear();
             }
         }
     }
@@ -308,6 +308,7 @@ public class DelegationRepositoryTests
             var tDelegatee = _fixture.Create<ContactEntity>();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegatee });
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             // Try create a delegation
             var repository = new DelegationRepository(context);
@@ -347,6 +348,7 @@ public class DelegationRepositoryTests
             var tDelegator = _fixture.Create<ContactEntity>();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator });
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             // Try create a delegation
             var repository = new DelegationRepository(context);
@@ -385,6 +387,7 @@ public class DelegationRepositoryTests
             var tDelegatee = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             // Try create a delegation
             var repository = new DelegationRepository(context);
@@ -424,6 +427,7 @@ public class DelegationRepositoryTests
             var tDelegatee = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             // Try create a delegation
             var repository = new DelegationRepository(context);
@@ -480,12 +484,13 @@ public class DelegationRepositoryTests
             };
             await context.DelegationEntity.AddAsync(tDelegation);
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             // Try get contact delegation
             var repository = new DelegationRepository(context);
             var contactDelegations = await repository.GetContactDelegationsAsync(tDelegatee.ContactId);
 
-            Assert.Equal(1, contactDelegations.Count);
+            Assert.Single(contactDelegations);
             var contactDelegation = contactDelegations.FirstOrDefault();
             Assert.NotNull(contactDelegation);
             Assert.Equal(contactDelegation.StartDate, tDelegation.StartDate);
@@ -530,6 +535,7 @@ public class DelegationRepositoryTests
             };
             await context.DelegationEntity.AddAsync(tDelegation);
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             // Try get contact delegation
             var repository = new DelegationRepository(context);
@@ -586,6 +592,7 @@ public class DelegationRepositoryTests
             };
             await context.DelegationEntity.AddRangeAsync(new List<DelegationEntity> { tDelegation, anothetDelegationEntity });
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             // Try get contact delegation
             var repository = new DelegationRepository(context);
@@ -651,6 +658,7 @@ public class DelegationRepositoryTests
             };
             await context.DelegationEntity.AddRangeAsync(new List<DelegationEntity> { tDelegation, anothetDelegationEntity });
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             // Try get contact delegation
             var repository = new DelegationRepository(context);
@@ -712,6 +720,7 @@ public class DelegationRepositoryTests
             context.RoleEntity.Add(roleIsDelegation);
             context.RoleEntity.Add(roleIsNotDelegation);
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             var repository = new DelegationRepository(context);
 
@@ -836,6 +845,7 @@ public class DelegationRepositoryTests
             }
 
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             var repository = new DelegationRepository(context);
 
@@ -925,6 +935,7 @@ public class DelegationRepositoryTests
 
             await context.SaveChangesAsync();
             context.ChangeTracker.Clear();
+
             using (var dbContext = new AccountContext(dbContextOptions))
             {
                 var repository = new DelegationRepository(dbContext);
@@ -995,6 +1006,7 @@ public class DelegationRepositoryTests
             var account = _fixture.Create<AccountEntity>();
             context.AccountEntity.Add(account);
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             var repository = new DelegationRepository(context);
 
@@ -1022,6 +1034,7 @@ public class DelegationRepositoryTests
             var contact = _fixture.Create<ContactEntity>();
             context.ContactEntity.Add(contact);
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             var repository = new DelegationRepository(context);
 
@@ -1112,6 +1125,7 @@ public class DelegationRepositoryTests
 
             context.RoleEntity.AddRange(roles);
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             var repository = new DelegationRepository(context);
 
@@ -1132,6 +1146,7 @@ public class DelegationRepositoryTests
             var roles = _fixture.CreateMany<RoleEntity>();
             context.RoleEntity.AddRange(roles);
             await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
 
             var repository = new DelegationRepository(context);
 
@@ -1166,6 +1181,7 @@ public class DelegationRepositoryTests
             .Create();
         context.ContactEntity.AddRange(new List<ContactEntity> { collab1, collab1, client1, client2 });
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         var repository = new DelegationRepository(context);
 
@@ -1197,6 +1213,7 @@ public class DelegationRepositoryTests
             .Create();
         context.ContactEntity.AddRange(new List<ContactEntity> { collab1, collab1 });
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         var repository = new DelegationRepository(context);
 

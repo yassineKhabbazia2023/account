@@ -871,9 +871,10 @@ public class MapAccountDbToAccountModelTests
         var entity = new OfferEligibilityEntity
         {
             AccountId = 456,
+            OfferName = "name",
             ApprovedBy = "admin@test.com",
             ApprovedDate = new DateTime(2024, 12, 15),
-            IsEligible = true
+            IsEligible = true,
         };
 
         // Act
@@ -885,5 +886,6 @@ public class MapAccountDbToAccountModelTests
         result.ApprovedBy.Should().Be(entity.ApprovedBy);
         result.ApprovedDate.Should().Be(entity.ApprovedDate);
         result.IsEligible.Should().Be(entity.IsEligible);
+        result.OfferName.Should().Be(entity.OfferName);
     }
 }

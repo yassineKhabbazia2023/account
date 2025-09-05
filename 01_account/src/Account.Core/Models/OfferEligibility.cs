@@ -8,7 +8,7 @@ public class OfferEligibility
 {
     public int AccountId { get; set; }
 
-    public string? OfferName { get; set; }
+    public string OfferName { get; set; } = string.Empty;
 
     public bool IsEligible { get; set; }
 

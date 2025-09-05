@@ -18,13 +18,17 @@ public class OfferEligibilityServiceTests
 {
     private readonly Mock<IOfferEligibilityRepository> _offerEligibilityRepositoryMock;
     private readonly Mock<IContactRepository> _contactRepositoryMock;
+    private readonly Mock<IRoleRepository> _roleRepositoryMock;
+    private readonly Mock<IOfferActivatedEventPublisher> _publisher;
     private readonly OfferEligibilityService _service;
 
     public OfferEligibilityServiceTests()
     {
         _offerEligibilityRepositoryMock = new Mock<IOfferEligibilityRepository>();
         _contactRepositoryMock = new Mock<IContactRepository>();
-        _service = new OfferEligibilityService(_offerEligibilityRepositoryMock.Object, _contactRepositoryMock.Object);
+        _roleRepositoryMock = new Mock<IRoleRepository>();
+        _publisher = new Mock<IOfferActivatedEventPublisher>();
+        _service = new OfferEligibilityService(_offerEligibilityRepositoryMock.Object, _contactRepositoryMock.Object, _roleRepositoryMock.Object, _publisher.Object);
     }
 
     [Fact]
@@ -70,6 +74,30 @@ public class OfferEligibilityServiceTests
     }
 
     [Fact]
+    public async Task UpdateOfferEligibilityAsync_Should_ThrowForbiddenException_WhenContactHasNoRoleOnAccount()
+    {
+        // Arrange
+        var accountId = 456;
+        var contact = new Contact
+        {
+            ContactId = 1,
+            Type = ContactType.Customer.ToString(),
+            Email = "collab@test.com",
+            FirstName = "Test",
+            LastName = "Test",
+        };
+        _contactRepositoryMock.Setup(c => c.GetContactByIdAsync(contact.ContactId)).ReturnsAsync(contact);
+        _roleRepositoryMock.Setup(x => x.IsContactHasRoleOnAccount(contact.ContactId, accountId, null)).ReturnsAsync(false);
+
+        // Act
+        Func<Task> act = async () => await _service.UpdateOfferEligibilityAsync(contact.ContactId, accountId);
+
+        // Assert
+        await act.Should().ThrowAsync<ForbiddenException>()
+            .WithMessage("Le contact avec l'identifiant 1 n'a aucun role sur l'account 456");
+    }
+
+    [Fact]
     public async Task UpdateOfferEligibilityAsync_Should_ThrowBadRequest_WhenOfferAlreadyActive()
     {
         // Arrange
@@ -86,6 +114,8 @@ public class OfferEligibilityServiceTests
         _contactRepositoryMock
             .Setup(c => c.GetContactByIdAsync(contact.ContactId))
             .ReturnsAsync(contact);
+
+        _roleRepositoryMock.Setup(x => x.IsContactHasRoleOnAccount(contact.ContactId, accountId, null)).ReturnsAsync(true);
 
         _offerEligibilityRepositoryMock
             .Setup(r => r.IsOfferEligibilityActiveAsync(accountId))
@@ -118,6 +148,8 @@ public class OfferEligibilityServiceTests
             .Setup(c => c.GetContactByIdAsync(contact.ContactId))
             .ReturnsAsync(contact);
 
+        _roleRepositoryMock.Setup(x => x.IsContactHasRoleOnAccount(contact.ContactId, accountId, null)).ReturnsAsync(true);
+
         _offerEligibilityRepositoryMock
             .Setup(r => r.IsOfferEligibilityActiveAsync(accountId))
             .ReturnsAsync(false);
@@ -132,5 +164,6 @@ public class OfferEligibilityServiceTests
         // Assert
         result.Should().BeEquivalentTo(expected);
         _offerEligibilityRepositoryMock.Verify(r => r.UpdateOfferEligibilityAsync(accountId, contact.Email), Times.Once);
+        _publisher.Verify(p => p.PublishOfferActivatedEventAsync(It.IsAny<int>(), It.IsAny<string>()), Times.Once);
     }
 }

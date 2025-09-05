@@ -13,7 +13,7 @@ public partial class OfferEligibilityEntity
     public int AccountId { get; set; }
 
     /// <summary>
-    /// Nom de l'offre associée à ce compte
+    /// Nom de l&apos;&apos;offre associée à ce compte
     /// </summary>
     public string OfferName { get; set; }
 

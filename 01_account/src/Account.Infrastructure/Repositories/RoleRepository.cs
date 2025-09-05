@@ -257,17 +257,13 @@ public class RoleRepository : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            IQueryable<RoleEntity> query = _accountContext.RoleEntity
+            return await _accountContext.RoleEntity
                                                     .Include(x => x.Account)
                                                     .AsNoTracking()
-                                                    .Where(r => r.ContactId == contactId &&
+                                                    .AnyAsync(r => r.ContactId == contactId &&
                                                                 (accountId.HasValue ?
                                                                 r.AccountId == accountId :
                                                                 r.Account.AccountNumber == accountNumber));
-
-            var totalRows = await query.CountAsync();
-
-            return totalRows > 0;
         });
     }
 

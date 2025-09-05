@@ -40,6 +40,7 @@ public class DelegationEventRepositoryTests
 
         await context.DelegationEntity.AddRangeAsync(new List<DelegationEntity> { delegation1, delegation2 });
         await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
         await repository.DeleteContactDelegationsAsync(1);
 
