@@ -141,6 +141,11 @@ public static class MapAccountDbToAccountModel
             ApprovedBy = offerEligibility.ApprovedBy,
             ApprovedDate = offerEligibility.ApprovedDate,
             IsEligible = offerEligibility.IsEligible,
+            Reporting = new Reporting
+            {
+                ReportId = offerEligibility.ReportId,
+                ReportLabel = offerEligibility.ReportLabel
+            }
         };
     }
 

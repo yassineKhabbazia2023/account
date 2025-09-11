@@ -15,4 +15,6 @@ public class OfferEligibility
     public DateTime? ApprovedDate { get; set; }
 
     public string? ApprovedBy { get; set; }
+
+    public Reporting? Reporting { get; set; }
 }

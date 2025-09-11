@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
@@ -16,13 +17,15 @@ public class OfferEligibilityService : IOfferEligibilityService
     private readonly IContactRepository _contactRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IOfferActivatedEventPublisher _offerActivatedEventPublisher;
+    private readonly IReportEventPublisher _reportEventPublisher;
 
-    public OfferEligibilityService(IOfferEligibilityRepository offerEligibilityRepository, IContactRepository contactRepository, IRoleRepository roleRepository, IOfferActivatedEventPublisher offerActivatedEventPublisher)
+    public OfferEligibilityService(IOfferEligibilityRepository offerEligibilityRepository, IContactRepository contactRepository, IRoleRepository roleRepository, IOfferActivatedEventPublisher offerActivatedEventPublisher, IReportEventPublisher reportEventPublisher)
     {
         _offerEligibilityRepository = offerEligibilityRepository;
         _contactRepository = contactRepository;
         _roleRepository = roleRepository;
         _offerActivatedEventPublisher = offerActivatedEventPublisher;
+        _reportEventPublisher = reportEventPublisher;
     }
 
     public async Task<OfferEligibility?> GetOfferEligibilityByIdAsync(int accountId)
@@ -53,6 +56,12 @@ public class OfferEligibilityService : IOfferEligibilityService
         var offerEligibility = await _offerEligibilityRepository.UpdateOfferEligibilityAsync(accountId, contact.Email);
 
         await _offerActivatedEventPublisher.PublishOfferActivatedEventAsync(offerEligibility.AccountId, offerEligibility.OfferName);
+
+        if (offerEligibility.Reporting != null)
+        {
+            var reporting = offerEligibility.Reporting;
+            await _reportEventPublisher.PublishReportCreatedEventAsync(reporting.ReportId, accountId, GlobalConstants.CLARITYREPORTTYPEID, reporting.ReportLabel, ReportStatus.ONLINE);
+        }
 
         return offerEligibility;
     }

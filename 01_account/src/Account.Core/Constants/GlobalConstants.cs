@@ -8,5 +8,6 @@ namespace Pulse.Account.Core.Constants
     {
         public static readonly int RETRYTIMESPAN = 3000;
         public static readonly int RETRYCOUNT = 1;
+        public static readonly int CLARITYREPORTTYPEID = 9;
     }
 }

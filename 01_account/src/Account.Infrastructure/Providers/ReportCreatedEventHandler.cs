@@ -59,6 +59,8 @@ public class ReportCreatedEventHandler : IEventHandler
                 AccountId = report.AccountId,
                 OfferName = CLARITY_OFFER,
                 IsEligible = true,
+                ReportId = report.ReportId,
+                ReportLabel = report.ReportLabel,
             };
 
             await _offerEligibilityEventRepository.CreateOfferEligibilityAsync(offerEligibility);

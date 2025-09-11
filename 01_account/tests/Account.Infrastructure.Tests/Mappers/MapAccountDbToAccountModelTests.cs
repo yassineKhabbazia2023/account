@@ -875,6 +875,8 @@ public class MapAccountDbToAccountModelTests
             ApprovedBy = "admin@test.com",
             ApprovedDate = new DateTime(2024, 12, 15),
             IsEligible = true,
+            ReportId = 1,
+            ReportLabel = "reportlabel"
         };
 
         // Act
@@ -887,5 +889,7 @@ public class MapAccountDbToAccountModelTests
         result.ApprovedDate.Should().Be(entity.ApprovedDate);
         result.IsEligible.Should().Be(entity.IsEligible);
         result.OfferName.Should().Be(entity.OfferName);
+        result.Reporting!.ReportId.Should().Be(entity.ReportId);
+        result.Reporting.ReportLabel.Should().Be(entity.ReportLabel);
     }
 }

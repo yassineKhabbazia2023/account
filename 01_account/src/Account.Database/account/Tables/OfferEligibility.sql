@@ -5,6 +5,8 @@
     [IsEligible]  BIT           NOT NULL,
     [ApprovedDate] DATETIME2    NULL,
     [ApprovedBy]  VARCHAR(255)  NULL,
+    [ReportId] INT NULL, 
+    [ReportLabel] VARCHAR(200) NULL, 
     CONSTRAINT [C_AccountId_PK] 
         PRIMARY KEY CLUSTERED ([AccountId] ASC),
     CONSTRAINT [C_Account_OfferEligibility_FK] 

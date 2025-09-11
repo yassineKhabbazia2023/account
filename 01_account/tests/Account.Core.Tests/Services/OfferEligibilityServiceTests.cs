@@ -19,6 +19,7 @@ public class OfferEligibilityServiceTests
     private readonly Mock<IOfferEligibilityRepository> _offerEligibilityRepositoryMock;
     private readonly Mock<IContactRepository> _contactRepositoryMock;
     private readonly Mock<IRoleRepository> _roleRepositoryMock;
+    private readonly Mock<IReportEventPublisher> _reportEventPublisherMock;
     private readonly Mock<IOfferActivatedEventPublisher> _publisher;
     private readonly OfferEligibilityService _service;
 
@@ -26,9 +27,10 @@ public class OfferEligibilityServiceTests
     {
         _offerEligibilityRepositoryMock = new Mock<IOfferEligibilityRepository>();
         _contactRepositoryMock = new Mock<IContactRepository>();
+        _reportEventPublisherMock = new Mock<IReportEventPublisher>();
         _roleRepositoryMock = new Mock<IRoleRepository>();
         _publisher = new Mock<IOfferActivatedEventPublisher>();
-        _service = new OfferEligibilityService(_offerEligibilityRepositoryMock.Object, _contactRepositoryMock.Object, _roleRepositoryMock.Object, _publisher.Object);
+        _service = new OfferEligibilityService(_offerEligibilityRepositoryMock.Object, _contactRepositoryMock.Object, _roleRepositoryMock.Object, _publisher.Object, _reportEventPublisherMock.Object);
     }
 
     [Fact]
@@ -142,7 +144,16 @@ public class OfferEligibilityServiceTests
             FirstName = "Test",
             LastName = "Test",
         };
-        var expected = new OfferEligibility { AccountId = accountId, IsEligible = true };
+        var expected = new OfferEligibility
+        {
+            AccountId = accountId,
+            IsEligible = true,
+            Reporting = new Reporting
+            {
+                ReportId = 3,
+                ReportLabel = "Test",
+            }
+        };
 
         _contactRepositoryMock
             .Setup(c => c.GetContactByIdAsync(contact.ContactId))
@@ -157,6 +168,10 @@ public class OfferEligibilityServiceTests
         _offerEligibilityRepositoryMock
             .Setup(r => r.UpdateOfferEligibilityAsync(accountId, contact.Email))
             .ReturnsAsync(expected);
+
+        _reportEventPublisherMock
+            .Setup(r => r.PublishReportCreatedEventAsync(expected.Reporting.ReportId, accountId, GlobalConstants.CLARITYREPORTTYPEID, expected.Reporting.ReportLabel, ReportStatus.ONLINE))
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _service.UpdateOfferEligibilityAsync(contact.ContactId, accountId);

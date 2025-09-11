@@ -460,6 +460,9 @@ public partial class AccountContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasComment("Nom de l''offre associée à ce compte");
+            entity.Property(e => e.ReportLabel)
+                .HasMaxLength(200)
+                .IsUnicode(false);
 
             entity.HasOne(d => d.Account).WithOne(p => p.OfferEligibilityEntity)
                 .HasForeignKey<OfferEligibilityEntity>(d => d.AccountId)

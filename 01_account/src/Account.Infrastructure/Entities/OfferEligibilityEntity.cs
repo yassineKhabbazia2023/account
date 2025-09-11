@@ -32,5 +32,9 @@ public partial class OfferEligibilityEntity
     /// </summary>
     public string ApprovedBy { get; set; }
 
+    public int? ReportId { get; set; }
+
+    public string ReportLabel { get; set; }
+
     public virtual AccountEntity Account { get; set; }
 }
