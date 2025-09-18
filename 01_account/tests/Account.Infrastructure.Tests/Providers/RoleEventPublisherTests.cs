@@ -21,12 +21,14 @@ public class RoleEventPublisherTests
     private readonly Mock<IContactEventRepository> _contactEventRepository;
     private readonly Mock<IAccountRepository> _accountRepository;
     private readonly Mock<IEventPublisher> _eventPublisher;
+    private readonly Mock<IRoleRepository> _roleRepository;
 
     public RoleEventPublisherTests()
     {
         _contactEventRepository = new Mock<IContactEventRepository>();
         _accountRepository = new Mock<IAccountRepository>();
         _eventPublisher = new Mock<IEventPublisher>();
+        _roleRepository = new Mock<IRoleRepository>();
     }
 
     [Fact]
@@ -34,7 +36,7 @@ public class RoleEventPublisherTests
     {
         CreateRoleRequest request = null!;
 
-        var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, null!, null!);
+        var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, null!, null!, null!);
 
         await roleEventPublisher.PublishRoleCreatedEventAsync(request);
 
@@ -94,7 +96,8 @@ public class RoleEventPublisherTests
         var roleEventPublisher = new RoleEventPublisher(
             _eventPublisher.Object,
             _contactEventRepository.Object,
-            _accountRepository.Object);
+            _accountRepository.Object,
+            _roleRepository.Object);
 
         // Act
         await roleEventPublisher.PublishRoleDeletedEventAsync(1, 1);
@@ -111,7 +114,7 @@ public class RoleEventPublisherTests
         int contactId = 2;
         bool isSignatory = false;
 
-        var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, _contactEventRepository.Object, _accountRepository.Object);
+        var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, _contactEventRepository.Object, _accountRepository.Object, _roleRepository.Object);
 
         // act
         await roleEventPublisher.PublishRoleUpdatedEventAsync(accountId, contactId, isSignatory);
@@ -121,19 +124,61 @@ public class RoleEventPublisherTests
     }
 
     [Fact]
-    public async Task PublishRoleFavoriteStatusChangedEventAsync()
+    public async Task PublishRoleFavoriteStatusChangedEventAsync_Should_Include_IsSignatory()
     {
         // arrange
         int accountId = 1;
         int contactId = 2;
         bool isFavorite = true;
 
-        var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, _contactEventRepository.Object, _accountRepository.Object);
+        var existingRole = new Core.Models.Role
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsSignatory = true, // Le rôle existant a IsSignatory = true
+            IsFavorite = false,
+            IsDelegation = false,
+            IsCustomerRelation = true
+        };
+
+        _roleRepository.Setup(r => r.GetContactRoleAsync(accountId, contactId))
+            .ReturnsAsync(existingRole);
+
+        var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, _contactEventRepository.Object, _accountRepository.Object, _roleRepository.Object);
 
         // act
         await roleEventPublisher.PublishRoleFavoriteStatusChangedEventAsync(accountId, contactId, isFavorite);
 
+        // assert
+        _eventPublisher.Verify(x => x.PublishAsync(
+            It.Is<RoleUpdatedEvent>(e =>
+                e.Data.AccountId == accountId &&
+                e.Data.ContactId == contactId &&
+                e.Data.IsFavorite == isFavorite &&
+                e.Data.IsSignatory == true && // Vérifier que IsSignatory est préservé
+                e.Data.IsCustomerRelation == true
+            ), null!, null!), Times.Once);
+    }
+
+    [Fact]
+    public async Task PublishRoleFavoriteStatusChangedEventAsync_WithNonExistentRole_Should_ThrowException()
+    {
         // arrange
-        _eventPublisher.Verify(x => x.PublishAsync(It.IsAny<RoleUpdatedEvent>(), null!, null!), Times.Once);
+        int accountId = 1;
+        int contactId = 2;
+        bool isFavorite = true;
+
+
+        _roleRepository.Setup(r => r.GetContactRoleAsync(accountId, contactId))
+            .ReturnsAsync((Core.Models.Role?)null);
+
+        var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, _contactEventRepository.Object, _accountRepository.Object, _roleRepository.Object);
+
+        // act & assert
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => roleEventPublisher.PublishRoleFavoriteStatusChangedEventAsync(accountId, contactId, isFavorite));
+
+        Assert.Contains($"Role not found for AccountId: {accountId}, ContactId: {contactId}", exception.Message);
+        _eventPublisher.Verify(x => x.PublishAsync(It.IsAny<RoleUpdatedEvent>(), null!, null!), Times.Never);
     }
 }

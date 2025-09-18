@@ -16,12 +16,14 @@ public class RoleEventPublisher : IRoleEventPublisher
     private readonly IEventPublisher _eventPublisher;
     private readonly IContactEventRepository _contactEventRepository;
     private readonly IAccountRepository _accountRepository;
+    private readonly IRoleRepository _roleRepository;
 
-    public RoleEventPublisher(IEventPublisher eventPublisher, IContactEventRepository contactEventRepository, IAccountRepository accountRepository)
+    public RoleEventPublisher(IEventPublisher eventPublisher, IContactEventRepository contactEventRepository, IAccountRepository accountRepository, IRoleRepository roleRepository)
     {
         _eventPublisher = eventPublisher;
         _contactEventRepository = contactEventRepository;
         _accountRepository = accountRepository;
+        _roleRepository = roleRepository;
     }
 
     public async Task PublishRoleCreatedEventAsync(CreateRoleRequest roleRequest)
@@ -61,11 +63,21 @@ public class RoleEventPublisher : IRoleEventPublisher
 
     public async Task PublishRoleFavoriteStatusChangedEventAsync(int accountId, int contactId, bool isFavorite)
     {
+        // Récupérer les informations complètes du rôle pour inclure tous les champs obligatoires
+        var role = await _roleRepository.GetContactRoleAsync(accountId, contactId);
+
+        if (role == null)
+        {
+            throw new ArgumentException($"Role not found for AccountId: {accountId}, ContactId: {contactId}");
+        }
+
         var data = new RoleUpdatedEventData
         {
             AccountId = accountId,
             ContactId = contactId,
             IsFavorite = isFavorite,
+            IsSignatory = role.IsSignatory, // Inclure IsSignatory pour éviter l'écrasement
+            IsCustomerRelation = role.IsCustomerRelation, // Inclure pour cohérence dans Event State Carried Transfer
         };
         await _eventPublisher.PublishAsync(new RoleUpdatedEvent(data));
     }
