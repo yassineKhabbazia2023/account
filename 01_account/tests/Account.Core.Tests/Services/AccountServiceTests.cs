@@ -414,5 +414,31 @@ namespace Pulse.Account.Core.Tests.Services
                 Assert.Null(account.Office);
             });
         }
+
+        [Fact]
+        public async Task UpdateAccountAsync_AllFieldsFilled_ShouldPass()
+        {
+            // Arrange
+            var accountMocked = _fixture.Create<Paging<AccountModel>>();
+
+            var service = new AccountService(_accountRepository.Object, _accountEventPublisher.Object);
+            var accountDetail = new AccountDetail
+            {
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789" },
+                Phone = new List<Phone> { new Phone { PhoneNumber = "0625569262" } }
+            };
+            _accountRepository
+            .Setup(repo => repo.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>()))
+            .ReturnsAsync(new AccountDetail
+            {
+                AccountNumber = accountDetail.AccountNumber,
+                Legal = accountDetail.Legal,
+                Phone = accountDetail.Phone
+            });
+
+            // Act & Assert
+            await service.UpdateAccountAsync(1, accountDetail); // Doit passer sans exception
+        }
     }
 }

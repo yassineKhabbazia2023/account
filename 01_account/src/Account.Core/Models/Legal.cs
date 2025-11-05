@@ -2,13 +2,18 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+using Pulse.Account.Core.Extensions;
+
 namespace Pulse.Account.Core.Models
 {
     public class Legal
     {
-        public string? LegalName { get; set; }
+        [NotEmptyOrWhiteSpace]
+        public required string LegalName { get; set; }
 
-        public string? Siren { get; set; }
+        [NotEmptyOrWhiteSpace]
+        public required string Siren { get; set; }
 
         public string? Siret { get; set; }
 

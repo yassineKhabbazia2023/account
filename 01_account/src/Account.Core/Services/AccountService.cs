@@ -2,11 +2,13 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Core.Services
 {

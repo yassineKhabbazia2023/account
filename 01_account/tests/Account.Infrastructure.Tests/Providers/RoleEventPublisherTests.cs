@@ -78,10 +78,11 @@ public class RoleEventPublisherTests
 
         var account = new AccountDetail
         {
+            Phone = new List<Phone> { new Phone { PhoneNumber = "0600000000" } },
             AccountId = 1,
             Legal = new Legal
             {
-                LegalName = "jhonny pizza"
+                LegalName = "jhonny pizza", Siren = "123456789"
             },
             AccountNumber = "19999999",
             Email = "jhonny@test.com",

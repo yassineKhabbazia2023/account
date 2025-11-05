@@ -178,7 +178,7 @@ public static class MapAccountDbToAccountModel
             Legal = source.MapToLegal(),
             Vat = source.MapToVat(),
             Address = source.MapToAddress(),
-            Phone = source.MapToPhone(),
+            Phone = (source.MapToPhone() ?? Enumerable.Empty<Phone>()).ToList(),
             Hub = source.MapToHub(),
             Deployment = source.MapToDeployment(),
             CreatedBy = source.CreatedBy,
@@ -215,7 +215,7 @@ public static class MapAccountDbToAccountModel
 
     private static IEnumerable<Label> MapToLabels(this IEnumerable<RoleLabelEntity> source, int accountId)
     {
-        return source?.Where(l => l.AccountId == accountId).Select(l => l.Label.Map() !) ?? Enumerable.Empty<Label>();
+        return source?.Where(l => l.AccountId == accountId).Select(l => l.Label.Map()!) ?? Enumerable.Empty<Label>();
     }
 
     public static Deployment? MapToDeployment(this AccountEntity tAccount)

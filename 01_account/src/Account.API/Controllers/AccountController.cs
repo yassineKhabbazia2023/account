@@ -2,9 +2,11 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
@@ -98,8 +100,35 @@ public class AccountController : ControllerBase
             throw new BadRequestException(Errors.BadRequestAccountPatchCode, Errors.BadRequestAccountPatchMessage);
         }
 
+        // Validation automatique grâce à ApiController
+        if (!ModelState.IsValid)
+        {
+            // Erreurs automatiquement collectées
+            return BadRequest(ModelState);
+        }
+
         var accountToUpdate = await _accountService.GetAccountAsync(accountId);
-        accountPatch.ApplyTo(accountToUpdate!);
+        if (accountToUpdate == null)
+        {
+            return NotFound();
+        }
+
+        accountPatch.ApplyTo(accountToUpdate, ModelState);
+        var results = new List<ValidationResult>();
+        bool isValid = AnnotationValidator.TryValidateObjectRecursive(accountToUpdate, results);
+
+        if (!isValid)
+        {
+            foreach (var validationResult in results)
+            {
+                ModelState.AddModelError(
+                    validationResult.MemberNames.FirstOrDefault() ?? "AccountDetail",
+                    validationResult.ErrorMessage ?? "Validation failed");
+            }
+
+            return BadRequest(ModelState);
+        }
+
         await _accountService.UpdateAccountAsync(accountId, accountToUpdate!);
 
         return Ok();

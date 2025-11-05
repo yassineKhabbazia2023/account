@@ -2,6 +2,9 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+using Pulse.Account.Core.Extensions;
+
 namespace Pulse.Account.Core.Models
 {
     public class AccountDetail
@@ -10,7 +13,8 @@ namespace Pulse.Account.Core.Models
 
         public Guid AccountGlobalUniqueId { get; set; }
 
-        public string? AccountNumber { get; set; }
+        [NotEmptyOrWhiteSpace]
+        public required string AccountNumber { get; set; }
 
         public string? IconName { get; set; }
 
@@ -26,13 +30,14 @@ namespace Pulse.Account.Core.Models
 
         public Accounting? Accounting { get; set; }
 
-        public Legal? Legal { get; set; }
+        public required Legal Legal { get; set; }
 
         public Vat? Vat { get; set; }
 
         public IEnumerable<Address>? Address { get; set; }
 
-        public IEnumerable<Phone>? Phone { get; set; }
+        [MinLength(1, ErrorMessage = "Au moins un téléphone est requis.")]
+        public required List<Phone> Phone { get; set; }
 
         public Hub? Hub { get; set; }
 

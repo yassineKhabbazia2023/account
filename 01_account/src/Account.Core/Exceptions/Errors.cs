@@ -125,4 +125,7 @@ public static class Errors
 
     public static readonly string NotPermittedActionCode = "ACC040";
     public static readonly string NotPermittedActionMessage = "L'utilisateur ne peut pas effectuer cette action";
+
+    public static readonly string InvalidAccountFieldsCode = "ACC041";
+    public static readonly string InvalidAccountFieldsMessage = "Les champs obligatoires sont manquants ou invalides. Veuillez compléter les informations nécessaires.";
 }

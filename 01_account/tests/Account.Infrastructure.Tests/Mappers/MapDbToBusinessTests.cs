@@ -90,8 +90,12 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         {
             // Arrange
             var tAccountFixture = _fixture.Create<AccountEntity>();
-            var expectedAccount = new AccountDetail();
-            expectedAccount.Legal = new Legal();
+            var expectedAccount = new AccountDetail
+            {
+                AccountNumber = "T12345",
+                Legal = new Legal { LegalName = "Test", Siren = "123456789" },
+                Phone = new List<Phone> { new Phone { PhoneNumber = "0600000000" } }
+            };
             expectedAccount.Legal.LegalName = tAccountFixture.LegalName;
             expectedAccount.AccountId = tAccountFixture.AccountId;
             expectedAccount.AccountNumber = tAccountFixture.AccountNumber;

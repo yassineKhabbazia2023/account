@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
@@ -14,6 +15,7 @@ using Pulse.Account.API;
 using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
@@ -196,6 +198,8 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
 
         var jsonPatch = new JsonPatchDocument<AccountDetail>();
         jsonPatch.Replace(a => a.Hub, new Hub() { HubId = newHub.HubId, HubName = newHub.HubName });
+        jsonPatch.Replace(a => a.Legal, new Legal { LegalName = "SAS TEST", Siren = "112233445" });
+        jsonPatch.Replace(a => a.Phone, new List<Phone> { new Phone { PhoneNumber = "0625569262" } });
 
         // Act
         var result = await _accountController.UpdateAccountAsync(accountId, jsonPatch) as OkResult;
@@ -350,5 +354,221 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         // Assert
         Assert.NotNull(account);
         Assert.Equal(account.OfficeId, resultAccounts!.Value.As<Paging<AccountModel>>().Items!.First().OfficeId);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Should_UpdateAccount_InvalidAccountNumber_ReturnsBadRequest(string? invalidAccountNumber)
+    {
+        // Arrange
+        var accountId = _context.AccountEntity.First().AccountId;
+        var newHub = _fixture.Create<HubEntity>();
+        _context.HubEntity.Add(newHub);
+        _context.SaveChanges();
+
+        var jsonPatch = new JsonPatchDocument<AccountDetail>();
+        jsonPatch.Replace(a => a.Hub, new Hub { HubId = newHub.HubId, HubName = newHub.HubName });
+        jsonPatch.Replace(a => a.AccountNumber, invalidAccountNumber);
+        jsonPatch.Replace(a => a.Legal, new Legal { LegalName = "SAS TEST", Siren = "112233445" });
+        jsonPatch.Replace(a => a.Phone, new List<Phone> { new Phone { PhoneNumber = "0625569262" } });
+
+        // Act
+        var result = await _accountController.UpdateAccountAsync(accountId, jsonPatch);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        var serializableError = Assert.IsType<SerializableError>(badRequest.Value);
+
+        // Recherche la clé sur AccountNumber (direct, ou "AccountNumber" pour model bind)
+        Assert.Contains("AccountNumber", serializableError.Keys.Cast<string>());
+        var errors = serializableError["AccountNumber"] as string[];
+        Assert.NotNull(errors);
+        Assert.Contains(errors!, e => e.Contains("Les champs obligatoires sont manquants ou invalides.", StringComparison.OrdinalIgnoreCase) ||
+                                      e.Contains("Veuillez compléter les informations nécessaires.", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Should_UpdateAccount_InvalidSiren_ReturnsBadRequest(string? invalidSiren)
+    {
+        // Arrange
+        var accountId = _context.AccountEntity.First().AccountId;
+        var newHub = _fixture.Create<HubEntity>();
+        _context.HubEntity.Add(newHub);
+        _context.SaveChanges();
+
+        var jsonPatch = new JsonPatchDocument<AccountDetail>();
+        jsonPatch.Replace(a => a.Hub, new Hub { HubId = newHub.HubId, HubName = newHub.HubName });
+        jsonPatch.Replace(a => a.AccountNumber, "A12345");
+        jsonPatch.Replace(a => a.Legal, new Legal { LegalName = "SAS TEST", Siren = invalidSiren });
+        jsonPatch.Replace(a => a.Phone, new List<Phone> { new Phone { PhoneNumber = "0625569262" } });
+
+        // Act
+        var result = await _accountController.UpdateAccountAsync(accountId, jsonPatch);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        var serializableError = Assert.IsType<SerializableError>(badRequest.Value);
+
+        Assert.Contains("Siren", serializableError.Keys.Cast<string>()); // Vérifie la clé
+        var errors = serializableError["Siren"] as string[];
+        Assert.NotNull(errors);
+        Assert.Contains(errors!, e => e.Contains("Siren", StringComparison.OrdinalIgnoreCase)
+                                      || e.Contains("vide", StringComparison.OrdinalIgnoreCase)
+                                      || e.Contains("invalide", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Should_UpdateAccount_InvalidLegalName_ReturnsBadRequest(string? invalidLegalName)
+    {
+        // Arrange
+        var accountId = _context.AccountEntity.First().AccountId;
+        var newHub = _fixture.Create<HubEntity>();
+        _context.HubEntity.Add(newHub);
+        _context.SaveChanges();
+
+        var jsonPatch = new JsonPatchDocument<AccountDetail>();
+        jsonPatch.Replace(a => a.Hub, new Hub { HubId = newHub.HubId, HubName = newHub.HubName });
+        jsonPatch.Replace(a => a.AccountNumber, "A12345");
+        jsonPatch.Replace(a => a.Legal, new Legal { LegalName = invalidLegalName, Siren = "112233445" });
+        jsonPatch.Replace(a => a.Phone, new List<Phone> { new Phone { PhoneNumber = "0625569262" } });
+
+        // Act
+        var result = await _accountController.UpdateAccountAsync(accountId, jsonPatch);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        var serializableError = Assert.IsType<SerializableError>(badRequest.Value);
+
+        // Print les clés pour debugger
+        foreach (var key in serializableError.Keys)
+        {
+            Console.WriteLine(key);
+        }
+
+        Assert.Contains("LegalName", serializableError.Keys.Cast<string>());
+        var errors = serializableError["LegalName"] as string[];
+        Assert.NotNull(errors);
+        Assert.Contains(errors!, e => e.Contains("LegalName", StringComparison.OrdinalIgnoreCase)
+                                      || e.Contains("vide", StringComparison.OrdinalIgnoreCase)
+                                      || e.Contains("invalide", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Should_UpdateAccount_InvalidPhoneNumber_ReturnsBadRequest(string? invalidPhoneNumber)
+    {
+        // Arrange
+        var accountId = _context.AccountEntity.First().AccountId;
+        var newHub = _fixture.Create<HubEntity>();
+        _context.HubEntity.Add(newHub);
+        _context.SaveChanges();
+
+        var jsonPatch = new JsonPatchDocument<AccountDetail>();
+        jsonPatch.Replace(a => a.Hub, new Hub { HubId = newHub.HubId, HubName = newHub.HubName });
+        jsonPatch.Replace(a => a.AccountNumber, "A12345");
+        jsonPatch.Replace(a => a.Legal, new Legal { LegalName = "SAS TEST", Siren = "112233445" });
+        jsonPatch.Replace(a => a.Phone, new List<Phone> { new Phone { PhoneNumber = invalidPhoneNumber } });
+
+        // Act
+        var result = await _accountController.UpdateAccountAsync(accountId, jsonPatch);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        var serializableError = Assert.IsType<SerializableError>(badRequest.Value);
+
+        Assert.Contains("PhoneNumber", serializableError.Keys.Cast<string>());
+        var errors = serializableError["PhoneNumber"] as string[];
+        Assert.NotNull(errors);
+        Assert.Contains(errors!, e => e.Contains("obligatoires", StringComparison.OrdinalIgnoreCase) ||
+                                      e.Contains("invalide", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task UpdateAccountAsync_Should_Return_BadRequest_When_ModelState_IsInvalid()
+    {
+        // Arrange
+        var accountId = _context.AccountEntity.First().AccountId;
+        var jsonPatch = new JsonPatchDocument<AccountDetail>();
+
+        // Simule un controller avec ModelState invalide (structure existante, utilisation de l'instance instanciée dans le ctor)
+        _accountController.ModelState.AddModelError("TestField", "Erreur de validation");
+
+        // Act
+        var result = await _accountController.UpdateAccountAsync(accountId, jsonPatch);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        var errors = Assert.IsType<SerializableError>(badRequest.Value);
+        Assert.True(errors.ContainsKey("TestField"));
+    }
+
+    [Fact]
+    public async Task UpdateAccountAsync_Should_Throw_NotFoundException_When_Account_DoesNotExist()
+    {
+        // Arrange
+        var nonExistentAccountId = int.MaxValue;
+        var jsonPatch = new JsonPatchDocument<AccountDetail>();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<NotFoundException>(() =>
+            _accountController.UpdateAccountAsync(nonExistentAccountId, jsonPatch));
+
+        Assert.Equal("L'entité avec l'identifiant 2147483647 est introuvable", exception.Message);
+    }
+
+    [Fact]
+    public async Task UpdateAccountAsync_Should_Return_NotFound_When_GetAccountAsync_ReturnsNull()
+    {
+        // Arrange
+        var mockService = new Mock<IAccountService>();
+        mockService.Setup(s => s.GetAccountAsync(It.IsAny<int>())).ReturnsAsync((AccountDetail)null);
+
+        var controller = new AccountController(mockService.Object);
+        var jsonPatch = new JsonPatchDocument<AccountDetail>();
+
+        // Act
+        var result = await controller.UpdateAccountAsync(12345, jsonPatch); // n'importe quel Id
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task TryValidateObjectRecursive_Should_Return_False_If_PhoneListHasLessThanMinLength()
+    {
+        // Arrange
+        var accountId = _context.AccountEntity.First().AccountId;
+        var newHub = _fixture.Create<HubEntity>();
+        _context.HubEntity.Add(newHub);
+        _context.SaveChanges();
+
+        var jsonPatch = new JsonPatchDocument<AccountDetail>();
+        jsonPatch.Replace(a => a.Hub, new Hub { HubId = newHub.HubId, HubName = newHub.HubName });
+        jsonPatch.Replace(a => a.AccountNumber, "A12345");
+        jsonPatch.Replace(a => a.Legal, new Legal { LegalName = "SAS TEST", Siren = "112233445" });
+        jsonPatch.Replace(a => a.Phone, new List<Phone>());
+
+        // Act
+        var result = await _accountController.UpdateAccountAsync(accountId, jsonPatch);
+
+        // Assert
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+        var serializableError = Assert.IsType<SerializableError>(badRequest.Value);
+
+        Assert.Contains("Phone", serializableError.Keys.Cast<string>());
+        var errors = serializableError["Phone"] as string[];
+        Assert.NotNull(errors);
+        Assert.Contains(errors!, e => e.Contains($"Au moins {1} éléments sont requis", StringComparison.OrdinalIgnoreCase) ||
+                                      e.Contains("Phones", StringComparison.OrdinalIgnoreCase));
     }
 }

@@ -277,7 +277,9 @@ public class MapAccountDbToAccountModelTests
 
         var accountDetail = new AccountDetail
         {
-            Legal = new Legal { StaffSizeRange = "10-50" },
+            AccountNumber = "T12345",
+            Phone = new List<Phone> { new Phone { PhoneNumber = "0600000000" } },
+            Legal = new Legal { LegalName = "Test", Siren = "123456789", StaffSizeRange = "10-50" },
             Accounting = new Accounting
             {
                 FiscalExerciseStartDate = new DateTime(2023, 1, 1),
@@ -335,6 +337,8 @@ public class MapAccountDbToAccountModelTests
 
         var accountDetail = new AccountDetail
         {
+            AccountNumber = "T12345",
+            Phone = new List<Phone> { new Phone { PhoneNumber = "0600000000" } },
             Legal = null,
             Accounting = null,
             Deployment = null,
@@ -371,6 +375,9 @@ public class MapAccountDbToAccountModelTests
 
         var accountDetail = new AccountDetail
         {
+            AccountNumber = "T12345",
+            Phone = new List<Phone> { new Phone { PhoneNumber = "0600000000" } },
+            Legal = new Legal { LegalName = "Test", Siren = "123456789", StaffSizeRange = "10-50" },
             Deployment = new Deployment
             {
                 DeploymentDate = new DateTime(2023, 6, 1),

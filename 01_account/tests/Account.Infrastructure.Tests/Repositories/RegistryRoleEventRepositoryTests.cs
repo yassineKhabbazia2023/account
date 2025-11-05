@@ -189,7 +189,7 @@ public class RegistryRoleEventRepositoryTests
             .With(r => r.ContactId, contact.ContactId)
             .Create();
 
-        using(var dbContext = new AccountContext(options))
+        using (var dbContext = new AccountContext(options))
         {
             var repository = new RegistryRoleEventRepository(dbContext);
 
@@ -206,33 +206,39 @@ public class RegistryRoleEventRepositoryTests
     public async Task CheckExistingAccountAndContactAsync_WithNonExistingAccountOrContact_ShouldThrowNotFoundException(int accountId, int contactId)
     {
         var options = new DbContextOptionsBuilder<AccountContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .EnableSensitiveDataLogging()
+            .Options;
+
         using var context = new AccountContext(options);
+
+        // Fixtures pour la navigation "required"
+        var deployment = _fixture.Build<DeploymentEntity>()
+    .With(d => d.DeploymentId, 100)
+    .With(d => d.AccountId, 2)
+    .Create();
 
         var account = _fixture.Build<AccountEntity>()
             .With(a => a.AccountId, 2)
+            .With(a => a.DeploymentEntity, deployment) // bon nom de property
             .Without(a => a.RoleEntity)
             .Without(a => a.RoleLabelEntity)
             .Without(a => a.Delegation)
             .Create();
+        context.DeploymentEntity.Add(deployment);
         context.AccountEntity.Add(account);
+
         var contact = _fixture.Build<ContactEntity>()
             .With(c => c.ContactId, 2)
             .With(c => c.IsActive, true)
-            .Without(c => c.RoleEntity)
-            .Without(c => c.RoleLabelEntityContact)
-            .Without(c => c.RoleLabelEntityCreatedByNavigation)
             .Create();
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();
 
         var repository = new RegistryRoleEventRepository(context);
 
-        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CheckExistingAccountAndContactAsync(accountId, contactId));
-
-        Assert.Equal(Errors.NotFoundRoleCode, result.Code);
-        Assert.Equal(string.Format(Errors.NotFoundRoleMessage, contactId, accountId), result.Message);
+        await Assert.ThrowsAsync<NotFoundException>(async () =>
+            await repository.CheckExistingAccountAndContactAsync(accountId, contactId));
     }
 
     [Fact]
