@@ -47,15 +47,6 @@ public static class AnnotationValidator
         bool result = true;
         var enumerable = asEnumerable.ToList();
 
-        var minLengthAttr = property.GetCustomAttribute<MinLengthAttribute>();
-        if (minLengthAttr != null && enumerable.Count < minLengthAttr.Length)
-        {
-            results.Add(new ValidationResult(
-                $"Au moins {minLengthAttr.Length} éléments sont requis dans {property.Name}.",
-                new[] { property.Name }));
-            result = false;
-        }
-
         foreach (var enumObj in enumerable)
         {
             result = TryValidateObjectRecursive(enumObj, results) && result;

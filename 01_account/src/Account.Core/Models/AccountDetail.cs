@@ -36,7 +36,6 @@ namespace Pulse.Account.Core.Models
 
         public IEnumerable<Address>? Address { get; set; }
 
-        [MinLength(1, ErrorMessage = "Au moins un téléphone est requis.")]
         public required List<Phone> Phone { get; set; }
 
         public Hub? Hub { get; set; }

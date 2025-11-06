@@ -542,33 +542,4 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         // Assert
         Assert.IsType<NotFoundResult>(result);
     }
-
-    [Fact]
-    public async Task TryValidateObjectRecursive_Should_Return_False_If_PhoneListHasLessThanMinLength()
-    {
-        // Arrange
-        var accountId = _context.AccountEntity.First().AccountId;
-        var newHub = _fixture.Create<HubEntity>();
-        _context.HubEntity.Add(newHub);
-        _context.SaveChanges();
-
-        var jsonPatch = new JsonPatchDocument<AccountDetail>();
-        jsonPatch.Replace(a => a.Hub, new Hub { HubId = newHub.HubId, HubName = newHub.HubName });
-        jsonPatch.Replace(a => a.AccountNumber, "A12345");
-        jsonPatch.Replace(a => a.Legal, new Legal { LegalName = "SAS TEST", Siren = "112233445" });
-        jsonPatch.Replace(a => a.Phone, new List<Phone>());
-
-        // Act
-        var result = await _accountController.UpdateAccountAsync(accountId, jsonPatch);
-
-        // Assert
-        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-        var serializableError = Assert.IsType<SerializableError>(badRequest.Value);
-
-        Assert.Contains("Phone", serializableError.Keys.Cast<string>());
-        var errors = serializableError["Phone"] as string[];
-        Assert.NotNull(errors);
-        Assert.Contains(errors!, e => e.Contains($"Au moins {1} éléments sont requis", StringComparison.OrdinalIgnoreCase) ||
-                                      e.Contains("Phones", StringComparison.OrdinalIgnoreCase));
-    }
 }
