@@ -50,11 +50,11 @@ public class RegistryRoleRemovedEventHandler : IEventHandler
 
         if (!await _roleEventRepository.RemoveRoleAsync(accountId, contactId))
         {
-            _logger.LogWarning($"Le rôle n'existe pas dans la base.");
+            _logger.LogWarning("Le rôle n'existe pas dans la base");
         }
         else
         {
-            _logger.LogInformation($"L'entité avec l'identifiant suivant: AccountId: {accountId}, ContactId: {contactId} vient d'être supprimé.");
+            _logger.LogInformation("L'entité avec l'identifiant suivant: AccountId: {AccountId}, ContactId: {ContactId} vient d'être supprimé", accountId, contactId);
 
             await _roleEventPublisher.PublishRoleDeletedEventAsync(accountId, contactId);
         }

@@ -68,7 +68,7 @@ public class SubscriptionValidatedEventHandler : IEventHandler
             {
                 var isCustomerRelation = role.IsCustomerRelation.HasValue ? role.IsCustomerRelation.Value : false;
                 await _roleRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation, actionLevel);
-                _logger.LogInformation($"Le rôle AccountId {accountId}/ContactId {contactId} a été mis à jour.");
+                _logger.LogInformation("Le rôle AccountId {AccountId}/ContactId {ContactId} a été mis à jour", accountId, contactId);
             }
             else
             {
@@ -81,7 +81,7 @@ public class SubscriptionValidatedEventHandler : IEventHandler
                 };
 
                 await _roleRepository.CreateRoleAsync(request);
-                _logger.LogInformation($"Le rôle AccountId {accountId}/ContactId {contactId} a été créé.");
+                _logger.LogInformation("Le rôle AccountId {AccountId}/ContactId {ContactId} a été créé", accountId, contactId);
 
                 await _roleEventPublisher.PublishRoleCreatedEventAsync(request);
             }
@@ -100,7 +100,7 @@ public class SubscriptionValidatedEventHandler : IEventHandler
 
                 if (await _roleLabelRepository.HasRoleLabel(contactId, accountId, labelId))
                 {
-                    _logger.LogInformation($"Le contact {contactId} a déjà le libellé {funcName} sur l'entité {accountId}.");
+                    _logger.LogInformation("Le contact {ContactId} a déjà le libellé {FuncName} sur l'entité {AccountId}", contactId, funcName, accountId);
                 }
                 else
                 {
@@ -113,7 +113,7 @@ public class SubscriptionValidatedEventHandler : IEventHandler
                         CreatedBy = contactId,
                     });
 
-                    _logger.LogInformation($"Le libellé {funcName} a été ajouté sur le rôle AccountId {accountId}/ContactId {contactId}.");
+                    _logger.LogInformation("Le libellé {FuncName} a été ajouté sur le rôle AccountId {AccountId}/ContactId {ContactId}", funcName, accountId, contactId);
                 }
             }
         }

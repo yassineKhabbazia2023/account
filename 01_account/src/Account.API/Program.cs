@@ -12,15 +12,35 @@ namespace Pulse.Account.API
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            try
+            {
+                Log.Information("Starting Pulse.Back.Account microservice");
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Application terminated unexpectedly");
+                throw;
+            }
+            finally
+            {
+                Log.Information("Shutting down Pulse.Back.Account microservice");
+                Log.CloseAndFlush();
+            }
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
-                     .ConfigureLogging((context, loggerConfiguration) =>
+                     .UseSerilog((context, services, configuration) =>
                      {
-                         loggerConfiguration.AddApplicationInsights();
+                         configuration
+                             .ReadFrom.Configuration(context.Configuration)
+                             .ReadFrom.Services(services)
+                             .Enrich.FromLogContext()
+                             .Enrich.WithProperty("Application", "Pulse.Back.Account")
+                             .Enrich.WithProperty("Layer", "WebApi")
+                             .Enrich.WithProperty("Domain", "account");
                      })
                   .ConfigureWebHostDefaults(webBuilder =>
                     {
