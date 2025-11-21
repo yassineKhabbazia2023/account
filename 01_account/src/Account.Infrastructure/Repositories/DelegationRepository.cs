@@ -144,32 +144,40 @@ public class DelegationRepository : IDelegationRepository
 
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            IQueryable<DelegationEntity> query = _accountContext.DelegationEntity
+            // Construire la requête de base
+            // Utiliser Where avec Any mais sans les Includes pour la recherche et le comptage
+            IQueryable<DelegationEntity> baseQuery = _accountContext.DelegationEntity
                                         .AsNoTracking()
-                                        .Include(d => d.Account)
-                                        .Include(d => d.Delegator)
-                                        .Include(d => d.Delegatee)
                                         .Where(d => d.Account.Any(a => a.AccountId == accountId))
                                         .OrderByDescending(d => d.CreationDate);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
-                query = from d in query
-                        where d.Delegator.LastName.Contains(search) ||
+                baseQuery = baseQuery.Where(d =>
+                        d.Delegator.LastName.Contains(search) ||
                         d.Delegatee.LastName.Contains(search) ||
                         d.Delegator.FirstName.Contains(search) ||
-                        d.Delegatee.FirstName.Contains(search)
-                        select d;
+                        d.Delegatee.FirstName.Contains(search));
             }
 
-            var totalItems = await query.CountAsync();
+            // Compter SANS les Includes pour de meilleures performances
+            var totalItems = await baseQuery.CountAsync();
             var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
-            query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
-            query = query.Take(pagination.PageSize);
+            // Appliquer la pagination PUIS charger les entités liées
+            var query = baseQuery
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize);
 
-            delegations = await query.ToListAsync();
+            // Charger les entités liées uniquement pour les résultats paginés
+            // Utiliser AsSplitQuery pour éviter les cartesian products
+            delegations = await query
+                .AsSplitQuery()
+                .Include(d => d.Account)
+                .Include(d => d.Delegator)
+                .Include(d => d.Delegatee)
+                .ToListAsync();
 
             return delegations.MapToPagingDelegations(pagination.PageNumber, totalItems, totalPages);
         });
@@ -181,23 +189,41 @@ public class DelegationRepository : IDelegationRepository
 
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            IQueryable<DelegationEntity> query = _accountContext.DelegationEntity
-                                    .AsNoTracking()
-                                        .Include(d => sortAscending
-                                            ? d.Account.OrderBy(a => a.LegalName)
-                                            : d.Account.OrderByDescending(a => a.LegalName))
-                                        .Include(d => d.Delegatee)
-                                        .Include(d => d.Delegator)
+            // Requête de base sans les Includes pour de meilleures performances
+            IQueryable<DelegationEntity> baseQuery = _accountContext.DelegationEntity
+                                        .AsNoTracking()
                                         .Where(d => d.DelegateeId == contactId || d.DelegatorId == contactId)
                                         .OrderByDescending(d => d.CreationDate);
 
-            var totalItems = await query.CountAsync();
+            // Compter SANS les Includes
+            var totalItems = await baseQuery.CountAsync();
             var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
-            query = query.Skip((pagination.PageNumber - 1) * pagination.PageSize);
-            query = query.Take(pagination.PageSize);
+            // Appliquer la pagination PUIS charger les entités liées
+            var query = baseQuery
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize);
 
-            delegations = await query.ToListAsync();
+            // Charger les entités liées SANS tri dans l'Include
+            // Utiliser AsSplitQuery pour éviter les cartesian products
+            delegations = await query
+                .AsSplitQuery()
+                .Include(d => d.Account)
+                .Include(d => d.Delegatee)
+                .Include(d => d.Delegator)
+                .ToListAsync();
+
+            // Trier les comptes en mémoire si nécessaire (après chargement)
+            // Le tri est appliqué sur une petite quantité de données (10 items max par page)
+            foreach (var delegation in delegations)
+            {
+                if (delegation.Account?.Any() == true)
+                {
+                    delegation.Account = sortAscending
+                        ? delegation.Account.OrderBy(a => a.LegalName).ToList()
+                        : delegation.Account.OrderByDescending(a => a.LegalName).ToList();
+                }
+            }
 
             return delegations.MapToPagingDelegations(pagination.PageNumber, totalItems, totalPages);
         });
