@@ -669,7 +669,7 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task DeleteDelegationAsync_WhenDelegationIdIsValidAndRoleIsDelegation_ShouldDeleteDelegationAndRole()
+    public async Task DeleteDelegationAsync_WhenParametersAreValidAndRoleIsDelegation_ShouldDeleteDelegationAndRole()
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
@@ -679,10 +679,13 @@ public class DelegationRepositoryTests
 
             var contact = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
             context.ContactEntity.Add(contact);
+            var delegator = _fixture.Build<ContactEntity>().With(c => c.IsActive, true).Create();
+            context.ContactEntity.Add(delegator);
             await context.SaveChangesAsync();
 
             var delegation = new DelegationEntity
             {
+                DelegatorId = delegator.ContactId,
                 Delegatee = contact,
                 StartDate = DateTime.UtcNow,
                 Status = "Enabled",
@@ -690,6 +693,7 @@ public class DelegationRepositoryTests
             };
             var otherDelegation = new DelegationEntity
             {
+                DelegatorId = delegator.ContactId,
                 Delegatee = contact,
                 StartDate = DateTime.UtcNow,
                 Status = "Disabled",
@@ -724,7 +728,7 @@ public class DelegationRepositoryTests
 
             var repository = new DelegationRepository(context);
 
-            await repository.DeleteDelegationAsync(delegation.DelegationId);
+            await repository.DeleteDelegationAsync(delegation.DelegationId, delegator.ContactId, contact.ContactId);
             var resultDelegation = await context.DelegationEntity.FirstOrDefaultAsync(d => d.DelegationId == delegation.DelegationId);
 
             Assert.NotNull(resultDelegation);
@@ -739,14 +743,29 @@ public class DelegationRepositoryTests
     }
 
     [Fact]
-    public async Task DeleteDelegationAsync_WhenDelegationIdIsInvalid_ShouldThrowNotFoundException()
+    public async Task DeleteDelegationAsync_WhenDelegationNotExist_ShouldThrowNotFoundException()
     {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var delegation = _fixture.Build<DelegationEntity>()
+        .With(d => d.DelegationId, 1)
+        .With(d => d.DelegatorId, 1)
+        .With(d => d.DelegateeId, 2)
+        .Without(d => d.Delegator)
+        .Without(d => d.Delegatee)
+        .Without(d => d.Account)
+        .Create();
+
+        context.DelegationEntity.Add(delegation);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
         var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
 
-        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.DeleteDelegationAsync(1));
+        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.DeleteDelegationAsync(1, 1, 1));
 
-        Assert.Equal(Errors.NotFoundDelegationCode, result.Code);
-        Assert.Equal(string.Format(Errors.NotFoundDelegationMessage, 1), result.Message);
+        Assert.Equal("ACC006", result.Code);
+        Assert.Equal("La délégation est introuvable", result.Message);
     }
 
     [Theory]
@@ -1190,13 +1209,13 @@ public class DelegationRepositoryTests
         Assert.True(result);
     }
 
-    public static IEnumerable<object[]> Contacts()
+    public static TheoryData<List<int>> Contacts() => new TheoryData<List<int>>()
     {
-        yield return new object[] { new List<int> { 1, 3 } };
-        yield return new object[] { new List<int> { 3, 2 } };
-        yield return new object[] { new List<int> { 3, 4 } };
-        yield return new object[] { new List<int> { 4, 3 } };
-    }
+        { new List<int> { 1, 3 } },
+        { new List<int> { 3, 2 } },
+        { new List<int> { 3, 4 } },
+        { new List<int> { 4, 3 } },
+    };
 
     [Fact]
     public async Task IsClient_WithNoClient_ShouldReturnFalse()
@@ -1220,5 +1239,66 @@ public class DelegationRepositoryTests
         var result = await repository.IsClient(new List<int> { 1, 2 });
 
         Assert.False(result);
+    }
+
+    [Fact]
+    public async Task CanBeDeleted_WhenCurrentUserIsDelegator_ReturnsTrue()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var delegation = _fixture.Build<DelegationEntity>()
+        .With(d => d.DelegationId, 2)
+        .With(d => d.DelegatorId, 2)
+        .With(d => d.DelegateeId, 3)
+        .Without(d => d.Delegator)
+        .Without(d => d.Delegatee)
+        .Without(d => d.Account)
+        .Create();
+
+        context.DelegationEntity.Add(delegation);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
+
+        var result = await repository.CanBeDeleted(delegation.DelegatorId, delegation.DelegationId);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task CanBeDeleted_WhenCurrentUserIsNotDelegator_ReturnsFalse()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var delegation = _fixture.Build<DelegationEntity>()
+        .With(d => d.DelegationId, 2)
+        .With(d => d.DelegatorId, 2)
+        .With(d => d.DelegateeId, 3)
+        .Without(d => d.Delegator)
+        .Without(d => d.Delegatee)
+        .Without(d => d.Account)
+        .Create();
+
+        context.DelegationEntity.Add(delegation);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
+
+        var result = await repository.CanBeDeleted(1, 2);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task CanBeDeleted_WhenDeletationNotExist_ShouldThrowNotFoundException()
+    {
+        var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
+
+        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.CanBeDeleted(1, 1));
+
+        Assert.Equal("ACC006", result.Code);
+        Assert.Equal("La délégation est introuvable", result.Message);
     }
 }

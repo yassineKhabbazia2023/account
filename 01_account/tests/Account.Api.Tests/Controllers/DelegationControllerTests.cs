@@ -157,26 +157,26 @@ public class DelegationControllerTests
     }
 
     [Fact]
-    public async Task DeleteDelegationAsync_WenDelegationIdIsValid_ShouldDeleteDelegation()
+    public async Task DeleteDelegationAsync_WenParametersAreValid_ShouldDeleteDelegation()
     {
-        _service.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
+        _service.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).Returns(Task.CompletedTask);
 
         var controller = new DelegationController(_service.Object);
 
-        var result = await controller.DeleteDelegationAsync(It.IsAny<int>());
+        var result = await controller.DeleteDelegationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>());
 
         result.As<OkResult>().StatusCode.Should().Be(StatusCodes.Status200OK);
     }
 
     [Fact]
-    public async Task DeleteDelegationAsync_WhenDelegationIdIsInvalid_ShouldThrowException()
+    public async Task DeleteDelegationAsync_WhenDelegationNotExist_ShouldThrowException()
     {
         var exception = new NotFoundException(It.IsAny<string>(), It.IsAny<string>());
-        _service.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).ThrowsAsync(exception);
+        _service.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ThrowsAsync(exception);
 
         var controller = new DelegationController(_service.Object);
 
-        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await controller.DeleteDelegationAsync(It.IsAny<int>()));
+        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await controller.DeleteDelegationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()));
 
         result.Code.Should().Be(exception.Code);
         result.Message.Should().Be(exception.Message);

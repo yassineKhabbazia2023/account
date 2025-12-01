@@ -81,15 +81,17 @@ public class DelegationController : ControllerBase
     /// <summary>
     /// Supprime une délégation sur une entité morale.
     /// </summary>
+    /// <param name="currentUserId">L'identifiant de l'utilisateur connecté.</param>
     /// <param name="delegationId">L'identifiant de la délégation.</param>
+    /// <param name="delegateeId">L'identifiant du contact délégataire.</param>
     /// <returns>Ok si la suppression s'est bien déroulée.</returns>
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult> DeleteDelegationAsync(int delegationId)
+    public async Task<ActionResult> DeleteDelegationAsync([FromHeader(Name = "CurrentUser")][Required] int currentUserId, int delegationId, int delegateeId)
     {
-        await _delegationService.DeleteDelegationAsync(delegationId);
+        await _delegationService.DeleteDelegationAsync(currentUserId, delegationId, delegateeId);
 
         return Ok();
     }

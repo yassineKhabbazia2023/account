@@ -114,9 +114,9 @@ public class DelegationRepository : IDelegationRepository
         return delegations.ToDelegations();
     }
 
-    public async Task<IEnumerable<Role>> DeleteDelegationAsync(int delegationId)
+    public async Task<IEnumerable<Role>> DeleteDelegationAsync(int delegationId, int delegatorId, int delegateeId)
     {
-        var delegationEntity = await GetDelegationAsync(delegationId);
+        var delegationEntity = await GetDelegationAsync(delegationId, delegatorId, delegateeId);
         delegationEntity.Status = DelegationStatus.Disabled.ToString().ToLower();
         var roles = Enumerable.Empty<Role>();
 
@@ -312,18 +312,18 @@ public class DelegationRepository : IDelegationRepository
         return missingIds;
     }
 
-    private async Task<DelegationEntity> GetDelegationAsync(int delegationId)
+    private async Task<DelegationEntity> GetDelegationAsync(int delegationId, int delegatorId, int delegateeId)
     {
         DelegationEntity? tDelegation = await _retryPolicy.ExecuteAsync(async () =>
         {
             return await _accountContext.DelegationEntity
                 .Include(d => d.Account)
-                .FirstOrDefaultAsync(d => d.DelegationId == delegationId);
+                .FirstOrDefaultAsync(d => d.DelegationId == delegationId && d.DelegatorId == delegatorId && d.DelegateeId == delegateeId);
         });
 
         if (tDelegation == null)
         {
-            throw new NotFoundException(Errors.NotFoundDelegationCode, string.Format(Errors.NotFoundDelegationMessage, delegationId));
+            throw new NotFoundException(Errors.NotFoundDelegationCode, Errors.NotFoundDelegationMessage);
         }
 
         return tDelegation;
@@ -382,5 +382,29 @@ public class DelegationRepository : IDelegationRepository
         {
             return await _accountContext.ContactEntity.AnyAsync(c => contactIds.Contains(c.ContactId) && c.Type == ContactType.Customer.ToString());
         });
+    }
+
+    public async Task<bool> CanBeDeleted(int currentUserId, int delegationId)
+    {
+        var delegation = await GetDelegationByIdAsync(delegationId);
+
+        return delegation.DelegatorId == currentUserId;
+    }
+
+    private async Task<DelegationEntity> GetDelegationByIdAsync(int delegationId)
+    {
+        DelegationEntity? tDelegation = await _retryPolicy.ExecuteAsync(async () =>
+        {
+            return await _accountContext.DelegationEntity
+                .Include(d => d.Account)
+                .FirstOrDefaultAsync(d => d.DelegationId == delegationId);
+        });
+
+        if (tDelegation == null)
+        {
+            throw new NotFoundException(Errors.NotFoundDelegationCode, string.Format(Errors.NotFoundDelegationMessage, delegationId));
+        }
+
+        return tDelegation;
     }
 }

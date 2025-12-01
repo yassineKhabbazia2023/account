@@ -22,7 +22,7 @@ public static class Errors
     public static readonly string BadRequestDeleteDelegationMessage = "Impossible de supprimer la délégation : les informations fournies dans la requête sont incorrectes.";
 
     public static readonly string NotFoundDelegationCode = "ACC006";
-    public static readonly string NotFoundDelegationMessage = "La délégation avec l'identifiant {0} est introuvable";
+    public static readonly string NotFoundDelegationMessage = "La délégation est introuvable";
 
     public static readonly string DelegationEndDateInvalidCode = "ACC007";
     public static readonly string DelegationEndDateInvalidMessage = "Impossible de créer une délégation : La date de début de la délégation ne peut pas être supérieur à la date de fin.";
@@ -128,4 +128,7 @@ public static class Errors
 
     public static readonly string InvalidAccountFieldsCode = "ACC041";
     public static readonly string InvalidAccountFieldsMessage = "Les champs obligatoires sont manquants ou invalides. Veuillez compléter les informations nécessaires.";
+
+    public static readonly string UnauthorizedDeleteDelegationCode = "ACC042";
+    public static readonly string UnauthorizedDeleteDelegationMessage = "Vous n'êtes pas autorisé à supprimer la délégation.";
 }

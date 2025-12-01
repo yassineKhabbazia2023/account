@@ -16,7 +16,7 @@ public interface IDelegationRepository
 
     Task<IEnumerable<CreateRoleRequest>> CreateDelegationAsync(int contactId, CreateDelegationRequest delegation, IEnumerable<CreateRoleRequest> roles);
 
-    Task<IEnumerable<Role>> DeleteDelegationAsync(int delegationId);
+    Task<IEnumerable<Role>> DeleteDelegationAsync(int delegationId, int delegatorId, int delegateeId);
 
     Task<Paging<Delegation>> GetAccountDelegationsHistoryAsync(int accountId, string? search, Pagination pagination);
 
@@ -29,4 +29,6 @@ public interface IDelegationRepository
     Task<Paging<Delegation>> GetContactDelegationsHistoryAsync(int contactId, Pagination pagination, bool sortAscending);
 
     Task<bool> IsClient(IEnumerable<int> contactIds);
+
+    Task<bool> CanBeDeleted(int currentUserId, int delegationId);
 }

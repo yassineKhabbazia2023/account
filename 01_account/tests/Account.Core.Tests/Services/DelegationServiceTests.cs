@@ -2,7 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System;
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -161,7 +160,7 @@ public class DelegationServiceTest
     }
 
     [Fact]
-    public async Task DeleteDelegationAsync_WhenDelegationIdIsValid_ShouldDeleteDelegation()
+    public async Task DeleteDelegationAsync_WhenParametersAreValid_ShouldDeleteDelegation()
     {
         var roleToDelete = new Role
         {
@@ -169,27 +168,53 @@ public class DelegationServiceTest
             ContactId = 1,
         };
 
-        _repository.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).ReturnsAsync(new List<Role> { roleToDelete });
+        _repository.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(new List<Role> { roleToDelete });
+        _repository.Setup(x => x.CanBeDeleted(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
 
         var service = new DelegationService(_repository.Object, _publisher.Object, _logger.Object);
-        await service.DeleteDelegationAsync(1);
+        await service.DeleteDelegationAsync(1, 1, 1);
 
-        _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>()), Times.Once);
+        _repository.Verify(x => x.CanBeDeleted(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+        _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         _publisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
     }
 
     [Theory]
-    [InlineData(int.MinValue)]
-    [InlineData(0)]
-    public async Task DeleteDelegationAsync_WhenDelegationIdIsNegativeOrNull_ShouldThrowBadRequestException(int delegationId)
+    [MemberData(nameof(InvalidDeleteDelegationData))]
+    public async Task DeleteDelegationAsync_WhenParametersAreInvalid_ShouldThrowBadRequestException(int currentUserId, int delegationId, int delegateeId)
     {
         var service = new DelegationService(null!, _publisher.Object, null!);
 
-        var result = await Assert.ThrowsAsync<BadRequestException>(async () => await service.DeleteDelegationAsync(delegationId));
+        var result = await Assert.ThrowsAsync<BadRequestException>(async () => await service.DeleteDelegationAsync(currentUserId, delegationId, delegateeId));
 
         Assert.Equal(Errors.BadRequestDeleteDelegationCode, result.Code);
         Assert.Equal(Errors.BadRequestDeleteDelegationMessage, result.Message);
 
+        _repository.Verify(x => x.CanBeDeleted(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        _publisher.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+    }
+
+    public static TheoryData<int, int, int> InvalidDeleteDelegationData => new TheoryData<int, int, int>
+        {
+            { int.MinValue, 1, 1 },
+            { 0, 1, 1 },
+            { 1, int.MinValue, 1 },
+            { 1, 0, 1 },
+            { 1, 1, int.MinValue },
+            { 1, 1, 0 },
+        };
+
+    [Fact]
+    public async Task DeleteDelegationAsync_WhenCurrentUserIsNotDelegator_ShouldThrowUnauthorizedException()
+    {
+        _repository.Setup(x => x.CanBeDeleted(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
+
+        var service = new DelegationService(_repository.Object, null!, null!);
+        var result = await Assert.ThrowsAsync<UnauthorizedException>(async () => await service.DeleteDelegationAsync(1, 1, 1));
+
+        _repository.Verify(x => x.CanBeDeleted(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+        _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         _publisher.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
 

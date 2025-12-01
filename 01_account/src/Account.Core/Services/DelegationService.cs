@@ -69,14 +69,21 @@ public class DelegationService : IDelegationService
         }
     }
 
-    public async Task DeleteDelegationAsync(int delegationId)
+    public async Task DeleteDelegationAsync(int currentUserId, int delegationId, int delegateeId)
     {
-        if (delegationId <= 0)
+        if (currentUserId <= 0 || delegationId <= 0 || delegateeId <= 0)
         {
             throw new BadRequestException(Errors.BadRequestDeleteDelegationCode, Errors.BadRequestDeleteDelegationMessage);
         }
 
-        var rolesToDelete = await _delegationRepository.DeleteDelegationAsync(delegationId);
+        var canBeDeleted = await _delegationRepository.CanBeDeleted(currentUserId, delegationId);
+
+        if (!canBeDeleted)
+        {
+            throw new UnauthorizedException(Errors.UnauthorizedDeleteDelegationCode, Errors.UnauthorizedDeleteDelegationMessage);
+        }
+
+        var rolesToDelete = await _delegationRepository.DeleteDelegationAsync(delegationId, currentUserId, delegateeId);
 
         foreach (var role in rolesToDelete)
         {
