@@ -971,7 +971,7 @@ public class DelegationRepositoryTests
             result.Items.Should().BeEmpty();
             result.CurrentPage.Should().Be(1);
             result.TotalItems.Should().Be(0);
-            result.TotalPage.Should().Be(1);
+            result.TotalPage.Should().Be(0);
         }
     }
 

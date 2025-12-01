@@ -177,7 +177,7 @@ public class DelegationRepository : IDelegationRepository
                 .Skip((pagination.PageNumber - 1) * pagination.PageSize)
                 .Take(pagination.PageSize)
                 .AsSplitQuery()
-                .Include(d => d.Account)
+                .Include(d => d.Account.Where(a => a.AccountId == accountId))
                 .Include(d => d.Delegator)
                 .Include(d => d.Delegatee)
                 .ToListAsync();
