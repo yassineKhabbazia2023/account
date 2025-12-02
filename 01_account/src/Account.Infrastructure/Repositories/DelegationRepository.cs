@@ -140,16 +140,16 @@ public class DelegationRepository : IDelegationRepository
 
     public async Task<Paging<Delegation>> GetAccountDelegationsHistoryAsync(int accountId, string? search, Pagination pagination)
     {
-        var delegations = new List<DelegationEntity>();
-
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            // Construire la requête de base
-            // Utiliser Where avec Any mais sans les Includes pour la recherche et le comptage
-            IQueryable<DelegationEntity> baseQuery = _accountContext.DelegationEntity
-                                        .AsNoTracking()
-                                        .Where(d => d.Account.Any(a => a.AccountId == accountId))
-                                        .OrderByDescending(d => d.CreationDate);
+            // Partir de DelegationDetail pour utiliser l'index sur AccountId
+            // Puis joindre Delegation - évite EXISTS avec sous-requête corrélée
+            var baseQuery = from dd in _accountContext.Set<Dictionary<string, object>>("DelegationDetailEntity")
+                            join d in _accountContext.DelegationEntity on EF.Property<int>(dd, "DelegationId") equals d.DelegationId
+                            where EF.Property<int>(dd, "AccountId") == accountId
+                            select d;
+
+            baseQuery = baseQuery.AsNoTracking().Distinct();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -161,20 +161,23 @@ public class DelegationRepository : IDelegationRepository
                         d.Delegatee.FirstName.Contains(search));
             }
 
-            // Compter SANS les Includes pour de meilleures performances
+            // Compter côté SQL
             var totalItems = await baseQuery.CountAsync();
+
+            if (totalItems == 0)
+            {
+                return new List<DelegationEntity>().MapToPagingDelegations(pagination.PageNumber, 0, 1);
+            }
+
             var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
-            // Appliquer la pagination PUIS charger les entités liées
-            var query = baseQuery
+            // Appliquer tri, pagination et charger les entités liées
+            var delegations = await baseQuery
+                .OrderByDescending(d => d.CreationDate)
                 .Skip((pagination.PageNumber - 1) * pagination.PageSize)
-                .Take(pagination.PageSize);
-
-            // Charger les entités liées uniquement pour les résultats paginés
-            // Utiliser AsSplitQuery pour éviter les cartesian products
-            delegations = await query
+                .Take(pagination.PageSize)
                 .AsSplitQuery()
-                .Include(d => d.Account)
+                .Include(d => d.Account.Where(a => a.AccountId == accountId))
                 .Include(d => d.Delegator)
                 .Include(d => d.Delegatee)
                 .ToListAsync();
