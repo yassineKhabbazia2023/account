@@ -391,7 +391,7 @@ public class DelegationRepository : IDelegationRepository
     {
         var delegation = await GetDelegationByIdAsync(delegationId);
 
-        return delegation.DelegatorId == currentUserId;
+        return delegation.DelegatorId == currentUserId || delegation.DelegateeId == currentUserId;
     }
 
     private async Task<DelegationEntity> GetDelegationByIdAsync(int delegationId)

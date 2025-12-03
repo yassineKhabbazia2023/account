@@ -1241,8 +1241,10 @@ public class DelegationRepositoryTests
         Assert.False(result);
     }
 
-    [Fact]
-    public async Task CanBeDeleted_WhenCurrentUserIsDelegator_ReturnsTrue()
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    public async Task CanBeDeleted_WhenCurrentUserIsDelegatorOrDelegatee_ReturnsTrue(int currentUserId)
     {
         using var context = new AccountContext(_dbContextOptions);
 
@@ -1261,13 +1263,13 @@ public class DelegationRepositoryTests
 
         var repository = new DelegationRepository(new AccountContext(_dbContextOptions));
 
-        var result = await repository.CanBeDeleted(delegation.DelegatorId, delegation.DelegationId);
+        var result = await repository.CanBeDeleted(currentUserId, delegation.DelegationId);
 
         Assert.True(result);
     }
 
     [Fact]
-    public async Task CanBeDeleted_WhenCurrentUserIsNotDelegator_ReturnsFalse()
+    public async Task CanBeDeleted_WhenCurrentUserIsNotDelegatorOrDelegatee_ReturnsFalse()
     {
         using var context = new AccountContext(_dbContextOptions);
 

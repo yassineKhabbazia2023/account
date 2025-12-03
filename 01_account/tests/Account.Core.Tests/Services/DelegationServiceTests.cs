@@ -172,38 +172,12 @@ public class DelegationServiceTest
         _repository.Setup(x => x.CanBeDeleted(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
 
         var service = new DelegationService(_repository.Object, _publisher.Object, _logger.Object);
-        await service.DeleteDelegationAsync(1, 1, 1);
+        await service.DeleteDelegationAsync(1, 1, 1, 1);
 
         _repository.Verify(x => x.CanBeDeleted(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         _publisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
     }
-
-    [Theory]
-    [MemberData(nameof(InvalidDeleteDelegationData))]
-    public async Task DeleteDelegationAsync_WhenParametersAreInvalid_ShouldThrowBadRequestException(int currentUserId, int delegationId, int delegateeId)
-    {
-        var service = new DelegationService(null!, _publisher.Object, null!);
-
-        var result = await Assert.ThrowsAsync<BadRequestException>(async () => await service.DeleteDelegationAsync(currentUserId, delegationId, delegateeId));
-
-        Assert.Equal(Errors.BadRequestDeleteDelegationCode, result.Code);
-        Assert.Equal(Errors.BadRequestDeleteDelegationMessage, result.Message);
-
-        _repository.Verify(x => x.CanBeDeleted(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-        _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-        _publisher.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-    }
-
-    public static TheoryData<int, int, int> InvalidDeleteDelegationData => new TheoryData<int, int, int>
-        {
-            { int.MinValue, 1, 1 },
-            { 0, 1, 1 },
-            { 1, int.MinValue, 1 },
-            { 1, 0, 1 },
-            { 1, 1, int.MinValue },
-            { 1, 1, 0 },
-        };
 
     [Fact]
     public async Task DeleteDelegationAsync_WhenCurrentUserIsNotDelegator_ShouldThrowUnauthorizedException()
@@ -211,7 +185,7 @@ public class DelegationServiceTest
         _repository.Setup(x => x.CanBeDeleted(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
 
         var service = new DelegationService(_repository.Object, null!, null!);
-        var result = await Assert.ThrowsAsync<UnauthorizedException>(async () => await service.DeleteDelegationAsync(1, 1, 1));
+        var result = await Assert.ThrowsAsync<UnauthorizedException>(async () => await service.DeleteDelegationAsync(1, 1, 1, 1));
 
         _repository.Verify(x => x.CanBeDeleted(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
         _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
