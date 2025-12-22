@@ -115,4 +115,199 @@ public class RegistryAccountUpdatedEventHandlerTests
         repositoryMock.Verify(repo => repo.UpdateAccountAsync(It.IsAny<RegistryAccountUpdatedEventData>()), Times.Never);
         publisherMock.Verify(p => p.PublishAccountUpdatedEventAsync(It.IsAny<AccountDetail>()), Times.Never);
     }
+
+    [Fact]
+    public async Task HandleAsync_WhenStaffSizeRangeCleared_ShouldPreserveExistingValue()
+    {
+        // Arrange
+        var accountGuid = Guid.NewGuid();
+        var currentAccount = new AccountDetail
+        {
+            AccountId = 1,
+            AccountNumber = "123",
+            Legal = new Legal { LegalName = "Test", Siren = "123456789", StaffSizeRange = "10-50" },
+            Phone = new List<Phone>()
+        };
+
+        var loggerMock = new Mock<ILogger<RegistryAccountUpdatedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>();
+        repositoryMock.Setup(r => r.GetAccountByGuidAsync(accountGuid))
+            .ReturnsAsync(currentAccount);
+        repositoryMock.Setup(r => r.UpdateAccountAsync(It.IsAny<RegistryAccountUpdatedEventData>()))
+            .ReturnsAsync(_accountEntity.MapToAccountDetail());
+
+        var publisherMock = new Mock<IAccountEventPublisher>();
+
+        loggerMock.Setup(x => x.Log(
+            It.IsAny<LogLevel>(),
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception?>(),
+            (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
+
+        var handler = new RegistryAccountUpdatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var message = "{\"EventType\":\"RegistryAccountUpdatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\": \"" + accountGuid + "\",\"LegalName\":\"John Doe\",\"AccountStaffSizeSlice\":null}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(repo => repo.UpdateAccountAsync(It.Is<RegistryAccountUpdatedEventData>(
+            e => e.AccountStaffSizeSlice == "10-50")), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenAccountingTypeCleared_ShouldPreserveExistingValue()
+    {
+        // Arrange
+        var accountGuid = Guid.NewGuid();
+        var currentAccount = new AccountDetail
+        {
+            AccountId = 1,
+            AccountNumber = "123",
+            Legal = new Legal { LegalName = "Test", Siren = "123456789" },
+            Accounting = new Accounting { AccountingType = "Engagement" },
+            Phone = new List<Phone>()
+        };
+
+        var loggerMock = new Mock<ILogger<RegistryAccountUpdatedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>();
+        repositoryMock.Setup(r => r.GetAccountByGuidAsync(accountGuid))
+            .ReturnsAsync(currentAccount);
+        repositoryMock.Setup(r => r.UpdateAccountAsync(It.IsAny<RegistryAccountUpdatedEventData>()))
+            .ReturnsAsync(_accountEntity.MapToAccountDetail());
+
+        var publisherMock = new Mock<IAccountEventPublisher>();
+
+        loggerMock.Setup(x => x.Log(
+            It.IsAny<LogLevel>(),
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception?>(),
+            (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
+
+        var handler = new RegistryAccountUpdatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var message = "{\"EventType\":\"RegistryAccountUpdatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\": \"" + accountGuid + "\",\"LegalName\":\"John Doe\",\"AccountTypeTenueComptable\":null}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(repo => repo.UpdateAccountAsync(It.Is<RegistryAccountUpdatedEventData>(
+            e => e.AccountTypeTenueComptable == "Engagement")), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenBothFieldsCleared_ShouldPreserveBothExistingValues()
+    {
+        // Arrange
+        var accountGuid = Guid.NewGuid();
+        var currentAccount = new AccountDetail
+        {
+            AccountId = 1,
+            AccountNumber = "123",
+            Legal = new Legal { LegalName = "Test", Siren = "123456789", StaffSizeRange = "10-50" },
+            Accounting = new Accounting { AccountingType = "Engagement" },
+            Phone = new List<Phone>()
+        };
+
+        var loggerMock = new Mock<ILogger<RegistryAccountUpdatedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>();
+        repositoryMock.Setup(r => r.GetAccountByGuidAsync(accountGuid))
+            .ReturnsAsync(currentAccount);
+        repositoryMock.Setup(r => r.UpdateAccountAsync(It.IsAny<RegistryAccountUpdatedEventData>()))
+            .ReturnsAsync(_accountEntity.MapToAccountDetail());
+
+        var publisherMock = new Mock<IAccountEventPublisher>();
+
+        loggerMock.Setup(x => x.Log(
+            It.IsAny<LogLevel>(),
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception?>(),
+            (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
+
+        var handler = new RegistryAccountUpdatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var message = "{\"EventType\":\"RegistryAccountUpdatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\": \"" + accountGuid + "\",\"LegalName\":\"John Doe\",\"AccountStaffSizeSlice\":\"\",\"AccountTypeTenueComptable\":\"\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(repo => repo.UpdateAccountAsync(It.Is<RegistryAccountUpdatedEventData>(
+            e => e.AccountStaffSizeSlice == "10-50" && e.AccountTypeTenueComptable == "Engagement")), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenNewValuesProvided_ShouldUseNewValues()
+    {
+        // Arrange
+        var accountGuid = Guid.NewGuid();
+        var currentAccount = new AccountDetail
+        {
+            AccountId = 1,
+            AccountNumber = "123",
+            Legal = new Legal { LegalName = "Test", Siren = "123456789", StaffSizeRange = "10-50" },
+            Accounting = new Accounting { AccountingType = "Engagement" },
+            Phone = new List<Phone>()
+        };
+
+        var loggerMock = new Mock<ILogger<RegistryAccountUpdatedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>();
+        repositoryMock.Setup(r => r.GetAccountByGuidAsync(accountGuid))
+            .ReturnsAsync(currentAccount);
+        repositoryMock.Setup(r => r.UpdateAccountAsync(It.IsAny<RegistryAccountUpdatedEventData>()))
+            .ReturnsAsync(_accountEntity.MapToAccountDetail());
+
+        var publisherMock = new Mock<IAccountEventPublisher>();
+
+        loggerMock.Setup(x => x.Log(
+            It.IsAny<LogLevel>(),
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception?>(),
+            (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
+
+        var handler = new RegistryAccountUpdatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var message = "{\"EventType\":\"RegistryAccountUpdatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\": \"" + accountGuid + "\",\"LegalName\":\"John Doe\",\"AccountStaffSizeSlice\":\"50-100\",\"AccountTypeTenueComptable\":\"Tresorerie\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(repo => repo.UpdateAccountAsync(It.Is<RegistryAccountUpdatedEventData>(
+            e => e.AccountStaffSizeSlice == "50-100" && e.AccountTypeTenueComptable == "Tresorerie")), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenEmptyMessage_ShouldNotProcess()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryAccountUpdatedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>();
+        var publisherMock = new Mock<IAccountEventPublisher>();
+        var handler = new RegistryAccountUpdatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+
+        // Act
+        await handler.HandleAsync("");
+
+        // Assert
+        repositoryMock.Verify(repo => repo.UpdateAccountAsync(It.IsAny<RegistryAccountUpdatedEventData>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenWhitespaceMessage_ShouldNotProcess()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryAccountUpdatedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>();
+        var publisherMock = new Mock<IAccountEventPublisher>();
+        var handler = new RegistryAccountUpdatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+
+        // Act
+        await handler.HandleAsync("   ");
+
+        // Assert
+        repositoryMock.Verify(repo => repo.UpdateAccountAsync(It.IsAny<RegistryAccountUpdatedEventData>()), Times.Never);
+    }
 }

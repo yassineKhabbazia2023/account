@@ -441,5 +441,202 @@ namespace Pulse.Account.Core.Tests.Services
             // Act & Assert
             await service.UpdateAccountAsync(1, accountDetail); // Doit passer sans exception
         }
+
+        [Fact]
+        public async Task UpdateAccountAsync_WhenStaffSizeRangeCleared_ShouldPreserveExistingValue()
+        {
+            // Arrange
+            var currentAccount = new AccountDetail
+            {
+                AccountId = 1,
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789", StaffSizeRange = "10-50" },
+                Phone = new List<Phone>()
+            };
+            var updateAccount = new AccountDetail
+            {
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789", StaffSizeRange = null },
+                Phone = new List<Phone>()
+            };
+
+            _accountRepository.Setup(repo => repo.GetAccountAsync(1))
+                .ReturnsAsync(currentAccount);
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+                .ReturnsAsync(currentAccount);
+
+            var service = new AccountService(_accountRepository.Object, _accountEventPublisher.Object, _logger);
+
+            // Act
+            await service.UpdateAccountAsync(1, updateAccount);
+
+            // Assert
+            Assert.Equal("10-50", updateAccount.Legal.StaffSizeRange);
+        }
+
+        [Fact]
+        public async Task UpdateAccountAsync_WhenAccountingTypeCleared_ShouldPreserveExistingValue()
+        {
+            // Arrange
+            var currentAccount = new AccountDetail
+            {
+                AccountId = 1,
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789" },
+                Accounting = new Accounting { AccountingType = "Engagement" },
+                Phone = new List<Phone>()
+            };
+            var updateAccount = new AccountDetail
+            {
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789" },
+                Accounting = new Accounting { AccountingType = null },
+                Phone = new List<Phone>()
+            };
+
+            _accountRepository.Setup(repo => repo.GetAccountAsync(1))
+                .ReturnsAsync(currentAccount);
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+                .ReturnsAsync(currentAccount);
+
+            var service = new AccountService(_accountRepository.Object, _accountEventPublisher.Object, _logger);
+
+            // Act
+            await service.UpdateAccountAsync(1, updateAccount);
+
+            // Assert
+            Assert.Equal("Engagement", updateAccount.Accounting.AccountingType);
+        }
+
+        [Fact]
+        public async Task UpdateAccountAsync_WhenBothFieldsCleared_ShouldPreserveBothExistingValues()
+        {
+            // Arrange
+            var currentAccount = new AccountDetail
+            {
+                AccountId = 1,
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789", StaffSizeRange = "10-50" },
+                Accounting = new Accounting { AccountingType = "Engagement" },
+                Phone = new List<Phone>()
+            };
+            var updateAccount = new AccountDetail
+            {
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789", StaffSizeRange = "" },
+                Accounting = new Accounting { AccountingType = "" },
+                Phone = new List<Phone>()
+            };
+
+            _accountRepository.Setup(repo => repo.GetAccountAsync(1))
+                .ReturnsAsync(currentAccount);
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+                .ReturnsAsync(currentAccount);
+
+            var service = new AccountService(_accountRepository.Object, _accountEventPublisher.Object, _logger);
+
+            // Act
+            await service.UpdateAccountAsync(1, updateAccount);
+
+            // Assert
+            Assert.Equal("10-50", updateAccount.Legal.StaffSizeRange);
+            Assert.Equal("Engagement", updateAccount.Accounting.AccountingType);
+        }
+
+        [Fact]
+        public async Task UpdateAccountAsync_WhenNewValuesProvided_ShouldUseNewValues()
+        {
+            // Arrange
+            var currentAccount = new AccountDetail
+            {
+                AccountId = 1,
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789", StaffSizeRange = "10-50" },
+                Accounting = new Accounting { AccountingType = "Engagement" },
+                Phone = new List<Phone>()
+            };
+            var updateAccount = new AccountDetail
+            {
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789", StaffSizeRange = "50-100" },
+                Accounting = new Accounting { AccountingType = "Tresorerie" },
+                Phone = new List<Phone>()
+            };
+
+            _accountRepository.Setup(repo => repo.GetAccountAsync(1))
+                .ReturnsAsync(currentAccount);
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+                .ReturnsAsync(updateAccount);
+
+            var service = new AccountService(_accountRepository.Object, _accountEventPublisher.Object, _logger);
+
+            // Act
+            await service.UpdateAccountAsync(1, updateAccount);
+
+            // Assert
+            Assert.Equal("50-100", updateAccount.Legal.StaffSizeRange);
+            Assert.Equal("Tresorerie", updateAccount.Accounting.AccountingType);
+        }
+
+        [Fact]
+        public async Task UpdateAccountAsync_WhenCurrentAccountIsNull_ShouldNotProtectFields()
+        {
+            // Arrange
+            var updateAccount = new AccountDetail
+            {
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789", StaffSizeRange = null },
+                Phone = new List<Phone>()
+            };
+
+            _accountRepository.Setup(repo => repo.GetAccountAsync(1))
+                .ReturnsAsync((AccountDetail?)null);
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+                .ReturnsAsync(updateAccount);
+
+            var service = new AccountService(_accountRepository.Object, _accountEventPublisher.Object, _logger);
+
+            // Act
+            await service.UpdateAccountAsync(1, updateAccount);
+
+            // Assert
+            Assert.Null(updateAccount.Legal.StaffSizeRange);
+            _accountRepository.Verify(repo => repo.UpdateAccountAsync(1, updateAccount), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateAccountAsync_WhenCurrentFieldsAreNull_ShouldAllowNullValues()
+        {
+            // Arrange
+            var currentAccount = new AccountDetail
+            {
+                AccountId = 1,
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789", StaffSizeRange = null },
+                Accounting = new Accounting { AccountingType = null },
+                Phone = new List<Phone>()
+            };
+            var updateAccount = new AccountDetail
+            {
+                AccountNumber = "A12345",
+                Legal = new Legal { LegalName = "SAS TEST", Siren = "123456789", StaffSizeRange = null },
+                Accounting = new Accounting { AccountingType = null },
+                Phone = new List<Phone>()
+            };
+
+            _accountRepository.Setup(repo => repo.GetAccountAsync(1))
+                .ReturnsAsync(currentAccount);
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+                .ReturnsAsync(updateAccount);
+
+            var service = new AccountService(_accountRepository.Object, _accountEventPublisher.Object, _logger);
+
+            // Act
+            await service.UpdateAccountAsync(1, updateAccount);
+
+            // Assert
+            Assert.Null(updateAccount.Legal.StaffSizeRange);
+            Assert.Null(updateAccount.Accounting.AccountingType);
+        }
     }
 }

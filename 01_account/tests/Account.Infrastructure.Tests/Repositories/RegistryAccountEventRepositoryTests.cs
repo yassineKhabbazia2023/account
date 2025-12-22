@@ -215,4 +215,92 @@ public class RegistryAccountEventRepositoryTests
 
         result.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task GetAccountByGuidAsync_WithExistingAccount_ShouldReturnAccountDetail()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AccountContext>()
+               .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+               .Options;
+        using var context = new AccountContext(options);
+
+        var accountGuid = Guid.NewGuid();
+        var account = new AccountEntity()
+        {
+            AccountId = 1,
+            AccountGlobalUniqueId = accountGuid,
+            AccountNumber = "123456",
+            LegalName = "Test Company",
+            Email = "test@test.fr",
+            CreatedBy = "test",
+            IsActive = true,
+            StaffSizeRange = "10-50",
+            AccountingMethod = "Engagement"
+        };
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        // Act
+        var result = await repository.GetAccountByGuidAsync(accountGuid);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.AccountNumber.Should().Be("123456");
+        result.Legal.LegalName.Should().Be("Test Company");
+        result.Legal.StaffSizeRange.Should().Be("10-50");
+        result.Accounting!.AccountingType.Should().Be("Engagement");
+    }
+
+    [Fact]
+    public async Task GetAccountByGuidAsync_WithNonExistingAccount_ShouldReturnNull()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AccountContext>()
+               .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+               .Options;
+        using var context = new AccountContext(options);
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        // Act
+        var result = await repository.GetAccountByGuidAsync(Guid.NewGuid());
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetAccountByGuidAsync_WithInactiveAccount_ShouldReturnNull()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AccountContext>()
+               .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+               .Options;
+        using var context = new AccountContext(options);
+
+        var accountGuid = Guid.NewGuid();
+        var account = new AccountEntity()
+        {
+            AccountId = 1,
+            AccountGlobalUniqueId = accountGuid,
+            AccountNumber = "123456",
+            LegalName = "Test Company",
+            Email = "test@test.fr",
+            CreatedBy = "test",
+            IsActive = false
+        };
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        // Act
+        var result = await repository.GetAccountByGuidAsync(accountGuid);
+
+        // Assert - inactive accounts are filtered by global query filter
+        result.Should().BeNull();
+    }
 }
