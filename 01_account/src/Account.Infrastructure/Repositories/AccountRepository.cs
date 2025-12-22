@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq.Expressions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
 using Polly;
 using Polly.Retry;
@@ -29,10 +30,12 @@ public class AccountRepository : IAccountRepository
 {
     private readonly AccountContext _accountContext;
     private readonly AsyncRetryPolicy _retryPolicy;
+    private readonly ILogger<AccountRepository> _logger;
 
-    public AccountRepository(AccountContext accountContext)
+    public AccountRepository(AccountContext accountContext, ILogger<AccountRepository> logger)
     {
         _accountContext = accountContext;
+        _logger = logger;
 
         _retryPolicy = Policy
                 .Handle<SqlException>()
@@ -282,6 +285,9 @@ public class AccountRepository : IAccountRepository
                 throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
             }
 
+            // Protéger les champs obligatoires : ne pas permettre de les vider une fois renseignés
+            ProtectRequiredFields(existingAccount, accountDetail);
+
             existingAccount.MapToUpdatedAccount(accountDetail);
             _accountContext.AccountEntity.Update(existingAccount);
             toReturn = existingAccount.MapToAccountDetail();
@@ -289,6 +295,41 @@ public class AccountRepository : IAccountRepository
         });
 
         return toReturn!;
+    }
+
+    private void ProtectRequiredFields(AccountEntity existingAccount, AccountDetail accountDetail)
+    {
+        // Protéger StaffSizeRange
+        if (!string.IsNullOrWhiteSpace(existingAccount.StaffSizeRange)
+            && string.IsNullOrWhiteSpace(accountDetail.Legal?.StaffSizeRange))
+        {
+            _logger.LogError(
+                "Tentative de suppression du champ StaffSizeRange pour le compte {AccountId}. Valeur actuelle: {CurrentValue}. La valeur existante sera conservée.",
+                existingAccount.AccountId,
+                existingAccount.StaffSizeRange);
+
+            // Conserver la valeur existante
+            if (accountDetail.Legal != null)
+            {
+                accountDetail.Legal.StaffSizeRange = existingAccount.StaffSizeRange;
+            }
+        }
+
+        // Protéger AccountingType (AccountingMethod en base)
+        if (!string.IsNullOrWhiteSpace(existingAccount.AccountingMethod)
+            && string.IsNullOrWhiteSpace(accountDetail.Accounting?.AccountingType))
+        {
+            _logger.LogError(
+                "Tentative de suppression du champ AccountingType pour le compte {AccountId}. Valeur actuelle: {CurrentValue}. La valeur existante sera conservée.",
+                existingAccount.AccountId,
+                existingAccount.AccountingMethod);
+
+            // Conserver la valeur existante
+            if (accountDetail.Accounting != null)
+            {
+                accountDetail.Accounting.AccountingType = existingAccount.AccountingMethod;
+            }
+        }
     }
 
     public async Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination pagination)

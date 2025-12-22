@@ -3,6 +3,7 @@
 // </copyright>
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
@@ -19,10 +20,12 @@ namespace Pulse.Account.Infrastructure.Repositories;
 public class RegistryAccountEventRepository : IRegistryAccountEventRepository
 {
     private readonly AccountContext _context;
+    private readonly ILogger<RegistryAccountEventRepository> _logger;
 
-    public RegistryAccountEventRepository(AccountContext context)
+    public RegistryAccountEventRepository(AccountContext context, ILogger<RegistryAccountEventRepository> logger)
     {
         _context = context;
+        _logger = logger;
         _context.HandleEFCoreFailure();
     }
 
@@ -71,10 +74,43 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
         }
 
         var newAccount = eventData.ToAccountEntity(false);
+
+        // Protéger les champs obligatoires : ne pas permettre de les vider une fois renseignés
+        ProtectRequiredFields(existingAccount, newAccount);
+
         existingAccount.ToAccountEntity(newAccount, false);
         await _context.SaveChangesAsync();
 
         return existingAccount.MapToAccountDetail()!;
+    }
+
+    private void ProtectRequiredFields(AccountEntity existingAccount, AccountEntity newAccount)
+    {
+        // Protéger StaffSizeRange
+        if (!string.IsNullOrWhiteSpace(existingAccount.StaffSizeRange)
+            && string.IsNullOrWhiteSpace(newAccount.StaffSizeRange))
+        {
+            _logger.LogError(
+                "Tentative de suppression du champ StaffSizeRange pour le compte {AccountId} via événement Registry. Valeur actuelle: {CurrentValue}. La valeur existante sera conservée.",
+                existingAccount.AccountId,
+                existingAccount.StaffSizeRange);
+
+            // Conserver la valeur existante
+            newAccount.StaffSizeRange = existingAccount.StaffSizeRange;
+        }
+
+        // Protéger AccountingMethod
+        if (!string.IsNullOrWhiteSpace(existingAccount.AccountingMethod)
+            && string.IsNullOrWhiteSpace(newAccount.AccountingMethod))
+        {
+            _logger.LogError(
+                "Tentative de suppression du champ AccountingMethod pour le compte {AccountId} via événement Registry. Valeur actuelle: {CurrentValue}. La valeur existante sera conservée.",
+                existingAccount.AccountId,
+                existingAccount.AccountingMethod);
+
+            // Conserver la valeur existante
+            newAccount.AccountingMethod = existingAccount.AccountingMethod;
+        }
     }
 
     public async Task<bool> DoesAccountExistAsync(Guid accountGlobalUniqueId)

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Pulse.Account.API;
 using Pulse.Account.API.Controllers;
@@ -46,7 +47,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         _context = InitContext();
-        var accountRepository = new AccountRepository(_context);
+        var accountRepository = new AccountRepository(_context, NullLogger<AccountRepository>.Instance);
         var accountEventPublisher = new Mock<IAccountEventPublisher>();
         var accountService = new AccountService(accountRepository, accountEventPublisher.Object);
         _accountController = new AccountController(accountService);

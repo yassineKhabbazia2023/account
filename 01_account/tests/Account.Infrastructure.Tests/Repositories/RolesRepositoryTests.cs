@@ -4,6 +4,7 @@
 
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Enum;
@@ -826,7 +827,7 @@ public class RolesRepositoryTests
                 IsFavorite = true,
                 IsSignatory = true
             });
-            var accountRepository = new AccountRepository(context);
+            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
 
             var criteria = new SearchContactsAccountCriteria
             {
