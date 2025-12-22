@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Microsoft.Extensions.Logging;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -16,11 +17,16 @@ namespace Pulse.Account.Core.Services
     {
         private readonly IAccountRepository _accountRepository;
         private readonly IAccountEventPublisher _accountEventPublisher;
+        private readonly ILogger<AccountService> _logger;
 
-        public AccountService(IAccountRepository accountRepository, IAccountEventPublisher accountEventPublisher)
+        public AccountService(
+            IAccountRepository accountRepository,
+            IAccountEventPublisher accountEventPublisher,
+            ILogger<AccountService> logger)
         {
             _accountRepository = accountRepository;
             _accountEventPublisher = accountEventPublisher;
+            _logger = logger;
         }
 
         public async Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination? pagination)
@@ -61,8 +67,48 @@ namespace Pulse.Account.Core.Services
 
         public async Task UpdateAccountAsync(int accountId, AccountDetail accountDetail)
         {
+            // Récupérer l'état actuel pour vérifier les champs protégés
+            var currentAccount = await _accountRepository.GetAccountAsync(accountId);
+            if (currentAccount != null)
+            {
+                ProtectRequiredFields(currentAccount, accountDetail);
+            }
+
             var updatedAccount = await _accountRepository.UpdateAccountAsync(accountId, accountDetail);
             await _accountEventPublisher.PublishAccountUpdatedEventAsync(updatedAccount);
+        }
+
+        private void ProtectRequiredFields(AccountDetail currentAccount, AccountDetail accountDetail)
+        {
+            // Protéger StaffSizeRange
+            if (!string.IsNullOrWhiteSpace(currentAccount.Legal?.StaffSizeRange)
+                && string.IsNullOrWhiteSpace(accountDetail.Legal?.StaffSizeRange))
+            {
+                _logger.LogError(
+                    "Tentative de suppression du champ StaffSizeRange pour le compte {AccountId}. Valeur actuelle: {CurrentValue}. La valeur existante sera conservée.",
+                    currentAccount.AccountId,
+                    currentAccount.Legal.StaffSizeRange);
+
+                if (accountDetail.Legal != null)
+                {
+                    accountDetail.Legal.StaffSizeRange = currentAccount.Legal.StaffSizeRange;
+                }
+            }
+
+            // Protéger AccountingType
+            if (!string.IsNullOrWhiteSpace(currentAccount.Accounting?.AccountingType)
+                && string.IsNullOrWhiteSpace(accountDetail.Accounting?.AccountingType))
+            {
+                _logger.LogError(
+                    "Tentative de suppression du champ AccountingType pour le compte {AccountId}. Valeur actuelle: {CurrentValue}. La valeur existante sera conservée.",
+                    currentAccount.AccountId,
+                    currentAccount.Accounting.AccountingType);
+
+                if (accountDetail.Accounting != null)
+                {
+                    accountDetail.Accounting.AccountingType = currentAccount.Accounting.AccountingType;
+                }
+            }
         }
 
         public async Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination? pagination)

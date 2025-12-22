@@ -5,7 +5,6 @@
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -40,7 +39,7 @@ public class RegistryAccountEventRepositoryTests
 
         using (var context = new AccountContext(options))
         {
-            var action = async () => await new RegistryAccountEventRepository(context, NullLogger<RegistryAccountEventRepository>.Instance).RemoveAccountAsync(accountGUI);
+            var action = async () => await new RegistryAccountEventRepository(context).RemoveAccountAsync(accountGUI);
 
             await action.Should().ThrowAsync<NotFoundException>();
         }
@@ -62,7 +61,7 @@ public class RegistryAccountEventRepositoryTests
                 .Options;
 
         using var context = new AccountContext(options);
-        var repository = new RegistryAccountEventRepository(context, NullLogger<RegistryAccountEventRepository>.Instance);
+        var repository = new RegistryAccountEventRepository(context);
 
         // Act
         var detail = await repository.CreateAccountAsync(data!);
@@ -101,7 +100,7 @@ public class RegistryAccountEventRepositoryTests
             .Create();
 
         using var context = new AccountContext(options);
-        var repository = new RegistryAccountEventRepository(context, NullLogger<RegistryAccountEventRepository>.Instance);
+        var repository = new RegistryAccountEventRepository(context);
         await repository.CreateAccountAsync(source);
 
         // Act
@@ -131,7 +130,7 @@ public class RegistryAccountEventRepositoryTests
             .Create();
 
         using var context = new AccountContext(options);
-        var repository = new RegistryAccountEventRepository(context, NullLogger<RegistryAccountEventRepository>.Instance);
+        var repository = new RegistryAccountEventRepository(context);
         _accountEntity.AccountGlobalUniqueId = data.AccountGlobalUniqueIdentifier;
         await context.AccountEntity.AddAsync(_accountEntity);
         await context.SaveChangesAsync();
@@ -166,7 +165,7 @@ public class RegistryAccountEventRepositoryTests
         };
         context.AccountEntity.Add(account);
         context.SaveChanges();
-        var repository = new RegistryAccountEventRepository(context, NullLogger<RegistryAccountEventRepository>.Instance);
+        var repository = new RegistryAccountEventRepository(context);
 
         // act
         var action = async () => await repository.UpdateAccountAsync(eventData);
@@ -195,7 +194,7 @@ public class RegistryAccountEventRepositoryTests
         context.AccountEntity.Add(account);
         await context.SaveChangesAsync();
 
-        var repository = new RegistryAccountEventRepository(context, NullLogger<RegistryAccountEventRepository>.Instance);
+        var repository = new RegistryAccountEventRepository(context);
 
         var result = await repository.DoesAccountExistAsync(account.AccountGlobalUniqueId);
 
@@ -210,7 +209,7 @@ public class RegistryAccountEventRepositoryTests
                .Options;
         using var context = new AccountContext(options);
 
-        var repository = new RegistryAccountEventRepository(context, NullLogger<RegistryAccountEventRepository>.Instance);
+        var repository = new RegistryAccountEventRepository(context);
 
         var result = await repository.DoesAccountExistAsync(Guid.NewGuid());
 

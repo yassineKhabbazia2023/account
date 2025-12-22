@@ -16,4 +16,6 @@ public interface IRegistryAccountEventRepository
     public Task<int> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier);
 
     Task<bool> DoesAccountExistAsync(Guid accountGlobalUniqueId);
+
+    Task<AccountDetail?> GetAccountByGuidAsync(Guid accountGlobalUniqueId);
 }

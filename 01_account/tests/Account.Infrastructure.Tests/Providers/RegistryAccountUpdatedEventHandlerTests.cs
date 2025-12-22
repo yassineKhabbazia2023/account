@@ -32,6 +32,8 @@ public class RegistryAccountUpdatedEventHandlerTests
         // Arrange
         var loggerMock = new Mock<ILogger<RegistryAccountUpdatedEventHandler>>();
         var repositoryMock = new Mock<IRegistryAccountEventRepository>(MockBehavior.Strict);
+        repositoryMock.Setup(r => r.GetAccountByGuidAsync(It.IsAny<Guid>()))
+            .ReturnsAsync((AccountDetail?)null);
         repositoryMock.Setup(r => r.UpdateAccountAsync(It.IsAny<RegistryAccountUpdatedEventData>())) !
         .ReturnsAsync(_accountEntity.MapToAccountDetail());
 

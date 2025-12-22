@@ -44,9 +44,45 @@ public class RegistryAccountUpdatedEventHandler : IEventHandler
             return;
         }
 
+        // Protéger les champs obligatoires avant la mise à jour
+        await ProtectRequiredFieldsAsync(@event.Data);
+
         var updatedAccount = await _accountEventRepository.UpdateAccountAsync(@event!.Data);
         _logger.LogInformation("L'entité avec l'identifiant suivant: {AccountId} vient d'être mise à jour.", updatedAccount.AccountId);
 
         await _accountEventPublisher.PublishAccountUpdatedEventAsync(updatedAccount);
+    }
+
+    private async Task ProtectRequiredFieldsAsync(Back.Events.IntegrationEvents.EventsData.RegistryAccountUpdatedEventData eventData)
+    {
+        var currentAccount = await _accountEventRepository.GetAccountByGuidAsync(eventData.AccountGlobalUniqueIdentifier);
+        if (currentAccount == null)
+        {
+            return;
+        }
+
+        // Protéger StaffSizeRange
+        if (!string.IsNullOrWhiteSpace(currentAccount.Legal?.StaffSizeRange)
+            && string.IsNullOrWhiteSpace(eventData.AccountStaffSizeSlice))
+        {
+            _logger.LogError(
+                "Tentative de suppression du champ StaffSizeRange pour le compte {AccountGuid} via événement Registry. Valeur actuelle: {CurrentValue}. La valeur existante sera conservée.",
+                eventData.AccountGlobalUniqueIdentifier,
+                currentAccount.Legal.StaffSizeRange);
+
+            eventData.AccountStaffSizeSlice = currentAccount.Legal.StaffSizeRange;
+        }
+
+        // Protéger AccountingType
+        if (!string.IsNullOrWhiteSpace(currentAccount.Accounting?.AccountingType)
+            && string.IsNullOrWhiteSpace(eventData.AccountTypeTenueComptable))
+        {
+            _logger.LogError(
+                "Tentative de suppression du champ AccountingType pour le compte {AccountGuid} via événement Registry. Valeur actuelle: {CurrentValue}. La valeur existante sera conservée.",
+                eventData.AccountGlobalUniqueIdentifier,
+                currentAccount.Accounting.AccountingType);
+
+            eventData.AccountTypeTenueComptable = currentAccount.Accounting.AccountingType;
+        }
     }
 }

@@ -5,8 +5,6 @@
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Constants;
@@ -91,7 +89,7 @@ public class AccountRepositoryTests
             context.DeploymentEntity.AddRange(deploymentENtity);
             await context.SaveChangesAsync();
 
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
             var contactId = accountEntity.RoleEntity.Select(role => role.ContactId).FirstOrDefault();
             var accountObject = accountEntity.MapToAccount(contactId);
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
@@ -167,7 +165,7 @@ public class AccountRepositoryTests
                 resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId)!);
             }
 
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
             {
@@ -266,7 +264,7 @@ public class AccountRepositoryTests
                 resultExpected.Add(accountMock.MapToAccount(mockedContacts[0].ContactId)!);
             }
 
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
             {
                 CurrentPage = 1,
@@ -392,7 +390,7 @@ public class AccountRepositoryTests
             context.DeploymentEntity.AddRange([deploymentENtity, deploymentENtity2]);
             await context.SaveChangesAsync();
 
-            var repo = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var repo = new AccountRepository(context);
             var criteria = new SearchAccountCriteria
             {
                 ContactId = 1,
@@ -506,7 +504,7 @@ public class AccountRepositoryTests
             context.DeploymentEntity.AddRange([deploymentENtity, deploymentENtity2]);
             await context.SaveChangesAsync();
 
-            var repo = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var repo = new AccountRepository(context);
             var criteria = new SearchAccountCriteria
             {
                 ContactId = 1,
@@ -576,7 +574,7 @@ public class AccountRepositoryTests
             context.AccountEntity.Add(accountMockInactive);
             context.SaveChanges();
 
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             Paging<AccountModel> accountPaging = new Paging<AccountModel>()
             {
@@ -611,7 +609,7 @@ public class AccountRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Arrange
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
             var accountPaging = new Paging<AccountModel>()
             {
                 CurrentPage = 1,
@@ -651,7 +649,7 @@ public class AccountRepositoryTests
             var accountSummary = accountFirst?.MapToAccountSummary(contactId);
             context.AccountEntity.AddRange(accountsModel);
             await context.SaveChangesAsync();
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Act
             var accounts = await accountRepository.GetAccountSummaryAsync(contactId, accountFirst!.AccountId);
@@ -675,7 +673,7 @@ public class AccountRepositoryTests
             var accountDetail = accountFirst?.MapToAccountDetail();
             context.AccountEntity.AddRange(accountsModel);
             await context.SaveChangesAsync();
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Act
             var accounts = await accountRepository.GetAccountDetailAsync(accountFirst!.AccountId);
@@ -696,7 +694,7 @@ public class AccountRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Arrange
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Act
             Task Accounts() => accountRepository.GetAccountDetailAsync(123);
@@ -717,7 +715,7 @@ public class AccountRepositoryTests
             var accountDetail = accountFirst?.MapToAccountDetail();
             context.AccountEntity.AddRange(accountsModel);
             await context.SaveChangesAsync();
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Act
             var accounts = await accountRepository.GetAccountAsync(accountFirst!.AccountId);
@@ -743,7 +741,7 @@ public class AccountRepositoryTests
             var accountDetail = accountFirst?.MapToAccountDetail();
             context.AccountEntity.AddRange(accountsModel);
             await context.SaveChangesAsync();
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Act
             var accounts = await accountRepository.GetAccountAsync(accountFirst!.AccountId);
@@ -763,7 +761,7 @@ public class AccountRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Arrange
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Act
             Task Accounts() => accountRepository.GetAccountAsync(123);
@@ -782,7 +780,7 @@ public class AccountRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Arrange
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             var action = async () => await accountRepository.UpdateAccountAsync(accountId, accountDetail);
 
@@ -804,7 +802,7 @@ public class AccountRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Arrange
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             var result = await accountRepository.GetContactsAccountAsync(accountId, criteria, pagination);
 
@@ -830,7 +828,7 @@ public class AccountRepositoryTests
 
             context.AccountEntity.AddRange(accountsModel!);
             await context.SaveChangesAsync();
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Act
             await accountRepository.UpdateAccountAsync(accountDetail!.AccountId, accountDetail!);
@@ -967,7 +965,7 @@ public class AccountRepositoryTests
         context.ContactEntity.AddRange(contactsMock);
         await context.SaveChangesAsync();
 
-        var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+        var accountRepository = new AccountRepository(context);
         var criteria = new SearchContactsAccountCriteria
         {
             Type = type,
@@ -1015,7 +1013,7 @@ public class AccountRepositoryTests
                                         .Without(a => a.OfferEligibilityEntity)
                                         .Create();
 
-        var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+        var accountRepository = new AccountRepository(context);
         var criteria = new SearchContactsAccountCriteria
         {
             Type = It.IsAny<ContactType>(),
@@ -1073,7 +1071,7 @@ public class AccountRepositoryTests
 
         var criteria = new SearchContactsAccountCriteria { IsCustomerRelation = isCustomerRelation };
 
-        var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+        var accountRepository = new AccountRepository(context);
 
         // Act
         var result = await accountRepository.GetContactsAccountAsync(1, criteria, new Pagination { PageNumber = 1, PageSize = 100 });
@@ -1138,7 +1136,7 @@ public class AccountRepositoryTests
 
             context.SaveChanges();
 
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             var request = new GetAssociatedContactsRequest
             {
@@ -1164,7 +1162,7 @@ public class AccountRepositoryTests
 
         using (var context = new AccountContext(_dbContextOptions))
         {
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
             var action = async () => await accountRepository.GetAssociatedContactsAsync(contactId, request, pagination);
 
             await action.Should().ThrowAsync<NotFoundException>();
@@ -1211,7 +1209,7 @@ public class AccountRepositoryTests
             context.RoleEntity.AddRange(roles);
             context.SaveChanges();
 
-            var repos = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var repos = new AccountRepository(context);
             var result = await repos.GetAssociatedContactsAsync(contacts.FirstOrDefault().ContactId, request, pagination);
 
             request.Search.Should().NotBeEmpty();
@@ -1236,7 +1234,7 @@ public class AccountRepositoryTests
             context.AccountEntity.AddRange(accountsMock);
             context.SaveChanges();
 
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             var request = new GetAssociatedContactsRequest
             {
@@ -1260,7 +1258,7 @@ public class AccountRepositoryTests
             // Arrange
             var deploymentStatus = DeploymentStatus.Connected;
             var contactId = 123;
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Add test data with different deployment statuses
             // ... (add test data setup here)
@@ -1286,7 +1284,7 @@ public class AccountRepositoryTests
         {
             // Arrange
             var accountNumber = "123456";
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Add test data with different account numbers
             // ... (add test data setup here)
@@ -1405,7 +1403,7 @@ public class AccountRepositoryTests
             context.RoleEntity.AddRange(role1, role2);
 
             await context.SaveChangesAsync();
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Add test data with different account numbers
             // ... (add test data setup here)
@@ -1466,7 +1464,7 @@ public class AccountRepositoryTests
             context.RoleEntity.Add(role);
             context.SaveChanges();
 
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Add test data with different contact names
             var criteria = new SearchContactsAccountCriteria { Search = searchTerm };
@@ -1569,7 +1567,7 @@ public class AccountRepositoryTests
             context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
             context.SaveChanges();
 
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Add test data with different contact names
             var criteria = new SearchContactsAccountCriteria { Type = ContactType.Collaborator };
@@ -1594,7 +1592,7 @@ public class AccountRepositoryTests
             // Arrange
             var contactId = 1;
             var searchTerm = "Jane";
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Add test data with different associated contacts
             // ... (add test data setup here)
@@ -1715,7 +1713,7 @@ public class AccountRepositoryTests
             context.SaveChanges();
             context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
             context.SaveChanges();
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Act
             var result = await accountRepository.GetAssociatedContactsAsync(contactId, request, pagination);
@@ -1833,7 +1831,7 @@ public class AccountRepositoryTests
             context.SaveChanges();
             context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
             context.SaveChanges();
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Act
             var result = await accountRepository.GetAssociatedContactsAsync(contactId, request, pagination);
@@ -1953,7 +1951,7 @@ public class AccountRepositoryTests
             context.SaveChanges();
             context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
             context.SaveChanges();
-            var accountRepository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+            var accountRepository = new AccountRepository(context);
 
             // Act
             var result = await accountRepository.GetAssociatedContactsAsync(contactId, request, pagination);
@@ -2054,7 +2052,7 @@ public class AccountRepositoryTests
             IsCustomerRelationFilter = true,
         };
 
-        var repository = new AccountRepository(context, NullLogger<AccountRepository>.Instance);
+        var repository = new AccountRepository(context);
 
         var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
 

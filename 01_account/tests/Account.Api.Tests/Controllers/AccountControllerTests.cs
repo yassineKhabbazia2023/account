@@ -47,9 +47,9 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         _context = InitContext();
-        var accountRepository = new AccountRepository(_context, NullLogger<AccountRepository>.Instance);
+        var accountRepository = new AccountRepository(_context);
         var accountEventPublisher = new Mock<IAccountEventPublisher>();
-        var accountService = new AccountService(accountRepository, accountEventPublisher.Object);
+        var accountService = new AccountService(accountRepository, accountEventPublisher.Object, NullLogger<AccountService>.Instance);
         _accountController = new AccountController(accountService);
     }
 
