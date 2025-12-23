@@ -1,8 +1,4 @@
-﻿// <copyright file="MapToAccountEntity.cs" company="Pulse">
-// Copyright (c) Pulse. All rights reserved.
-// </copyright>
-
-using System.Globalization;
+﻿using System.Globalization;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
@@ -80,11 +76,16 @@ public static class MapToAccountEntity
             {
                 phoneDelivery = new PhoneEntity
                 {
-                    Type = PhoneType.Delivery.ToString()
+                    Type = PhoneType.Delivery.ToString(),
+                    AccountId = destination.AccountId,
+                    PhoneNumber = phoneDeliveryNew.PhoneNumber
                 };
+                destination.PhoneEntity.Add(phoneDelivery);
             }
-
-            phoneDelivery.PhoneNumber = phoneDeliveryNew!.PhoneNumber;
+            else
+            {
+                phoneDelivery.PhoneNumber = phoneDeliveryNew.PhoneNumber;
+            }
         }
 
         if (phoneBillingNew != null)
@@ -93,11 +94,16 @@ public static class MapToAccountEntity
             {
                 phoneBilling = new PhoneEntity
                 {
-                    Type = PhoneType.Delivery.ToString()
+                    Type = PhoneType.Billing.ToString(),
+                    AccountId = destination.AccountId,
+                    PhoneNumber = phoneBillingNew.PhoneNumber
                 };
+                destination.PhoneEntity.Add(phoneBilling);
             }
-
-            phoneBilling!.PhoneNumber = phoneBillingNew!.PhoneNumber;
+            else
+            {
+                phoneBilling.PhoneNumber = phoneBillingNew.PhoneNumber;
+            }
         }
     }
 
@@ -109,14 +115,19 @@ public static class MapToAccountEntity
         var addressBilling = destination.AddressEntity.FirstOrDefault(x => AddressType.Billing.ToString().Equals(x.AddressType, StringComparison.InvariantCultureIgnoreCase));
         var addressBillingNew = source.AddressEntity.FirstOrDefault(x => AddressType.Billing.ToString().Equals(x.AddressType, StringComparison.InvariantCultureIgnoreCase));
 
-        addressDelivery!.ToAddressEntity(addressDeliveryNew!);
-        addressBilling!.ToAddressEntity(addressBillingNew!);
+        if (addressDelivery != null && addressDeliveryNew != null)
+        {
+            addressDelivery.ToAddressEntity(addressDeliveryNew);
+        }
+
+        if (addressBilling != null && addressBillingNew != null)
+        {
+            addressBilling.ToAddressEntity(addressBillingNew);
+        }
     }
 
     private static void ToAddressEntity(this AddressEntity destination, AddressEntity source)
     {
-        destination.City = source.City;
-        destination.Country = source.Country;
         destination.AddressLine1 = source.AddressLine1;
         destination.AddressLine2 = source.AddressLine2;
         destination.AddressLine3 = source.AddressLine3;
