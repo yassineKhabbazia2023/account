@@ -3,9 +3,10 @@
 WITH Mapping AS (
     SELECT 'Amiens Haute Picardie' AS OldName, 'Amiens Somme Aisne' AS NewName UNION ALL
     SELECT 'Grand Ouest Parisien',   'Grande Couronne' UNION ALL
-    SELECT 'Loire&Dr�me Ard�che',    'ID&AL' UNION ALL
+    SELECT 'Loire & Drôme Ardèche',    'ID&AL' UNION ALL
     SELECT 'Marne et Oise',          'Amiens Somme Aisne' UNION ALL
     SELECT 'Normandie Seine Baie de Somme', 'Amiens Somme Aisne' UNION ALL
+    SELECT 'Toulouse Midi Pyrennées', 'Toulouse Midi Pyrénées' UNION ALL
     SELECT 'Paris',                  'Grande Couronne'
 ),
 Prep AS (
@@ -100,3 +101,15 @@ WHERE ExistingName IS NOT NULL;
 
 
 DROP TABLE #CheckExisting;
+
+--------------------------------------
+-- 8. Insert missing hubs
+--------------------------------------
+INSERT INTO [account].[Hub]
+           ([HubName])
+     VALUES
+           ('Rouen Seine Eure')
+GO
+
+
+
