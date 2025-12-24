@@ -1,115 +1,149 @@
--- Action script
--- 1. Build mapping A -> B
-WITH Mapping AS (
-    SELECT 'Amiens Haute Picardie' AS OldName, 'Amiens Somme Aisne' AS NewName UNION ALL
-    SELECT 'Grand Ouest Parisien',   'Grande Couronne' UNION ALL
-    SELECT 'Loire & Drôme Ardèche',    'ID&AL' UNION ALL
-    SELECT 'Marne et Oise',          'Amiens Somme Aisne' UNION ALL
-    SELECT 'Normandie Seine Baie de Somme', 'Amiens Somme Aisne' UNION ALL
-    SELECT 'Toulouse Midi Pyrennées', 'Toulouse Midi Pyrénées' UNION ALL
-    SELECT 'Paris',                  'Grande Couronne'
-),
-Prep AS (
-    SELECT
-        'Hub ' + OldName AS FullOld,
-        'Hub ' + NewName AS FullNew
-    FROM Mapping
-),
-CheckExisting AS (
-    SELECT
-        p.FullOld,
-        p.FullNew,
-        h.HubName AS ExistingName
-    FROM Prep p
-    LEFT JOIN account.Hub h
-        ON LTRIM(RTRIM(h.HubName)) = LTRIM(RTRIM(p.FullOld))
-)
+BEGIN TRY
+    BEGIN TRANSACTION;
 
--- 2. Materialize to reuse
-SELECT *
-INTO #CheckExisting
-FROM CheckExisting;
-
-
---------------------------------------
--- 3. Update existing hubs
---------------------------------------
-UPDATE h
-SET HubName = c.FullNew
-FROM account.Hub h
-JOIN #CheckExisting c
-    ON LTRIM(RTRIM(h.HubName)) = LTRIM(RTRIM(c.FullOld));
-
-
---------------------------------------
--- 4. Show updated rows
---------------------------------------
-SELECT DISTINCT
-    'Updated' AS Status,
-    FullOld AS OldValue,
-    FullNew AS NewValue
-FROM #CheckExisting
-WHERE ExistingName IS NOT NULL;
-
-
---------------------------------------
--- 5. Show missing hubs from your list
---------------------------------------
-SELECT DISTINCT
-    'Not Found in DB' AS Status,
-    FullOld AS MissingValue
-FROM #CheckExisting
-WHERE ExistingName IS NULL;
-
-
-
-/* --------------------------------------------------------
-   6. CLEAN DUPLICATES CREATED BY THE UPDATE
-   -------------------------------------------------------- */
-
-WITH TargetNames AS (
-    SELECT DISTINCT FullNew AS HubName
-    FROM #CheckExisting
-    WHERE ExistingName IS NOT NULL
-),
-Dup AS (
-    SELECT 
-        h.HubId,
-        h.HubName,
-        ROW_NUMBER() OVER (PARTITION BY h.HubName ORDER BY h.HubId) AS rn
+    --------------------------------------------------
+    -- 1. Apply rename mapping A -> B
+    --------------------------------------------------
+    WITH Mapping AS (
+        SELECT 'Amiens Haute Picardie' AS OldName, 'Amiens Somme Aisne' AS NewName UNION ALL
+        SELECT 'Grand Ouest Parisien',   'Grande Couronne' UNION ALL
+        SELECT 'Loire & Drôme Ardèche',  'ID&AL' UNION ALL
+        SELECT 'Marne et Oise',          'Amiens Somme Aisne' UNION ALL
+        SELECT 'Normandie Seine Baie de Somme', 'Amiens Somme Aisne' UNION ALL
+        SELECT 'Toulouse Midi Pyrennées', 'Toulouse Midi Pyrénées' UNION ALL
+        SELECT 'Paris',                  'Grande Couronne'
+    ),
+    Prep AS (
+        SELECT
+            'Hub ' + OldName AS FullOld,
+            'Hub ' + NewName AS FullNew
+        FROM Mapping
+    )
+    UPDATE h
+    SET HubName = p.FullNew
     FROM account.Hub h
-    JOIN TargetNames t
+    JOIN Prep p
+        ON LTRIM(RTRIM(h.HubName)) = LTRIM(RTRIM(p.FullOld));
+
+
+    --------------------------------------------------
+    -- 2. Identify hub names impacted by the mapping
+    --------------------------------------------------
+    SELECT DISTINCT 'Hub ' + NewName AS HubName
+    INTO #TargetHubNames
+    FROM (VALUES
+        ('Amiens Somme Aisne'),
+        ('Grande Couronne'),
+        ('ID&AL'),
+        ('Toulouse Midi Pyrénées')
+    ) v(NewName);
+
+
+    --------------------------------------------------
+    -- 3. Determine the hub to KEEP per name
+    --------------------------------------------------
+    SELECT
+        h.HubName,
+        MIN(h.HubId) AS KeepHubId
+    INTO #HubToKeep
+    FROM account.Hub h
+    JOIN #TargetHubNames t
         ON LTRIM(RTRIM(h.HubName)) = LTRIM(RTRIM(t.HubName))
-)
-
-DELETE FROM account.Hub
-WHERE HubId IN (
-    SELECT HubId
-    FROM Dup
-    WHERE rn > 1
-);
+    GROUP BY h.HubName;
 
 
---------------------------------------
--- 7. Show cleanup result
---------------------------------------
-SELECT DISTINCT
-    'Duplicate Cleanup Performed' AS Status,
-    FullNew AS HubName
-FROM #CheckExisting
-WHERE ExistingName IS NOT NULL;
+    --------------------------------------------------
+    -- 4. Identify duplicate hubs
+    --------------------------------------------------
+    SELECT
+        h.HubId        AS DuplicateHubId,
+        k.KeepHubId,
+        h.HubName
+    INTO #DuplicateHubs
+    FROM account.Hub h
+    JOIN #HubToKeep k
+        ON LTRIM(RTRIM(h.HubName)) = LTRIM(RTRIM(k.HubName))
+    WHERE h.HubId <> k.KeepHubId;
 
 
-DROP TABLE #CheckExisting;
+    --------------------------------------------------
+    -- 5. CAPTURE accounts to be updated (rollback trace)
+    --------------------------------------------------
+    SELECT
+        a.AccountId,
+        a.HubId            AS OldHubId,
+        h.HubName          AS OldHubName,
+        d.KeepHubId        AS NewHubId,
+        hk.HubName         AS NewHubName
+    INTO #UpdatedAccounts
+    FROM account.Account a
+    JOIN #DuplicateHubs d
+        ON a.HubId = d.DuplicateHubId
+    JOIN account.Hub h
+        ON h.HubId = a.HubId
+    JOIN account.Hub hk
+        ON hk.HubId = d.KeepHubId;
 
---------------------------------------
--- 8. Insert missing hubs
---------------------------------------
-INSERT INTO [account].[Hub]
-           ([HubName])
-     VALUES
-           ('Rouen Seine Eure')
-GO
+
+    --------------------------------------------------
+    -- 6. Reassign accounts → kept hub per name
+    --------------------------------------------------
+    UPDATE a
+    SET HubId = d.KeepHubId
+    FROM account.Account a
+    JOIN #DuplicateHubs d
+        ON a.HubId = d.DuplicateHubId;
 
 
+    --------------------------------------------------
+    -- 7. Delete duplicate hubs
+    --------------------------------------------------
+    DELETE FROM account.Hub
+    WHERE HubId IN (
+        SELECT DuplicateHubId FROM #DuplicateHubs
+    );
 
+
+    --------------------------------------------------
+    -- 8. Optional: insert missing hub
+    --------------------------------------------------
+    IF NOT EXISTS (
+        SELECT 1
+        FROM account.Hub
+        WHERE HubName = 'Hub Rouen Seine Eure'
+    )
+    BEGIN
+        INSERT INTO account.Hub (HubName)
+        VALUES ('Hub Rouen Seine Eure');
+    END;
+
+
+    --------------------------------------------------
+    -- 9. FINAL REPORT (rollback-ready)
+    --------------------------------------------------
+    SELECT
+        AccountId,
+        OldHubId,
+        OldHubName,
+        NewHubId,
+        NewHubName
+    FROM #UpdatedAccounts
+    ORDER BY NewHubName, AccountId;
+
+
+    --------------------------------------------------
+    -- 10. Cleanup
+    --------------------------------------------------
+    DROP TABLE #TargetHubNames;
+    DROP TABLE #HubToKeep;
+    DROP TABLE #DuplicateHubs;
+    DROP TABLE #UpdatedAccounts;
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+
+    THROW;
+END CATCH;
