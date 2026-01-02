@@ -39,6 +39,46 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         [Fact]
+        public async Task GetHubsAsync_WithSortAsc_ShouldReturnSortedHubs()
+        {
+            var hubs = new List<Hub>
+            {
+                new Hub { HubName = "Zulu" },
+                new Hub { HubName = "Alpha" },
+                new Hub { HubName = "Beta" },
+            };
+            _repositoryMock.Setup(x => x.GetHubsAsync()).ReturnsAsync(hubs);
+
+            var service = new ReferentialService(_repositoryMock.Object);
+
+            var result = await service.GetHubsAsync("ASC");
+
+            result.Should().BeEquivalentTo(
+                hubs.OrderBy(hub => hub.HubName),
+                options => options.WithStrictOrdering());
+        }
+
+        [Fact]
+        public async Task GetHubsAsync_WithSortDesc_ShouldReturnSortedHubs()
+        {
+            var hubs = new List<Hub>
+            {
+                new Hub { HubName = "Zulu" },
+                new Hub { HubName = "Alpha" },
+                new Hub { HubName = "Beta" },
+            };
+            _repositoryMock.Setup(x => x.GetHubsAsync()).ReturnsAsync(hubs);
+
+            var service = new ReferentialService(_repositoryMock.Object);
+
+            var result = await service.GetHubsAsync("DESC");
+
+            result.Should().BeEquivalentTo(
+                hubs.OrderByDescending(hub => hub.HubName),
+                options => options.WithStrictOrdering());
+        }
+
+        [Fact]
         public async Task GetNafsAsync_ShouldReturnNafList()
         {
             var nafs = _fixture.Create<Paging<Naf>>();

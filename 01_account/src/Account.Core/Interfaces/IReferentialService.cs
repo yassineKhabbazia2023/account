@@ -10,7 +10,7 @@ namespace Pulse.Account.Core.Interfaces;
 
 public interface IReferentialService
 {
-    Task<IEnumerable<Hub?>> GetHubsAsync();
+    Task<IEnumerable<Hub?>> GetHubsAsync(string? sort = null);
 
     Task<Paging<Naf>> GetNafsAsync(string? search, Pagination? pagination);
 

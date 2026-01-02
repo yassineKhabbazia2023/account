@@ -24,12 +24,13 @@ public class ReferentialController : ControllerBase
     /// <summary>
     /// Récupère la liste des hubs.
     /// </summary>
+    /// <param name="sort">Tri optionnel sur le HubName (ASC/DESC).</param>
     /// <returns>Liste de hubs.</returns>
     [HttpGet("hubs")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<Hub?>))]
-    public async Task<ActionResult<IReadOnlyCollection<Hub?>>> GetHubsAsync()
+    public async Task<ActionResult<IReadOnlyCollection<Hub?>>> GetHubsAsync([FromQuery] string? sort = null)
     {
-        var result = await _referentialService.GetHubsAsync();
+        var result = await _referentialService.GetHubsAsync(sort);
 
         return Ok(result);
     }

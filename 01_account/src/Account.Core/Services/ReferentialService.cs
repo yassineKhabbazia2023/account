@@ -19,9 +19,21 @@ public class ReferentialService : IReferentialService
         _referentialRepository = referentialRepository;
     }
 
-    public async Task<IEnumerable<Hub?>> GetHubsAsync()
+    public async Task<IEnumerable<Hub?>> GetHubsAsync(string? sort = null)
     {
-        return await _referentialRepository.GetHubsAsync();
+        var result = await _referentialRepository.GetHubsAsync();
+
+        // Sort parameter to order hubs by name (ASC/DESC).
+        if (string.Equals(sort, "ASC", StringComparison.OrdinalIgnoreCase))
+        {
+            result = result.OrderBy(hub => hub?.HubName).ToList();
+        }
+        else if (string.Equals(sort, "DESC", StringComparison.OrdinalIgnoreCase))
+        {
+            result = result.OrderByDescending(hub => hub?.HubName).ToList();
+        }
+
+        return result;
     }
 
     public async Task<Paging<Naf>> GetNafsAsync(string? search, Pagination? pagination)

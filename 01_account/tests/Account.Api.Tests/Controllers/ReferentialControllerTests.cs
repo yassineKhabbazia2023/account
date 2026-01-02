@@ -29,7 +29,7 @@ namespace Account.Api.Tests.Controllers
         public async Task GetHubsAsync_ShouldReturnOkResult()
         {
             var hubs = _fixture.CreateMany<Hub>();
-            _service.Setup(x => x.GetHubsAsync()).ReturnsAsync(hubs).Verifiable();
+            _service.Setup(x => x.GetHubsAsync(It.IsAny<string?>())).ReturnsAsync(hubs).Verifiable();
 
             var referentialController = new ReferentialController(_service.Object);
 
@@ -42,7 +42,7 @@ namespace Account.Api.Tests.Controllers
         [Fact]
         public async Task GetHubsAsync_WithNoHubInBase_ShouldReturnOkResult()
         {
-            _service.Setup(x => x.GetHubsAsync()).ReturnsAsync(Enumerable.Empty<Hub>()).Verifiable();
+            _service.Setup(x => x.GetHubsAsync(It.IsAny<string?>())).ReturnsAsync(Enumerable.Empty<Hub>()).Verifiable();
 
             var referentialController = new ReferentialController(_service.Object);
 
