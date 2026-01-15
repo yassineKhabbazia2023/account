@@ -1,0 +1,1 @@
+INSERT [account].[Hub]([HubName]) VALUES (N'Paris')

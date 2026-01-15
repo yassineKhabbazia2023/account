@@ -35,5 +35,6 @@ BEGIN
 	('Lorraine Sud'),
 	('Alsace Sud'),
 	('Champagne-Ardenne'),
-	('Lorraine Nord')
+	('Lorraine Nord'),
+	('Paris')
 END

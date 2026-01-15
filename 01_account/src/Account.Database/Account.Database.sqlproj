@@ -106,5 +106,6 @@
     <None Include="ScriptsRattrapage\Suppression_deployment_doublon.sql" />
     <None Include="Scripts\003_Update_ActionLevel.sql" />
     <Build Include="Security\Schemas\ext.sql" />
+    <None Include="Scripts\58321_add-hub-paris" />
   </ItemGroup>
 </Project>
