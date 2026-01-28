@@ -56,6 +56,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             {
                 ContactId = role!.ContactId,
                 Email = role.Contact.Email,
+                MobilePhone = role.Contact.MobilePhone,
                 FirstName = role.Contact.FirstName,
                 LastName = role.Contact.LastName,
                 Status = role.Contact.Status,
@@ -73,6 +74,21 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         }
 
         [Fact]
+        public void MapToContact_NullMobilePhone_ReturnsMappedContactWithEmptyMobilePhone()
+        {
+            // Arrange
+            RoleEntity? role = _fixture.Create<RoleEntity?>();
+            role!.Contact.MobilePhone = null!;
+
+            // Act
+            var result = role.MapToContact();
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(string.Empty, result.MobilePhone);
+        }
+
+        [Fact]
         public void MapToContacts_NotEmptySource_ReturnsMappedContact()
         {
             // Arrange
@@ -83,6 +99,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
                 {
                     ContactId = roles!.First().ContactId,
                     Email = roles!.First().Contact.Email,
+                    MobilePhone = roles!.First().Contact.MobilePhone,
                     FirstName = roles!.First().Contact.FirstName,
                     LastName = roles!.First().Contact.LastName,
                     Status = roles!.First().Contact.Status,

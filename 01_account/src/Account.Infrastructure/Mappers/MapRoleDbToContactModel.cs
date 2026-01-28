@@ -22,6 +22,7 @@ namespace Pulse.Account.Infrastructure.Mappers
                 FirstName = source.Contact.FirstName,
                 LastName = source.Contact.LastName,
                 Email = source.Contact.Email,
+                MobilePhone = source.Contact.MobilePhone ?? string.Empty,
                 Status = source.Contact.Status,
                 PersonaName = source.Contact.PersonaName,
                 Office = source.Contact.Office,
