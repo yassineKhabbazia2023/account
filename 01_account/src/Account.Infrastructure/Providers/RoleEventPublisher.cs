@@ -56,6 +56,7 @@ public class RoleEventPublisher : IRoleEventPublisher
             ContactEmail = selectedContact!.Email,
             IsCustomerRelation = roleRequest.IsCustomerRelation,
             IncludePennylaneAccess = roleRequest.IncludePennylaneAccess,
+            ContactFlagPortailFactures = roleRequest.ContactFlagPortailFactures,
         };
 
         await _eventPublisher.PublishAsync(new RoleCreatedEvent(data));

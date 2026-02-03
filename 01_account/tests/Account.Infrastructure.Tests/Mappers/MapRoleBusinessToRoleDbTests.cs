@@ -50,6 +50,7 @@ public class MapRoleBusinessToRoleDbTests
         Assert.Equal(role.IsSignatory, result.IsSignatory);
         Assert.Equal(role.IsDelegation, result.IsDelegation);
         Assert.Equal(role.IsCustomerRelation, result.IsCustomerRelation);
+        Assert.Equal(role.ContactFlagPortailFactures, result.ContactFlagPortailFactures);
         Assert.Equal(role.ActionLevel, result.ActionLevel);
     }
 
@@ -89,6 +90,7 @@ public class MapRoleBusinessToRoleDbTests
             Assert.Equal(role.IsSignatory, result.IsSignatory);
             Assert.Equal(role.IsFavorite, result.IsFavorite);
             Assert.Equal(role.IsDelegation, result.IsDelegation);
+            Assert.Equal(role.ContactFlagPortailFactures, result.ContactFlagPortailFactures);
         }
     }
 
@@ -133,6 +135,7 @@ public class MapRoleBusinessToRoleDbTests
             Assert.Equal(role.IsFavorite, mappedRole.IsFavorite);
             Assert.Equal(role.IsSignatory, mappedRole.IsSignatory);
             Assert.Equal(role.IsDelegation, mappedRole.IsDelegation);
+            Assert.Equal(role.ContactFlagPortailFactures, mappedRole.ContactFlagPortailFactures);
         }
     }
 
@@ -166,6 +169,7 @@ public class MapRoleBusinessToRoleDbTests
         Assert.Equal(role.IsSignatory, result.IsSignatory);
         Assert.Equal(role.IsDelegation, result.IsDelegation);
         Assert.Equal(role.IsCustomerRelation, result.IsCustomerRelation);
+        Assert.Equal(role.ContactFlagPortailFactures, result.ContactFlagPortailFactures);
         Assert.Equal(role.ActionLevel, result.ActionLevel);
     }
 

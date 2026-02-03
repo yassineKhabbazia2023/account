@@ -26,6 +26,7 @@ public static class MapRoleBusinessToRoleDb
             IsSignatory = role.IsSignatory,
             IsDelegation = role.IsDelegation,
             IsCustomerRelation = role.IsCustomerRelation,
+            ContactFlagPortailFactures = role.ContactFlagPortailFactures,
             ActionLevel = role.ActionLevel ?? (int)ActionLevelType.NotAssigned,
         };
     }
@@ -40,6 +41,7 @@ public static class MapRoleBusinessToRoleDb
             IsSignatory = role.IsSignatory,
             IsDelegation = role.IsDelegation,
             IsCustomerRelation = role.IsCustomerRelation,
+            ContactFlagPortailFactures = role.ContactFlagPortailFactures,
             ActionLevel = role.ActionLevel,
         };
     }

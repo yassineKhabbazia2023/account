@@ -34,6 +34,20 @@ public class RegistryRoleEventRepository : IRegistryRoleEventRepository
         return role.ToCreateRoleRequest();
     }
 
+    public async Task<CreateRoleRequest?> UpdateRoleContactFlagPortailFacturesAsync(int accountId, int contactId, bool? contactFlagPortailFactures)
+    {
+        var existingRole = await _context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == accountId && r.ContactId == contactId);
+        if (existingRole != null)
+        {
+            existingRole.ContactFlagPortailFactures = contactFlagPortailFactures;
+            _context.RoleEntity.Update(existingRole);
+            await _context.SaveChangesAsync();
+            return existingRole.ToCreateRoleRequest();
+        }
+
+        return null;
+    }
+
     public async Task<bool> RemoveRoleAsync(int accountId, int contactId)
     {
         await CheckExistingAccountAndContactAsync(accountId, contactId);

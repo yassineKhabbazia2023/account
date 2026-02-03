@@ -34,6 +34,9 @@ namespace Pulse.Account.Core.Requests
         [JsonIgnore]
         public bool? IsCustomerRelation { get; set; }
 
+        [JsonIgnore]
+        public bool? ContactFlagPortailFactures { get; set; }
+
         public bool? IncludePennylaneAccess { get; set; }
 
         [JsonIgnore]

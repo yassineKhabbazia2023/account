@@ -18,6 +18,8 @@ namespace Pulse.Account.Core.Models
 
         public bool? IsCustomerRelation { get; set; }
 
+        public bool? ContactFlagPortailFactures { get; set; }
+
         public int ActionLevel { get; set; } = default;
     }
 }

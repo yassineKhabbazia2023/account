@@ -43,14 +43,15 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
         }
 
         var @event = JsonConvert.DeserializeObject<RegistryRoleCreatedEvent>(message);
-        _logger.LogInformation("Consommation de l'event type: {EventType}, AccountId: {AccountId}, ContactId: {ContactId} | AccountGuid: {AccountGuid}, ContactGuid: {ContactGuid}, IsCustomerRelation: {IsCustomerRelation}, RegistryApproverEmail: {RegistryApproverEmail}",
+        _logger.LogInformation("Consommation de l'event type: {EventType}, AccountId: {AccountId}, ContactId: {ContactId} | AccountGuid: {AccountGuid}, ContactGuid: {ContactGuid}, IsCustomerRelation: {IsCustomerRelation}, RegistryApproverEmail: {RegistryApproverEmail},ContactFlagPortailFactures: {ContactFlagPortailFactures}",
             @event?.EventType,
             @event?.Data?.AccountId,
             @event?.Data?.ContactId,
             @event?.Data?.AccountGuid,
             @event?.Data?.ContactGuid,
             @event?.Data?.RegistryApproverEmail,
-            @event?.Data?.IsCustomerRelation);
+            @event?.Data?.IsCustomerRelation,
+            @event?.Data?.ContactFlagPortailFactures);
 
         if (@event?.Data == null)
         {
@@ -74,9 +75,28 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
 
         await _roleEventRepository.CheckExistingAccountAndContactAsync(accountId, contactId);
 
-        if (await _roleRepository.GetContactRoleAsync(accountId, contactId) != null)
+        var existingRole = await _roleRepository.GetContactRoleAsync(accountId, contactId);
+        if (existingRole != null)
         {
-            _logger.LogWarning(string.Format(Errors.BadRequestExistingRoleMessage, contactId, accountId));
+            // Cette logique gère les mises à jour de ContactFlagPortailFactures envoyées par Registry.
+            // La comparaison bool? est volontaire : null et false sont considérés différents afin de synchroniser explicitement la valeur.
+            if (existingRole.ContactFlagPortailFactures != @event!.Data.ContactFlagPortailFactures)
+            {
+                var updatedRole = await _roleEventRepository.UpdateRoleContactFlagPortailFacturesAsync(accountId, contactId, @event!.Data.ContactFlagPortailFactures);
+                if (updatedRole == null)
+                {
+                    _logger.LogWarning("Le role avec l'identifiant suivant: AccountId: {AccountId} - ContactId: {ContactId} n'a pas pu être mis à jour.", accountId, contactId);
+                    return;
+                }
+
+                _logger.LogInformation("Le role avec l'identifiant suivant: AccountId: {AccountId} - ContactId: {ContactId} vient d'être mise à jour.", updatedRole.AccountId, updatedRole.ContactId);
+
+                await _roleEventPublisher.PublishRoleCreatedEventAsync(updatedRole);
+            }
+            else
+            {
+                _logger.LogWarning(string.Format(Errors.BadRequestExistingRoleMessage, contactId, accountId));
+            }
         }
         else
         {

@@ -33,6 +33,7 @@ public class MapRoleDbToRoleBusinessTests
         Assert.Equal(role.IsFavorite, result.IsFavorite);
         Assert.Equal(role.IsDelegation, result.IsDelegation);
         Assert.Equal(role.IsCustomerRelation, result.IsCustomerRelation);
+        Assert.Equal(role.ContactFlagPortailFactures, result.ContactFlagPortailFactures);
         Assert.Equal(role.ActionLevel, result.ActionLevel);
     }
 
@@ -64,6 +65,7 @@ public class MapRoleDbToRoleBusinessTests
             Assert.Equal(role.IsSignatory, res.IsSignatory);
             Assert.Equal(role.IsFavorite, res.IsFavorite);
             Assert.Equal(role.IsDelegation, res.IsDelegation);
+            Assert.Equal(role.ContactFlagPortailFactures, res.ContactFlagPortailFactures);
         }
     }
 

@@ -34,6 +34,8 @@ public partial class RoleEntity
 
     public bool? IsCustomerRelation { get; set; }
 
+    public bool? ContactFlagPortailFactures { get; set; }
+
     public int ActionLevel { get; set; }
 
     public virtual AccountEntity Account { get; set; }

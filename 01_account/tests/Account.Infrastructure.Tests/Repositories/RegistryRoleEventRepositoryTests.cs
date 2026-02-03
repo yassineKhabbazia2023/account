@@ -47,6 +47,7 @@ public class RegistryRoleEventRepositoryTests
         var data = _fixture.Build<RegistryRoleCreatedEventData>()
             .With(r => r.AccountId, account.AccountId)
             .With(r => r.ContactId, contact.ContactId)
+            .With(r => r.ContactFlagPortailFactures, true)
             .Create();
 
         var repository = new RegistryRoleEventRepository(context);
@@ -58,10 +59,12 @@ public class RegistryRoleEventRepositoryTests
         Assert.Equal(contact.ContactId, result.ContactId);
         Assert.Equal(data.IsFavorite, result.IsFavorite);
         Assert.Equal(data.RoleSignatory, result.IsSignatory);
+        Assert.Equal(data.ContactFlagPortailFactures, result.ContactFlagPortailFactures);
         Assert.Null(result.IsDelegation);
 
         var insertedRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == account.AccountId && r.ContactId == contact.ContactId);
         Assert.NotNull(insertedRole);
+        Assert.Equal(data.ContactFlagPortailFactures, insertedRole.ContactFlagPortailFactures);
     }
 
     [Fact]
@@ -89,6 +92,7 @@ public class RegistryRoleEventRepositoryTests
         var data = _fixture.Build<RegistryRoleCreatedEventData>()
             .With(r => r.AccountId, account.AccountId)
             .With(r => r.ContactId, contact.ContactId)
+            .With(r => r.ContactFlagPortailFactures, true)
             .Create();
 
         var repository = new RegistryRoleEventRepository(context);
@@ -100,10 +104,79 @@ public class RegistryRoleEventRepositoryTests
         Assert.Equal(contactId, result.ContactId);
         Assert.Equal(data.IsFavorite, result.IsFavorite);
         Assert.Equal(data.RoleSignatory, result.IsSignatory);
+        Assert.Equal(data.ContactFlagPortailFactures, result.ContactFlagPortailFactures);
         Assert.Null(result.IsDelegation);
 
         var insertedRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == accountId && r.ContactId == contactId);
         Assert.NotNull(insertedRole);
+        Assert.Equal(data.ContactFlagPortailFactures, insertedRole.ContactFlagPortailFactures);
+    }
+
+    [Fact]
+    public async Task UpdateRoleContactFlagPortailFacturesAsync_ShouldUpdateContactFlagPortailFactures()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+        using var context = new AccountContext(options);
+
+        var account = _fixture.Build<AccountEntity>()
+            .Without(a => a.RoleEntity)
+            .Create();
+        context.AccountEntity.Add(account);
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+
+        var existingRole = _fixture.Build<RoleEntity>()
+            .With(r => r.AccountId, account.AccountId)
+            .With(r => r.ContactId, contact.ContactId)
+            .With(r => r.ContactFlagPortailFactures, false)
+            .Without(r => r.Account)
+            .Without(r => r.Contact)
+            .Create();
+        context.RoleEntity.Add(existingRole);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryRoleEventRepository(context);
+
+        var result = await repository.UpdateRoleContactFlagPortailFacturesAsync(account.AccountId, contact.ContactId, true);
+
+        Assert.NotNull(result);
+        Assert.True(result.ContactFlagPortailFactures);
+
+        var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == account.AccountId && r.ContactId == contact.ContactId);
+        Assert.NotNull(updatedRole);
+        Assert.True(updatedRole!.ContactFlagPortailFactures);
+    }
+
+    [Fact]
+    public async Task UpdateRoleContactFlagPortailFacturesAsync_WithMissingRole_ShouldReturnNull()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+        using var context = new AccountContext(options);
+
+        var account = _fixture.Build<AccountEntity>()
+            .Without(a => a.RoleEntity)
+            .Create();
+        context.AccountEntity.Add(account);
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryRoleEventRepository(context);
+
+        var result = await repository.UpdateRoleContactFlagPortailFacturesAsync(account.AccountId, contact.ContactId, true);
+
+        Assert.Null(result);
     }
 
     [Fact]

@@ -27,7 +27,8 @@ public static class MapToRoleEntity
             ContactId = contactId ?? resolvedContactId,
             IsFavorite = eventData.IsFavorite,
             IsSignatory = eventData.RoleSignatory,
-            IsCustomerRelation = isCustomerRelation
+            IsCustomerRelation = isCustomerRelation,
+            ContactFlagPortailFactures = eventData.ContactFlagPortailFactures,
         };
     }
 
@@ -50,7 +51,8 @@ public static class MapToRoleEntity
             IsFavorite = request.IsFavorite,
             IsSignatory = request.IsSignatory,
             IsDelegation = request.IsDelegation,
-            IsCustomerRelation = request.IsCustomerRelation
+            IsCustomerRelation = request.IsCustomerRelation,
+            ContactFlagPortailFactures = request.ContactFlagPortailFactures,
         };
     }
 
@@ -68,7 +70,8 @@ public static class MapToRoleEntity
             IsDelegation = source.IsDelegation,
             IsFavorite = source.IsFavorite,
             IsSignatory = source.IsSignatory,
-            IsCustomerRelation = source.IsCustomerRelation
+            IsCustomerRelation = source.IsCustomerRelation,
+            ContactFlagPortailFactures = source.ContactFlagPortailFactures,
         };
     }
 
@@ -88,6 +91,7 @@ public static class MapToRoleEntity
             IsSignatory = roleEntity.IsSignatory,
             IsDelegation = roleEntity.IsDelegation,
             IsCustomerRelation = roleEntity.IsCustomerRelation,
+            ContactFlagPortailFactures = roleEntity.ContactFlagPortailFactures,
             DelegatorId = delegatorId,
             IncludePennylaneAccess = includePennylaneAccess
         };

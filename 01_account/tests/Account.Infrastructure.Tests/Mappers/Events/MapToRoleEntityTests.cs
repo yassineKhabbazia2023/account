@@ -3,7 +3,6 @@
 // </copyright>
 
 using AutoFixture;
-using Org.BouncyCastle.Ocsp;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
@@ -34,7 +33,8 @@ public class MapToRoleEntityTests
             Email = "email@test.fr",
             IsFavorite = true,
             RoleSignatory = false,
-            IsCustomerRelation = true
+            IsCustomerRelation = true,
+            ContactFlagPortailFactures = true
         };
 
         // Act
@@ -46,6 +46,7 @@ public class MapToRoleEntityTests
         Assert.Equal(eventData.IsFavorite, result.IsFavorite);
         Assert.Equal(eventData.RoleSignatory, result.IsSignatory);
         Assert.Equal(eventData.IsCustomerRelation, result.IsCustomerRelation);
+        Assert.Equal(eventData.ContactFlagPortailFactures, result.ContactFlagPortailFactures);
     }
 
     [Fact]
@@ -62,7 +63,8 @@ public class MapToRoleEntityTests
             Email = "email@test.fr",
             IsFavorite = true,
             RoleSignatory = false,
-            IsCustomerRelation = true
+            IsCustomerRelation = true,
+            ContactFlagPortailFactures = true
         };
 
         // Act
@@ -74,6 +76,7 @@ public class MapToRoleEntityTests
         Assert.Equal(eventData.IsFavorite, result.IsFavorite);
         Assert.Equal(eventData.RoleSignatory, result.IsSignatory);
         Assert.Equal(eventData.IsCustomerRelation, result.IsCustomerRelation);
+        Assert.Equal(eventData.ContactFlagPortailFactures, result.ContactFlagPortailFactures);
     }
 
     [Fact]
@@ -106,6 +109,7 @@ public class MapToRoleEntityTests
             IsFavorite = true,
             IsSignatory = true,
             IsCustomerRelation = true,
+            ContactFlagPortailFactures = true,
         };
 
         // Act
@@ -117,6 +121,7 @@ public class MapToRoleEntityTests
         Assert.Equal(roleEntity.IsFavorite, createdRole.IsFavorite);
         Assert.Equal(roleEntity.IsSignatory, createdRole.IsSignatory);
         Assert.Equal(roleEntity.IsCustomerRelation, createdRole.IsCustomerRelation);
+        Assert.Equal(roleEntity.ContactFlagPortailFactures, createdRole.ContactFlagPortailFactures);
         Assert.Equal(roleEntity.Contact.ContactGlobalUniqueId, createdRole.ContactGlobalUniqueId);
         Assert.Equal(roleEntity.Account.AccountGlobalUniqueId, createdRole.AccountGlobalUniqueId);
     }
@@ -135,6 +140,7 @@ public class MapToRoleEntityTests
         Assert.Equal(request.IsDelegation, result.IsDelegation);
         Assert.Equal(request.IsFavorite, result.IsFavorite);
         Assert.Equal(request.IsCustomerRelation, result.IsCustomerRelation);
+        Assert.Equal(request.ContactFlagPortailFactures, result.ContactFlagPortailFactures);
     }
 
     [Fact]
@@ -166,6 +172,7 @@ public class MapToRoleEntityTests
             Assert.Equal(request.IsDelegation, result.IsDelegation);
             Assert.Equal(request.IsFavorite, result.IsFavorite);
             Assert.Equal(request.IsCustomerRelation, result.IsCustomerRelation);
+            Assert.Equal(request.ContactFlagPortailFactures, result.ContactFlagPortailFactures);
         }
     }
 
@@ -192,6 +199,7 @@ public class MapToRoleEntityTests
         Assert.Equal(source.IsDelegation, result.IsDelegation);
         Assert.Equal(source.IsFavorite, result.IsFavorite);
         Assert.Equal(source.IsCustomerRelation, result.IsCustomerRelation);
+        Assert.Equal(source.ContactFlagPortailFactures, result.ContactFlagPortailFactures);
     }
 
     [Fact]

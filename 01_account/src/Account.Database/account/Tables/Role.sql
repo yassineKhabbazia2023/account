@@ -6,6 +6,7 @@
 	[IsSignatory]		    BIT		NULL,
     [IsDelegation]          BIT     NULL,
 	[IsCustomerRelation]    BIT     NULL , 
+    [ContactFlagPortailFactures] BIT NULL,
     [ActionLevel]           INT     NOT NULL DEFAULT 0, 
     CONSTRAINT [C_Role_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC, [AccountId] ASC),
 	CONSTRAINT [C_Account_Role_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId]),
@@ -74,4 +75,13 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'Role',
     @level2type = N'COLUMN',
     @level2name = 'IsDelegation'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Indique si le contact est flaggé pour le portail factures',
+    @level0type = N'SCHEMA',
+    @level0name = N'account',
+    @level1type = N'TABLE',
+    @level1name = N'Role',
+    @level2type = N'COLUMN',
+    @level2name = 'ContactFlagPortailFactures'
 GO

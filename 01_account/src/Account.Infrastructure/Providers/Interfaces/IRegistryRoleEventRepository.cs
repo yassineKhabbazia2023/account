@@ -19,4 +19,6 @@ public interface IRegistryRoleEventRepository
     public Task<ContactEntity> GetContactByGuidAsync(Guid contactId);
 
     public Task CheckExistingAccountAndContactAsync(int accountId, int contactId);
+
+    Task<CreateRoleRequest?> UpdateRoleContactFlagPortailFacturesAsync(int accountId, int contactId, bool? contactFlagPortailFactures);
 }

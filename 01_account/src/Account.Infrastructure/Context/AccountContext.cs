@@ -536,6 +536,7 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.IsDelegation).HasComment("Indique, dans les cas où c''est possible, si le role est lié à une délégation");
             entity.Property(e => e.IsFavorite).HasComment("Le rôle est-il considéré comme un favori ou mis en avant comme tel");
             entity.Property(e => e.IsSignatory).HasComment("Le signataire");
+            entity.Property(e => e.ContactFlagPortailFactures).HasComment("Indique si le contact est flaggé pour le portail factures");
 
             entity.HasOne(d => d.Account).WithMany(p => p.RoleEntity)
                 .HasForeignKey(d => d.AccountId)
