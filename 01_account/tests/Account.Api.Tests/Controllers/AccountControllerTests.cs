@@ -394,39 +394,6 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task Should_UpdateAccount_InvalidSiren_ReturnsBadRequest(string? invalidSiren)
-    {
-        // Arrange
-        var accountId = _context.AccountEntity.First().AccountId;
-        var newHub = _fixture.Create<HubEntity>();
-        _context.HubEntity.Add(newHub);
-        _context.SaveChanges();
-
-        var jsonPatch = new JsonPatchDocument<AccountDetail>();
-        jsonPatch.Replace(a => a.Hub, new Hub { HubId = newHub.HubId, HubName = newHub.HubName });
-        jsonPatch.Replace(a => a.AccountNumber, "A12345");
-        jsonPatch.Replace(a => a.Legal, new Legal { LegalName = "SAS TEST", Siren = invalidSiren });
-        jsonPatch.Replace(a => a.Phone, new List<Phone> { new Phone { PhoneNumber = "0625569262" } });
-
-        // Act
-        var result = await _accountController.UpdateAccountAsync(accountId, jsonPatch);
-
-        // Assert
-        var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-        var serializableError = Assert.IsType<SerializableError>(badRequest.Value);
-
-        Assert.Contains("Siren", serializableError.Keys.Cast<string>()); // Vérifie la clé
-        var errors = serializableError["Siren"] as string[];
-        Assert.NotNull(errors);
-        Assert.Contains(errors!, e => e.Contains("Siren", StringComparison.OrdinalIgnoreCase)
-                                      || e.Contains("vide", StringComparison.OrdinalIgnoreCase)
-                                      || e.Contains("invalide", StringComparison.OrdinalIgnoreCase));
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
     public async Task Should_UpdateAccount_InvalidLegalName_ReturnsBadRequest(string? invalidLegalName)
     {
         // Arrange

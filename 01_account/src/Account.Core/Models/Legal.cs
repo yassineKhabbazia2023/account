@@ -12,8 +12,7 @@ namespace Pulse.Account.Core.Models
         [NotEmptyOrWhiteSpace]
         public required string LegalName { get; set; }
 
-        [NotEmptyOrWhiteSpace]
-        public required string Siren { get; set; }
+        public string? Siren { get; set; }
 
         public string? Siret { get; set; }
 
