@@ -102,8 +102,8 @@ public class RolesServiceTests
 
         _contactRepository.Setup(repo => repo.GetContactByIdAsync(It.IsAny<int>())).ReturnsAsync(_fixture.Create<Contact>());
 
-        _rolePublisher!.Setup(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()))
-            .Callback<CreateRoleRequest>(role =>
+        _rolePublisher!.Setup(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()))
+            .Callback<CreateRoleRequest, string>((role, _) =>
             {
                 role.Should().NotBeNull();
                 role.ContactId.Should().Be(newRole.ContactId);
@@ -120,7 +120,7 @@ public class RolesServiceTests
 
         // Assert
         _roleRepository.VerifyAll();
-        _rolePublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Once);
+        _rolePublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Once);
         _historyPublisher.Verify(x => x.PublishHistoryCreatedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Once);
     }
 
@@ -139,7 +139,7 @@ public class RolesServiceTests
 
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(Roles);
-        _rolePublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
+        _rolePublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Never);
         _historyPublisher.Verify(x => x.PublishHistoryCreatedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
     }
 

@@ -58,7 +58,7 @@ public class ContactCreatedEventHandlerTests
         _contactRepositoryMock.Verify(repo => repo.CreateContactAsync(It.IsAny<ContactEntity>()), Times.Once);
         _accountRepositoryMock.Verify(x => x.GetAccountByNumberAsync(It.IsAny<string>()), Times.Once);
         _roleEventRepositoryMock.Verify(x => x.CreateRoleForNewContactAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-        _roleEventPublisherMock.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
+        _roleEventPublisherMock.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Never);
         _historyEventPublisher.Verify(x => x.PublishHistoryCreatedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
     }
 
@@ -117,7 +117,7 @@ public class ContactCreatedEventHandlerTests
                 ContactId = 123,
             })
             .Verifiable();
-        _roleEventPublisherMock.Setup(r => r.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()))
+        _roleEventPublisherMock.Setup(r => r.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()))
             .Verifiable();
 
         _accountRepositoryMock.Setup(x => x.GetAccountByNumberAsync(It.IsAny<string>())).ReturnsAsync(_fixture.Create<AccountEntity>());
@@ -137,7 +137,7 @@ public class ContactCreatedEventHandlerTests
         _contactRepositoryMock.Verify(repo => repo.CreateContactAsync(It.IsAny<ContactEntity>()), Times.Once);
         _accountRepositoryMock.Verify(x => x.GetAccountByNumberAsync(It.IsAny<string>()), Times.Once);
         _roleEventRepositoryMock.Verify(x => x.CreateRoleForNewContactAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
-        _roleEventPublisherMock.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Once);
+        _roleEventPublisherMock.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Once);
         _historyEventPublisher.Verify(x => x.PublishHistoryCreatedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Once);
     }
 }

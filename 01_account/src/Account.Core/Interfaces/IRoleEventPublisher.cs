@@ -8,7 +8,7 @@ namespace Pulse.Account.Core.Interfaces
 {
     public interface IRoleEventPublisher
     {
-        Task PublishRoleCreatedEventAsync(CreateRoleRequest roleRequest);
+        Task PublishRoleCreatedEventAsync(CreateRoleRequest roleRequest, string? subRole = null);
 
         Task PublishRoleDeletedEventAsync(int accountId, int contactId);
 

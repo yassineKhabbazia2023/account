@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using AutoFixture;
 using Moq;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
@@ -22,6 +23,7 @@ public class RoleEventPublisherTests
     private readonly Mock<IAccountRepository> _accountRepository;
     private readonly Mock<IEventPublisher> _eventPublisher;
     private readonly Mock<IRoleRepository> _roleRepository;
+    private readonly Fixture _fixture;
 
     public RoleEventPublisherTests()
     {
@@ -29,6 +31,10 @@ public class RoleEventPublisherTests
         _accountRepository = new Mock<IAccountRepository>();
         _eventPublisher = new Mock<IEventPublisher>();
         _roleRepository = new Mock<IRoleRepository>();
+
+        _fixture = new Fixture();
+        _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
+        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
     }
 
     [Fact]
@@ -41,6 +47,21 @@ public class RoleEventPublisherTests
         await roleEventPublisher.PublishRoleCreatedEventAsync(request);
 
         _eventPublisher.Verify(p => p.PublishAsync(It.IsAny<BaseEvent<RoleCreatedEventData>>(), null!, null), Times.Never);
+    }
+
+    [Fact]
+    public async Task PublishRoleCreatedEventAsync_Nominal()
+    {
+        var request = _fixture.Create<CreateRoleRequest>();
+
+        _contactEventRepository.Setup(c => c.GetContactAsync(It.IsAny<int>(), It.IsAny<bool>())).ReturnsAsync(_fixture.Create<ContactEntity>());
+        _accountRepository.Setup(a => a.GetAccountAsync(It.IsAny<int>())).ReturnsAsync(_fixture.Create<AccountDetail>());
+
+        var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, _contactEventRepository.Object, _accountRepository.Object, null!);
+
+        await roleEventPublisher.PublishRoleCreatedEventAsync(request);
+
+        _eventPublisher.Verify(p => p.PublishAsync(It.IsAny<BaseEvent<RoleCreatedEventData>>(), null!, null), Times.Once);
     }
 
     [Fact]

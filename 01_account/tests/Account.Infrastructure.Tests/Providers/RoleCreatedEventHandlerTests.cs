@@ -35,7 +35,7 @@ public class RoleCreatedEventHandlerTests
         var handler = new RoleCreatedEventHandler(_logger.Object, eventRepository.Object, publisher.Object);
         await handler.HandleAsync(message);
 
-        publisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Exactly(3));
+        publisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Exactly(3));
     }
 
     [Theory]
@@ -46,7 +46,7 @@ public class RoleCreatedEventHandlerTests
         var handler = new RoleCreatedEventHandler(_logger.Object, null!, publisher.Object);
         await handler.HandleAsync(message);
 
-        publisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
+        publisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Never);
     }
 
     public static TheoryData<string> Messages => new()

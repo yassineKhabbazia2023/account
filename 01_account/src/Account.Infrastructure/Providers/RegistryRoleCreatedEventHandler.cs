@@ -103,7 +103,7 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
             var createdRole = await _roleEventRepository.CreateRoleAsync(@event!.Data, accountId, contactId, isCustomerRelation);
             _logger.LogInformation("Le role avec l'identifiant suivant: AccountId: {AccountId} - ContactId: {ContactId} vient d'être mise à jour.", createdRole.AccountId, createdRole.ContactId);
 
-            await _roleEventPublisher.PublishRoleCreatedEventAsync(createdRole);
+            await _roleEventPublisher.PublishRoleCreatedEventAsync(createdRole, @event.Data.SubRole);
 
             await _historyEventPublisher.PublishHistoryCreatedEventAsync(registryApproverEmail, contactId, accountId);
         }

@@ -304,6 +304,9 @@ public class RegistryRoleEventRepositoryTests
         var contact = _fixture.Build<ContactEntity>()
             .With(c => c.ContactId, 2)
             .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
             .Create();
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();

@@ -47,7 +47,7 @@ public class SubscriptionValidatedEventHandlerTests
         _roleLabelRepository.Verify(x => x.HasRoleLabel(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Exactly(2));
         _roleLabelRepository.Verify(x => x.AddRoleLabelAsync(It.IsAny<RoleLabel>()), Times.Exactly(2));
         _labelService.Verify(x => x.GetLabelsAsync(It.IsAny<Pagination>()), Times.Once);
-        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Exactly(2));
+        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Exactly(2));
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class SubscriptionValidatedEventHandlerTests
         _roleLabelRepository.Verify(x => x.HasRoleLabel(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Exactly(2));
         _roleLabelRepository.Verify(x => x.AddRoleLabelAsync(It.IsAny<RoleLabel>()), Times.Never);
         _labelService.Verify(x => x.GetLabelsAsync(It.IsAny<Pagination>()), Times.Once);
-        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
+        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class SubscriptionValidatedEventHandlerTests
         _roleLabelRepository.Verify(x => x.HasRoleLabel(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         _roleLabelRepository.Verify(x => x.AddRoleLabelAsync(It.IsAny<RoleLabel>()), Times.Never);
         _labelService.Verify(x => x.GetLabelsAsync(It.IsAny<Pagination>()), Times.Never);
-        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
+        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class SubscriptionValidatedEventHandlerTests
         _roleLabelRepository.Verify(x => x.HasRoleLabel(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         _roleLabelRepository.Verify(x => x.AddRoleLabelAsync(It.IsAny<RoleLabel>()), Times.Never);
         _labelService.Verify(x => x.GetLabelsAsync(It.IsAny<Pagination>()), Times.Never);
-        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
+        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class SubscriptionValidatedEventHandlerTests
         _roleLabelRepository.Verify(x => x.HasRoleLabel(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         _roleLabelRepository.Verify(x => x.AddRoleLabelAsync(It.IsAny<RoleLabel>()), Times.Never);
         _labelService.Verify(x => x.GetLabelsAsync(It.IsAny<Pagination>()), Times.Never);
-        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
+        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public class SubscriptionValidatedEventHandlerTests
         _roleLabelRepository.Verify(x => x.HasRoleLabel(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         _roleLabelRepository.Verify(x => x.AddRoleLabelAsync(It.IsAny<RoleLabel>()), Times.Never);
         _labelService.Verify(x => x.GetLabelsAsync(It.IsAny<Pagination>()), Times.Never);
-        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>()), Times.Never);
+        _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Never);
     }
 
     private static Paging<Label> GetLabels() => new Paging<Label>

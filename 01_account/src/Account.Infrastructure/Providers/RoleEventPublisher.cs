@@ -26,7 +26,7 @@ public class RoleEventPublisher : IRoleEventPublisher
         _roleRepository = roleRepository;
     }
 
-    public async Task PublishRoleCreatedEventAsync(CreateRoleRequest roleRequest)
+    public async Task PublishRoleCreatedEventAsync(CreateRoleRequest roleRequest, string? subRole = null)
     {
         if (roleRequest is null)
         {
@@ -56,6 +56,7 @@ public class RoleEventPublisher : IRoleEventPublisher
             ContactEmail = selectedContact!.Email,
             IsCustomerRelation = roleRequest.IsCustomerRelation,
             IncludePennylaneAccess = roleRequest.IncludePennylaneAccess,
+            SubRole = subRole,
             ContactFlagPortailFactures = roleRequest.ContactFlagPortailFactures,
         };
 
