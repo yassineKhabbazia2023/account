@@ -45,6 +45,8 @@ public static class ServicesConfiguration
         services.AddScoped<IRoleLabelService, RoleLabelService>();
         services.AddScoped<IOfferEligibilityRepository, OfferEligibilityRepository>();
         services.AddScoped<IOfferEligibilityService, OfferEligibilityService>();
+        services.AddScoped<IVentyaRepository, VentyaRepository>();
+        services.AddScoped<IVentyaService, VentyaService>();
     }
 
     public static void RegisterBrokerServices(this IServiceCollection services, IConfiguration configuration)
