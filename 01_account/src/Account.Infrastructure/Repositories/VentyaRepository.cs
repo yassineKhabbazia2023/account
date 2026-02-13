@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
@@ -29,6 +30,52 @@ public class VentyaRepository : IVentyaRepository
                 sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN));
     }
 
+    public async Task<VentyaAccessResult> CheckVentyaAccessAsync(string accountNumber, int contactId)
+    {
+        var result = new VentyaAccessResult();
+
+        var account = await _accountContext.AccountEntity
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.AccountNumber == accountNumber);
+
+        if (account == null)
+        {
+            return result;
+        }
+
+        result.AccountFound = true;
+
+        var contact = await _accountContext.ContactEntity
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.ContactId == contactId);
+
+        if (contact == null)
+        {
+            return result;
+        }
+
+        result.ContactFound = true;
+
+        if (contact.Type != ContactType.Customer.ToString())
+        {
+            return result;
+        }
+
+        var role = await _accountContext.RoleEntity
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.AccountId == account.AccountId && r.ContactId == contactId);
+
+        if (role == null)
+        {
+            return result;
+        }
+
+        result.RoleFound = true;
+        result.HasAccess = role.ContactFlagPortailFactures.HasValue && role.ContactFlagPortailFactures.Value == true;
+
+        return result;
+    }
+
     public async Task<(bool AccountExists, string? AccountEmail)> GetAccountEmailAsync(string accountNumber)
     {
         (bool AccountExists, string? AccountEmail) result = (false, null);
@@ -44,6 +91,35 @@ public class VentyaRepository : IVentyaRepository
             result = account == null
                 ? (false, null)
                 : (true, account.Email);
+        });
+
+        return result;
+    }
+
+    public async Task<string?> GetVentyaAccessContactEmailAsync(string accountNumber)
+    {
+        string? result = null;
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var emails = await _accountContext.RoleEntity
+                .AsNoTracking()
+                .Join(
+                    _accountContext.AccountEntity.AsNoTracking().Where(account => account.AccountNumber == accountNumber),
+                    role => role.AccountId,
+                    account => account.AccountId,
+                    (role, account) => role)
+                .Join(
+                    _accountContext.ContactEntity.AsNoTracking(),
+                    role => role.ContactId,
+                    contact => contact.ContactId,
+                    (role, contact) => new { role.ContactFlagPortailFactures, contact.Email })
+                .Where(role => role.ContactFlagPortailFactures == true)
+                .Select(role => role.Email)
+                .Take(2)
+                .ToListAsync();
+
+            result = emails.Count == 1 ? emails[0] : null;
         });
 
         return result;
