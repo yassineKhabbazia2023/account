@@ -30,13 +30,13 @@ public class VentyaRepository : IVentyaRepository
                 sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN));
     }
 
-    public async Task<VentyaAccessResult> CheckVentyaAccessAsync(string accountNumber, int contactId)
+    public async Task<VentyaAccessResult> CheckVentyaAccessAsync(int accountId, int contactId)
     {
         var result = new VentyaAccessResult();
 
         var account = await _accountContext.AccountEntity
             .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.AccountNumber == accountNumber);
+            .FirstOrDefaultAsync(a => a.AccountId == accountId);
 
         if (account == null)
         {
@@ -76,7 +76,7 @@ public class VentyaRepository : IVentyaRepository
         return result;
     }
 
-    public async Task<(bool AccountExists, string? AccountEmail)> GetAccountEmailAsync(string accountNumber)
+    public async Task<(bool AccountExists, string? AccountEmail)> GetAccountEmailAsync(int accountId)
     {
         (bool AccountExists, string? AccountEmail) result = (false, null);
 
@@ -84,7 +84,7 @@ public class VentyaRepository : IVentyaRepository
         {
             var account = await _accountContext.AccountEntity
                 .AsNoTracking()
-                .Where(account => account.AccountNumber == accountNumber)
+                .Where(account => account.AccountId == accountId)
                 .Select(account => new { account.Email })
                 .FirstOrDefaultAsync();
 
@@ -96,7 +96,7 @@ public class VentyaRepository : IVentyaRepository
         return result;
     }
 
-    public async Task<string?> GetVentyaAccessContactEmailAsync(string accountNumber)
+    public async Task<string?> GetVentyaAccessContactEmailAsync(int accountId)
     {
         string? result = null;
 
@@ -105,7 +105,7 @@ public class VentyaRepository : IVentyaRepository
             var emails = await _accountContext.RoleEntity
                 .AsNoTracking()
                 .Join(
-                    _accountContext.AccountEntity.AsNoTracking().Where(account => account.AccountNumber == accountNumber),
+                    _accountContext.AccountEntity.AsNoTracking().Where(account => account.AccountId == accountId),
                     role => role.AccountId,
                     account => account.AccountId,
                     (role, account) => role)
@@ -125,7 +125,7 @@ public class VentyaRepository : IVentyaRepository
         return result;
     }
 
-    public async Task<int?> GetSsoContactIdAsync(string accountNumber)
+    public async Task<int?> GetSsoContactIdAsync(int accountId)
     {
         int? result = null;
 
@@ -134,7 +134,7 @@ public class VentyaRepository : IVentyaRepository
             var contactIds = await _accountContext.RoleEntity
                 .AsNoTracking()
                 .Join(
-                    _accountContext.AccountEntity.AsNoTracking().Where(account => account.AccountNumber == accountNumber),
+                    _accountContext.AccountEntity.AsNoTracking().Where(account => account.AccountId == accountId),
                     role => role.AccountId,
                     account => account.AccountId,
                     (role, account) => role)

@@ -33,17 +33,17 @@ public class VentyaServiceTests
             RoleFound = true,
             HasAccess = true
         };
-        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<string>(), It.IsAny<int>()))
+        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<int>(), It.IsAny<int>()))
             .ReturnsAsync(result);
 
         var service = new VentyaService(_ventyaRepository.Object, _logger.Object);
 
         // Act
-        var hasAccess = await service.CheckVentyaAccessAsync("ACC001", 123);
+        var hasAccess = await service.CheckVentyaAccessAsync(1, 123);
 
         // Assert
         hasAccess.Should().BeTrue();
-        _ventyaRepository.Verify(x => x.CheckVentyaAccessAsync("ACC001", 123), Times.Once);
+        _ventyaRepository.Verify(x => x.CheckVentyaAccessAsync(1, 123), Times.Once);
     }
 
     [Fact]
@@ -57,13 +57,13 @@ public class VentyaServiceTests
             RoleFound = true,
             HasAccess = false
         };
-        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<string>(), It.IsAny<int>()))
+        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<int>(), It.IsAny<int>()))
             .ReturnsAsync(result);
 
         var service = new VentyaService(_ventyaRepository.Object, _logger.Object);
 
         // Act
-        var hasAccess = await service.CheckVentyaAccessAsync("ACC001", 123);
+        var hasAccess = await service.CheckVentyaAccessAsync(1, 123);
 
         // Assert
         hasAccess.Should().BeFalse();
@@ -80,13 +80,13 @@ public class VentyaServiceTests
             RoleFound = false,
             HasAccess = false
         };
-        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<string>(), It.IsAny<int>()))
+        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<int>(), It.IsAny<int>()))
             .ReturnsAsync(result);
 
         var service = new VentyaService(_ventyaRepository.Object, _logger.Object);
 
         // Act
-        var hasAccess = await service.CheckVentyaAccessAsync("UNKNOWN", 123);
+        var hasAccess = await service.CheckVentyaAccessAsync(999, 123);
 
         // Assert
         hasAccess.Should().BeFalse();
@@ -94,7 +94,7 @@ public class VentyaServiceTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Account with number 'UNKNOWN' not found")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Account with id '999' not found")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -111,13 +111,13 @@ public class VentyaServiceTests
             RoleFound = false,
             HasAccess = false
         };
-        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<string>(), It.IsAny<int>()))
+        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<int>(), It.IsAny<int>()))
             .ReturnsAsync(result);
 
         var service = new VentyaService(_ventyaRepository.Object, _logger.Object);
 
         // Act
-        var hasAccess = await service.CheckVentyaAccessAsync("ACC001", 999);
+        var hasAccess = await service.CheckVentyaAccessAsync(1, 999);
 
         // Assert
         hasAccess.Should().BeFalse();
@@ -142,13 +142,13 @@ public class VentyaServiceTests
             RoleFound = false,
             HasAccess = false
         };
-        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<string>(), It.IsAny<int>()))
+        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<int>(), It.IsAny<int>()))
             .ReturnsAsync(result);
 
         var service = new VentyaService(_ventyaRepository.Object, _logger.Object);
 
         // Act
-        var hasAccess = await service.CheckVentyaAccessAsync("ACC001", 123);
+        var hasAccess = await service.CheckVentyaAccessAsync(1, 123);
 
         // Assert
         hasAccess.Should().BeFalse();
@@ -156,7 +156,7 @@ public class VentyaServiceTests
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Role for contact '123' on account 'ACC001' not found")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Role for contact '123' on account id '1' not found")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -173,20 +173,22 @@ public class VentyaServiceTests
             RoleFound = false,
             HasAccess = false
         };
-        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<string>(), It.IsAny<int>()))
+        _ventyaRepository.Setup(repo => repo.CheckVentyaAccessAsync(It.IsAny<int>(), It.IsAny<int>()))
             .ReturnsAsync(result);
 
         var service = new VentyaService(_ventyaRepository.Object, _logger.Object);
 
         // Act
-        var hasAccess = await service.CheckVentyaAccessAsync("ACC001", 123);
+        var hasAccess = await service.CheckVentyaAccessAsync(1, 123);
 
         // Assert
         hasAccess.Should().BeFalse();
     }
 
-    [Fact]
-    public async Task CheckAccountIsDematReadyAsync_WhenAccountNumberIsEmpty_ReturnsNotFound()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task CheckVentyaAccessAsync_WithInvalidAccountId_ShouldReturnFalse(int invalidAccountId)
     {
         // Arrange
         var repository = new Mock<IVentyaRepository>(MockBehavior.Strict);
@@ -194,17 +196,17 @@ public class VentyaServiceTests
         var service = new VentyaService(repository.Object, logger.Object);
 
         // Act
-        var result = await service.CheckAccountIsDematReadyAsync(" ");
+        var hasAccess = await service.CheckVentyaAccessAsync(invalidAccountId, 123);
 
         // Assert
-        Assert.Equal(ResultStatus.NotFound, result.Status);
-        Assert.Null(result.Value);
-        repository.Verify(r => r.GetAccountEmailAsync(It.IsAny<string>()), Times.Never);
-        repository.Verify(r => r.GetSsoContactIdAsync(It.IsAny<string>()), Times.Never);
+        hasAccess.Should().BeFalse();
+        repository.Verify(r => r.CheckVentyaAccessAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
 
-    [Fact]
-    public async Task CheckAccountIsDematReadyAsync_WhenAccountNumberIsNull_ReturnsNotFound()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task CheckAccountIsDematReadyAsync_WhenAccountIdIsInvalid_ReturnsNotFound(int invalidAccountId)
     {
         // Arrange
         var repository = new Mock<IVentyaRepository>(MockBehavior.Strict);
@@ -212,13 +214,13 @@ public class VentyaServiceTests
         var service = new VentyaService(repository.Object, logger.Object);
 
         // Act
-        var result = await service.CheckAccountIsDematReadyAsync(null!);
+        var result = await service.CheckAccountIsDematReadyAsync(invalidAccountId);
 
         // Assert
         Assert.Equal(ResultStatus.NotFound, result.Status);
         Assert.Null(result.Value);
-        repository.Verify(r => r.GetAccountEmailAsync(It.IsAny<string>()), Times.Never);
-        repository.Verify(r => r.GetSsoContactIdAsync(It.IsAny<string>()), Times.Never);
+        repository.Verify(r => r.GetAccountEmailAsync(It.IsAny<int>()), Times.Never);
+        repository.Verify(r => r.GetSsoContactIdAsync(It.IsAny<int>()), Times.Never);
     }
 
     [Fact]
@@ -226,20 +228,20 @@ public class VentyaServiceTests
     {
         // Arrange
         var repository = new Mock<IVentyaRepository>(MockBehavior.Strict);
-        repository.Setup(r => r.GetAccountEmailAsync("ACC123"))
+        repository.Setup(r => r.GetAccountEmailAsync(123))
             .ReturnsAsync((AccountExists: false, AccountEmail: (string?)null));
 
         var logger = new Mock<ILogger<VentyaService>>();
         var service = new VentyaService(repository.Object, logger.Object);
 
         // Act
-        var result = await service.CheckAccountIsDematReadyAsync("ACC123");
+        var result = await service.CheckAccountIsDematReadyAsync(123);
 
         // Assert
         Assert.Equal(ResultStatus.NotFound, result.Status);
         Assert.Null(result.Value);
-        repository.Verify(r => r.GetAccountEmailAsync("ACC123"), Times.Once);
-        repository.Verify(r => r.GetSsoContactIdAsync(It.IsAny<string>()), Times.Never);
+        repository.Verify(r => r.GetAccountEmailAsync(123), Times.Once);
+        repository.Verify(r => r.GetSsoContactIdAsync(It.IsAny<int>()), Times.Never);
     }
 
     [Fact]
@@ -247,27 +249,27 @@ public class VentyaServiceTests
     {
         // Arrange
         var repository = new Mock<IVentyaRepository>(MockBehavior.Strict);
-        repository.Setup(r => r.GetAccountEmailAsync("ACC123"))
+        repository.Setup(r => r.GetAccountEmailAsync(123))
             .ReturnsAsync((AccountExists: true, AccountEmail: (string?)null));
-        repository.Setup(r => r.GetSsoContactIdAsync("ACC123"))
+        repository.Setup(r => r.GetSsoContactIdAsync(123))
             .ReturnsAsync(12);
-        repository.Setup(r => r.GetVentyaAccessContactEmailAsync("ACC123"))
+        repository.Setup(r => r.GetVentyaAccessContactEmailAsync(123))
             .ReturnsAsync("contact@test.fr");
 
         var logger = new Mock<ILogger<VentyaService>>();
         var service = new VentyaService(repository.Object, logger.Object);
 
         // Act
-        var result = await service.CheckAccountIsDematReadyAsync("ACC123");
+        var result = await service.CheckAccountIsDematReadyAsync(123);
 
         // Assert
         Assert.Equal(ResultStatus.Success, result.Status);
         Assert.False(result.Value!.IsReady);
         Assert.Null(result.Value.ExternalDematMail);
         Assert.Equal("contact@test.fr", result.Value.ContactWithAccess);
-        repository.Verify(r => r.GetAccountEmailAsync("ACC123"), Times.Once);
-        repository.Verify(r => r.GetSsoContactIdAsync("ACC123"), Times.Once);
-        repository.Verify(r => r.GetVentyaAccessContactEmailAsync("ACC123"), Times.Once);
+        repository.Verify(r => r.GetAccountEmailAsync(123), Times.Once);
+        repository.Verify(r => r.GetSsoContactIdAsync(123), Times.Once);
+        repository.Verify(r => r.GetVentyaAccessContactEmailAsync(123), Times.Once);
     }
 
     [Fact]
@@ -275,27 +277,27 @@ public class VentyaServiceTests
     {
         // Arrange
         var repository = new Mock<IVentyaRepository>(MockBehavior.Strict);
-        repository.Setup(r => r.GetAccountEmailAsync("ACC123"))
+        repository.Setup(r => r.GetAccountEmailAsync(123))
             .ReturnsAsync((true, "account@test.fr"));
-        repository.Setup(r => r.GetSsoContactIdAsync("ACC123"))
+        repository.Setup(r => r.GetSsoContactIdAsync(123))
             .ReturnsAsync((int?)null);
-        repository.Setup(r => r.GetVentyaAccessContactEmailAsync("ACC123"))
+        repository.Setup(r => r.GetVentyaAccessContactEmailAsync(123))
             .ReturnsAsync((string?)null);
 
         var logger = new Mock<ILogger<VentyaService>>();
         var service = new VentyaService(repository.Object, logger.Object);
 
         // Act
-        var result = await service.CheckAccountIsDematReadyAsync("ACC123");
+        var result = await service.CheckAccountIsDematReadyAsync(123);
 
         // Assert
         Assert.Equal(ResultStatus.Success, result.Status);
         Assert.False(result.Value!.IsReady);
         Assert.Equal("account@test.fr", result.Value.ExternalDematMail);
         Assert.Null(result.Value.ContactWithAccess);
-        repository.Verify(r => r.GetAccountEmailAsync("ACC123"), Times.Once);
-        repository.Verify(r => r.GetSsoContactIdAsync("ACC123"), Times.Once);
-        repository.Verify(r => r.GetVentyaAccessContactEmailAsync("ACC123"), Times.Once);
+        repository.Verify(r => r.GetAccountEmailAsync(123), Times.Once);
+        repository.Verify(r => r.GetSsoContactIdAsync(123), Times.Once);
+        repository.Verify(r => r.GetVentyaAccessContactEmailAsync(123), Times.Once);
     }
 
     [Fact]
@@ -303,26 +305,26 @@ public class VentyaServiceTests
     {
         // Arrange
         var repository = new Mock<IVentyaRepository>(MockBehavior.Strict);
-        repository.Setup(r => r.GetAccountEmailAsync("ACC123"))
+        repository.Setup(r => r.GetAccountEmailAsync(123))
             .ReturnsAsync((true, "account@test.fr"));
-        repository.Setup(r => r.GetSsoContactIdAsync("ACC123"))
+        repository.Setup(r => r.GetSsoContactIdAsync(123))
             .ReturnsAsync(34);
-        repository.Setup(r => r.GetVentyaAccessContactEmailAsync("ACC123"))
+        repository.Setup(r => r.GetVentyaAccessContactEmailAsync(123))
             .ReturnsAsync("contact@test.fr");
 
         var logger = new Mock<ILogger<VentyaService>>();
         var service = new VentyaService(repository.Object, logger.Object);
 
         // Act
-        var result = await service.CheckAccountIsDematReadyAsync("ACC123");
+        var result = await service.CheckAccountIsDematReadyAsync(123);
 
         // Assert
         Assert.Equal(ResultStatus.Success, result.Status);
         Assert.True(result.Value!.IsReady);
         Assert.Equal("account@test.fr", result.Value.ExternalDematMail);
         Assert.Equal("contact@test.fr", result.Value.ContactWithAccess);
-        repository.Verify(r => r.GetAccountEmailAsync("ACC123"), Times.Once);
-        repository.Verify(r => r.GetSsoContactIdAsync("ACC123"), Times.Once);
-        repository.Verify(r => r.GetVentyaAccessContactEmailAsync("ACC123"), Times.Once);
+        repository.Verify(r => r.GetAccountEmailAsync(123), Times.Once);
+        repository.Verify(r => r.GetSsoContactIdAsync(123), Times.Once);
+        repository.Verify(r => r.GetVentyaAccessContactEmailAsync(123), Times.Once);
     }
 }

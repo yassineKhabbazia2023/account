@@ -6,13 +6,13 @@ namespace Pulse.Account.Core.Interfaces;
 
 public interface IVentyaRepository
 {
-    Task<VentyaAccessResult> CheckVentyaAccessAsync(string accountNumber, int contactId);
+    Task<VentyaAccessResult> CheckVentyaAccessAsync(int accountId, int contactId);
 
-    Task<(bool AccountExists, string? AccountEmail)> GetAccountEmailAsync(string accountNumber);
+    Task<(bool AccountExists, string? AccountEmail)> GetAccountEmailAsync(int accountId);
 
-    Task<string?> GetVentyaAccessContactEmailAsync(string accountNumber);
+    Task<string?> GetVentyaAccessContactEmailAsync(int accountId);
 
-    Task<int?> GetSsoContactIdAsync(string accountNumber);
+    Task<int?> GetSsoContactIdAsync(int accountId);
 }
 
 public class VentyaAccessResult

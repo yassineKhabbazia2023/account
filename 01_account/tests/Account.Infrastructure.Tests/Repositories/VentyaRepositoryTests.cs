@@ -78,7 +78,7 @@ public class VentyaRepositoryTests
         var repository = new VentyaRepository(context);
 
         // Act
-        var result = await repository.CheckVentyaAccessAsync("ACC001", 100);
+        var result = await repository.CheckVentyaAccessAsync(account.AccountId, 100);
 
         // Assert
         result.AccountFound.Should().BeTrue();
@@ -131,7 +131,7 @@ public class VentyaRepositoryTests
         var repository = new VentyaRepository(context);
 
         // Act
-        var result = await repository.CheckVentyaAccessAsync("ACC002", 200);
+        var result = await repository.CheckVentyaAccessAsync(account.AccountId, 200);
 
         // Assert
         result.AccountFound.Should().BeTrue();
@@ -184,7 +184,7 @@ public class VentyaRepositoryTests
         var repository = new VentyaRepository(context);
 
         // Act
-        var result = await repository.CheckVentyaAccessAsync("ACC003", 300);
+        var result = await repository.CheckVentyaAccessAsync(account.AccountId, 300);
 
         // Assert
         result.AccountFound.Should().BeTrue();
@@ -237,7 +237,7 @@ public class VentyaRepositoryTests
         var repository = new VentyaRepository(context);
 
         // Act
-        var result = await repository.CheckVentyaAccessAsync("ACC004", 400);
+        var result = await repository.CheckVentyaAccessAsync(account.AccountId, 400);
 
         // Assert
         result.AccountFound.Should().BeTrue();
@@ -256,7 +256,7 @@ public class VentyaRepositoryTests
         var repository = new VentyaRepository(context);
 
         // Act
-        var result = await repository.CheckVentyaAccessAsync("UNKNOWN", 100);
+        var result = await repository.CheckVentyaAccessAsync(999, 100);
 
         // Assert
         result.AccountFound.Should().BeFalse();
@@ -287,7 +287,7 @@ public class VentyaRepositoryTests
         var repository = new VentyaRepository(context);
 
         // Act
-        var result = await repository.CheckVentyaAccessAsync("ACC005", 999);
+        var result = await repository.CheckVentyaAccessAsync(account.AccountId, 999);
 
         // Assert
         result.AccountFound.Should().BeTrue();
@@ -331,7 +331,7 @@ public class VentyaRepositoryTests
         var repository = new VentyaRepository(context);
 
         // Act
-        var result = await repository.CheckVentyaAccessAsync("ACC006", 600);
+        var result = await repository.CheckVentyaAccessAsync(account.AccountId, 600);
 
         // Assert
         result.AccountFound.Should().BeTrue();
@@ -395,7 +395,7 @@ public class VentyaRepositoryTests
         var repository = new VentyaRepository(context);
 
         // Act
-        var result = await repository.CheckVentyaAccessAsync("ACC007", 700);
+        var result = await repository.CheckVentyaAccessAsync(account1.AccountId, 700);
 
         // Assert
         result.AccountFound.Should().BeTrue();
@@ -410,7 +410,7 @@ public class VentyaRepositoryTests
         using var context = new AccountContext(_dbContextOptions);
         var repository = new VentyaRepository(context);
 
-        var result = await repository.GetAccountEmailAsync("ACC404");
+        var result = await repository.GetAccountEmailAsync(999);
 
         Assert.False(result.AccountExists);
         Assert.Null(result.AccountEmail);
@@ -434,7 +434,7 @@ public class VentyaRepositoryTests
 
         var repository = new VentyaRepository(context);
 
-        var result = await repository.GetAccountEmailAsync("ACC123");
+        var result = await repository.GetAccountEmailAsync(account.AccountId);
 
         Assert.NotNull(result);
         Assert.True(result.AccountExists);
@@ -460,7 +460,7 @@ public class VentyaRepositoryTests
 
         var repository = new VentyaRepository(context);
 
-        var result = await repository.GetAccountEmailAsync("ACC124");
+        var result = await repository.GetAccountEmailAsync(account.AccountId);
 
         Assert.NotNull(result);
         Assert.True(result.AccountExists);
@@ -491,7 +491,7 @@ public class VentyaRepositoryTests
 
         var repository = new VentyaRepository(context);
 
-        var result = await repository.GetSsoContactIdAsync("ACC125");
+        var result = await repository.GetSsoContactIdAsync(account.AccountId);
 
         Assert.Equal(10, result);
     }
@@ -520,7 +520,7 @@ public class VentyaRepositoryTests
 
         var repository = new VentyaRepository(context);
 
-        var result = await repository.GetSsoContactIdAsync("ACC126");
+        var result = await repository.GetSsoContactIdAsync(account.AccountId);
 
         Assert.Null(result);
     }
@@ -548,7 +548,7 @@ public class VentyaRepositoryTests
 
         var repository = new VentyaRepository(context);
 
-        var result = await repository.GetSsoContactIdAsync("ACC127");
+        var result = await repository.GetSsoContactIdAsync(account.AccountId);
 
         Assert.Null(result);
     }

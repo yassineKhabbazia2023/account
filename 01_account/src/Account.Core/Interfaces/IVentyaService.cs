@@ -9,9 +9,9 @@ namespace Pulse.Account.Core.Interfaces;
 
 public interface IVentyaService
 {
-    Task<bool> CheckVentyaAccessAsync(string accountNumber, int contactId);
+    Task<bool> CheckVentyaAccessAsync(int accountId, int contactId);
 
-    Task<string?> GetVentyaAccessContactEmailAsync(string accountNumber);
+    Task<string?> GetVentyaAccessContactEmailAsync(int accountId);
 
-    Task<Result<DematReadyResponse>> CheckAccountIsDematReadyAsync(string accountNumber);
+    Task<Result<DematReadyResponse>> CheckAccountIsDematReadyAsync(int accountId);
 }

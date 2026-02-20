@@ -20,13 +20,19 @@ public class VentyaService : IVentyaService
         _logger = logger;
     }
 
-    public async Task<bool> CheckVentyaAccessAsync(string accountNumber, int contactId)
+    public async Task<bool> CheckVentyaAccessAsync(int accountId, int contactId)
     {
-        var result = await _ventyaRepository.CheckVentyaAccessAsync(accountNumber, contactId);
+        if (accountId <= 0)
+        {
+            _logger.LogWarning("Invalid accountId '{AccountId}' provided", accountId);
+            return false;
+        }
+
+        var result = await _ventyaRepository.CheckVentyaAccessAsync(accountId, contactId);
 
         if (!result.AccountFound)
         {
-            _logger.LogWarning("Account with number '{AccountNumber}' not found", accountNumber);
+            _logger.LogWarning("Account with id '{AccountId}' not found", accountId);
         }
         else if (!result.ContactFound)
         {
@@ -34,37 +40,37 @@ public class VentyaService : IVentyaService
         }
         else if (!result.RoleFound)
         {
-            _logger.LogWarning("Role for contact '{ContactId}' on account '{AccountNumber}' not found", contactId, accountNumber);
+            _logger.LogWarning("Role for contact '{ContactId}' on account id '{AccountId}' not found", contactId, accountId);
         }
 
         return result.HasAccess;
     }
 
-    public async Task<string?> GetVentyaAccessContactEmailAsync(string accountNumber)
+    public async Task<string?> GetVentyaAccessContactEmailAsync(int accountId)
     {
-        if (string.IsNullOrWhiteSpace(accountNumber))
+        if (accountId <= 0)
         {
             return null;
         }
 
-        return await _ventyaRepository.GetVentyaAccessContactEmailAsync(accountNumber);
+        return await _ventyaRepository.GetVentyaAccessContactEmailAsync(accountId);
     }
 
-    public async Task<Result<DematReadyResponse>> CheckAccountIsDematReadyAsync(string accountNumber)
+    public async Task<Result<DematReadyResponse>> CheckAccountIsDematReadyAsync(int accountId)
     {
-        if (string.IsNullOrWhiteSpace(accountNumber))
+        if (accountId <= 0)
         {
             return Result<DematReadyResponse>.NotFound();
         }
 
-        var accountEmailResult = await _ventyaRepository.GetAccountEmailAsync(accountNumber);
+        var accountEmailResult = await _ventyaRepository.GetAccountEmailAsync(accountId);
         if (!accountEmailResult.AccountExists)
         {
             return Result<DematReadyResponse>.NotFound();
         }
 
-        var contactId = await _ventyaRepository.GetSsoContactIdAsync(accountNumber);
-        var contactWithAccessEmail = await _ventyaRepository.GetVentyaAccessContactEmailAsync(accountNumber);
+        var contactId = await _ventyaRepository.GetSsoContactIdAsync(accountId);
+        var contactWithAccessEmail = await _ventyaRepository.GetVentyaAccessContactEmailAsync(accountId);
         var hasAccountEmail = !string.IsNullOrWhiteSpace(accountEmailResult.AccountEmail);
         var isReady = hasAccountEmail && contactId.HasValue;
 

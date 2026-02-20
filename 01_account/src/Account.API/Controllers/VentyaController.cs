@@ -31,21 +31,21 @@ public class VentyaController : ControllerBase
     /// <summary>
     /// Vérifie si l'utilisateur courant a accès au coffre Ventya pour un compte donné.
     /// </summary>
-    /// <param name="accountnumber">Le numéro de compte.</param>
+    /// <param name="accountId">L'identifiant du compte.</param>
     /// <param name="currentUser">L'identifiant du contact courant (depuis le header).</param>
     /// <returns>Un objet indiquant si l'utilisateur courant a accès au coffre Ventya.</returns>
-    [HttpGet("accounts/{accountnumber}")]
+    [HttpGet("accounts/{accountId:int:min(1)}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<VentyaAccessResponse>> CheckCurrentUserVentyaAccessAsync(
-        [FromRoute] string accountnumber,
+        [FromRoute] int accountId,
         [FromHeader(Name = "CurrentUser")][Required] int currentUser)
     {
-        var hasAccess = await _ventyaService.CheckVentyaAccessAsync(accountnumber, currentUser);
+        var hasAccess = await _ventyaService.CheckVentyaAccessAsync(accountId, currentUser);
         string? contactWithAccess = null;
 
         if (!hasAccess)
         {
-            contactWithAccess = await _ventyaService.GetVentyaAccessContactEmailAsync(accountnumber);
+            contactWithAccess = await _ventyaService.GetVentyaAccessContactEmailAsync(accountId);
             return Ok(new VentyaAccessResponse { HasAccess = hasAccess, ContactWithAccess = contactWithAccess });
         }
 
@@ -55,14 +55,14 @@ public class VentyaController : ControllerBase
     /// <summary>
     /// Indique si l'entite est prete pour la dematerialisation.
     /// </summary>
-    /// <param name="accountNumber">Le numero de compte.</param>
+    /// <param name="accountId">L'id de compte.</param>
     /// <returns>Statut de disponibilite.</returns>
-    [HttpGet("accounts/{accountNumber}/demat-ready")]
+    [HttpGet("accounts/{accountId:int:min(1)}/demat-ready")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DematReadyResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<DematReadyResponse>> CheckAccountIsDematReadyAsync(string accountNumber)
+    public async Task<ActionResult<DematReadyResponse>> CheckAccountIsDematReadyAsync(int accountId)
     {
-        var result = await _ventyaService.CheckAccountIsDematReadyAsync(accountNumber);
+        var result = await _ventyaService.CheckAccountIsDematReadyAsync(accountId);
 
         if (result.Status == ResultStatus.NotFound)
         {
