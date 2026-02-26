@@ -57,6 +57,7 @@ public class RoleEventRepository : IRoleEventRepository
         var rolesToCreate = new List<CreateRoleRequest>();
 
         var delegations = await _accountContext.DelegationEntity
+                                        .AsNoTracking()
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegatee)
                                         .ThenInclude(delegatee => delegatee.RoleEntity)
@@ -65,7 +66,9 @@ public class RoleEventRepository : IRoleEventRepository
                                             && d.IsAutomaticDelegation)
                                         .ToListAsync();
 
-        var account = await _accountContext.AccountEntity.FirstOrDefaultAsync(a => a.AccountId == accountId);
+        var account = await _accountContext.AccountEntity
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.AccountId == accountId);
 
         delegations.ForEach(d =>
         {
