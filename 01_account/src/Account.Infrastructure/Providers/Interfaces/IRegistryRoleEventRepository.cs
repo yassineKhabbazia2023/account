@@ -21,4 +21,6 @@ public interface IRegistryRoleEventRepository
     public Task CheckExistingAccountAndContactAsync(int accountId, int contactId);
 
     Task<CreateRoleRequest?> UpdateRoleContactFlagPortailFacturesAsync(int accountId, int contactId, bool? contactFlagPortailFactures);
+
+    Task<CreateRoleRequest?> UpdateRoleIsCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation, int actionLevel);
 }

@@ -81,4 +81,16 @@ public class RoleLabelRepository : IRoleLabelRepository
     {
         return await _accountContext.RoleLabelEntity.AnyAsync(rl => rl.ContactId == contactId && rl.AccountId == accountId && rl.LabelId == labelId);
     }
+
+    public async Task RemoveLabelAssignmentFromAccountAsync(int accountId, int labelId)
+    {
+        var existing = await _accountContext.RoleLabelEntity
+            .FirstOrDefaultAsync(rl => rl.AccountId == accountId && rl.LabelId == labelId);
+
+        if (existing is not null)
+        {
+            _accountContext.RoleLabelEntity.Remove(existing);
+            await _accountContext.SaveChangesAsync();
+        }
+    }
 }

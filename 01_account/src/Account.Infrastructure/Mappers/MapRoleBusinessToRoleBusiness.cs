@@ -22,4 +22,18 @@ public static class MapRoleBusinessToRoleBusiness
             ActionLevel = role.ActionLevel ?? 0,
         };
     }
+
+    public static CreateRoleRequest ToCreateRoleRequest(this Role role)
+    {
+        return role == null ? null! : new CreateRoleRequest
+        {
+            AccountId = role.AccountId,
+            ContactId = role.ContactId,
+            IsFavorite = role.IsFavorite,
+            IsSignatory = role.IsSignatory,
+            IsDelegation = role.IsDelegation,
+            IsCustomerRelation = role.IsCustomerRelation,
+            ContactFlagPortailFactures = role.ContactFlagPortailFactures,
+        };
+    }
 }

@@ -180,6 +180,75 @@ public class RegistryRoleEventRepositoryTests
     }
 
     [Fact]
+    public async Task UpdateRoleIsCustomerRelationAsync_ShouldUpdateIsCustomerRelationAndActionLevel()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+        using var context = new AccountContext(options);
+
+        var account = _fixture.Build<AccountEntity>()
+            .Without(a => a.RoleEntity)
+            .Create();
+        context.AccountEntity.Add(account);
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+
+        var existingRole = _fixture.Build<RoleEntity>()
+            .With(r => r.AccountId, account.AccountId)
+            .With(r => r.ContactId, contact.ContactId)
+            .With(r => r.IsCustomerRelation, false)
+            .With(r => r.ActionLevel, 0)
+            .Without(r => r.Account)
+            .Without(r => r.Contact)
+            .Create();
+        context.RoleEntity.Add(existingRole);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryRoleEventRepository(context);
+
+        var result = await repository.UpdateRoleIsCustomerRelationAsync(account.AccountId, contact.ContactId, true, 4);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsCustomerRelation);
+
+        var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == account.AccountId && r.ContactId == contact.ContactId);
+        Assert.NotNull(updatedRole);
+        Assert.True(updatedRole!.IsCustomerRelation);
+        Assert.Equal(4, updatedRole.ActionLevel);
+    }
+
+    [Fact]
+    public async Task UpdateRoleIsCustomerRelationAsync_WithMissingRole_ShouldReturnNull()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+        using var context = new AccountContext(options);
+
+        var account = _fixture.Build<AccountEntity>()
+            .Without(a => a.RoleEntity)
+            .Create();
+        context.AccountEntity.Add(account);
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryRoleEventRepository(context);
+
+        var result = await repository.UpdateRoleIsCustomerRelationAsync(account.AccountId, contact.ContactId, true, 4);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task RemoveRoleAsync_ShouldRemoveRole()
     {
         var options = new DbContextOptionsBuilder<AccountContext>()

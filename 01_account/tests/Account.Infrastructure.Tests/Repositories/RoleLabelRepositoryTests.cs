@@ -422,4 +422,40 @@ public class RoleLabelRepositoryTests
 
         Assert.False(result);
     }
+
+    [Fact]
+    public async Task RemoveLabelAssignmentFromAccountAsync_WithExistingLabel_ShouldRemoveIt()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var roleLabel = new RoleLabelEntity
+        {
+            ContactId = 10,
+            AccountId = 20,
+            LabelId = 5,
+        };
+        context.RoleLabelEntity.Add(roleLabel);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleLabelRepository(context);
+
+        await repository.RemoveLabelAssignmentFromAccountAsync(20, 5);
+
+        var remaining = await context.RoleLabelEntity
+            .FirstOrDefaultAsync(rl => rl.AccountId == 20 && rl.LabelId == 5);
+        remaining.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RemoveLabelAssignmentFromAccountAsync_WithNoLabel_ShouldNotThrow()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var repository = new RoleLabelRepository(context);
+
+        Func<Task> act = async () => await repository.RemoveLabelAssignmentFromAccountAsync(999, 999);
+
+        await act.Should().NotThrowAsync();
+    }
 }

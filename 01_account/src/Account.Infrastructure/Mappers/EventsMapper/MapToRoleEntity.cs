@@ -2,9 +2,11 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
 
 namespace Pulse.Account.Infrastructure.Mappers.EventsMapper;
@@ -29,6 +31,10 @@ public static class MapToRoleEntity
             IsSignatory = eventData.RoleSignatory,
             IsCustomerRelation = isCustomerRelation,
             ContactFlagPortailFactures = eventData.ContactFlagPortailFactures,
+            ActionLevel = ActionLevelHelper.SetupActionLevel(
+                (int)ActionLevelType.NotAssigned,
+                isCustomerRelation == true,
+                false),
         };
     }
 

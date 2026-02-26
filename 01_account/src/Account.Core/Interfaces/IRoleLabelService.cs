@@ -11,5 +11,9 @@ namespace Pulse.Account.Core.Interfaces
         Task DeleteRoleLabelAsync(int accountId, int contactId, int labelId);
 
         Task AddRoleLabelAsync(RoleLabel roleLabel);
+
+        Task<bool> HasRoleLabel(int contactId, int accountId, int labelId);
+
+        Task RevokeExclusiveLabelAsync(int accountId, int labelId, string labelCode);
     }
 }

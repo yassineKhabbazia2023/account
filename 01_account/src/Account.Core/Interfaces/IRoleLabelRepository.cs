@@ -13,4 +13,6 @@ public interface IRoleLabelRepository
     Task AddRoleLabelAsync(RoleLabel roleLabel);
 
     Task<bool> HasRoleLabel(int contactId, int accountId, int labelId);
+
+    Task RemoveLabelAssignmentFromAccountAsync(int accountId, int labelId);
 }

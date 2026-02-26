@@ -131,5 +131,58 @@ namespace Pulse.Account.Core.Tests.Services
             _mockRoleLabelRepository.Verify(repo =>
                 repo.DeleteRoleLabelAsync(accountId, contactId, labelId), Times.Once);
         }
+
+        [Fact]
+        public async Task HasRoleLabel_ShouldCallRepository()
+        {
+            // Arrange
+            _mockRoleLabelRepository.Setup(repo => repo.HasRoleLabel(1, 2, 3))
+                .ReturnsAsync(true);
+
+            // Act
+            var result = await _roleLabelService.HasRoleLabel(1, 2, 3);
+
+            // Assert
+            Assert.True(result);
+            _mockRoleLabelRepository.Verify(repo => repo.HasRoleLabel(1, 2, 3), Times.Once);
+        }
+
+        [Fact]
+        public async Task RevokeExclusiveLabelAsync_WhenCLPCode_ShouldCallRemoveLabelAssignment()
+        {
+            // Arrange
+            _mockRoleLabelRepository.Setup(repo => repo.RemoveLabelAssignmentFromAccountAsync(1, 10))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _roleLabelService.RevokeExclusiveLabelAsync(1, 10, "CLP");
+
+            // Assert
+            _mockRoleLabelRepository.Verify(repo => repo.RemoveLabelAssignmentFromAccountAsync(1, 10), Times.Once);
+        }
+
+        [Fact]
+        public async Task RevokeExclusiveLabelAsync_WhenAMCode_ShouldCallRemoveLabelAssignment()
+        {
+            // Arrange
+            _mockRoleLabelRepository.Setup(repo => repo.RemoveLabelAssignmentFromAccountAsync(1, 10))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            await _roleLabelService.RevokeExclusiveLabelAsync(1, 10, "AM");
+
+            // Assert
+            _mockRoleLabelRepository.Verify(repo => repo.RemoveLabelAssignmentFromAccountAsync(1, 10), Times.Once);
+        }
+
+        [Fact]
+        public async Task RevokeExclusiveLabelAsync_WhenNonExclusiveLabel_ShouldNotCallRepo()
+        {
+            // Act
+            await _roleLabelService.RevokeExclusiveLabelAsync(1, 10, "OTHER");
+
+            // Assert
+            _mockRoleLabelRepository.Verify(repo => repo.RemoveLabelAssignmentFromAccountAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
     }
 }

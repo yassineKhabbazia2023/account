@@ -3,6 +3,7 @@
 // </copyright>
 
 using AutoFixture;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
@@ -237,5 +238,64 @@ public class MapToRoleEntityTests
         var result = MapToRoleEntity.ToCreateRoleRequests(null!, 1, false);
 
         Assert.Empty(result);
+    }
+
+    [Fact]
+    public void ToRoleEntity_WithIsCustomerRelationTrue_Should_SetActionLevelToDirectClientRelation()
+    {
+        // Arrange
+        var eventData = new RegistryRoleCreatedEventData
+        {
+            AccountId = 1,
+            AccountNumber = "ACC001",
+            ContactId = 2,
+            Email = "test@email.fr",
+            IsCustomerRelation = true,
+        };
+
+        // Act
+        var result = eventData.ToRoleEntity(null, null, true);
+
+        // Assert
+        Assert.Equal((int)ActionLevelType.DirectClientRelation, result.ActionLevel);
+    }
+
+    [Fact]
+    public void ToRoleEntity_WithIsCustomerRelationFalse_Should_SetActionLevelToNotAssigned()
+    {
+        // Arrange
+        var eventData = new RegistryRoleCreatedEventData
+        {
+            AccountId = 1,
+            AccountNumber = "ACC001",
+            ContactId = 2,
+            Email = "test@email.fr",
+            IsCustomerRelation = false,
+        };
+
+        // Act
+        var result = eventData.ToRoleEntity(null, null, false);
+
+        // Assert
+        Assert.Equal((int)ActionLevelType.NotAssigned, result.ActionLevel);
+    }
+
+    [Fact]
+    public void ToRoleEntity_WithIsCustomerRelationNull_Should_SetActionLevelToNotAssigned()
+    {
+        // Arrange
+        var eventData = new RegistryRoleCreatedEventData
+        {
+            AccountId = 1,
+            AccountNumber = "ACC001",
+            ContactId = 2,
+            Email = "test@email.fr",
+        };
+
+        // Act
+        var result = eventData.ToRoleEntity(null, null, null);
+
+        // Assert
+        Assert.Equal((int)ActionLevelType.NotAssigned, result.ActionLevel);
     }
 }
