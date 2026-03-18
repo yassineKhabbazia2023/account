@@ -123,6 +123,28 @@ namespace Pulse.Account.Infrastructure.Repositories
             return result;
         }
 
+        public async Task<EntityCountByType> GetEntityCountByTypeAsync(int contactId)
+        {
+            var accountIds = _accountContext.RoleEntity
+                .AsNoTracking()
+                .Where(r => r.ContactId == contactId)
+                .Select(r => r.AccountId)
+                .Distinct();
+
+            var counts = await _accountContext.AccountEntity
+                .AsNoTracking()
+                .Where(a => accountIds.Contains(a.AccountId))
+                .GroupBy(a => a.AccountType)
+                .Select(g => new { Type = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Type ?? string.Empty, x => x.Count, StringComparer.OrdinalIgnoreCase);
+
+            return new EntityCountByType
+            {
+                RegularEntitiesCount = counts.GetValueOrDefault(AccountType.CLIENT.ToString()),
+                ProspectEntitiesCount = counts.GetValueOrDefault(AccountType.PROSPECT.ToString()),
+            };
+        }
+
         public async Task<IEnumerable<(int ClientCount, int AccountCount)>> GetClientsPerAccountCountAsync()
         {
             var data = await (from r in _accountContext.RoleEntity

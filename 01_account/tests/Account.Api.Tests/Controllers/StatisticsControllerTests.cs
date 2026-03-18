@@ -72,4 +72,23 @@ public class StatisticsControllerTests
 
         _statisticsServiceMock.Verify(x => x.GetAccountAndClientIndicatorsAsync(), Times.Once);
     }
+
+    [Fact]
+    public async Task GetEntityCountByTypeAsync_ShouldReturnExpected()
+    {
+        var expected = new EntityCountByType
+        {
+            RegularEntitiesCount = 24,
+            ProspectEntitiesCount = 3
+        };
+
+        _statisticsServiceMock.Setup(service => service.GetEntityCountByTypeAsync(It.IsAny<int>())).ReturnsAsync(expected);
+        var statisticsController = new StatisticsController(_statisticsServiceMock.Object);
+
+        var result = await statisticsController.GetEntityCountByTypeAsync(It.IsAny<int>());
+        var okResult = result?.Result as OkObjectResult;
+
+        Assert.NotNull(okResult);
+        Assert.Equal(expected, okResult.Value);
+    }
 }

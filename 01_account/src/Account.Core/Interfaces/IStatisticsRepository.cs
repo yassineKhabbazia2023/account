@@ -15,5 +15,7 @@ namespace Pulse.Account.Core.Interfaces
         Task<IEnumerable<(int ClientCount, int AccountCount)>> GetClientsPerAccountCountAsync();
 
         Task<IEnumerable<(int AccountCount, int ClientCount)>> GetAccountsPerClientCountAsync();
+
+        Task<EntityCountByType> GetEntityCountByTypeAsync(int contactId);
     }
 }

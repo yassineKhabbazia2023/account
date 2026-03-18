@@ -375,4 +375,58 @@ public class StatisticsRepositoryTests
             (1, 1),
             (2, 1));
     }
+
+    [Fact]
+    public async Task GetEntityCountByTypeAsync_ShouldReturnCorrectCounts()
+    {
+        using var context = new AccountContext(_options);
+
+        var contactId = 10;
+
+        var accounts = new List<AccountEntity>
+        {
+            new() { AccountId = 1, AccountNumber = "num1", LegalName = "Client 1", CreatedBy = "test", IsActive = true, AccountType = AccountType.CLIENT.ToString() },
+            new() { AccountId = 2, AccountNumber = "num2", LegalName = "Client 2", CreatedBy = "test", IsActive = true, AccountType = AccountType.CLIENT.ToString() },
+            new() { AccountId = 3, AccountNumber = "num3", LegalName = "Prospect 1", CreatedBy = "test", IsActive = true, AccountType = AccountType.PROSPECT.ToString() },
+            new() { AccountId = 4, AccountNumber = "num4", LegalName = "Other", CreatedBy = "test", IsActive = true, AccountType = "OTHER" },
+            new() { AccountId = 5, AccountNumber = "num5", LegalName = "Client sans role", CreatedBy = "test", IsActive = true, AccountType = AccountType.CLIENT.ToString() },
+        };
+
+        var roles = new List<RoleEntity>
+        {
+            new() { ContactId = contactId, AccountId = 1 },
+            new() { ContactId = contactId, AccountId = 2 },
+            new() { ContactId = contactId, AccountId = 3 },
+            new() { ContactId = contactId, AccountId = 4 },
+            new() { ContactId = 999, AccountId = 5 },
+        };
+
+        context.AccountEntity.AddRange(accounts);
+        context.RoleEntity.AddRange(roles);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new StatisticsRepository(context);
+
+        // Act
+        var result = await repository.GetEntityCountByTypeAsync(contactId);
+
+        // Assert
+        result.RegularEntitiesCount.Should().Be(2);
+        result.ProspectEntitiesCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetEntityCountByTypeAsync_EmptyDatabase_ShouldReturnZeroCounts()
+    {
+        using var context = new AccountContext(_options);
+        var repository = new StatisticsRepository(context);
+
+        // Act
+        var result = await repository.GetEntityCountByTypeAsync(1);
+
+        // Assert
+        result.RegularEntitiesCount.Should().Be(0);
+        result.ProspectEntitiesCount.Should().Be(0);
+    }
 }

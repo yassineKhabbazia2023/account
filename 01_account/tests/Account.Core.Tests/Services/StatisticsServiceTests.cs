@@ -117,4 +117,25 @@ public class StatisticsServiceTests
         _statisticsRepositoryMock.Verify(x => x.GetAccountsPerClientCountAsync(), Times.Once);
         _statisticsRepositoryMock.Verify(x => x.GetClientsPerAccountCountAsync(), Times.Once);
     }
+
+    [Fact]
+    public async Task GetEntityCountByTypeAsync_ReturnExpected()
+    {
+        // Arrange
+        var expected = new EntityCountByType
+        {
+            RegularEntitiesCount = 24,
+            ProspectEntitiesCount = 3
+        };
+
+        _statisticsRepositoryMock.Setup(r => r.GetEntityCountByTypeAsync(It.IsAny<int>())).ReturnsAsync(expected);
+        var statisticsService = new StatisticsService(_statisticsRepositoryMock.Object);
+
+        // Act
+        var result = await statisticsService.GetEntityCountByTypeAsync(It.IsAny<int>());
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(expected, result);
+    }
 }

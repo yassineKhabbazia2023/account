@@ -27,6 +27,11 @@ namespace Pulse.Account.Core.Services
             return await _statisticsRepository.GetAccountPercentageCustomerRelationAsync();
         }
 
+        public async Task<EntityCountByType> GetEntityCountByTypeAsync(int contactId)
+        {
+            return await _statisticsRepository.GetEntityCountByTypeAsync(contactId);
+        }
+
         public async Task<byte[]> GetAccountAndClientIndicatorsAsync()
         {
             var clientsPerAccountCount = await _statisticsRepository.GetClientsPerAccountCountAsync();

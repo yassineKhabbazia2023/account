@@ -51,6 +51,21 @@ public class StatisticsController : ControllerBase
     }
 
     /// <summary>
+    /// Récupérer le nombre d'entités par type de compte (CLIENT / PROSPECT).
+    /// </summary>
+    /// <param name="contactId">ID du contact.</param>
+    /// <returns>Le nombre d'entités régulières et prospects.</returns>
+    [HttpGet("entity-count-by-type")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(EntityCountByType))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<EntityCountByType>> GetEntityCountByTypeAsync([FromQuery] int contactId)
+    {
+        var result = await _statisticsService.GetEntityCountByTypeAsync(contactId);
+
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Permet de récupérer dans un fichier Excel le nombre de clients par nombre de dossiers et le nombre de dossiers par nombre de clients.
     /// </summary>
     /// <returns>Le fichier Excel contenant les indicateurs.</returns>
