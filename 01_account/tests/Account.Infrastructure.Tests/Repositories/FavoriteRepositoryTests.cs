@@ -5,6 +5,7 @@
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
@@ -136,5 +137,57 @@ public class FavoriteRepositoryTests
             // Assert
             await Assert.ThrowsAsync<NotFoundException>(UpdateFavorite);
         }
+    }
+
+    [Fact]
+    public async Task GetAccountsFavoriteAsync_WithProspectFavorite_ShouldExcludeProspectAccount()
+    {
+        using var context = new AccountContext(_options);
+
+        var clientAccount = new AccountEntity
+        {
+            AccountId = 1,
+            AccountNumber = "ACC-CLIENT-001",
+            LegalName = "Client Account",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true,
+            RoleEntity = new List<RoleEntity>
+            {
+                new()
+                {
+                    ContactId = 123,
+                    IsFavorite = true
+                }
+            }
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 2,
+            AccountNumber = "ACC-PROSPECT-002",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            RoleEntity = new List<RoleEntity>
+            {
+                new()
+                {
+                    ContactId = 123,
+                    IsFavorite = true
+                }
+            }
+        };
+
+        context.AccountEntity.AddRange(clientAccount, prospectAccount);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new FavoriteRepository(context);
+
+        var result = (await repository.GetAccountFavoritesByContactIdAsync(123)).ToList();
+
+        Assert.Single(result);
+        Assert.Equal(clientAccount.AccountId, result.Single().AccountId);
     }
 }

@@ -183,6 +183,7 @@ public static class MapAccountDbToAccountModel
             Deployment = source.MapToDeployment(),
             CreatedBy = source.CreatedBy,
             ModifiedBy = source.ModifiedBy,
+            AccountType = source.AccountType,
             MissionType = source.MissionType,
             OfficeId = source.OfficeId,
             Office = source.Office?.MapToOffice(),

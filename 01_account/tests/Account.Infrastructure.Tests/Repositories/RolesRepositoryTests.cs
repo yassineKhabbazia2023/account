@@ -6,6 +6,7 @@ using AutoFixture;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
@@ -213,7 +214,8 @@ public class RolesRepositoryTests
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
             DeploymentEntity = deployment,
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         });
         accountContext.ContactEntity.Add(new ContactEntity
         {
@@ -273,7 +275,8 @@ public class RolesRepositoryTests
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
             DeploymentEntity = deployment,
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         });
         accountContext.ContactEntity.Add(new ContactEntity
         {
@@ -335,7 +338,8 @@ public class RolesRepositoryTests
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
             DeploymentEntity = deployment,
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         });
         accountContext.ContactEntity.Add(new ContactEntity
         {
@@ -396,7 +400,8 @@ public class RolesRepositoryTests
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
             DeploymentEntity = deployment,
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         });
         accountContext.ContactEntity.Add(new ContactEntity
         {
@@ -495,7 +500,8 @@ public class RolesRepositoryTests
             Email = "account-mail@kpmg.fr",
             LegalName = "Pulse",
             DeploymentEntity = deployment,
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         });
 
         await accountContext.SaveChangesAsync();
@@ -1112,5 +1118,150 @@ public class RolesRepositoryTests
             // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
             Assert.False(contactHasRoleOnAccount);
         }
+    }
+
+    [Fact]
+    public async Task GetContactRolesAsync_WithProspectAccount_ShouldExcludeProspectAccount()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var contact = new ContactEntity
+        {
+            ContactId = 1,
+            Type = ContactType.Collaborator.ToString(),
+            FirstName = "Jean",
+            LastName = "Dupont",
+            Email = "jean.dupont@test.fr",
+            PersonaName = "Jean Dupont",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var clientAccount = new AccountEntity
+        {
+            AccountId = 1,
+            AccountNumber = "ACC-CLIENT-001",
+            LegalName = "Client Account",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 2,
+            AccountNumber = "ACC-PROSPECT-002",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = clientAccount, Contact = contact, ContactId = contact.ContactId },
+            new RoleEntity { Account = prospectAccount, Contact = contact, ContactId = contact.ContactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        var result = await repository.GetContactRolesAsync(contact.ContactId, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        Assert.Single(result.Items);
+        Assert.Equal(1, result.TotalItems);
+        Assert.Equal(clientAccount.AccountId, result.Items.Single().AccountId);
+    }
+
+    [Fact]
+    public async Task GetSignatoryAsync_WithProspectAccount_ShouldThrowNotFoundException()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var contact = new ContactEntity
+        {
+            ContactId = 1,
+            Type = ContactType.Collaborator.ToString(),
+            FirstName = "Jean",
+            LastName = "Dupont",
+            Email = "jean.dupont@test.fr",
+            PersonaName = "Jean Dupont",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 3,
+            AccountNumber = "ACC-PROSPECT-003",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.RoleEntity.Add(new RoleEntity
+        {
+            Account = prospectAccount,
+            Contact = contact,
+            ContactId = contact.ContactId,
+            IsSignatory = true
+        });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => repository.GetSignatoryAsync(prospectAccount.AccountId));
+    }
+
+    [Fact]
+    public async Task CheckRoleExistsAsync_WithOnlyProspectSharedAccount_ShouldReturnFalse()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var currentUser = new ContactEntity
+        {
+            ContactId = 10,
+            Type = ContactType.Collaborator.ToString(),
+            FirstName = "Jean",
+            LastName = "Dupont",
+            Email = "jean.dupont@test.fr",
+            PersonaName = "Jean Dupont",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var targetContact = new ContactEntity
+        {
+            ContactId = 20,
+            Type = ContactType.Collaborator.ToString(),
+            FirstName = "Paul",
+            LastName = "Martin",
+            Email = "paul.martin@test.fr",
+            PersonaName = "Paul Martin",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 4,
+            AccountNumber = "ACC-PROSPECT-004",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = prospectAccount, Contact = currentUser, ContactId = currentUser.ContactId },
+            new RoleEntity { Account = prospectAccount, Contact = targetContact, ContactId = targetContact.ContactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        var result = await repository.CheckRoleExistsAsync(currentUser.ContactId, targetContact.ContactId, prospectAccount.AccountId, targetContact.Email);
+
+        Assert.False(result);
     }
 }

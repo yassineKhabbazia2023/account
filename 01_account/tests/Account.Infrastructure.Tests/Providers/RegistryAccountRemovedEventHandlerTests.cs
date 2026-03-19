@@ -1,10 +1,11 @@
-﻿// <copyright file="RegistryAccountRemovedEventHandlerTests.cs" company="Pulse">
+// <copyright file="RegistryAccountRemovedEventHandlerTests.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using Microsoft.Extensions.Logging;
 using Moq;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Infrastructure.Providers;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 
@@ -89,5 +90,55 @@ public class RegistryAccountRemovedEventHandlerTests
         // Assert
         repositoryMock.Verify(repo => repo.RemoveAccountAsync(It.IsAny<Guid>()), Times.Never);
         publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithProspectAccount_ShouldRemoveAccount_And_PublishEvent()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryAccountRemovedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>(MockBehavior.Strict);
+        var publisherMock = new Mock<IAccountEventPublisher>(MockBehavior.Strict);
+        var accountGuid = Guid.NewGuid();
+
+        repositoryMock.Setup(r => r.RemoveAccountAsync(accountGuid))
+            .ReturnsAsync(12);
+        publisherMock.Setup(p => p.PublishAccountRemovedEventAsync(12))
+            .Returns(Task.CompletedTask);
+
+        var handler = new RegistryAccountRemovedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var message = "{\"EventType\":\"RegistryAccountRemovedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\":\"" + accountGuid + "\",\"AccountType\":\"" + GlobalConstants.ProspectAccountType + "\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(r => r.RemoveAccountAsync(accountGuid), Times.Once);
+        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(12), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithNonProspectAccount_ShouldRemoveAccount_And_PublishEvent()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryAccountRemovedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>(MockBehavior.Strict);
+        var publisherMock = new Mock<IAccountEventPublisher>(MockBehavior.Strict);
+        var accountGuid = Guid.NewGuid();
+
+        repositoryMock.Setup(r => r.RemoveAccountAsync(accountGuid))
+            .ReturnsAsync(42);
+        publisherMock.Setup(p => p.PublishAccountRemovedEventAsync(42))
+            .Returns(Task.CompletedTask);
+
+        var handler = new RegistryAccountRemovedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var message = "{\"EventType\":\"RegistryAccountRemovedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\":\"" + accountGuid + "\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(r => r.RemoveAccountAsync(accountGuid), Times.Once);
+        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(42), Times.Once);
     }
 }

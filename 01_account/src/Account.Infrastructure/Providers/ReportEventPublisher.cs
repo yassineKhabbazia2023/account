@@ -13,14 +13,18 @@ namespace Pulse.Account.Infrastructure.Providers;
 public class ReportEventPublisher : IReportEventPublisher
 {
     private readonly IEventPublisher _eventPublisher;
+    private readonly IAccountRepository _accountRepository;
 
-    public ReportEventPublisher(IEventPublisher eventPublisher)
+    public ReportEventPublisher(IEventPublisher eventPublisher, IAccountRepository accountRepository)
     {
         _eventPublisher = eventPublisher;
+        _accountRepository = accountRepository;
     }
 
     public async Task PublishReportCreatedEventAsync(int? reportId, int accountId, int reportTypeId, string reportLabel, ReportStatus reportStatus)
     {
+        var account = await _accountRepository.GetAccountAsync(accountId);
+
         var eventData = new ReportCreatedEventData
         {
             ReportId = reportId,
@@ -30,7 +34,7 @@ public class ReportEventPublisher : IReportEventPublisher
             ReportStatus = reportStatus.ToString()
         };
 
-        var @event = new ReportCreatedEvent(eventData);
+        var @event = new ReportCreatedEvent(eventData) { AccountType = account.AccountType };
         await _eventPublisher.PublishAsync(@event);
     }
 }

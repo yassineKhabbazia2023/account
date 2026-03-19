@@ -6,6 +6,7 @@ using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
@@ -1220,5 +1221,241 @@ public class DelegationRepositoryTests
         var result = await repository.IsClient(new List<int> { 1, 2 });
 
         Assert.False(result);
+    }
+
+    [Fact]
+    public async Task GetContactDelegationsAsync_WithProspectAccount_ShouldExcludeProspectAccount()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var delegator = new ContactEntity
+        {
+            ContactId = 1,
+            Email = "delegator@test.fr",
+            FirstName = "Jean",
+            LastName = "Dupont",
+            PersonaName = "Jean Dupont",
+            Type = ContactType.Collaborator.ToString(),
+            Status = "Declared",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var delegatee = new ContactEntity
+        {
+            ContactId = 2,
+            Email = "delegatee@test.fr",
+            FirstName = "Paul",
+            LastName = "Martin",
+            PersonaName = "Paul Martin",
+            Type = ContactType.Collaborator.ToString(),
+            Status = "Declared",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var clientAccount = new AccountEntity
+        {
+            AccountId = 1,
+            AccountNumber = "ACC-CLIENT-001",
+            LegalName = "Client Account",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true,
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 2,
+            AccountNumber = "ACC-PROSPECT-002",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+        };
+
+        context.DelegationEntity.Add(new DelegationEntity
+        {
+            DelegationId = 1,
+            Delegator = delegator,
+            Delegatee = delegatee,
+            StartDate = DateTime.UtcNow,
+            Status = DelegationStatus.Enabled.ToString(),
+            Account = new List<AccountEntity> { clientAccount, prospectAccount }
+        });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new DelegationRepository(context);
+
+        var result = await repository.GetContactDelegationsAsync(delegatee.ContactId);
+
+        Assert.Single(result);
+        Assert.Single(result.First().Accounts);
+        Assert.Equal(clientAccount.AccountId, result.First().Accounts.Single().AccountId);
+    }
+
+    [Fact]
+    public async Task GetDelegationsAsync_WithProspectAccount_ShouldExcludeProspectAccount()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var delegator = new ContactEntity
+        {
+            ContactId = 10,
+            Email = "delegator@test.fr",
+            FirstName = "Jean",
+            LastName = "Dupont",
+            PersonaName = "Jean Dupont",
+            Type = ContactType.Collaborator.ToString(),
+            Status = "Declared",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var delegatee = new ContactEntity
+        {
+            ContactId = 20,
+            Email = "delegatee@test.fr",
+            FirstName = "Paul",
+            LastName = "Martin",
+            PersonaName = "Paul Martin",
+            Type = ContactType.Collaborator.ToString(),
+            Status = "Declared",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var clientAccount = new AccountEntity
+        {
+            AccountId = 3,
+            AccountNumber = "ACC-CLIENT-003",
+            LegalName = "Client Account",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true,
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 4,
+            AccountNumber = "ACC-PROSPECT-004",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+        };
+
+        context.DelegationEntity.Add(new DelegationEntity
+        {
+            DelegationId = 2,
+            Delegator = delegator,
+            Delegatee = delegatee,
+            StartDate = DateTime.UtcNow,
+            Status = DelegationStatus.Enabled.ToString(),
+            Account = new List<AccountEntity> { clientAccount, prospectAccount }
+        });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new DelegationRepository(context);
+
+        var result = await repository.GetDelegationsAsync(delegator.ContactId, delegatee.ContactId);
+
+        Assert.Single(result);
+        Assert.Single(result.First().Accounts);
+        Assert.Equal(clientAccount.AccountId, result.First().Accounts.Single().AccountId);
+    }
+
+    [Fact]
+    public async Task GetContactDelegationsHistoryAsync_WithProspectAccount_ShouldExcludeProspectAccount()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var delegator = new ContactEntity
+        {
+            ContactId = 30,
+            Email = "delegator@test.fr",
+            FirstName = "Jean",
+            LastName = "Dupont",
+            PersonaName = "Jean Dupont",
+            Type = ContactType.Collaborator.ToString(),
+            Status = "Declared",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var delegatee = new ContactEntity
+        {
+            ContactId = 40,
+            Email = "delegatee@test.fr",
+            FirstName = "Paul",
+            LastName = "Martin",
+            PersonaName = "Paul Martin",
+            Type = ContactType.Collaborator.ToString(),
+            Status = "Declared",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var clientAccount = new AccountEntity
+        {
+            AccountId = 5,
+            AccountNumber = "ACC-CLIENT-005",
+            LegalName = "Client Account",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true,
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 6,
+            AccountNumber = "ACC-PROSPECT-006",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+        };
+
+        context.DelegationEntity.Add(new DelegationEntity
+        {
+            DelegationId = 3,
+            Delegator = delegator,
+            Delegatee = delegatee,
+            StartDate = DateTime.UtcNow,
+            Status = DelegationStatus.Enabled.ToString(),
+            Account = new List<AccountEntity> { clientAccount, prospectAccount }
+        });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new DelegationRepository(context);
+
+        var result = await repository.GetContactDelegationsHistoryAsync(
+            delegatee.ContactId,
+            new Pagination { PageNumber = 1, PageSize = 10 },
+            true);
+
+        Assert.Single(result.Items);
+        Assert.Single(result.Items.First().Accounts);
+        Assert.Equal(clientAccount.AccountId, result.Items.First().Accounts.Single().AccountId);
+    }
+
+    [Fact]
+    public async Task DoesAccountExistAsync_WithProspectAccount_ShouldReturnFalse()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 7,
+            AccountNumber = "ACC-PROSPECT-007",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+        };
+
+        context.AccountEntity.Add(prospectAccount);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new DelegationRepository(context);
+
+        var result = await repository.DoesAccountExistAsync(prospectAccount.AccountId);
+
+        result.Should().BeFalse();
     }
 }

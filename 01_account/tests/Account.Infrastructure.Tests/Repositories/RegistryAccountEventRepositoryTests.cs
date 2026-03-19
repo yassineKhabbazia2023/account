@@ -1,10 +1,11 @@
-﻿// <copyright file="RegistryAccountEventRepositoryTests.cs" company="Pulse">
+// <copyright file="RegistryAccountEventRepositoryTests.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
@@ -217,6 +218,65 @@ public class RegistryAccountEventRepositoryTests
     }
 
     [Fact]
+    public async Task DoesAccountExist_WithExistingProspect_ShouldReturnTrue()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+               .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+               .Options;
+        using var context = new AccountContext(options);
+
+        var account = new AccountEntity()
+        {
+            AccountId = 2,
+            AccountGlobalUniqueId = Guid.NewGuid(),
+            AccountNumber = "number",
+            LegalName = "legal",
+            Email = "email@kpmg.fr",
+            CreatedBy = "moi",
+            IsActive = true,
+            AccountType = GlobalConstants.ProspectAccountType
+        };
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        var result = await repository.DoesAccountExistAsync(account.AccountGlobalUniqueId);
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DoesAccountExist_WithInactiveProspect_ShouldReturnFalse()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+               .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+               .Options;
+        using var context = new AccountContext(options);
+
+        var account = new AccountEntity
+        {
+            AccountId = 3,
+            AccountGlobalUniqueId = Guid.NewGuid(),
+            AccountNumber = "prospect-number",
+            LegalName = "prospect-legal",
+            Email = "prospect@test.fr",
+            CreatedBy = "moi",
+            IsActive = false,
+            AccountType = GlobalConstants.ProspectAccountType
+        };
+
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        var result = await repository.DoesAccountExistAsync(account.AccountGlobalUniqueId);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task GetAccountByGuidAsync_WithExistingAccount_ShouldReturnAccountDetail()
     {
         // Arrange
@@ -300,7 +360,105 @@ public class RegistryAccountEventRepositoryTests
         // Act
         var result = await repository.GetAccountByGuidAsync(accountGuid);
 
-        // Assert - inactive accounts are filtered by global query filter
+        // Assert - inactive accounts are filtered by IsActive check
         result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetAccountByGuidAsync_WithProspectAccount_ShouldReturnAccountDetail()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+               .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+               .Options;
+        using var context = new AccountContext(options);
+
+        var accountGuid = Guid.NewGuid();
+        var account = new AccountEntity()
+        {
+            AccountId = 1,
+            AccountGlobalUniqueId = accountGuid,
+            AccountNumber = "123456",
+            LegalName = "Test Company",
+            Email = "test@test.fr",
+            CreatedBy = "test",
+            IsActive = true,
+            AccountType = GlobalConstants.ProspectAccountType,
+            StaffSizeRange = "10-50",
+            AccountingMethod = "Engagement"
+        };
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        var result = await repository.GetAccountByGuidAsync(accountGuid);
+
+        result.Should().NotBeNull();
+        result!.AccountNumber.Should().Be("123456");
+        result.Legal.LegalName.Should().Be("Test Company");
+    }
+
+    [Fact]
+    public async Task UpdateAccountAsync_WithProspectData_ShouldUpdateProspectAccount()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+        var guid = Guid.NewGuid();
+
+        var fixture = new Fixture();
+        var source = fixture.Build<RegistryAccountCreatedEventData>()
+            .With(x => x.AccountGlobalUniqueIdentifier, guid)
+            .With(x => x.AccountType, GlobalConstants.ProspectAccountType)
+            .With(x => x.AccountNafIdentifier, "1")
+            .With(x => x.AccountStaffSize, "1")
+            .With(x => x.Turnover, "0.1")
+            .With(x => x.DeploymentStatus, "1")
+            .Create();
+
+        var destination = fixture.Build<RegistryAccountUpdatedEventData>()
+            .With(x => x.AccountGlobalUniqueIdentifier, guid)
+            .With(x => x.AccountType, GlobalConstants.ProspectAccountType)
+            .With(x => x.AccountNafIdentifier, "1")
+            .With(x => x.AccountStaffSize, "1")
+            .With(x => x.Turnover, "0.1")
+            .With(x => x.DeploymentStatus, "1")
+            .With(x => x.AccountLegalName, "Updated Prospect")
+            .Create();
+
+        using var context = new AccountContext(options);
+        var repository = new RegistryAccountEventRepository(context);
+        await repository.CreateAccountAsync(source);
+
+        var detail = await repository.UpdateAccountAsync(destination);
+        var updatedAccount = await context.AccountEntity.IgnoreQueryFilters().FirstOrDefaultAsync();
+
+        updatedAccount.Should().NotBeNull();
+        updatedAccount!.LegalName.Should().Be("Updated Prospect");
+        detail.Legal.LegalName.Should().Be("Updated Prospect");
+    }
+
+    [Fact]
+    public async Task RemoveAccountAsync_WithProspectData_ShouldDeactivateProspectAccount()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        var prospectGuid = Guid.NewGuid();
+
+        using var context = new AccountContext(options);
+        var repository = new RegistryAccountEventRepository(context);
+        _accountEntity.AccountGlobalUniqueId = prospectGuid;
+        _accountEntity.AccountType = GlobalConstants.ProspectAccountType;
+        await context.AccountEntity.AddAsync(_accountEntity);
+        await context.SaveChangesAsync();
+
+        await repository.RemoveAccountAsync(prospectGuid);
+        var removedAccount = await context.AccountEntity.IgnoreQueryFilters().FirstOrDefaultAsync(a => a.AccountGlobalUniqueId == prospectGuid);
+
+        removedAccount.Should().NotBeNull();
+        removedAccount!.IsActive.Should().BeFalse();
+        removedAccount.AccountType.Should().Be(GlobalConstants.ProspectAccountType);
     }
 }

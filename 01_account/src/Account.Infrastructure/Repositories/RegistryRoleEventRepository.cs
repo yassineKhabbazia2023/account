@@ -82,7 +82,7 @@ public class RegistryRoleEventRepository : IRegistryRoleEventRepository
 
     public async Task CheckExistingAccountAndContactAsync(int accountId, int contactId)
     {
-        var account = await _context.AccountEntity.FirstOrDefaultAsync(a => accountId == a.AccountId);
+        var account = await _context.ActiveAccounts.FirstOrDefaultAsync(a => accountId == a.AccountId);
         var contact = await _context.ContactEntity.FirstOrDefaultAsync(c => contactId == c.ContactId);
 
         if (account == null || contact == null)
@@ -93,7 +93,7 @@ public class RegistryRoleEventRepository : IRegistryRoleEventRepository
 
     public async Task<int> GetAccountIdByGuidAsync(Guid accountId)
     {
-        var account = await _context.AccountEntity.FirstOrDefaultAsync(a => accountId == a.AccountGlobalUniqueId);
+        var account = await _context.ActiveAccounts.FirstOrDefaultAsync(a => accountId == a.AccountGlobalUniqueId);
 
         if (account == null)
         {

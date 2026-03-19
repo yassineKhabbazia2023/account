@@ -1,4 +1,4 @@
-﻿// <copyright file="RegistryAccountCreatedEventHandler.cs" company="Pulse">
+// <copyright file="RegistryAccountCreatedEventHandler.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 

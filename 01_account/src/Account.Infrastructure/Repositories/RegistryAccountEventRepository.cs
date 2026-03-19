@@ -1,4 +1,4 @@
-﻿// <copyright file="RegistryAccountEventRepository.cs" company="Pulse">
+// <copyright file="RegistryAccountEventRepository.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -40,7 +40,7 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
 
     public async Task<int> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier)
     {
-        var accountToRemove = _context.AccountEntity.FirstOrDefault(a => a.AccountGlobalUniqueId == accountGlobalUniqueIdentifier);
+        var accountToRemove = await _context.ActiveAccounts.FirstOrDefaultAsync(a => a.AccountGlobalUniqueId == accountGlobalUniqueIdentifier);
 
         if (accountToRemove == null)
         {
@@ -59,7 +59,7 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
         var naf = await GetNafByCodeAsync(eventData.AccountNafIdentifier);
         eventData.AccountNafIdentifier = naf?.NafId.ToString();
 
-        var existingAccount = await _context.AccountEntity
+        var existingAccount = await _context.ActiveAccounts
             .Include(a => a.DeploymentEntity)
             .Include(a => a.AddressEntity)
             .Include(a => a.PhoneEntity)
@@ -79,12 +79,12 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
 
     public async Task<bool> DoesAccountExistAsync(Guid accountGlobalUniqueId)
     {
-        return await _context.AccountEntity.AnyAsync(a => a.AccountGlobalUniqueId == accountGlobalUniqueId);
+        return await _context.ActiveAccounts.AnyAsync(a => a.AccountGlobalUniqueId == accountGlobalUniqueId);
     }
 
     public async Task<AccountDetail?> GetAccountByGuidAsync(Guid accountGlobalUniqueId)
     {
-        var account = await _context.AccountEntity
+        var account = await _context.ActiveAccounts
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.AccountGlobalUniqueId == accountGlobalUniqueId);
 

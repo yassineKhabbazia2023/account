@@ -112,7 +112,8 @@ public class RoleEventRepositoryTests
             AccountNumber = "1234",
             LegalName = "legal",
             CreatedBy = "pas oim",
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         };
         context.AccountEntity.Add(account);
 

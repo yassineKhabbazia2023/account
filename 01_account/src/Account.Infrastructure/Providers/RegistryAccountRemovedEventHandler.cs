@@ -1,4 +1,4 @@
-﻿// <copyright file="RegistryAccountRemovedEventHandler.cs" company="Pulse">
+// <copyright file="RegistryAccountRemovedEventHandler.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.IntegrationEvents;
-using Pulse.Account.Infrastructure.Mappers.EventsMapper;
 using Pulse.Account.Core.Interfaces;
 
 namespace Pulse.Account.Infrastructure.Providers;

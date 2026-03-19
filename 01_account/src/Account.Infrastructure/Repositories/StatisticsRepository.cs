@@ -131,7 +131,7 @@ namespace Pulse.Account.Infrastructure.Repositories
                 .Select(r => r.AccountId)
                 .Distinct();
 
-            var counts = await _accountContext.AccountEntity
+            var counts = await _accountContext.ActiveAccounts
                 .AsNoTracking()
                 .Where(a => accountIds.Contains(a.AccountId))
                 .GroupBy(a => a.AccountType)

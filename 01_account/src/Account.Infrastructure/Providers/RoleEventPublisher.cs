@@ -60,7 +60,7 @@ public class RoleEventPublisher : IRoleEventPublisher
             ContactFlagPortailFactures = roleRequest.ContactFlagPortailFactures,
         };
 
-        await _eventPublisher.PublishAsync(new RoleCreatedEvent(data));
+        await _eventPublisher.PublishAsync(new RoleCreatedEvent(data) { AccountType = selectedAccount!.AccountType });
     }
 
     public async Task PublishRoleFavoriteStatusChangedEventAsync(int accountId, int contactId, bool isFavorite)
@@ -73,6 +73,8 @@ public class RoleEventPublisher : IRoleEventPublisher
             throw new ArgumentException($"Role not found for AccountId: {accountId}, ContactId: {contactId}");
         }
 
+        var account = await _accountRepository.GetAccountAsync(accountId);
+
         var data = new RoleUpdatedEventData
         {
             AccountId = accountId,
@@ -81,18 +83,20 @@ public class RoleEventPublisher : IRoleEventPublisher
             IsSignatory = role.IsSignatory, // Inclure IsSignatory pour éviter l'écrasement
             IsCustomerRelation = role.IsCustomerRelation, // Inclure pour cohérence dans Event State Carried Transfer
         };
-        await _eventPublisher.PublishAsync(new RoleUpdatedEvent(data));
+        await _eventPublisher.PublishAsync(new RoleUpdatedEvent(data) { AccountType = account.AccountType });
     }
 
     public async Task PublishRoleUpdatedEventAsync(int accountId, int contactId, bool isSignatory)
     {
+        var account = await _accountRepository.GetAccountAsync(accountId);
+
         var data = new RoleUpdatedEventData
         {
             AccountId = accountId,
             ContactId = contactId,
             IsSignatory = isSignatory,
         };
-        await _eventPublisher.PublishAsync(new RoleUpdatedEvent(data));
+        await _eventPublisher.PublishAsync(new RoleUpdatedEvent(data) { AccountType = account.AccountType });
     }
 
     public async Task PublishRoleDeletedEventAsync(int accountId, int contactId)
@@ -110,6 +114,6 @@ public class RoleEventPublisher : IRoleEventPublisher
             ContactEmail = contact.Email ?? string.Empty,
         };
 
-        await _eventPublisher.PublishAsync(new RoleDeletedEvent(data));
+        await _eventPublisher.PublishAsync(new RoleDeletedEvent(data) { AccountType = account.AccountType });
     }
 }

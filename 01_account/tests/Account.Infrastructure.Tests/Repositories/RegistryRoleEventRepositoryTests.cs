@@ -4,6 +4,7 @@
 
 using AutoFixture;
 using Microsoft.EntityFrameworkCore;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Infrastructure.Context;
@@ -474,5 +475,112 @@ public class RegistryRoleEventRepositoryTests
 
         Assert.Equal("ACC002", result.Code);
         Assert.Equal($"Le contact avec l'identifiant {contactGlobalUniqueId.ToString()} est introuvable", result.Message);
+    }
+
+    [Fact]
+    public async Task GetAccountIdByGuidAsync_WithProspectAccount_ShouldReturnAccountId()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+        using var context = new AccountContext(options);
+
+        var accountGlobalUniqueId = Guid.NewGuid();
+        var account = _fixture.Build<AccountEntity>()
+            .With(a => a.AccountGlobalUniqueId, accountGlobalUniqueId)
+            .With(a => a.IsActive, true)
+            .With(a => a.AccountType, GlobalConstants.ProspectAccountType)
+            .Create();
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryRoleEventRepository(context);
+
+        var result = await repository.GetAccountIdByGuidAsync(accountGlobalUniqueId);
+
+        Assert.Equal(account.AccountId, result);
+    }
+
+    [Fact]
+    public async Task CheckExistingAccountAndContactAsync_WithProspectAccount_ShouldNotThrow()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+        using var context = new AccountContext(options);
+
+        var account = _fixture.Build<AccountEntity>()
+            .With(a => a.AccountId, 10)
+            .With(a => a.IsActive, true)
+            .With(a => a.AccountType, GlobalConstants.ProspectAccountType)
+            .Without(a => a.RoleEntity)
+            .Create();
+        context.AccountEntity.Add(account);
+
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 20)
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Create();
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryRoleEventRepository(context);
+
+        var exception = await Record.ExceptionAsync(() => repository.CheckExistingAccountAndContactAsync(10, 20));
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task RemoveRoleAsync_WithProspectAccount_ShouldRemoveRole()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+        using var context = new AccountContext(options);
+
+        var account = _fixture.Build<AccountEntity>()
+            .With(a => a.AccountId, 1)
+            .With(a => a.IsActive, true)
+            .With(a => a.AccountType, GlobalConstants.ProspectAccountType)
+            .Without(a => a.RoleEntity)
+            .Without(a => a.PhoneEntity)
+            .Without(a => a.AddressEntity)
+            .Without(a => a.DeploymentEntity)
+            .Create();
+
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 1)
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Create();
+
+        var role = _fixture.Build<RoleEntity>()
+            .With(r => r.AccountId, 1)
+            .With(r => r.ContactId, 1)
+            .Without(r => r.Account)
+            .Without(r => r.Contact)
+            .Create();
+
+        context.AccountEntity.Add(account);
+        context.ContactEntity.Add(contact);
+        context.SaveChanges();
+        context.RoleEntity.Add(role);
+        context.SaveChanges();
+        context.ChangeTracker.Clear();
+
+        var repository = new RegistryRoleEventRepository(context);
+
+        var result = await repository.RemoveRoleAsync(1, 1);
+
+        Assert.True(result);
+
+        var removedRole = await context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == 1 && r.ContactId == 1);
+        Assert.Null(removedRole);
     }
 }

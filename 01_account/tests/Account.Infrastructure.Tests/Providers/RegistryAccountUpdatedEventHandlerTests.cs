@@ -1,9 +1,10 @@
-﻿// <copyright file="RegistryAccountUpdatedEventHandlerTests.cs" company="Pulse">
+// <copyright file="RegistryAccountUpdatedEventHandlerTests.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using Microsoft.Extensions.Logging;
 using Moq;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Account.Infrastructure.Providers;
@@ -309,5 +310,43 @@ public class RegistryAccountUpdatedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(repo => repo.UpdateAccountAsync(It.IsAny<RegistryAccountUpdatedEventData>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithProspectMessage_ShouldUseGenericFlow()
+    {
+        // Arrange
+        var accountGuid = Guid.NewGuid();
+        var currentAccount = new AccountDetail
+        {
+            AccountId = 1,
+            AccountNumber = "123",
+            Legal = new Legal { LegalName = "Test", Siren = "123456789", StaffSizeRange = "10-50" },
+            Accounting = new Accounting { AccountingType = "Engagement" },
+            Phone = new List<Phone>()
+        };
+
+        var loggerMock = new Mock<ILogger<RegistryAccountUpdatedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>(MockBehavior.Strict);
+        var publisherMock = new Mock<IAccountEventPublisher>(MockBehavior.Strict);
+
+        repositoryMock.Setup(r => r.GetAccountByGuidAsync(accountGuid))
+            .ReturnsAsync(currentAccount);
+        repositoryMock.Setup(r => r.UpdateAccountAsync(It.IsAny<RegistryAccountUpdatedEventData>()))
+            .ReturnsAsync(_accountEntity.MapToAccountDetail());
+        publisherMock.Setup(p => p.PublishAccountUpdatedEventAsync(It.IsAny<AccountDetail>()))
+            .Returns(Task.CompletedTask);
+
+        var handler = new RegistryAccountUpdatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var message = "{\"EventType\":\"RegistryAccountUpdatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\":\"" + accountGuid + "\",\"AccountType\":\"" + GlobalConstants.ProspectAccountType + "\",\"AccountStaffSizeSlice\":null,\"AccountTypeTenueComptable\":null}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(r => r.GetAccountByGuidAsync(accountGuid), Times.Once);
+        repositoryMock.Verify(r => r.UpdateAccountAsync(It.Is<RegistryAccountUpdatedEventData>(
+            e => e.AccountStaffSizeSlice == "10-50" && e.AccountTypeTenueComptable == "Engagement")), Times.Once);
+        publisherMock.Verify(p => p.PublishAccountUpdatedEventAsync(It.IsAny<AccountDetail>()), Times.Once);
     }
 }

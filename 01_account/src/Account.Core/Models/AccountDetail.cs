@@ -46,6 +46,8 @@ namespace Pulse.Account.Core.Models
 
         public string? ModifiedBy { get; set; } = string.Empty;
 
+        public string? AccountType { get; set; }
+
         public decimal? Turnover { get; set; }
 
         public string? MissionType { get; set; }

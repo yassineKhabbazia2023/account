@@ -1,9 +1,10 @@
-﻿// <copyright file="RegistryAccountCreatedEventHandlerTests.cs" company="Pulse">
+// <copyright file="RegistryAccountCreatedEventHandlerTests.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using Microsoft.Extensions.Logging;
 using Moq;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Account.Infrastructure.Providers;
@@ -110,6 +111,62 @@ public class RegistryAccountCreatedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(repo => repo.CreateAccountAsync(It.IsAny<RegistryAccountCreatedEventData>()), Times.Never);
+        publisherMock.Verify(p => p.PublishAccountCreatedEventAsync(It.IsAny<AccountDetail>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithProspectMessage_ShouldCreateAccount_And_PublishEvent()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryAccountCreatedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>(MockBehavior.Strict);
+        var publisherMock = new Mock<IAccountEventPublisher>(MockBehavior.Strict);
+        var accountGuid = Guid.NewGuid();
+
+        repositoryMock
+            .Setup(r => r.DoesAccountExistAsync(accountGuid))
+            .ReturnsAsync(false);
+        repositoryMock
+            .Setup(r => r.CreateAccountAsync(It.IsAny<RegistryAccountCreatedEventData>()))
+            .ReturnsAsync(_accountEntity.MapToAccountDetail());
+        publisherMock
+            .Setup(p => p.PublishAccountCreatedEventAsync(It.IsAny<AccountDetail>()))
+            .Returns(Task.CompletedTask);
+
+        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var message = "{\"EventType\":\"RegistryAccountCreatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\":\"" + accountGuid + "\",\"AccountType\":\"" + GlobalConstants.ProspectAccountType + "\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(r => r.DoesAccountExistAsync(accountGuid), Times.Once);
+        repositoryMock.Verify(r => r.CreateAccountAsync(It.Is<RegistryAccountCreatedEventData>(e => e.AccountType == GlobalConstants.ProspectAccountType)), Times.Once);
+        publisherMock.Verify(p => p.PublishAccountCreatedEventAsync(It.IsAny<AccountDetail>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithExistingAccount_ShouldNotCreateAccount()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryAccountCreatedEventHandler>>();
+        var repositoryMock = new Mock<IRegistryAccountEventRepository>(MockBehavior.Strict);
+        var publisherMock = new Mock<IAccountEventPublisher>(MockBehavior.Strict);
+        var accountGuid = Guid.NewGuid();
+
+        repositoryMock
+            .Setup(r => r.DoesAccountExistAsync(accountGuid))
+            .ReturnsAsync(true);
+
+        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var message = "{\"EventType\":\"RegistryAccountCreatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\":\"" + accountGuid + "\",\"AccountType\":\"" + GlobalConstants.ProspectAccountType + "\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(r => r.DoesAccountExistAsync(accountGuid), Times.Once);
+        repositoryMock.Verify(r => r.CreateAccountAsync(It.IsAny<RegistryAccountCreatedEventData>()), Times.Never);
         publisherMock.Verify(p => p.PublishAccountCreatedEventAsync(It.IsAny<AccountDetail>()), Times.Never);
     }
 }

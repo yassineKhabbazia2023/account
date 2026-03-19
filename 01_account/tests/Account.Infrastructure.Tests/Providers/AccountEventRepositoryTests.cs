@@ -51,7 +51,8 @@ public class AccountEventRepositoryTests
             AccountNumber = "19999999",
             Email = "jhonny@test.com",
             CreatedBy = "test@test.com",
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         };
 
         var roleEntity = new RoleEntity

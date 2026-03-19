@@ -77,7 +77,8 @@ public class AccountRepositoryTests
                 LegalName = "test sca",
                 Hub = new HubEntity { HubId = 1, HubName = "HubName" },
                 CreatedBy = "me",
-                IsActive = true
+                IsActive = true,
+                AccountType = AccountType.CLIENT.ToString()
             };
 
             var deploymentENtity = new DeploymentEntity
@@ -340,6 +341,7 @@ public class AccountRepositoryTests
                 Hub = new HubEntity { HubId = 1, HubName = "HubName" },
                 CreatedBy = "me",
                 IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
                 AddressEntity = new List<AddressEntity> { addressEntity },
             };
             var accountEntity2 = new AccountEntity
@@ -350,6 +352,7 @@ public class AccountRepositoryTests
                 Hub = new HubEntity { HubId = 2, HubName = "HubName" },
                 CreatedBy = "me",
                 IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
                 AddressEntity = new List<AddressEntity> { addressEntity2 },
             };
 
@@ -454,6 +457,7 @@ public class AccountRepositoryTests
                 Hub = new HubEntity { HubId = 1, HubName = "HubName" },
                 CreatedBy = "me",
                 IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
                 AddressEntity = new List<AddressEntity> { addressEntity },
             };
             var accountEntity2 = new AccountEntity
@@ -464,6 +468,7 @@ public class AccountRepositoryTests
                 Hub = new HubEntity { HubId = 2, HubName = "HubName" },
                 CreatedBy = "me",
                 IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
                 AddressEntity = new List<AddressEntity> { addressEntity2 },
             };
 
@@ -1979,6 +1984,7 @@ public class AccountRepositoryTests
                 CreatedBy = "moi",
                 LegalName = "legal1",
                 IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
             },
             new()
             {
@@ -1988,6 +1994,7 @@ public class AccountRepositoryTests
                 AccountNumber = "num2",
                 CreatedBy = "moi",
                 IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
             },
             new()
             {
@@ -1997,6 +2004,7 @@ public class AccountRepositoryTests
                 AccountNumber = "num3",
                 CreatedBy = "moi",
                 IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
             },
             new()
             {
@@ -2006,6 +2014,7 @@ public class AccountRepositoryTests
                 AccountNumber = "num4",
                 CreatedBy = "moi",
                 IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
             }
         };
 
@@ -2058,5 +2067,305 @@ public class AccountRepositoryTests
 
         Assert.NotNull(result);
         Assert.Single(result.Items);
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WithProspectAccount_ShouldExcludeProspectAccount()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var contact = new ContactEntity
+        {
+            ContactId = 1,
+            Type = ContactType.Collaborator.ToString(),
+            FirstName = "Jean",
+            LastName = "Dupont",
+            Email = "jean.dupont@test.fr",
+            PersonaName = "Jean Dupont",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var clientAccount = new AccountEntity
+        {
+            AccountId = 1,
+            AccountNumber = "ACC-CLIENT-001",
+            LegalName = "Client Account",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 2,
+            AccountNumber = "ACC-PROSPECT-001",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = clientAccount, Contact = contact, ContactId = contact.ContactId, IsFavorite = true, IsCustomerRelation = true },
+            new RoleEntity { Account = prospectAccount, Contact = contact, ContactId = contact.ContactId, IsFavorite = true, IsCustomerRelation = true });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        var result = await repository.GetAccountsAsync(
+            new SearchAccountCriteria { ContactId = contact.ContactId },
+            new Pagination { PageNumber = 1, PageSize = 10 });
+
+        Assert.Single(result.Items);
+        Assert.Equal(1, result.TotalItems);
+        Assert.Equal(clientAccount.AccountId, result.Items.Single().AccountId);
+    }
+
+    [Fact]
+    public async Task GetAllAccountsAsync_WithProspectAccount_ShouldExcludeProspectAccount()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var contact = new ContactEntity
+        {
+            ContactId = 1,
+            Type = ContactType.Collaborator.ToString(),
+            FirstName = "Jean",
+            LastName = "Dupont",
+            Email = "jean.dupont@test.fr",
+            PersonaName = "Jean Dupont",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var clientAccount = new AccountEntity
+        {
+            AccountId = 10,
+            AccountNumber = "ACC-CLIENT-010",
+            LegalName = "Client Account",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 20,
+            AccountNumber = "ACC-PROSPECT-020",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = clientAccount, Contact = contact, ContactId = contact.ContactId },
+            new RoleEntity { Account = prospectAccount, Contact = contact, ContactId = contact.ContactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        var result = await repository.GetAllAccountsAsync(
+            null,
+            new Pagination { PageNumber = 1, PageSize = 10 },
+            new SearchAccountCriteria());
+
+        Assert.Single(result.Items);
+        Assert.Equal(1, result.TotalItems);
+        Assert.Equal(clientAccount.AccountId, result.Items.Single().AccountId);
+    }
+
+    [Fact]
+    public async Task GetAccountDetailAsync_WithProspectAccount_ShouldThrowNotFoundException()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 100,
+            AccountNumber = "ACC-PROSPECT-100",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.AccountEntity.Add(prospectAccount);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => repository.GetAccountDetailAsync(prospectAccount.AccountId));
+    }
+
+    [Fact]
+    public async Task GetAccountAsync_WithProspectAccount_ShouldThrowNotFoundException()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 101,
+            AccountNumber = "ACC-PROSPECT-101",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.AccountEntity.Add(prospectAccount);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => repository.GetAccountAsync(prospectAccount.AccountId));
+    }
+
+    [Fact]
+    public async Task GetAccountAsync_WithLowercaseProspectAccount_ShouldThrowNotFoundException()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 104,
+            AccountNumber = "ACC-PROSPECT-104",
+            LegalName = "Lowercase Prospect Account",
+            AccountType = "prospect",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.AccountEntity.Add(prospectAccount);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => repository.GetAccountAsync(prospectAccount.AccountId));
+    }
+
+    [Fact]
+    public async Task UpdateAccountAsync_WithProspectAccount_ShouldThrowNotFoundException()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 102,
+            AccountNumber = "ACC-PROSPECT-102",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.AccountEntity.Add(prospectAccount);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+        var update = new AccountDetail
+        {
+            AccountNumber = "ACC-PROSPECT-102",
+            Legal = new Legal
+            {
+                LegalName = "Updated Prospect",
+                Siren = "123456789"
+            },
+            Phone = new List<Phone>()
+        };
+
+        await Assert.ThrowsAsync<NotFoundException>(() => repository.UpdateAccountAsync(prospectAccount.AccountId, update));
+    }
+
+    [Fact]
+    public async Task GetAccountSummaryAsync_WithProspectAccount_ShouldThrowNotFoundException()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 103,
+            AccountNumber = "ACC-PROSPECT-103",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.AccountEntity.Add(prospectAccount);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => repository.GetAccountSummaryAsync(1, prospectAccount.AccountId));
+    }
+
+    [Fact]
+    public async Task GetAssociatedContactsAsync_WithOnlyProspectAccount_ShouldThrowNotFoundException()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var currentUser = new ContactEntity
+        {
+            ContactId = 1,
+            Type = ContactType.Collaborator.ToString(),
+            FirstName = "Jean",
+            LastName = "Dupont",
+            Email = "jean.dupont@test.fr",
+            PersonaName = "Jean Dupont",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var associatedContact = new ContactEntity
+        {
+            ContactId = 2,
+            Type = ContactType.Collaborator.ToString(),
+            FirstName = "Paul",
+            LastName = "Martin",
+            Email = "paul.martin@test.fr",
+            PersonaName = "Paul Martin",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 104,
+            AccountNumber = "ACC-PROSPECT-104",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = prospectAccount, Contact = currentUser, ContactId = currentUser.ContactId, IsCustomerRelation = true },
+            new RoleEntity { Account = prospectAccount, Contact = associatedContact, ContactId = associatedContact.ContactId, IsCustomerRelation = true });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => repository.GetAssociatedContactsAsync(
+            currentUser.ContactId,
+            new GetAssociatedContactsRequest
+            {
+                ContactType = ContactType.Collaborator,
+                Search = string.Empty
+            },
+            new Pagination { PageNumber = 1, PageSize = 10 }));
     }
 }

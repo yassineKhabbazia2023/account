@@ -47,7 +47,8 @@ public class VentyaRepositoryTests
             AccountGlobalUniqueId = Guid.NewGuid(),
             CreatedBy = "UnitTest",
             LegalName = "Test Company",
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         };
         context.AccountEntity.Add(account);
         await context.SaveChangesAsync();
@@ -100,7 +101,8 @@ public class VentyaRepositoryTests
             AccountGlobalUniqueId = Guid.NewGuid(),
             CreatedBy = "UnitTest",
             LegalName = "Test Company 2",
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         };
         context.AccountEntity.Add(account);
         await context.SaveChangesAsync();
@@ -153,7 +155,8 @@ public class VentyaRepositoryTests
             AccountGlobalUniqueId = Guid.NewGuid(),
             CreatedBy = "UnitTest",
             LegalName = "Test Company 3",
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         };
         context.AccountEntity.Add(account);
         await context.SaveChangesAsync();
@@ -206,7 +209,8 @@ public class VentyaRepositoryTests
             AccountGlobalUniqueId = Guid.NewGuid(),
             CreatedBy = "UnitTest",
             LegalName = "Test Company 4",
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         };
         context.AccountEntity.Add(account);
         await context.SaveChangesAsync();
@@ -278,7 +282,8 @@ public class VentyaRepositoryTests
             AccountGlobalUniqueId = Guid.NewGuid(),
             CreatedBy = "UnitTest",
             LegalName = "Test Company 5",
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         };
         context.AccountEntity.Add(account);
         await context.SaveChangesAsync();
@@ -309,7 +314,8 @@ public class VentyaRepositoryTests
             AccountGlobalUniqueId = Guid.NewGuid(),
             CreatedBy = "UnitTest",
             LegalName = "Test Company 6",
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         };
         context.AccountEntity.Add(account);
         await context.SaveChangesAsync();
@@ -353,7 +359,8 @@ public class VentyaRepositoryTests
             AccountGlobalUniqueId = Guid.NewGuid(),
             CreatedBy = "UnitTest",
             LegalName = "Test Company 7",
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         };
         context.AccountEntity.Add(account1);
         await context.SaveChangesAsync();
@@ -364,7 +371,8 @@ public class VentyaRepositoryTests
             AccountGlobalUniqueId = Guid.NewGuid(),
             CreatedBy = "UnitTest",
             LegalName = "Test Company 8",
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         };
         context.AccountEntity.Add(account2);
         await context.SaveChangesAsync();

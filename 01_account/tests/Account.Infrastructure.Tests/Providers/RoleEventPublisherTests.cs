@@ -136,6 +136,8 @@ public class RoleEventPublisherTests
         int contactId = 2;
         bool isSignatory = false;
 
+        _accountRepository.Setup(a => a.GetAccountAsync(accountId)).ReturnsAsync(_fixture.Create<AccountDetail>());
+
         var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, _contactEventRepository.Object, _accountRepository.Object, _roleRepository.Object);
 
         // act
@@ -165,6 +167,7 @@ public class RoleEventPublisherTests
 
         _roleRepository.Setup(r => r.GetContactRoleAsync(accountId, contactId))
             .ReturnsAsync(existingRole);
+        _accountRepository.Setup(a => a.GetAccountAsync(accountId)).ReturnsAsync(_fixture.Create<AccountDetail>());
 
         var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, _contactEventRepository.Object, _accountRepository.Object, _roleRepository.Object);
 

@@ -61,7 +61,7 @@ public class HistoryEventPublisher : IHistoryEventPublisher
             }
         };
 
-        await _eventPublisher.PublishAsync(new HistoryCreatedEvent(data));
+        await _eventPublisher.PublishAsync(new HistoryCreatedEvent(data) { AccountType = account.AccountType });
     }
 
     public async Task PublishHistoryCreatedEventAsync(int currentUserId, int contactId, int accountId, string actionCode)
@@ -101,6 +101,6 @@ public class HistoryEventPublisher : IHistoryEventPublisher
             },
         };
 
-        await _eventPublisher.PublishAsync(new HistoryCreatedEvent(historyActivity));
+        await _eventPublisher.PublishAsync(new HistoryCreatedEvent(historyActivity) { AccountType = account!.AccountType });
     }
 }

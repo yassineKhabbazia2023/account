@@ -1,13 +1,13 @@
-﻿// <copyright file="RegistryAccountUpdatedEventHandler.cs" company="Pulse">
+// <copyright file="RegistryAccountUpdatedEventHandler.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.IntegrationEvents;
-using Pulse.Account.Core.Interfaces;
 
 namespace Pulse.Account.Infrastructure.Providers;
 
@@ -56,6 +56,7 @@ public class RegistryAccountUpdatedEventHandler : IEventHandler
     private async Task ProtectRequiredFieldsAsync(Back.Events.IntegrationEvents.EventsData.RegistryAccountUpdatedEventData eventData)
     {
         var currentAccount = await _accountEventRepository.GetAccountByGuidAsync(eventData.AccountGlobalUniqueIdentifier);
+
         if (currentAccount == null)
         {
             return;
