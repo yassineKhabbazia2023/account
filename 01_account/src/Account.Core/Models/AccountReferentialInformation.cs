@@ -270,4 +270,17 @@ public class AccountReferentialInformation
             };
         }
     }
+
+    public IReadOnlyDictionary<string, string> ContactType
+    {
+        get
+        {
+            return new Dictionary<string, string>
+            {
+                { "isDigitalVaultContact", "Contact Coffre-fort numérique" },
+                { "isDebtCollectionContact", "Contact recouvrement" },
+                { "isMandateSignatory", "Signataire lettre de mission/mandat" }
+            };
+        }
+    }
 }
