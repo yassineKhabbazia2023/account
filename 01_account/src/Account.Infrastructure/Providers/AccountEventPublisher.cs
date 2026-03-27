@@ -36,7 +36,8 @@ namespace Pulse.Account.Infrastructure.Providers
                 SiretNumber = account?.Legal?.Siret ?? string.Empty,
                 Status = DeploymentStatus.ToDeploy.ToString(),
                 CreatedBy = account.CreatedBy,
-                ModifiedBy = account.ModifiedBy
+                ModifiedBy = account.ModifiedBy,
+                AccountType = account.AccountType
             };
 
             var @event = new AccountCreatedEvent(eventData);
@@ -59,7 +60,8 @@ namespace Pulse.Account.Infrastructure.Providers
                 SiretNumber = account.Legal?.Siret ?? string.Empty,
                 Status = ((DeploymentStatus)account.Deployment!.Status).ToString(),
                 CreatedBy = account.CreatedBy,
-                ModifiedBy = account.ModifiedBy
+                ModifiedBy = account.ModifiedBy,
+                AccountType = account.AccountType
             };
 
             var @event = new AccountUpdatedEvent(eventData);
@@ -70,7 +72,7 @@ namespace Pulse.Account.Infrastructure.Providers
         {
             var eventData = new AccountRemovedEventData
             {
-                AccountId = accountId,
+                AccountId = accountId
             };
 
             var @event = new AccountRemovedEvent(eventData);
