@@ -77,7 +77,7 @@ public class AccountRepository : IAccountRepository
         var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
         // Sort result
-        var query = GetAccountEntitiesSorted(baseQuery, criteria.Sorting);
+        var query = GetAccountEntitiesSorted(baseQuery, criteria.Sorting , criteria.ContactId);
 
         // Appliquer le Skip et le Take avant les Includes
         query = query
@@ -103,65 +103,72 @@ public class AccountRepository : IAccountRepository
         );
     }
 
-    private static IQueryable<AccountEntity> GetAccountEntitiesSorted(IQueryable<AccountEntity> query, Sorting? sorting)
+    private static IQueryable<AccountEntity> GetAccountEntitiesSorted(
+    IQueryable<AccountEntity> query,
+    Sorting? sorting,
+    int contactId)
     {
+        var orderedQuery = query
+            .OrderByDescending(x => x.RoleEntity
+                .Any(r => r.ContactId == contactId && r.IsFavorite == true));
+
         if (sorting == null || string.IsNullOrEmpty(sorting.Field))
         {
-            return query.OrderBy(x => x.LegalName);
+            return orderedQuery.ThenBy(x => x.LegalName);
         }
 
         switch (sorting.Field)
         {
             case SortingConstants.COMPANYNAME:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.LegalName)
-                    : query.OrderBy(x => x.LegalName);
+                orderedQuery = sorting.Descending
+                    ? orderedQuery.ThenByDescending(x => x.LegalName)
+                    : orderedQuery.ThenBy(x => x.LegalName);
                 break;
 
             case SortingConstants.CUSTOMERCODE:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.AccountNumber)
-                    : query.OrderBy(x => x.AccountNumber);
+                orderedQuery = sorting.Descending
+                    ? orderedQuery.ThenByDescending(x => x.AccountNumber)
+                    : orderedQuery.ThenBy(x => x.AccountNumber);
                 break;
 
             case SortingConstants.LEADER:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.RoleEntity
+                orderedQuery = sorting.Descending
+                    ? orderedQuery.ThenByDescending(x => x.RoleEntity
                         .Where(r => r.IsSignatory == true)
                         .Select(r => r.Contact.FirstName + r.Contact.LastName)
                         .FirstOrDefault())
-                    : query.OrderBy(x => x.RoleEntity
+                    : orderedQuery.ThenBy(x => x.RoleEntity
                         .Where(r => r.IsSignatory == true)
                         .Select(r => r.Contact.FirstName + r.Contact.LastName)
                         .FirstOrDefault());
                 break;
 
             case SortingConstants.EMAIL:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.RoleEntity
+                orderedQuery = sorting.Descending
+                    ? orderedQuery.ThenByDescending(x => x.RoleEntity
                         .Where(r => r.IsSignatory == true)
                         .Select(r => r.Contact.Email)
                         .FirstOrDefault())
-                    : query.OrderBy(x => x.RoleEntity
+                    : orderedQuery.ThenBy(x => x.RoleEntity
                         .Where(r => r.IsSignatory == true)
                         .Select(r => r.Contact.Email)
                         .FirstOrDefault());
                 break;
 
             case SortingConstants.CITY:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.AddressEntity
+                orderedQuery = sorting.Descending
+                    ? orderedQuery.ThenByDescending(x => x.AddressEntity
                         .Select(a => a.City)
                         .FirstOrDefault())
-                    : query.OrderBy(x => x.AddressEntity
+                    : orderedQuery.ThenBy(x => x.AddressEntity
                         .Select(a => a.City)
                         .FirstOrDefault());
                 break;
 
             case SortingConstants.STATUS:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.DeploymentEntity.Status)
-                    : query.OrderBy(x => x.DeploymentEntity.Status);
+                orderedQuery = sorting.Descending
+                    ? orderedQuery.ThenByDescending(x => x.DeploymentEntity.Status)
+                    : orderedQuery.ThenBy(x => x.DeploymentEntity.Status);
                 break;
 
             default:
@@ -170,8 +177,9 @@ public class AccountRepository : IAccountRepository
                     string.Format(Errors.BadRequestContactsAccountMessage, sorting.Field));
         }
 
-        return query;
+        return orderedQuery;
     }
+
 
     public async Task<Paging<AccountModel>> GetAllAccountsAsync(string? accountNumber, Pagination pagination, SearchAccountCriteria criteria)
     {
@@ -186,7 +194,7 @@ public class AccountRepository : IAccountRepository
                         select n;
             }
 
-            query = GetAccountEntitiesSorted(query, criteria.Sorting);
+            query = GetAccountEntitiesSorted(query, criteria.Sorting, criteria.ContactId);
 
             var totalItems = await query.CountAsync();
             var totalPages = Paginator.GetTotalPages(totalItems, pagination!.PageSize);
