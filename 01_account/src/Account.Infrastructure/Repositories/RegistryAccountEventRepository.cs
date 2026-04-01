@@ -38,7 +38,7 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
         return accountEntity.MapToAccountDetail()!;
     }
 
-    public async Task<int> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier)
+    public async Task<(int AccountId, string? AccountType)> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier)
     {
         var accountToRemove = await _context.ActiveAccounts.FirstOrDefaultAsync(a => a.AccountGlobalUniqueId == accountGlobalUniqueIdentifier);
 
@@ -51,7 +51,7 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
 
         _context.AccountEntity.Update(accountToRemove);
         await _context.SaveChangesAsync();
-        return accountToRemove.AccountId;
+        return (accountToRemove.AccountId, accountToRemove.AccountType);
     }
 
     public async Task<AccountDetail> UpdateAccountAsync(RegistryAccountUpdatedEventData eventData)

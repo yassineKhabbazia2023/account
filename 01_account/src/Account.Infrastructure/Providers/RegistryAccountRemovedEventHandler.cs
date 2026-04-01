@@ -44,9 +44,9 @@ public class RegistryAccountRemovedEventHandler : IEventHandler
             return;
         }
 
-        var removedAccountId = await _accountEventRepository.RemoveAccountAsync(@event.Data.AccountGlobalUniqueIdentifier);
+        var (removedAccountId, accountType) = await _accountEventRepository.RemoveAccountAsync(@event.Data.AccountGlobalUniqueIdentifier);
         _logger.LogInformation("L'entité avec l'identifiant suivant: {AccountId} vient d'être supprimée.", removedAccountId);
 
-        await _accountEventPublisher.PublishAccountRemovedEventAsync(removedAccountId);
+        await _accountEventPublisher.PublishAccountRemovedEventAsync(removedAccountId, accountType);
     }
 }

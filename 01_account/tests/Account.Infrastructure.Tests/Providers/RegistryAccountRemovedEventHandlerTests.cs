@@ -36,7 +36,7 @@ public class RegistryAccountRemovedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(repo => repo.RemoveAccountAsync(It.IsAny<Guid>()), Times.Once);
-        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(It.IsAny<int>()), Times.Once);
+        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(It.IsAny<int>(), It.IsAny<string?>()), Times.Once);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class RegistryAccountRemovedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(repo => repo.RemoveAccountAsync(It.IsAny<Guid>()), Times.Never);
-        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(It.IsAny<int>()), Times.Never);
+        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(It.IsAny<int>(), It.IsAny<string?>()), Times.Never);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class RegistryAccountRemovedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(repo => repo.RemoveAccountAsync(It.IsAny<Guid>()), Times.Never);
-        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(It.IsAny<int>()), Times.Never);
+        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(It.IsAny<int>(), It.IsAny<string?>()), Times.Never);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class RegistryAccountRemovedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(repo => repo.RemoveAccountAsync(It.IsAny<Guid>()), Times.Never);
-        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(It.IsAny<int>()), Times.Never);
+        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(It.IsAny<int>(), It.IsAny<string?>()), Times.Never);
     }
 
     [Fact]
@@ -102,8 +102,8 @@ public class RegistryAccountRemovedEventHandlerTests
         var accountGuid = Guid.NewGuid();
 
         repositoryMock.Setup(r => r.RemoveAccountAsync(accountGuid))
-            .ReturnsAsync(12);
-        publisherMock.Setup(p => p.PublishAccountRemovedEventAsync(12))
+            .ReturnsAsync((12, GlobalConstants.ProspectAccountType));
+        publisherMock.Setup(p => p.PublishAccountRemovedEventAsync(12, GlobalConstants.ProspectAccountType))
             .Returns(Task.CompletedTask);
 
         var handler = new RegistryAccountRemovedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
@@ -114,7 +114,7 @@ public class RegistryAccountRemovedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(r => r.RemoveAccountAsync(accountGuid), Times.Once);
-        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(12), Times.Once);
+        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(12, GlobalConstants.ProspectAccountType), Times.Once);
     }
 
     [Fact]
@@ -127,8 +127,8 @@ public class RegistryAccountRemovedEventHandlerTests
         var accountGuid = Guid.NewGuid();
 
         repositoryMock.Setup(r => r.RemoveAccountAsync(accountGuid))
-            .ReturnsAsync(42);
-        publisherMock.Setup(p => p.PublishAccountRemovedEventAsync(42))
+            .ReturnsAsync((42, (string?)null));
+        publisherMock.Setup(p => p.PublishAccountRemovedEventAsync(42, null))
             .Returns(Task.CompletedTask);
 
         var handler = new RegistryAccountRemovedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
@@ -139,6 +139,6 @@ public class RegistryAccountRemovedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(r => r.RemoveAccountAsync(accountGuid), Times.Once);
-        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(42), Times.Once);
+        publisherMock.Verify(p => p.PublishAccountRemovedEventAsync(42, null), Times.Once);
     }
 }

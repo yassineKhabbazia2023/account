@@ -12,6 +12,6 @@ namespace Pulse.Account.Core.Interfaces
 
         public Task PublishAccountUpdatedEventAsync(AccountDetail account);
 
-        public Task PublishAccountRemovedEventAsync(int accountId);
+        public Task PublishAccountRemovedEventAsync(int accountId, string? accountType);
     }
 }

@@ -13,7 +13,7 @@ public interface IRegistryAccountEventRepository
 
     public Task<AccountDetail> UpdateAccountAsync(RegistryAccountUpdatedEventData eventData);
 
-    public Task<int> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier);
+    public Task<(int AccountId, string? AccountType)> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier);
 
     Task<bool> DoesAccountExistAsync(Guid accountGlobalUniqueId);
 

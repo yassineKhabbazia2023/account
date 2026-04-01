@@ -37,7 +37,7 @@ namespace Pulse.Account.Infrastructure.Providers
                 Status = DeploymentStatus.ToDeploy.ToString(),
                 CreatedBy = account.CreatedBy,
                 ModifiedBy = account.ModifiedBy,
-                AccountType = account.AccountType
+                AccountType = account.AccountType,
             };
 
             var @event = new AccountCreatedEvent(eventData);
@@ -61,18 +61,19 @@ namespace Pulse.Account.Infrastructure.Providers
                 Status = ((DeploymentStatus)account.Deployment!.Status).ToString(),
                 CreatedBy = account.CreatedBy,
                 ModifiedBy = account.ModifiedBy,
-                AccountType = account.AccountType
+                AccountType = account.AccountType,
             };
 
             var @event = new AccountUpdatedEvent(eventData);
             await _eventPublisher.PublishAsync(@event);
         }
 
-        public async Task PublishAccountRemovedEventAsync(int accountId)
+        public async Task PublishAccountRemovedEventAsync(int accountId, string? accountType)
         {
             var eventData = new AccountRemovedEventData
             {
-                AccountId = accountId
+                AccountId = accountId,
+                AccountType = accountType,
             };
 
             var @event = new AccountRemovedEvent(eventData);

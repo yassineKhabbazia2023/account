@@ -59,7 +59,7 @@ public class AccountEventPublisherTests
         var detail = _fixture.Create<AccountDetail>();
 
         // Act
-        await accountEventPublisher.PublishAccountRemovedEventAsync(It.IsAny<int>());
+        await accountEventPublisher.PublishAccountRemovedEventAsync(It.IsAny<int>(), It.IsAny<string?>());
 
         // Assert
         publisherMock.Verify(p => p.PublishAsync(It.IsAny<BaseEvent<AccountRemovedEventData>>(), null!, null), Times.Once);
