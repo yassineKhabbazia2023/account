@@ -1311,8 +1311,7 @@ public class AccountRepositoryTests
     [InlineData(SortingConstants.CITY, false, "legalName1")]
     [InlineData(SortingConstants.STATUS, true, "legalName1")]
     [InlineData(SortingConstants.STATUS, false, "legalName1")]
-    public async Task GetAllAccountsAsync_WithAccountNumber_ShouldSortResults(
-        string field, bool isDescending, string accountLegalnameExpected)
+    public async Task GetAllAccountsAsync_WithAccountNumber_ShouldSortResults(string field, bool isDescending, string accountLegalnameExpected)
     {
         using (var context = new AccountContext(_dbContextOptions))
         {
@@ -1341,85 +1340,78 @@ public class AccountRepositoryTests
                 .Create();
             var role1 = _fixture.Build<RoleEntity>()
                 .With(r => r.IsSignatory, true)
-                .With(r => r.IsFavorite, false) // <-- aucun favori pour ce test
                 .With(r => r.AccountId, 1)
                 .With(r => r.ContactId, 1)
                 .Without(r => r.Account)
                 .Without(r => r.Contact)
                 .Create();
-            var role2 = _fixture.Build<RoleEntity>()
-                .With(r => r.IsSignatory, true)
-                .With(r => r.IsFavorite, false)
-                .With(r => r.AccountId, 2)
-                .With(r => r.ContactId, 22)
-                .Without(r => r.Account)
-                .Without(r => r.Contact)
-                .Create();
-
-            // --- Création des adresses ---
             var address1 = _fixture.Build<AddressEntity>()
-                .With(a => a.City, "city1")
-                .With(a => a.AccountId, 1)
-                .Without(a => a.Account)
-                .Without(a => a.OfficeEntity)
+                .With(adr => adr.City, "city1")
+                .With(adr => adr.AccountId, 1)
+                .Without(adr => adr.Account)
+                .Without(adr => adr.OfficeEntity)
                 .Create();
-
-            var address2 = _fixture.Build<AddressEntity>()
-                .With(a => a.City, "city2")
-                .With(a => a.AccountId, 2)
-                .Without(a => a.Account)
-                .Without(a => a.OfficeEntity)
-                .Create();
-
-            // --- Création des déploiements ---
             var deploi1 = _fixture.Build<DeploymentEntity>()
                 .With(d => d.Status, (int)DeploymentStatus.Connected)
                 .With(d => d.AccountId, 1)
                 .Without(d => d.Account)
                 .Create();
-
+            var role2 = _fixture.Build<RoleEntity>()
+                .With(r => r.IsSignatory, true)
+                .With(r => r.AccountId, 2)
+                .With(r => r.ContactId, 22)
+                .Without(r => r.Account)
+                .Without(r => r.Contact)
+                .Create();
+            var address2 = _fixture.Build<AddressEntity>()
+                .With(adr => adr.City, "city2")
+                .With(adr => adr.AccountId, 2)
+                .Without(adr => adr.Account)
+                .Without(adr => adr.OfficeEntity)
+                .Create();
             var deploi2 = _fixture.Build<DeploymentEntity>()
                 .With(d => d.Status, (int)DeploymentStatus.Connected)
                 .With(d => d.AccountId, 2)
                 .Without(d => d.Account)
                 .Create();
-
-            // --- Création des comptes ---
             var account1 = _fixture.Build<AccountEntity>()
                 .With(a => a.AccountId, 1)
                 .With(a => a.AccountNumber, "accountNumber1")
                 .With(a => a.LegalName, "legalName1")
-                .With(a => a.IsActive, true)
+                .Without(a => a.RoleEntity)
+                .Without(a => a.AddressEntity)
+                .Without(a => a.DeploymentEntity)
+                .Without(a => a.PhoneEntity)
+                .Without(a => a.RoleLabelEntity)
+                .Without(a => a.Delegation)
+                .Without(a => a.OfferEligibilityEntity)
+                .With(x => x.IsActive, true)
                 .Create();
-
             var account2 = _fixture.Build<AccountEntity>()
                 .With(a => a.AccountId, 2)
                 .With(a => a.AccountNumber, "accountNumber2")
                 .With(a => a.LegalName, "legalName2")
-                .With(a => a.IsActive, true)
+                .Without(a => a.RoleEntity)
+                .Without(a => a.AddressEntity)
+                .Without(a => a.DeploymentEntity)
+                .Without(a => a.PhoneEntity)
+                .Without(a => a.RoleLabelEntity)
+                .Without(a => a.Delegation)
+                .Without(a => a.OfferEligibilityEntity)
+                .With(x => x.IsActive, true)
                 .Create();
 
-            // --- Attacher les navigations pour EF Core ---
-            account1.AddressEntity = new List<AddressEntity> { address1 };
-            account2.AddressEntity = new List<AddressEntity> { address2 };
-
-            account1.RoleEntity = new List<RoleEntity> { role1 };
-            account2.RoleEntity = new List<RoleEntity> { role2 };
-
-            account1.DeploymentEntity = deploi1;
-            account2.DeploymentEntity = deploi2;
-
-            // --- Ajouter les entités dans le contexte ---
+            context.DeploymentEntity.AddRange(deploi1, deploi2);
+            context.AddressEntity.AddRange(address1, address2);
             context.ContactEntity.AddRange(contact1, contact2);
             context.AccountEntity.AddRange(account1, account2);
             context.RoleEntity.AddRange(role1, role2);
-            context.AddressEntity.AddRange(address1, address2);
-            context.DeploymentEntity.AddRange(deploi1, deploi2);
 
             await context.SaveChangesAsync();
-            context.ChangeTracker.Clear();
             var accountRepository = new AccountRepository(context);
 
+            // Add test data with different account numbers
+            // ... (add test data setup here)
             var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
             var searchAccountCriteria = new SearchAccountCriteria
             {
@@ -1430,13 +1422,14 @@ public class AccountRepositoryTests
                 }
             };
 
-            // --- Act ---
+            // Act
             var result = await accountRepository.GetAllAccountsAsync(null, pagination, searchAccountCriteria);
 
-            // --- Assert ---
+            // Assert
             Assert.Equal(accountLegalnameExpected, result.Items.First().LegalName);
         }
     }
+
     [Fact]
     public async Task GetContactsAccountAsync_WithSearchCriteria_ShouldFilterResults()
     {
@@ -2375,5 +2368,4 @@ public class AccountRepositoryTests
             },
             new Pagination { PageNumber = 1, PageSize = 10 }));
     }
-
 }
