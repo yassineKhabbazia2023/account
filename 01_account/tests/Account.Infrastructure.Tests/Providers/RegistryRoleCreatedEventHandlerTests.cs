@@ -400,6 +400,114 @@ public class RegistryRoleCreatedEventHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_ExistingRole_IsSignatoryChanged_Should_CallUpdateRoleIsSignatoryAsync()
+    {
+        // Arrange
+        var repositoryMock = new Mock<IRegistryRoleEventRepository>();
+        repositoryMock.Setup(r => r.UpdateRoleIsSignatoryAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool?>()))
+            .ReturnsAsync(true);
+        var publisherMock = new Mock<IRoleEventPublisher>();
+
+        var role = new Account.Core.Models.Role
+        {
+            AccountId = 1,
+            ContactId = 2,
+            ContactFlagPortailFactures = true,
+            IsSignatory = false,
+        };
+        var updatedRole = new Account.Core.Models.Role
+        {
+            AccountId = 1,
+            ContactId = 2,
+            ContactFlagPortailFactures = true,
+            IsSignatory = true,
+        };
+        var roleRepo = new Mock<IRoleRepository>();
+        roleRepo.SetupSequence(x => x.GetContactRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(role)
+            .ReturnsAsync(updatedRole);
+
+        var historyPublisherMock = new Mock<IHistoryEventPublisher>();
+        historyPublisherMock.Setup(h => h.PublishHistoryCreatedEventAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+            .Returns(Task.CompletedTask);
+
+        var handler = CreateHandler(repositoryMock: repositoryMock, publisherMock: publisherMock, roleRepo: roleRepo, historyPublisherMock: historyPublisherMock);
+
+        var message = "{\"EventType\":\"RegistryRoleCreatedEvent\",\"Data\":{\"AccountId\":1,\"ContactId\":2,\"Email\":\"test@email.fr\",\"ContactFlagPortailFactures\":true,\"RoleSignatory\":true}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(repo => repo.UpdateRoleIsSignatoryAsync(1, 2, true), Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ExistingRole_IsSignatorySame_Should_NotCallUpdate()
+    {
+        // Arrange
+        var repositoryMock = new Mock<IRegistryRoleEventRepository>();
+        var publisherMock = new Mock<IRoleEventPublisher>();
+
+        var role = new Account.Core.Models.Role
+        {
+            AccountId = 1,
+            ContactId = 2,
+            ContactFlagPortailFactures = true,
+            IsSignatory = true,
+        };
+        var roleRepo = new Mock<IRoleRepository>();
+        roleRepo.Setup(x => x.GetContactRoleAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(role);
+
+        var historyPublisherMock = new Mock<IHistoryEventPublisher>();
+        historyPublisherMock.Setup(h => h.PublishHistoryCreatedEventAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
+            .Returns(Task.CompletedTask);
+
+        var handler = CreateHandler(repositoryMock: repositoryMock, publisherMock: publisherMock, roleRepo: roleRepo, historyPublisherMock: historyPublisherMock);
+
+        var message = "{\"EventType\":\"RegistryRoleCreatedEvent\",\"Data\":{\"AccountId\":1,\"ContactId\":2,\"Email\":\"test@email.fr\",\"ContactFlagPortailFactures\":true,\"RoleSignatory\":true}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(repo => repo.UpdateRoleIsSignatoryAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool?>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ExistingRole_UpdateIsSignatoryFails_Should_ReturnEarly()
+    {
+        // Arrange
+        var repositoryMock = new Mock<IRegistryRoleEventRepository>();
+        repositoryMock.Setup(r => r.UpdateRoleIsSignatoryAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool?>()))
+            .ReturnsAsync(false);
+        var publisherMock = new Mock<IRoleEventPublisher>();
+
+        var role = new Account.Core.Models.Role
+        {
+            AccountId = 1,
+            ContactId = 2,
+            ContactFlagPortailFactures = true,
+            IsSignatory = false,
+        };
+        var roleRepo = new Mock<IRoleRepository>();
+        roleRepo.Setup(x => x.GetContactRoleAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(role);
+
+        var historyPublisherMock = new Mock<IHistoryEventPublisher>();
+
+        var handler = CreateHandler(repositoryMock: repositoryMock, publisherMock: publisherMock, roleRepo: roleRepo, historyPublisherMock: historyPublisherMock);
+
+        var message = "{\"EventType\":\"RegistryRoleCreatedEvent\",\"Data\":{\"AccountId\":1,\"ContactId\":2,\"Email\":\"test@email.fr\",\"ContactFlagPortailFactures\":true,\"RoleSignatory\":true}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(repo => repo.UpdateRoleIsSignatoryAsync(1, 2, true), Times.Once);
+        publisherMock.Verify(p => p.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
     public async Task HandleAsync_WithCLPAlreadyAssignedOnAccount_ShouldReplaceRoleLabel()
     {
         // Arrange

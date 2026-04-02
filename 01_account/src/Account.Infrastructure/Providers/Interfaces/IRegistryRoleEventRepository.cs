@@ -22,5 +22,7 @@ public interface IRegistryRoleEventRepository
 
     Task<CreateRoleRequest?> UpdateRoleContactFlagPortailFacturesAsync(int accountId, int contactId, bool? contactFlagPortailFactures);
 
+    Task<bool> UpdateRoleIsSignatoryAsync(int accountId, int contactId, bool? isSignatory);
+
     Task<CreateRoleRequest?> UpdateRoleIsCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation, int actionLevel);
 }

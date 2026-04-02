@@ -249,6 +249,81 @@ public class RegistryRoleEventRepositoryTests
         Assert.Null(result);
     }
 
+    private static AccountContext CreateSqliteContext()
+    {
+        var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
+        connection.Open();
+        connection.CreateFunction("newid", () => Guid.NewGuid().ToString());
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseSqlite(connection)
+                .Options;
+        var context = new AccountContext(options);
+        context.Database.EnsureCreated();
+        context.Database.ExecuteSqlRaw("PRAGMA foreign_keys = OFF;");
+        return context;
+    }
+
+    [Fact]
+    public async Task UpdateRoleIsSignatoryAsync_RoleExists_Should_UpdateAndReturnTrue()
+    {
+        using var context = CreateSqliteContext();
+
+        var account = _fixture.Build<AccountEntity>()
+            .Without(a => a.RoleEntity)
+            .Create();
+        context.AccountEntity.Add(account);
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+
+        var existingRole = _fixture.Build<RoleEntity>()
+            .With(r => r.AccountId, account.AccountId)
+            .With(r => r.ContactId, contact.ContactId)
+            .With(r => r.IsSignatory, false)
+            .Without(r => r.Account)
+            .Without(r => r.Contact)
+            .Create();
+        context.RoleEntity.Add(existingRole);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryRoleEventRepository(context);
+
+        var result = await repository.UpdateRoleIsSignatoryAsync(account.AccountId, contact.ContactId, true);
+
+        Assert.True(result);
+
+        var updatedRole = await context.RoleEntity.AsNoTracking()
+            .FirstOrDefaultAsync(r => r.AccountId == account.AccountId && r.ContactId == contact.ContactId);
+        Assert.NotNull(updatedRole);
+        Assert.True(updatedRole!.IsSignatory);
+    }
+
+    [Fact]
+    public async Task UpdateRoleIsSignatoryAsync_RoleNotFound_Should_ReturnFalse()
+    {
+        using var context = CreateSqliteContext();
+
+        var account = _fixture.Build<AccountEntity>()
+            .Without(a => a.RoleEntity)
+            .Create();
+        context.AccountEntity.Add(account);
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryRoleEventRepository(context);
+
+        var result = await repository.UpdateRoleIsSignatoryAsync(account.AccountId, contact.ContactId, true);
+
+        Assert.False(result);
+    }
+
     [Fact]
     public async Task RemoveRoleAsync_ShouldRemoveRole()
     {
