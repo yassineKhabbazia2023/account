@@ -62,24 +62,24 @@ namespace Pulse.Account.Infrastructure.Repositories
 
         private async Task<Dictionary<int, int>?> GetAccountStatistics(int contactId)
         {
-            var entities = _accountContext.DeploymentEntity
-                    .Join(_accountContext.RoleEntity,
-                        deployment => deployment.AccountId,
-                        role => role.AccountId,
-                        (deployment, role) => new { deployment, role })
-                    .Where(x => x.role.ContactId == contactId)
-                    .GroupBy(x => x.deployment.Status)
-                    .Select(s => new { Status = s.Key, Count = s.Select(d => d.deployment.Status).Count() });
+            var entities = from deployment in _accountContext.DeploymentEntity
+                           join role in _accountContext.RoleEntity on deployment.AccountId equals role.AccountId
+                           join account in _accountContext.AccountEntity on deployment.AccountId equals account.AccountId
+                           where role.ContactId == contactId
+                           group deployment by deployment.Status into statuses
+                           select new { Status = statuses.Key, Count = statuses.Count() };
 
-            return await entities.ToDictionaryAsync(x => x
-            .Status, x => x.Count);
+            return await entities.ToDictionaryAsync(x => x.Status, x => x.Count);
         }
 
         private async Task<Dictionary<string, int>?> GetContactStatistics(int contactId)
         {
-            var accountIds = _accountContext.RoleEntity
-                .Where(r => r.ContactId == contactId)
-                .Select(r => r.AccountId);
+            var accountIds =
+                (from role in _accountContext.RoleEntity
+                 join account in _accountContext.AccountEntity on role.AccountId equals account.AccountId
+                 where role.ContactId == contactId
+                 select role.AccountId)
+                .Distinct();
 
             var contactIds = accountIds
                 .Join(_accountContext.RoleEntity,

@@ -6,6 +6,7 @@ using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Enum;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
@@ -69,6 +70,7 @@ public class StatisticsRepositoryTests
                         AccountNumber = "123",
                         CreatedBy = "test@test.fr",
                         LegalName = "Account 6",
+                        AccountType = AccountType.CLIENT.ToString(),
                     },
                 },
                 new()
@@ -81,7 +83,8 @@ public class StatisticsRepositoryTests
                         IsActive = true,
                         AccountNumber = "456",
                         CreatedBy = "test@test.fr",
-                        LegalName = "Account 1"
+                        LegalName = "Account 1",
+                        AccountType = AccountType.CLIENT.ToString(),
                     },
                 },
                 new()
@@ -94,7 +97,8 @@ public class StatisticsRepositoryTests
                         IsActive = true,
                         AccountNumber = "789",
                         CreatedBy = "test@test.fr",
-                        LegalName = "Account 2"
+                        LegalName = "Account 2",
+                        AccountType = AccountType.CLIENT.ToString(),
                     },
                 },
                 new()
@@ -107,7 +111,8 @@ public class StatisticsRepositoryTests
                         IsActive = true,
                         AccountNumber = "910",
                         CreatedBy = "test@test.fr",
-                        LegalName = "Account 3"
+                        LegalName = "Account 3",
+                        AccountType = AccountType.CLIENT.ToString(),
                     },
                 },
                 new()
@@ -120,7 +125,8 @@ public class StatisticsRepositoryTests
                         IsActive = true,
                         AccountNumber = "112",
                         CreatedBy = "test@test.fr",
-                        LegalName = "Account 4"
+                        LegalName = "Account 4",
+                        AccountType = AccountType.CLIENT.ToString(),
                     },
                 }
             };
@@ -153,9 +159,31 @@ public class StatisticsRepositoryTests
                     IsActive = true
                 }
             };
+            var prospectAccount = new AccountEntity
+            {
+                AccountId = 50,
+                IsActive = true,
+                AccountNumber = "PROSPECT1",
+                CreatedBy = "test@test.fr",
+                LegalName = "Prospect Account",
+                AccountType = AccountType.PROSPECT.ToString(),
+            };
+            var prospectDeployment = new DeploymentEntity
+            {
+                AccountId = 50,
+                Status = (int)DeploymentStatus.InProgress,
+            };
+            var prospectRole = new RoleEntity
+            {
+                ContactId = 2,
+                AccountId = 50,
+                Account = prospectAccount,
+            };
             var repository = new StatisticsRepository(context);
             context.DeploymentEntity.AddRange(expected);
+            context.DeploymentEntity.Add(prospectDeployment);
             context.RoleEntity.AddRange(roles);
+            context.RoleEntity.Add(prospectRole);
             context.ContactEntity.AddRange(contacts);
             await context.SaveChangesAsync();
             context.ChangeTracker.Clear();
@@ -171,6 +199,110 @@ public class StatisticsRepositoryTests
             Assert.Equal(0, result.ContactDeclared);
             Assert.Equal(1, result.ContactConnected);
         }
+    }
+
+    /// <summary>
+    /// Vérifie que les statistiques utilisent le même périmètre visible que le portefeuille courant.
+    /// </summary>
+    [Fact]
+    public async Task GetStatisticsAsync_WithProspectAccount_ShouldAlignConnectedCountWithVisibleAccounts()
+    {
+        using var context = new AccountContext(_options);
+
+        const int currentUserId = 10;
+
+        var currentUser = new ContactEntity
+        {
+            ContactId = currentUserId,
+            Email = "collab@test.fr",
+            FirstName = "Current",
+            LastName = "User",
+            Type = ContactType.Collaborator.ToString(),
+            PersonaName = "Collaborator",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var visibleCustomer = new ContactEntity
+        {
+            ContactId = 11,
+            Email = "visible.customer@test.fr",
+            FirstName = "Visible",
+            LastName = "Customer",
+            Type = ContactType.Customer.ToString(),
+            Status = ContactStatus.Connected.ToString(),
+            PersonaName = "Customer",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var hiddenProspectCustomer = new ContactEntity
+        {
+            ContactId = 12,
+            Email = "hidden.customer@test.fr",
+            FirstName = "Hidden",
+            LastName = "Customer",
+            Type = ContactType.Customer.ToString(),
+            Status = ContactStatus.Invited.ToString(),
+            PersonaName = "Customer",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+
+        var visibleAccount = new AccountEntity
+        {
+            AccountId = 100,
+            AccountNumber = "ACC-CLIENT-100",
+            LegalName = "Visible Account",
+            CreatedBy = "tests",
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString(),
+            DeploymentEntity = new DeploymentEntity
+            {
+                Status = (int)DeploymentStatus.Connected,
+            },
+        };
+        var hiddenProspectAccount = new AccountEntity
+        {
+            AccountId = 200,
+            AccountNumber = "ACC-PROSPECT-200",
+            LegalName = "Hidden Prospect Account",
+            CreatedBy = "tests",
+            IsActive = true,
+            AccountType = AccountType.PROSPECT.ToString(),
+            DeploymentEntity = new DeploymentEntity
+            {
+                Status = (int)DeploymentStatus.Connected,
+            },
+        };
+
+        context.ContactEntity.AddRange(currentUser, visibleCustomer, hiddenProspectCustomer);
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = visibleAccount, Contact = currentUser, ContactId = currentUserId, AccountId = visibleAccount.AccountId },
+            new RoleEntity { Account = hiddenProspectAccount, Contact = currentUser, ContactId = currentUserId, AccountId = hiddenProspectAccount.AccountId },
+            new RoleEntity { Account = visibleAccount, Contact = visibleCustomer, ContactId = visibleCustomer.ContactId, AccountId = visibleAccount.AccountId },
+            new RoleEntity { Account = hiddenProspectAccount, Contact = hiddenProspectCustomer, ContactId = hiddenProspectCustomer.ContactId, AccountId = hiddenProspectAccount.AccountId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var statisticsRepository = new StatisticsRepository(context);
+        var accountRepository = new AccountRepository(context);
+
+        var statistics = await statisticsRepository.GetStatisticsAsync(currentUserId);
+        var connectedAccounts = await accountRepository.GetAccountsAsync(
+            new SearchAccountCriteria
+            {
+                ContactId = currentUserId,
+                DeploymentStatus = (int)DeploymentStatus.Connected,
+            },
+            new Pagination
+            {
+                PageNumber = 1,
+                PageSize = 10,
+            });
+
+        statistics.AccountConnected.Should().Be(connectedAccounts.TotalItems);
+        statistics.AccountConnected.Should().Be(1);
+        statistics.ContactConnected.Should().Be(1);
+        statistics.ContactInvited.Should().Be(0);
     }
 
     [Fact]
