@@ -115,6 +115,8 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
                     _logger.LogWarning("Le role avec l'identifiant suivant: AccountId: {AccountId} - ContactId: {ContactId} n'a pas pu être mis à jour (IsSignatory).", accountId, contactId);
                     return;
                 }
+
+                existingRole.IsSignatory = @event.Data.RoleSignatory;
             }
 
             // Rattrapage : si le rôle existant n'a pas encore IsCustomerRelation à true et que la description correspond à CLP ou AM

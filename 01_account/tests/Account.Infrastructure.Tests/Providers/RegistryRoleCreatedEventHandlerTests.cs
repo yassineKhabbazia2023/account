@@ -443,6 +443,42 @@ public class RegistryRoleCreatedEventHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_ExistingRole_IsSignatoryChanged_Should_PublishEventWithUpdatedIsSignatory()
+    {
+        // Arrange
+        var repositoryMock = new Mock<IRegistryRoleEventRepository>();
+        repositoryMock.Setup(r => r.UpdateRoleIsSignatoryAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool?>()))
+            .ReturnsAsync(true);
+        var publisherMock = new Mock<IRoleEventPublisher>();
+
+        // Simuler le comportement EF Core : la même instance est retournée par le DbContext (cache de premier niveau).
+        // Sans la mise à jour manuelle de existingRole.IsSignatory, la valeur publiée resterait à false.
+        var role = new Account.Core.Models.Role
+        {
+            AccountId = 1,
+            ContactId = 2,
+            ContactFlagPortailFactures = true,
+            IsSignatory = false,
+        };
+        var roleRepo = new Mock<IRoleRepository>();
+        roleRepo.Setup(x => x.GetContactRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(role);
+
+        var historyPublisherMock = new Mock<IHistoryEventPublisher>();
+
+        var handler = CreateHandler(repositoryMock: repositoryMock, publisherMock: publisherMock, roleRepo: roleRepo, historyPublisherMock: historyPublisherMock);
+
+        var message = "{\"EventType\":\"RegistryRoleCreatedEvent\",\"Data\":{\"AccountId\":1,\"ContactId\":2,\"Email\":\"test@email.fr\",\"ContactFlagPortailFactures\":true,\"RoleSignatory\":true}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        publisherMock.Verify(p => p.PublishRoleCreatedEventAsync(
+            It.Is<CreateRoleRequest>(r => r.IsSignatory == true), It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
     public async Task HandleAsync_ExistingRole_IsSignatorySame_Should_NotCallUpdate()
     {
         // Arrange
