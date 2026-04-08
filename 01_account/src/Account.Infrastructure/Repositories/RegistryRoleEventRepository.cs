@@ -50,11 +50,17 @@ public class RegistryRoleEventRepository : IRegistryRoleEventRepository
 
     public async Task<bool> UpdateRoleIsSignatoryAsync(int accountId, int contactId, bool? isSignatory)
     {
-        var rowsAffected = await _context.RoleEntity
-            .Where(r => r.AccountId == accountId && r.ContactId == contactId)
-            .ExecuteUpdateAsync(s => s.SetProperty(r => r.IsSignatory, isSignatory));
+        var existingRole = await _context.RoleEntity.FirstOrDefaultAsync(r => r.AccountId == accountId && r.ContactId == contactId);
+        if (existingRole == null)
+        {
+            return false;
+        }
 
-        return rowsAffected > 0;
+        existingRole.IsSignatory = isSignatory;
+        _context.RoleEntity.Update(existingRole);
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 
     public async Task<CreateRoleRequest?> UpdateRoleIsCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation, int actionLevel)

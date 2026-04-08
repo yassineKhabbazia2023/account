@@ -451,8 +451,6 @@ public class RegistryRoleCreatedEventHandlerTests
             .ReturnsAsync(true);
         var publisherMock = new Mock<IRoleEventPublisher>();
 
-        // Simuler le comportement EF Core : la même instance est retournée par le DbContext (cache de premier niveau).
-        // Sans la mise à jour manuelle de existingRole.IsSignatory, la valeur publiée resterait à false.
         var role = new Account.Core.Models.Role
         {
             AccountId = 1,
@@ -460,9 +458,17 @@ public class RegistryRoleCreatedEventHandlerTests
             ContactFlagPortailFactures = true,
             IsSignatory = false,
         };
+        var updatedRole = new Account.Core.Models.Role
+        {
+            AccountId = 1,
+            ContactId = 2,
+            ContactFlagPortailFactures = true,
+            IsSignatory = true,
+        };
         var roleRepo = new Mock<IRoleRepository>();
-        roleRepo.Setup(x => x.GetContactRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
-            .ReturnsAsync(role);
+        roleRepo.SetupSequence(x => x.GetContactRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(role)
+            .ReturnsAsync(updatedRole);
 
         var historyPublisherMock = new Mock<IHistoryEventPublisher>();
 
