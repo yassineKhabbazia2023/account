@@ -29,7 +29,7 @@ namespace Pulse.Account.Infrastructure.Context
             modelBuilder.Entity<AccountEntity>(builder => builder.HasQueryFilter(account =>
                 account.IsActive
                 && account.AccountType != null
-                && account.AccountType.ToLower() != GlobalConstants.ProspectAccountType.ToLower()));
+                && account.AccountType.ToLower() != GlobalConstants.ProspectAccountType.ToLower()));                
         }
     }
 }

@@ -41,6 +41,55 @@ public class AccountRepository : IAccountRepository
                     sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN));
     }
 
+    public async Task<AccountDetail> CreateAccountAsync(string currentUser, CreateAccountRequest request)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var accountGlobalUniqueId = Guid.NewGuid();
+
+            var accountEntity = new AccountEntity
+            {
+                AccountGlobalUniqueId = accountGlobalUniqueId,
+                AccountNumber = request.AccountNumber,
+                LegalName = request.LegalName,
+                Siret = request.Siret,
+                CreatedBy = currentUser,
+                CreationDate = DateTime.UtcNow,
+                IsActive = true,
+                DeploymentEntity = new DeploymentEntity
+                {
+                    Status = (int)DeploymentStatus.ToDeploy,
+                    DeploymentDate = DateTime.UtcNow,
+                }
+            };
+
+            _accountContext.AccountEntity.Add(accountEntity);
+
+            try
+            {
+                await _accountContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException dbUpdateException) when (IsUniqueConstraintViolation(dbUpdateException))
+            {
+                throw new ConflictException(
+                    Errors.AccountAlreadyExistsCode,
+                    string.Format(Errors.AccountAlreadyExistsMessage, request.AccountNumber));
+            }
+
+            return accountEntity.MapToAccountDetail()!;
+        });
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException exception)
+    {
+        if (exception.InnerException is SqlException sqlException)
+        {
+            return sqlException.Number is 2601 or 2627;
+        }
+
+        return false;
+    }
+
     public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination)
     {
         // Construire la requête de base, en AsNoTracking, avec un premier filtre sur ContactId

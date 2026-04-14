@@ -48,8 +48,9 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
             .Options;
         _context = InitContext();
         var accountRepository = new AccountRepository(_context);
+        var contactRepository = new Mock<IContactRepository>();
         var accountEventPublisher = new Mock<IAccountEventPublisher>();
-        var accountService = new AccountService(accountRepository, accountEventPublisher.Object, NullLogger<AccountService>.Instance);
+        var accountService = new AccountService(accountRepository, contactRepository.Object, accountEventPublisher.Object, NullLogger<AccountService>.Instance);
         _accountController = new AccountController(accountService);
     }
 
@@ -116,6 +117,110 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
 
         // Assert
         Assert.Equal(account.AccountId, resultAccounts!.Value.As<Paging<AccountModel>>().Items!.First().AccountId);
+    }
+
+    [Fact]
+    public async Task Should_CreateAccount_ReturnsCreatedResultAsync()
+    {
+        // Arrange
+        var currentUserId = 1;
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = "A12345",
+            LegalName = "Account Test",
+            Siret = "12345678900000"
+        };
+
+        var expected = new AccountDetail
+        {
+            AccountId = 10,
+            AccountGlobalUniqueId = Guid.NewGuid(),
+            AccountNumber = request.AccountNumber,
+            Legal = new Legal { LegalName = request.LegalName },
+            Phone = new List<Phone>()
+        };
+
+        var service = new Mock<IAccountService>();
+        service.Setup(x => x.CreateAccountAsync(currentUserId, It.IsAny<CreateAccountRequest>())).ReturnsAsync(expected);
+        var controller = new AccountController(service.Object);
+
+        // Act
+        var result = await controller.CreateAccountAsync(currentUserId, request);
+
+        // Assert
+        var createdResult = result.Result as CreatedResult;
+        Assert.NotNull(createdResult);
+        Assert.Equal(201, createdResult!.StatusCode);
+        var response = createdResult.Value.As<CreateAccountResponse>();
+        Assert.Equal("Compte cree avec succes", response.Message);
+        Assert.Equal(expected.AccountId, response.AccountId);
+    }
+
+    [Fact]
+    public async Task Should_CreateAccount_ReturnsBadRequest_WhenModelStateInvalidAsync()
+    {
+        // Arrange
+        var currentUserId = 1;
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = string.Empty,
+            LegalName = "Account Test",
+            Siret = "12345678900000"
+        };
+
+        var service = new Mock<IAccountService>(MockBehavior.Strict);
+        var controller = new AccountController(service.Object);
+        controller.ModelState.AddModelError(nameof(CreateAccountRequest.AccountNumber), "The AccountNumber field is required.");
+
+        // Act
+        var result = await controller.CreateAccountAsync(currentUserId, request);
+
+        // Assert
+        Assert.IsType<BadRequestObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task Should_CreateAccount_Returns409_WhenConflictExceptionThrown()
+    {
+        // Arrange
+        var currentUserId = 1;
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = "A12345",
+            LegalName = "Account Test",
+            Siret = "12345678900000"
+        };
+
+        var service = new Mock<IAccountService>();
+        service.Setup(x => x.CreateAccountAsync(currentUserId, It.IsAny<CreateAccountRequest>()))
+            .ThrowsAsync(new ConflictException(Errors.AccountAlreadyExistsCode, string.Format(Errors.AccountAlreadyExistsMessage, request.AccountNumber)));
+        var controller = new AccountController(service.Object);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ConflictException>(() => controller.CreateAccountAsync(currentUserId, request));
+        Assert.Equal(Errors.AccountAlreadyExistsCode, exception.Code);
+    }
+
+    [Fact]
+    public async Task Should_CreateAccount_ThrowsNotFoundException_WhenUserNotFound()
+    {
+        // Arrange
+        var currentUserId = 999;
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = "A12345",
+            LegalName = "Account Test",
+            Siret = "12345678900000"
+        };
+
+        var service = new Mock<IAccountService>();
+        service.Setup(x => x.CreateAccountAsync(currentUserId, It.IsAny<CreateAccountRequest>()))
+            .ThrowsAsync(new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, currentUserId)));
+        var controller = new AccountController(service.Object);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<NotFoundException>(() => controller.CreateAccountAsync(currentUserId, request));
+        Assert.Equal(Errors.NotFoundContactCode, exception.Code);
     }
 
     [Fact]

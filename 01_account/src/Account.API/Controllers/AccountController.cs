@@ -20,13 +20,34 @@ namespace Pulse.Account.API.Controllers;
 
 [Route("api/accounts")]
 [ApiController]
-public class AccountController : ControllerBase
+public class AccountController(IAccountService accountService) : ControllerBase
 {
-    private readonly IAccountService _accountService;
-
-    public AccountController(IAccountService entityService)
+    /// <summary>
+    /// Créer une entité morale.
+    /// </summary>
+    /// <param name="currentUserId">ID de l'utilisateur actuel.</param>
+    /// <param name="request">Informations de création.</param>
+    /// <returns>Entité morale créée.</returns>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateAccountResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<CreateAccountResponse>> CreateAccountAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromBody] CreateAccountRequest request)
     {
-        _accountService = entityService;
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var createdAccount = await accountService.CreateAccountAsync(currentUserId, request);
+
+        var response = new CreateAccountResponse
+        {
+            Message = "Compte cree avec succes",
+            AccountId = createdAccount.AccountId
+        };
+
+        return Created(string.Empty, response);
     }
 
     /// <summary>
@@ -42,7 +63,7 @@ public class AccountController : ControllerBase
     public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync([FromQuery] SearchAccountCriteria criteria,
         [FromQuery] Pagination? pagination)
     {
-        var result = await _accountService.GetAccountsAsync(criteria, pagination);
+        var result = await accountService.GetAccountsAsync(criteria, pagination);
 
         return Ok(result);
     }
@@ -63,7 +84,7 @@ public class AccountController : ControllerBase
         [FromQuery] Pagination? pagination,
         [FromQuery] SearchAccountCriteria? criteria)
     {
-        var result = await _accountService.GetAllAccountsAsync(accountNumber, pagination, criteria);
+        var result = await accountService.GetAllAccountsAsync(accountNumber, pagination, criteria);
 
         return Ok(result);
     }
@@ -79,7 +100,7 @@ public class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     public async Task<ActionResult<AccountDetail>> GetAccountDetailAsync(int accountId)
     {
-        var result = await _accountService.GetAccountDetailAsync(accountId);
+        var result = await accountService.GetAccountDetailAsync(accountId);
         return Ok(result);
     }
 
@@ -107,7 +128,7 @@ public class AccountController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var accountToUpdate = await _accountService.GetAccountAsync(accountId);
+        var accountToUpdate = await accountService.GetAccountAsync(accountId);
         if (accountToUpdate == null)
         {
             return NotFound();
@@ -129,7 +150,7 @@ public class AccountController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        await _accountService.UpdateAccountAsync(accountId, accountToUpdate!);
+        await accountService.UpdateAccountAsync(accountId, accountToUpdate!);
 
         return Ok();
     }
@@ -145,7 +166,7 @@ public class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     public async Task<ActionResult<AccountModel>> GetAccountSummaryAsync([FromHeader(Name = "CurrentUser")] int currentUserId, int accountId)
     {
-        var result = await _accountService.GetAccountSummaryAsync(currentUserId, accountId);
+        var result = await accountService.GetAccountSummaryAsync(currentUserId, accountId);
         return Ok(result);
     }
 
@@ -162,7 +183,7 @@ public class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult<Paging<Contact>>> GetContactsAccountAsync(int accountId, [FromQuery] SearchContactsAccountCriteria criteria, [FromQuery] Pagination? pagination)
     {
-        var result = await _accountService.GetContactsAccountAsync(accountId, criteria, pagination);
+        var result = await accountService.GetContactsAccountAsync(accountId, criteria, pagination);
         return Ok(result);
     }
 
@@ -181,7 +202,7 @@ public class AccountController : ControllerBase
         [FromQuery] GetAssociatedContactsRequest request,
         [FromQuery] Pagination? pagination)
     {
-        var result = await _accountService.GetAssociatedContactsAsync(contactId, request, pagination);
+        var result = await accountService.GetAssociatedContactsAsync(contactId, request, pagination);
         return Ok(result);
     }
 }

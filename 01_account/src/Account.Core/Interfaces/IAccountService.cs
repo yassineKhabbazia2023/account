@@ -10,6 +10,8 @@ namespace Pulse.Account.Core.Interfaces
 {
     public interface IAccountService
     {
+        Task<AccountDetail> CreateAccountAsync(int currentUserId, CreateAccountRequest request);
+
         public Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination? pagination);
 
         public Task<Paging<Models.Account>> GetAllAccountsAsync(string? accountNumber, Pagination? pagination, SearchAccountCriteria? criteria);

@@ -48,7 +48,7 @@
 );
 
 GO
-CREATE NONCLUSTERED INDEX [IX_Account_AccountNumber]
+CREATE UNIQUE NONCLUSTERED INDEX [IX_Account_AccountNumber]
     ON  [account].[Account]([AccountNumber] ASC)
 
 GO
