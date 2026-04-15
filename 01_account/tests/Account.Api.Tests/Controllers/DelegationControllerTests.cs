@@ -251,4 +251,42 @@ public class DelegationControllerTests
         // Assert
         service.VerifyAll();
     }
+
+    [Fact]
+    public async Task GetDelegatorDelegationsAsync_WhenDelegatorIsValid_ShouldReturnPaginatedDelegations()
+    {
+        var delegatorId = 100;
+        var filter = new DelegationFilter { IsAutomatic = true };
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+        var expected = _fixture.Create<Paging<Delegation>>();
+
+        _service.Setup(x => x.GetDelegatorDelegationsAsync(delegatorId, filter, pagination))
+            .ReturnsAsync(expected)
+            .Verifiable();
+
+        var controller = new DelegationController(_service.Object);
+        var actionResult = await controller.GetDelegatorDelegationsAsync(delegatorId, filter, pagination);
+
+        actionResult.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
+        actionResult.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(expected);
+        _service.VerifyAll();
+    }
+
+    [Fact]
+    public async Task GetDelegatorDelegationsAsync_WhenDelegatorNotFound_ShouldThrowNotFoundException()
+    {
+        var delegatorId = 999;
+        var filter = new DelegationFilter();
+
+        _service.Setup(x => x.GetDelegatorDelegationsAsync(delegatorId, filter, It.IsAny<Pagination>()))
+            .ThrowsAsync(new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, delegatorId)))
+            .Verifiable();
+
+        var controller = new DelegationController(_service.Object);
+
+        await Assert.ThrowsAsync<NotFoundException>(
+            async () => await controller.GetDelegatorDelegationsAsync(delegatorId, filter, null));
+
+        _service.VerifyAll();
+    }
 }

@@ -46,6 +46,26 @@ public class DelegationController : ControllerBase
     }
 
     /// <summary>
+    /// Récupérer les délégations accordées par le délégateur connecté.
+    /// </summary>
+    /// <param name="contactId">L'identifiant du contact délégateur (injecté par la gateway).</param>
+    /// <param name="filter">Filtres optionnels sur les délégations.</param>
+    /// <param name="pagination">Paramètres de pagination.</param>
+    /// <returns>Liste paginée de délégations.</returns>
+    [HttpGet("delegator")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<Delegation>))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<Paging<Delegation>>> GetDelegatorDelegationsAsync(
+        [FromQuery] int contactId,
+        [FromQuery] DelegationFilter filter,
+        [FromQuery] Pagination? pagination)
+    {
+        var delegations = await _delegationService.GetDelegatorDelegationsAsync(contactId, filter, pagination);
+        return Ok(delegations);
+    }
+
+    /// <summary>
     /// Récupérer les délégations accordées par un contact à un autre contact.
     /// </summary>
     /// <param name="delegatorId">L'identifiant du contact délégateur.</param>

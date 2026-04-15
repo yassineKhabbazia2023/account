@@ -137,6 +137,86 @@ public class DelegationServiceTest
     }
 
     [Fact]
+    public async Task GetDelegatorDelegationsAsync_WhenDelegatorExists_ShouldReturnDelegations()
+    {
+        var delegatorId = 100;
+        var filter = new DelegationFilter();
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+        var expected = _fixture.Create<Paging<Delegation>>();
+
+        _repository.Setup(x => x.DoesContactExistAsync(delegatorId)).ReturnsAsync(true);
+        _repository.Setup(x => x.GetDelegatorDelegationsAsync(delegatorId, filter, pagination))
+            .ReturnsAsync(expected)
+            .Verifiable();
+
+        var service = new DelegationService(_repository.Object, null!, null!);
+        var result = await service.GetDelegatorDelegationsAsync(delegatorId, filter, pagination);
+
+        result.Should().BeEquivalentTo(expected);
+        _repository.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GetDelegatorDelegationsAsync_WhenIsAutomaticIsProvided_ShouldPassFilterToRepository(bool isAutomatic)
+    {
+        var delegatorId = 100;
+        var filter = new DelegationFilter { IsAutomatic = isAutomatic };
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+        var expected = _fixture.Create<Paging<Delegation>>();
+
+        _repository.Setup(x => x.DoesContactExistAsync(delegatorId)).ReturnsAsync(true);
+        _repository.Setup(x => x.GetDelegatorDelegationsAsync(delegatorId, filter, pagination))
+            .ReturnsAsync(expected)
+            .Verifiable();
+
+        var service = new DelegationService(_repository.Object, null!, null!);
+        var result = await service.GetDelegatorDelegationsAsync(delegatorId, filter, pagination);
+
+        result.Should().BeEquivalentTo(expected);
+        _repository.VerifyAll();
+    }
+
+    [Fact]
+    public async Task GetDelegatorDelegationsAsync_WhenDelegatorDoesNotExist_ShouldThrowNotFoundException()
+    {
+        var delegatorId = 999;
+        var filter = new DelegationFilter();
+
+        _repository.Setup(x => x.DoesContactExistAsync(delegatorId)).ReturnsAsync(false);
+
+        var service = new DelegationService(_repository.Object, null!, null!);
+
+        var act = async () => await service.GetDelegatorDelegationsAsync(delegatorId, filter, null);
+
+        var exception = await Assert.ThrowsAsync<NotFoundException>(act);
+        exception.Code.Should().Be(Errors.NotFoundContactCode);
+    }
+
+    [Fact]
+    public async Task GetDelegatorDelegationsAsync_WhenPaginationIsNull_ShouldUseDefaults()
+    {
+        var delegatorId = 100;
+        var filter = new DelegationFilter();
+        var expected = _fixture.Create<Paging<Delegation>>();
+
+        _repository.Setup(x => x.DoesContactExistAsync(delegatorId)).ReturnsAsync(true);
+        _repository.Setup(x => x.GetDelegatorDelegationsAsync(
+                delegatorId,
+                filter,
+                It.Is<Pagination>(p => p.PageNumber == 1 && p.PageSize == int.MaxValue)))
+            .ReturnsAsync(expected)
+            .Verifiable();
+
+        var service = new DelegationService(_repository.Object, null!, null!);
+        var result = await service.GetDelegatorDelegationsAsync(delegatorId, filter, null);
+
+        result.Should().BeEquivalentTo(expected);
+        _repository.VerifyAll();
+    }
+
+    [Fact]
     public async Task GetDelegationsAsync_WhenRequestIsValid_ShouldReturnDelegations()
     {
         var delegatorId = 100;

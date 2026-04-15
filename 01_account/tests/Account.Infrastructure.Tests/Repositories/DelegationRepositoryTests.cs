@@ -750,6 +750,159 @@ public class DelegationRepositoryTests
         Assert.Equal(string.Format(Errors.NotFoundDelegationMessage, 1), result.Message);
     }
 
+    [Fact]
+    public async Task DeleteDelegationAsync_ShouldDisableDuplicatesForSamePair()
+    {
+        var dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .EnableSensitiveDataLogging()
+            .Options;
+
+        using var context = new AccountContext(dbContextOptions);
+
+        var delegator = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 900010)
+            .With(c => c.IsActive, true)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Create();
+        var delegatee = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 900020)
+            .With(c => c.IsActive, true)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Create();
+        context.ContactEntity.AddRange(delegator, delegatee);
+
+        var account = _fixture.Build<AccountEntity>()
+            .With(a => a.IsActive, true)
+            .Without(a => a.Delegation)
+            .Without(a => a.RoleEntity)
+            .Without(a => a.RoleLabelEntity)
+            .Create();
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        context.DelegationEntity.AddRange(
+            new DelegationEntity
+            {
+                DelegationId = 905001, DelegatorId = 900010, DelegateeId = 900020,
+                StartDate = DateTime.UtcNow, Status = DelegationStatus.Enabled.ToString(),
+                IsAutomaticDelegation = true, Account = new List<AccountEntity> { account },
+            },
+            new DelegationEntity
+            {
+                DelegationId = 905002, DelegatorId = 900010, DelegateeId = 900020,
+                StartDate = DateTime.UtcNow, Status = DelegationStatus.Enabled.ToString(),
+                IsAutomaticDelegation = true, Account = new List<AccountEntity> { account },
+            },
+            new DelegationEntity
+            {
+                DelegationId = 905003, DelegatorId = 900010, DelegateeId = 900020,
+                StartDate = DateTime.UtcNow, Status = DelegationStatus.Enabled.ToString(),
+                IsAutomaticDelegation = true, Account = new List<AccountEntity> { account },
+            });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new DelegationRepository(context);
+        await repository.DeleteDelegationAsync(905001);
+
+        var allForPair = await context.DelegationEntity
+            .Where(d => d.DelegatorId == 900010 && d.DelegateeId == 900020)
+            .ToListAsync();
+
+        allForPair.Should().HaveCount(3);
+        allForPair.Should().OnlyContain(d => d.Status == DelegationStatus.Disabled.ToString().ToLower());
+    }
+
+    [Fact]
+    public async Task DeleteDelegationAsync_WhenNoDuplicates_ShouldNotAffectOtherDelegations()
+    {
+        var dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .EnableSensitiveDataLogging()
+            .Options;
+
+        using var context = new AccountContext(dbContextOptions);
+
+        var delegator = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 910010)
+            .With(c => c.IsActive, true)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Create();
+        var delegatee1 = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 910020)
+            .With(c => c.IsActive, true)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Create();
+        var delegatee2 = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 910030)
+            .With(c => c.IsActive, true)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Create();
+        context.ContactEntity.AddRange(delegator, delegatee1, delegatee2);
+
+        var account = _fixture.Build<AccountEntity>()
+            .With(a => a.IsActive, true)
+            .Without(a => a.Delegation)
+            .Without(a => a.RoleEntity)
+            .Without(a => a.RoleLabelEntity)
+            .Create();
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        var delegationToDelete = new DelegationEntity
+        {
+            DelegationId = 916001,
+            DelegatorId = 910010,
+            DelegateeId = 910020,
+            StartDate = DateTime.UtcNow,
+            Status = DelegationStatus.Enabled.ToString(),
+            IsAutomaticDelegation = true,
+            Account = new List<AccountEntity> { account },
+        };
+        var otherDelegation = new DelegationEntity
+        {
+            DelegationId = 916002,
+            DelegatorId = 910010,
+            DelegateeId = 910030,
+            StartDate = DateTime.UtcNow,
+            Status = DelegationStatus.Enabled.ToString(),
+            IsAutomaticDelegation = true,
+            Account = new List<AccountEntity> { account },
+        };
+        context.DelegationEntity.AddRange(delegationToDelete, otherDelegation);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new DelegationRepository(context);
+        await repository.DeleteDelegationAsync(916001);
+
+        var otherResult = await context.DelegationEntity
+            .FirstOrDefaultAsync(d => d.DelegationId == 916002);
+
+        otherResult!.Status.Should().Be(DelegationStatus.Enabled.ToString());
+    }
+
     [Theory]
     [InlineData(null!, 1, 10, 1)]
     [InlineData("FN-10", 1, 2, 1)]
@@ -1457,5 +1610,352 @@ public class DelegationRepositoryTests
         var result = await repository.DoesAccountExistAsync(prospectAccount.AccountId);
 
         result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetDelegatorDelegationsAsync_ShouldReturnActiveDelegations()
+    {
+        var dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .EnableSensitiveDataLogging()
+            .Options;
+
+        using var context = new AccountContext(dbContextOptions);
+
+        var delegatorId = 800010;
+        await context.ContactEntity.AddAsync(_fixture.Build<ContactEntity>()
+            .With(a => a.ContactId, delegatorId)
+            .With(a => a.IsActive, true)
+            .Without(a => a.DelegationEntityDelegatee)
+            .Without(a => a.DelegationEntityDelegator)
+            .Without(a => a.RoleEntity)
+            .Without(a => a.RoleLabelEntityContact)
+            .Without(a => a.RoleLabelEntityCreatedByNavigation)
+            .Create());
+        await context.SaveChangesAsync();
+
+        for (var i = 1; i <= 5; i++)
+        {
+            var delegateeId = 800100 + i;
+            await context.ContactEntity.AddAsync(new ContactEntity
+            {
+                ContactId = delegateeId,
+                Email = $"delegatee-{delegateeId}@test.fr",
+                FirstName = $"FN-{delegateeId}",
+                LastName = $"LN-{delegateeId}",
+                Type = "customer",
+                Status = "Declared",
+                PersonaName = "Collaborateur",
+                Office = "Paris",
+                CreationDate = DateTime.UtcNow,
+                IsActive = true,
+            });
+
+            await context.DelegationEntity.AddAsync(new DelegationEntity
+            {
+                DelegationId = 801000 + i,
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow.AddMonths(i),
+                DelegatorId = delegatorId,
+                DelegateeId = delegateeId,
+                Status = i <= 4 ? DelegationStatus.Enabled.ToString() : DelegationStatus.Disabled.ToString(),
+                Note = $"Note {i}",
+                IsAutomaticDelegation = i <= 2,
+                Account = _fixture.Build<AccountEntity>()
+                    .With(a => a.IsActive, true)
+                    .Without(a => a.Delegation)
+                    .Without(a => a.RoleEntity)
+                    .Without(a => a.RoleLabelEntity)
+                    .CreateMany(1).ToList(),
+            });
+        }
+
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        using var readContext = new AccountContext(dbContextOptions);
+        var repository = new DelegationRepository(readContext);
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        var allResult = await repository.GetDelegatorDelegationsAsync(
+            delegatorId, new DelegationFilter(), pagination);
+
+        allResult.Items.Should().HaveCount(4);
+        allResult.TotalItems.Should().Be(4);
+        allResult.CurrentPage.Should().Be(1);
+
+        var automaticResult = await repository.GetDelegatorDelegationsAsync(
+            delegatorId, new DelegationFilter { IsAutomatic = true }, pagination);
+
+        automaticResult.Items.Should().HaveCount(2);
+        automaticResult.TotalItems.Should().Be(2);
+
+        var manualResult = await repository.GetDelegatorDelegationsAsync(
+            delegatorId, new DelegationFilter { IsAutomatic = false }, pagination);
+
+        manualResult.Items.Should().HaveCount(2);
+        manualResult.TotalItems.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task GetDelegatorDelegationsAsync_WhenNoDelegations_ShouldReturnEmptyPaging()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new DelegationRepository(context);
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        var result = await repository.GetDelegatorDelegationsAsync(
+            999, new DelegationFilter(), pagination);
+
+        result.Items.Should().BeEmpty();
+        result.TotalItems.Should().Be(0);
+        result.CurrentPage.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetDelegatorDelegationsAsync_ShouldPaginateCorrectly()
+    {
+        var dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .EnableSensitiveDataLogging()
+            .Options;
+
+        using var context = new AccountContext(dbContextOptions);
+
+        var delegatorId = 820010;
+        await context.ContactEntity.AddAsync(_fixture.Build<ContactEntity>()
+            .With(a => a.ContactId, delegatorId)
+            .With(a => a.IsActive, true)
+            .Without(a => a.DelegationEntityDelegatee)
+            .Without(a => a.DelegationEntityDelegator)
+            .Without(a => a.RoleEntity)
+            .Without(a => a.RoleLabelEntityContact)
+            .Without(a => a.RoleLabelEntityCreatedByNavigation)
+            .Create());
+        await context.SaveChangesAsync();
+
+        for (var i = 1; i <= 5; i++)
+        {
+            var delegateeId = 820200 + i;
+            await context.ContactEntity.AddAsync(new ContactEntity
+            {
+                ContactId = delegateeId,
+                Email = $"delegatee-{delegateeId}@test.fr",
+                FirstName = $"FN-{delegateeId}",
+                LastName = $"LN-{delegateeId}",
+                Type = "customer",
+                Status = "Declared",
+                PersonaName = "Collaborateur",
+                Office = "Paris",
+                CreationDate = DateTime.UtcNow,
+                IsActive = true,
+            });
+
+            await context.DelegationEntity.AddAsync(new DelegationEntity
+            {
+                DelegationId = 822000 + i,
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow.AddMonths(i),
+                DelegatorId = delegatorId,
+                DelegateeId = delegateeId,
+                Status = DelegationStatus.Enabled.ToString(),
+                Note = $"Note {i}",
+                IsAutomaticDelegation = true,
+                Account = _fixture.Build<AccountEntity>()
+                    .With(a => a.IsActive, true)
+                    .Without(a => a.Delegation)
+                    .Without(a => a.RoleEntity)
+                    .Without(a => a.RoleLabelEntity)
+                    .CreateMany(1).ToList(),
+            });
+        }
+
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        using var readContext = new AccountContext(dbContextOptions);
+        var repository = new DelegationRepository(readContext);
+
+        var page1 = await repository.GetDelegatorDelegationsAsync(
+            delegatorId, new DelegationFilter(), new Pagination { PageNumber = 1, PageSize = 2 });
+
+        page1.Items.Should().HaveCount(2);
+        page1.TotalItems.Should().Be(5);
+        page1.TotalPage.Should().Be(3);
+        page1.CurrentPage.Should().Be(1);
+
+        var page2 = await repository.GetDelegatorDelegationsAsync(
+            delegatorId, new DelegationFilter(), new Pagination { PageNumber = 2, PageSize = 2 });
+
+        page2.Items.Should().HaveCount(2);
+        page2.CurrentPage.Should().Be(2);
+
+        var page3 = await repository.GetDelegatorDelegationsAsync(
+            delegatorId, new DelegationFilter(), new Pagination { PageNumber = 3, PageSize = 2 });
+
+        page3.Items.Should().HaveCount(1);
+        page3.CurrentPage.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task GetDelegatorDelegationsAsync_ShouldExcludeInactiveDelegatees()
+    {
+        var dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .EnableSensitiveDataLogging()
+            .Options;
+
+        using var context = new AccountContext(dbContextOptions);
+
+        var delegatorId = 830010;
+        await context.ContactEntity.AddAsync(_fixture.Build<ContactEntity>()
+            .With(a => a.ContactId, delegatorId)
+            .With(a => a.IsActive, true)
+            .Without(a => a.DelegationEntityDelegatee)
+            .Without(a => a.DelegationEntityDelegator)
+            .Without(a => a.RoleEntity)
+            .Without(a => a.RoleLabelEntityContact)
+            .Without(a => a.RoleLabelEntityCreatedByNavigation)
+            .Create());
+        await context.SaveChangesAsync();
+
+        var activeDelegateeId = 830101;
+        var inactiveDelegateeId = 830102;
+
+        await context.ContactEntity.AddRangeAsync(
+            new ContactEntity
+            {
+                ContactId = activeDelegateeId,
+                Email = "active@test.fr",
+                FirstName = "Active",
+                LastName = "User",
+                Type = "customer",
+                Status = "Declared",
+                PersonaName = "Collaborateur",
+                Office = "Paris",
+                CreationDate = DateTime.UtcNow,
+                IsActive = true,
+            },
+            new ContactEntity
+            {
+                ContactId = inactiveDelegateeId,
+                Email = "inactive@test.fr",
+                FirstName = "Inactive",
+                LastName = "User",
+                Type = "customer",
+                Status = "Declared",
+                PersonaName = "Collaborateur",
+                Office = "Paris",
+                CreationDate = DateTime.UtcNow,
+                IsActive = false,
+            });
+
+        await context.DelegationEntity.AddRangeAsync(
+            new DelegationEntity
+            {
+                DelegationId = 833001,
+                StartDate = DateTime.UtcNow,
+                DelegatorId = delegatorId,
+                DelegateeId = activeDelegateeId,
+                Status = DelegationStatus.Enabled.ToString(),
+                IsAutomaticDelegation = true,
+            },
+            new DelegationEntity
+            {
+                DelegationId = 833002,
+                StartDate = DateTime.UtcNow,
+                DelegatorId = delegatorId,
+                DelegateeId = inactiveDelegateeId,
+                Status = DelegationStatus.Enabled.ToString(),
+                IsAutomaticDelegation = true,
+            });
+
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        using var readContext = new AccountContext(dbContextOptions);
+        var repository = new DelegationRepository(readContext);
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        var result = await repository.GetDelegatorDelegationsAsync(
+            delegatorId, new DelegationFilter { IsAutomatic = true }, pagination);
+
+        result.TotalItems.Should().Be(1);
+        result.Items!.Should().ContainSingle()
+            .Which.Delegatee!.ContactId.Should().Be(activeDelegateeId);
+    }
+
+    [Fact]
+    public async Task GetDelegatorDelegationsAsync_ShouldReturnOneDelegationPerDelegatee()
+    {
+        var dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .EnableSensitiveDataLogging()
+            .Options;
+
+        using var context = new AccountContext(dbContextOptions);
+
+        var delegatorId = 840010;
+        var delegateeId = 840101;
+
+        await context.ContactEntity.AddRangeAsync(
+            _fixture.Build<ContactEntity>()
+                .With(a => a.ContactId, delegatorId)
+                .With(a => a.IsActive, true)
+                .Without(a => a.DelegationEntityDelegatee)
+                .Without(a => a.DelegationEntityDelegator)
+                .Without(a => a.RoleEntity)
+                .Without(a => a.RoleLabelEntityContact)
+                .Without(a => a.RoleLabelEntityCreatedByNavigation)
+                .Create(),
+            new ContactEntity
+            {
+                ContactId = delegateeId,
+                Email = "delegatee@test.fr",
+                FirstName = "FN",
+                LastName = "LN",
+                Type = "customer",
+                Status = "Declared",
+                PersonaName = "Collaborateur",
+                Office = "Paris",
+                CreationDate = DateTime.UtcNow,
+                IsActive = true,
+            });
+
+        await context.DelegationEntity.AddRangeAsync(
+            new DelegationEntity
+            {
+                DelegationId = 844001,
+                StartDate = DateTime.UtcNow.AddMonths(-6),
+                CreationDate = DateTime.UtcNow.AddMonths(-6),
+                DelegatorId = delegatorId,
+                DelegateeId = delegateeId,
+                Status = DelegationStatus.Enabled.ToString(),
+                IsAutomaticDelegation = true,
+            },
+            new DelegationEntity
+            {
+                DelegationId = 844002,
+                StartDate = DateTime.UtcNow,
+                CreationDate = DateTime.UtcNow,
+                DelegatorId = delegatorId,
+                DelegateeId = delegateeId,
+                Status = DelegationStatus.Enabled.ToString(),
+                IsAutomaticDelegation = true,
+            });
+
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        using var readContext = new AccountContext(dbContextOptions);
+        var repository = new DelegationRepository(readContext);
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        var result = await repository.GetDelegatorDelegationsAsync(
+            delegatorId, new DelegationFilter { IsAutomatic = true }, pagination);
+
+        result.TotalItems.Should().Be(1);
+        result.Items!.Should().ContainSingle()
+            .Which.Delegatee!.ContactId.Should().Be(delegateeId);
     }
 }

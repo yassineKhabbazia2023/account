@@ -97,6 +97,41 @@ public class DelegationRepository : IDelegationRepository
         return delegationList.ToDelegations();
     }
 
+    public async Task<Paging<Delegation>> GetDelegatorDelegationsAsync(int delegatorId, DelegationFilter filter, Pagination pagination)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var activeDelegations = _accountContext.DelegationEntity
+                .AsNoTracking()
+                .Where(d => d.DelegatorId == delegatorId
+                    && !d.Status.Equals(DelegationStatus.Disabled.ToString())
+                    && d.Delegatee.IsActive);
+
+            if (filter.IsAutomatic.HasValue)
+            {
+                activeDelegations = activeDelegations
+                    .Where(d => d.IsAutomaticDelegation == filter.IsAutomatic.Value);
+            }
+
+            var uniquePerDelegatee = activeDelegations
+                .Where(d => !activeDelegations.Any(older =>
+                    older.DelegateeId == d.DelegateeId
+                    && older.DelegationId < d.DelegationId));
+
+            var totalItems = await uniquePerDelegatee.CountAsync();
+            var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+
+            var pagedDelegations = await uniquePerDelegatee
+                .OrderByDescending(d => d.CreationDate)
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .Include(d => d.Delegatee)
+                .ToListAsync();
+
+            return pagedDelegations.MapToPagingDelegations(pagination.PageNumber, totalItems, totalPages);
+        });
+    }
+
     public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId)
     {
         var delegations = new List<DelegationEntity>();
@@ -133,9 +168,34 @@ public class DelegationRepository : IDelegationRepository
             }
 
             await _accountContext.SaveChangesAsync();
+
+            await DisableDuplicateDelegationsAsync(delegationEntity);
         });
 
         return roles;
+    }
+
+    private async Task DisableDuplicateDelegationsAsync(DelegationEntity delegationEntity)
+    {
+        var disabledStatus = DelegationStatus.Disabled.ToString().ToLower();
+
+        var duplicates = await _accountContext.DelegationEntity
+            .Where(d => d.DelegatorId == delegationEntity.DelegatorId
+                && d.DelegateeId == delegationEntity.DelegateeId
+                && d.DelegationId != delegationEntity.DelegationId
+                && !d.Status.Equals(DelegationStatus.Disabled.ToString())
+                && !d.Status.Equals(disabledStatus))
+            .ToListAsync();
+
+        if (duplicates.Count != 0)
+        {
+            foreach (var duplicate in duplicates)
+            {
+                duplicate.Status = disabledStatus;
+            }
+
+            await _accountContext.SaveChangesAsync();
+        }
     }
 
     public async Task<Paging<Delegation>> GetAccountDelegationsHistoryAsync(int accountId, string? search, Pagination pagination)

@@ -89,6 +89,20 @@ public class DelegationService : IDelegationService
         return await _delegationRepository.GetContactDelegationsAsync(delegateeId);
     }
 
+    public async Task<Paging<Delegation>> GetDelegatorDelegationsAsync(int delegatorId, DelegationFilter filter, Pagination? pagination)
+    {
+        if (!await _delegationRepository.DoesContactExistAsync(delegatorId))
+        {
+            throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, delegatorId));
+        }
+
+        pagination ??= new Pagination();
+        pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
+        pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
+
+        return await _delegationRepository.GetDelegatorDelegationsAsync(delegatorId, filter, pagination);
+    }
+
     public async Task<IReadOnlyCollection<Delegation>> GetDelegationsAsync(int delegatorId, int delegateeId)
     {
         return await _delegationRepository.GetDelegationsAsync(delegatorId, delegateeId);

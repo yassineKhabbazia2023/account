@@ -21,6 +21,10 @@ GO
 CREATE NONCLUSTERED INDEX [IDX_Delegation_DelegatorId]
     ON  [account].[Delegation]([DelegatorId] ASC)
 GO
+CREATE NONCLUSTERED INDEX [IDX_Delegation_DelegatorId_Status_IsAutomatic]
+    ON [account].[Delegation]([DelegatorId] ASC, [Status] ASC, [IsAutomaticDelegation] ASC)
+    INCLUDE ([CreationDate], [DelegateeId])
+GO
 CREATE NONCLUSTERED INDEX [IDX_Delegation_DelegateeId]
     ON  [account].[Delegation]([DelegateeId] ASC)
 GO
