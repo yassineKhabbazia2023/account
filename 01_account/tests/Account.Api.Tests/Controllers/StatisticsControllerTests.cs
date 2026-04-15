@@ -79,7 +79,6 @@ public class StatisticsControllerTests
         var expected = new EntityCountByType
         {
             RegularEntitiesCount = 24,
-            ProspectEntitiesCount = 3
         };
 
         _statisticsServiceMock.Setup(service => service.GetEntityCountByTypeAsync(It.IsAny<int>())).ReturnsAsync(expected);

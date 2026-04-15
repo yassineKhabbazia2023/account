@@ -131,17 +131,14 @@ namespace Pulse.Account.Infrastructure.Repositories
                 .Select(r => r.AccountId)
                 .Distinct();
 
-            var counts = await _accountContext.ActiveAccounts
+            var regularCount = await _accountContext.ActiveAccounts
                 .AsNoTracking()
                 .Where(a => accountIds.Contains(a.AccountId))
-                .GroupBy(a => a.AccountType)
-                .Select(g => new { Type = g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.Type ?? string.Empty, x => x.Count, StringComparer.OrdinalIgnoreCase);
+                .CountAsync(a => a.AccountType == AccountType.CLIENT.ToString());
 
             return new EntityCountByType
             {
-                RegularEntitiesCount = counts.GetValueOrDefault(AccountType.CLIENT.ToString()),
-                ProspectEntitiesCount = counts.GetValueOrDefault(AccountType.PROSPECT.ToString()),
+                RegularEntitiesCount = regularCount,
             };
         }
 

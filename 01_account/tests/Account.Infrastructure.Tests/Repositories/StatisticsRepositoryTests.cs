@@ -545,7 +545,6 @@ public class StatisticsRepositoryTests
 
         // Assert
         result.RegularEntitiesCount.Should().Be(2);
-        result.ProspectEntitiesCount.Should().Be(1);
     }
 
     [Fact]
@@ -559,6 +558,5 @@ public class StatisticsRepositoryTests
 
         // Assert
         result.RegularEntitiesCount.Should().Be(0);
-        result.ProspectEntitiesCount.Should().Be(0);
     }
 }
