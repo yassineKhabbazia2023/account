@@ -48,7 +48,7 @@ public partial class AccountContext : DbContext
 
             entity.ToTable("Account", "account");
 
-            entity.HasIndex(e => e.AccountNumber, "IX_Account_AccountNumber").IsUnique();
+            entity.HasIndex(e => e.AccountNumber, "IX_Account_AccountNumber");
 
             entity.HasIndex(e => e.LegalName, "IX_Account_LegalName");
 

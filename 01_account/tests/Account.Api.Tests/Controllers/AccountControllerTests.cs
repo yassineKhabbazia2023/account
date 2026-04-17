@@ -180,28 +180,6 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
     }
 
     [Fact]
-    public async Task Should_CreateAccount_Returns409_WhenConflictExceptionThrown()
-    {
-        // Arrange
-        var currentUserId = 1;
-        var request = new CreateAccountRequest
-        {
-            AccountNumber = "A12345",
-            LegalName = "Account Test",
-            Siret = "12345678900000"
-        };
-
-        var service = new Mock<IAccountService>();
-        service.Setup(x => x.CreateAccountAsync(currentUserId, It.IsAny<CreateAccountRequest>()))
-            .ThrowsAsync(new ConflictException(Errors.AccountAlreadyExistsCode, string.Format(Errors.AccountAlreadyExistsMessage, request.AccountNumber)));
-        var controller = new AccountController(service.Object);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ConflictException>(() => controller.CreateAccountAsync(currentUserId, request));
-        Assert.Equal(Errors.AccountAlreadyExistsCode, exception.Code);
-    }
-
-    [Fact]
     public async Task Should_CreateAccount_ThrowsNotFoundException_WhenUserNotFound()
     {
         // Arrange

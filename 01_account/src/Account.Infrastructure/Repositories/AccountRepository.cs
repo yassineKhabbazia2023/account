@@ -65,29 +65,10 @@ public class AccountRepository : IAccountRepository
 
             _accountContext.AccountEntity.Add(accountEntity);
 
-            try
-            {
-                await _accountContext.SaveChangesAsync();
-            }
-            catch (DbUpdateException dbUpdateException) when (IsUniqueConstraintViolation(dbUpdateException))
-            {
-                throw new ConflictException(
-                    Errors.AccountAlreadyExistsCode,
-                    string.Format(Errors.AccountAlreadyExistsMessage, request.AccountNumber));
-            }
+            await _accountContext.SaveChangesAsync();
 
             return accountEntity.MapToAccountDetail()!;
         });
-    }
-
-    private static bool IsUniqueConstraintViolation(DbUpdateException exception)
-    {
-        if (exception.InnerException is SqlException sqlException)
-        {
-            return sqlException.Number is 2601 or 2627;
-        }
-
-        return false;
     }
 
     public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination)

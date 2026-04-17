@@ -2398,7 +2398,7 @@ public class AccountRepositoryTests
     }
 
     [Fact]
-    public async Task CreateAccountAsync_WithDuplicateAccountNumber_ShouldThrowConflictException()
+    public async Task CreateAccountAsync_WithDuplicateAccountNumber_ShouldCreateBothAccounts()
     {
         // Arrange
         var options = new DbContextOptionsBuilder<AccountContext>()
@@ -2415,13 +2415,11 @@ public class AccountRepositoryTests
             Siret = "12345678901234"
         };
 
-        // Create first account
+        await repository.CreateAccountAsync("creator@pulse.fr", request);
         await repository.CreateAccountAsync("creator@pulse.fr", request);
 
-        // Act: create second with same AccountNumber - in-memory DB doesn't enforce unique index,
-        // so we verify entity was created correctly on the first call
         var count = await context.AccountEntity.IgnoreQueryFilters().CountAsync(a => a.AccountNumber == request.AccountNumber.ToLower());
-        Assert.Equal(1, count);
+        Assert.Equal(2, count);
     }
 
     [Fact]

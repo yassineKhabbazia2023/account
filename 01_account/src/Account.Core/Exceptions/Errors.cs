@@ -128,7 +128,4 @@ public static class Errors
 
     public static readonly string InvalidAccountFieldsCode = "ACC041";
     public static readonly string InvalidAccountFieldsMessage = "Les champs obligatoires sont manquants ou invalides. Veuillez compléter les informations nécessaires.";
-
-    public static readonly string AccountAlreadyExistsCode = "ACC042";
-    public static readonly string AccountAlreadyExistsMessage = "L'entité avec l'identifiant global {0} existe déjà.";
 }

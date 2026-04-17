@@ -31,7 +31,6 @@ public class AccountController(IAccountService accountService) : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateAccountResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorResponse))]
     public async Task<ActionResult<CreateAccountResponse>> CreateAccountAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromBody] CreateAccountRequest request)
     {
         if (!ModelState.IsValid)

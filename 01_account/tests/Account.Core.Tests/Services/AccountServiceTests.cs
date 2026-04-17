@@ -248,35 +248,6 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         [Fact]
-        public async Task CreateAccountAsync_WhenAccountAlreadyExists_ShouldThrowConflictException()
-        {
-            // Arrange
-            var currentUserId = 1;
-            var request = new CreateAccountRequest
-            {
-                AccountNumber = "A12345",
-                LegalName = "Account Test",
-                Siret = "12345678900000"
-            };
-
-            var currentContact = _fixture.Build<Contact>().With(c => c.Email, "test@pulse.fr").Create();
-            _contactRepository.Setup(c => c.GetContactByIdAsync(currentUserId)).ReturnsAsync(currentContact);
-
-            _accountRepository.Setup(repository => repository.CreateAccountAsync(currentContact.Email, request))
-                .ThrowsAsync(new ConflictException(
-                    Errors.AccountAlreadyExistsCode,
-                    string.Format(Errors.AccountAlreadyExistsMessage, request.AccountNumber)));
-            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger);
-
-            // Act
-            var result = async () => await accountService.CreateAccountAsync(currentUserId, request);
-
-            // Assert
-            var exception = await Assert.ThrowsAsync<ConflictException>(result);
-            Assert.Equal(Errors.AccountAlreadyExistsCode, exception.Code);
-        }
-
-        [Fact]
         public async Task CreateAccountAsync_WhenUserNotFound_ShouldThrowNotFoundException()
         {
             // Arrange
