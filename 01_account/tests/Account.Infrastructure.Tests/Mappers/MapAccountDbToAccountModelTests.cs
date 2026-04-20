@@ -170,6 +170,7 @@ public class MapAccountDbToAccountModelTests
             AccountId = 1,
             IsCustomerRelation = true,
             ActionLevel = 1,
+            ContactFlagPortailFactures = true,
         };
         var contactEntity = new ContactEntity
         {
@@ -221,6 +222,15 @@ public class MapAccountDbToAccountModelTests
         Assert.Equal(label.CustomerLabel, result.Labels!.First().CustomerLabel);
         Assert.Equal(label.Business, result.Labels!.First().Business);
         Assert.Equal(label.Description, result.Labels!.First().Description);
+        Assert.True(result.ContactFlagPortailFactures!.Value);
+    }
+
+    [Fact]
+    public void MapToContact_WithNullSource_ShouldReturnNull()
+    {
+        var result = MapAccountDbToAccountModel.MapToContact(null!, null);
+
+        Assert.Null(result);
     }
 
     [Fact]

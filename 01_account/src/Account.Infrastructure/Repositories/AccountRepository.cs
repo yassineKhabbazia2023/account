@@ -6,7 +6,6 @@ using System.Data;
 using System.Linq.Expressions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using Polly;
 using Polly.Retry;
 using Pulse.Account.Core.Constants;

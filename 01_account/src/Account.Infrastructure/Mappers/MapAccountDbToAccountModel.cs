@@ -211,6 +211,7 @@ public static class MapAccountDbToAccountModel
             IsCustomerRelation = tContact.RoleEntity.FirstOrDefault(r => r.AccountId == accountId)?.IsCustomerRelation,
             ActionLevel = tContact.RoleEntity.FirstOrDefault(r => r.AccountId == accountId)?.ActionLevel ?? 0,
             Labels = tContact.RoleLabelEntityContact.MapToLabels(accountId ?? 0),
+            ContactFlagPortailFactures = tContact.RoleEntity.FirstOrDefault(r => r.AccountId == accountId)?.ContactFlagPortailFactures
         };
     }
 
