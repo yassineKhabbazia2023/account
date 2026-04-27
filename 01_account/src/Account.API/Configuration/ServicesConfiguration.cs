@@ -3,6 +3,7 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.API.Configuration.Model;
 using Pulse.Account.Core.Constants;
@@ -133,22 +134,28 @@ public static class ServicesConfiguration
             .AddSqlServer(connectionString, healthQuery: "SELECT 1;");
     }
 
-    public static void RegisterApplicationInsights(this IServiceCollection services, IConfiguration configuration)
+    public static void RegisterOpenTelemetry(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
-        var applicationInsightsConnectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+        var connectionString = configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
 
-        if (string.IsNullOrEmpty(applicationInsightsConnectionString))
+        if (string.IsNullOrEmpty(connectionString))
         {
             throw new NullArgumentException(
                 Errors.NullArgumentCode,
                 string.Format(Errors.NullArgumentMessage, "APPLICATIONINSIGHTS_CONNECTION_STRING"));
         }
 
-        services.AddApplicationInsightsTelemetry(options =>
-        {
-            options.ConnectionString = applicationInsightsConnectionString;
-        });
+        services.AddOpenTelemetry()
+            .UseAzureMonitor(options =>
+            {
+                options.ConnectionString = connectionString;
+            })
+            .WithTracing(tracing =>
+            {
+                tracing.AddSource("Pulse.Back.Events");
+                tracing.AddSource("Azure.*");
+            });
     }
 
     public static void RegisterCors(this IServiceCollection services)

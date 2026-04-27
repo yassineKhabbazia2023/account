@@ -4,6 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using Serilog;
+using Serilog.Enrichers.Span;
 
 namespace Pulse.Account.API
 {
@@ -38,10 +39,11 @@ namespace Pulse.Account.API
                              .ReadFrom.Configuration(context.Configuration)
                              .ReadFrom.Services(services)
                              .Enrich.FromLogContext()
+                             .Enrich.WithSpan()
                              .Enrich.WithProperty("Application", "Pulse.Back.Account")
                              .Enrich.WithProperty("Layer", "WebApi")
                              .Enrich.WithProperty("Domain", "account");
-                     })
+                     }, writeToProviders: true)
                   .ConfigureWebHostDefaults(webBuilder =>
                     {
                         webBuilder.UseStartup<Startup>()

@@ -56,7 +56,7 @@ namespace Pulse.Account.API
 
             services.RegisterCors();
             services.ConfigureSwaggerService(_swaggerConfiguration);
-            services.RegisterApplicationInsights(_configuration);
+            services.RegisterOpenTelemetry(_configuration);
             services.RegisterServices();
             services.RegisterBrokerServices(_configuration);
             services.RegisterDatabase(_configuration!);

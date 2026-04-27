@@ -82,7 +82,6 @@ public class RolesControllerTests
             IsFavorite = false,
             IsSignatory = false
         };
-        var contactId = 123;
 
         mockRoleService.Setup(service => service.CreateRoleAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<int>())).Returns(Task.CompletedTask);
 
