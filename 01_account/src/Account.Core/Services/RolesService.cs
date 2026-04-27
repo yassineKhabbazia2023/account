@@ -82,7 +82,7 @@ public class RolesService : IRolesService
             throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleCode, contactId, accountId));
         }
 
-        await PublishRoleUpdatedEvent(accountId, contactId, isSignatory);
+        await PublishRoleUpdatedEvent(accountId, contactId);
     }
 
     public async Task UpdateRoleCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation)
@@ -90,6 +90,8 @@ public class RolesService : IRolesService
         var actionLevel = isCustomerRelation ? (int)ActionLevelType.DirectClientRelation : (int)ActionLevelType.Observator;
 
         await _rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation, actionLevel);
+
+        await PublishRoleUpdatedEvent(accountId, contactId);
     }
 
     public async Task DeleteRoleAsync(int currentUserId, int accountId, int contactId)
@@ -138,11 +140,11 @@ public class RolesService : IRolesService
         _logger.LogInformation("RoleService: End send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);
     }
 
-    private async Task PublishRoleUpdatedEvent(int accountId, int contactId, bool isSignatory)
+    private async Task PublishRoleUpdatedEvent(int accountId, int contactId)
     {
         _logger.LogInformation("RoleService: Start send update role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
 
-        await _roleEventPublisher.PublishRoleUpdatedEventAsync(accountId, contactId, isSignatory);
+        await _roleEventPublisher.PublishRoleUpdatedEventAsync(accountId, contactId);
 
         _logger.LogInformation("RoleService: End send update role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
     }

@@ -56,6 +56,8 @@ public class SubscriptionValidatedEventHandlerTests
         var message = "{\"EventType\":\"SubscriptionValidatedEvent\",\"Data\":{\"AccountId\":1,\"CollaboratorFunctions\": [{\"ContactId\":1,\"FunctionNames\":[] }, {\"ContactId\":2,\"FunctionNames\":[\"func1\", \"func2\"] }]}}";
         var role = new RoleModel { IsCustomerRelation = true };
         _roleRepository.Setup(x => x.GetContactRoleAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(role);
+        _roleRepository.Setup(x => x.UpdateRoleCollaboratorInformationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<int>())).Returns(Task.CompletedTask);
+        _roleEventPublisher.Setup(x => x.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.CompletedTask);
         _roleLabelRepository.Setup(x => x.HasRoleLabel(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
         _labelService.Setup(x => x.GetLabelsAsync(It.IsAny<Pagination>())).ReturnsAsync(GetLabels());
 
@@ -70,6 +72,7 @@ public class SubscriptionValidatedEventHandlerTests
         _roleLabelRepository.Verify(x => x.AddRoleLabelAsync(It.IsAny<RoleLabel>()), Times.Never);
         _labelService.Verify(x => x.GetLabelsAsync(It.IsAny<Pagination>()), Times.Once);
         _roleEventPublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Never);
+        _roleEventPublisher.Verify(x => x.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Exactly(2));
     }
 
     [Fact]

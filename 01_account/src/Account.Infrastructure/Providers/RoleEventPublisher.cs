@@ -63,9 +63,8 @@ public class RoleEventPublisher : IRoleEventPublisher
         await _eventPublisher.PublishAsync(new RoleCreatedEvent(data) { AccountType = selectedAccount!.AccountType });
     }
 
-    public async Task PublishRoleFavoriteStatusChangedEventAsync(int accountId, int contactId, bool isFavorite)
+    public async Task PublishRoleUpdatedEventAsync(int accountId, int contactId)
     {
-        // Récupérer les informations complètes du rôle pour inclure tous les champs obligatoires
         var role = await _roleRepository.GetContactRoleAsync(accountId, contactId);
 
         if (role == null)
@@ -79,22 +78,9 @@ public class RoleEventPublisher : IRoleEventPublisher
         {
             AccountId = accountId,
             ContactId = contactId,
-            IsFavorite = isFavorite,
-            IsSignatory = role.IsSignatory, // Inclure IsSignatory pour éviter l'écrasement
-            IsCustomerRelation = role.IsCustomerRelation, // Inclure pour cohérence dans Event State Carried Transfer
-        };
-        await _eventPublisher.PublishAsync(new RoleUpdatedEvent(data) { AccountType = account.AccountType });
-    }
-
-    public async Task PublishRoleUpdatedEventAsync(int accountId, int contactId, bool isSignatory)
-    {
-        var account = await _accountRepository.GetAccountAsync(accountId);
-
-        var data = new RoleUpdatedEventData
-        {
-            AccountId = accountId,
-            ContactId = contactId,
-            IsSignatory = isSignatory,
+            IsSignatory = role.IsSignatory,
+            IsFavorite = role.IsFavorite,
+            IsCustomerRelation = role.IsCustomerRelation,
         };
         await _eventPublisher.PublishAsync(new RoleUpdatedEvent(data) { AccountType = account.AccountType });
     }

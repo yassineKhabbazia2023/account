@@ -32,14 +32,14 @@ namespace Pulse.Account.Core.Services
         {
             await _favoriteRepository.UpdateAccountFavoriteAsync(accountId, contactId, isFavorite);
 
-            await PublishRoleUpdatedEvent(accountId, contactId, isFavorite);
+            await PublishRoleUpdatedEvent(accountId, contactId);
         }
 
-        private async Task PublishRoleUpdatedEvent(int accountId, int contactId, bool isFavorite)
+        private async Task PublishRoleUpdatedEvent(int accountId, int contactId)
         {
             _logger.LogInformation("RoleService: Start send update role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
 
-            await _roleEventPublisher.PublishRoleFavoriteStatusChangedEventAsync(accountId, contactId, isFavorite);
+            await _roleEventPublisher.PublishRoleUpdatedEventAsync(accountId, contactId);
 
             _logger.LogInformation("RoleService: End send update role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
         }

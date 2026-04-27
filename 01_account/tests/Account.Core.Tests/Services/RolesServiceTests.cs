@@ -161,12 +161,11 @@ public class RolesServiceTests
             .ReturnsAsync(newRole)
             .Verifiable();
 
-        _rolePublisher!.Setup(x => x.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
-          .Callback<int, int, bool>((accountId, contactId, isSignatory) =>
+        _rolePublisher!.Setup(x => x.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>()))
+          .Callback<int, int>((accId, contId) =>
           {
-              contactId.Should().Be(contactId);
-              accountId.Should().Be(accountId);
-              isSignatory.Should().Be(true);
+              contId.Should().Be(contactId);
+              accId.Should().Be(accountId);
           })
           .Returns(Task.CompletedTask)
           .Verifiable();
@@ -343,6 +342,9 @@ public class RolesServiceTests
             .Returns(Task.CompletedTask)
             .Verifiable();
 
+        _rolePublisher!.Setup(x => x.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .Returns(Task.CompletedTask);
+
         var roleService = new RolesService(_roleRepository.Object, null!, _rolePublisher!.Object, _historyPublisher!.Object, _logger!.Object);
 
         // Act
@@ -350,6 +352,7 @@ public class RolesServiceTests
 
         // Assert
         _roleRepository.Verify(x => x.UpdateRoleCollaboratorInformationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Once);
+        _rolePublisher.Verify(x => x.PublishRoleUpdatedEventAsync(accountId, contactId), Times.Once);
     }
 
     [Fact]

@@ -134,32 +134,41 @@ public class RoleEventPublisherTests
         // arrange
         int accountId = 1;
         int contactId = 2;
-        bool isSignatory = false;
 
+        var existingRole = new Core.Models.Role
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsSignatory = false,
+            IsFavorite = true,
+            IsCustomerRelation = false
+        };
+
+        _roleRepository.Setup(r => r.GetContactRoleAsync(accountId, contactId))
+            .ReturnsAsync(existingRole);
         _accountRepository.Setup(a => a.GetAccountAsync(accountId)).ReturnsAsync(_fixture.Create<AccountDetail>());
 
         var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, _contactEventRepository.Object, _accountRepository.Object, _roleRepository.Object);
 
         // act
-        await roleEventPublisher.PublishRoleUpdatedEventAsync(accountId, contactId, isSignatory);
+        await roleEventPublisher.PublishRoleUpdatedEventAsync(accountId, contactId);
 
         // arrange
         _eventPublisher.Verify(x => x.PublishAsync(It.IsAny<RoleUpdatedEvent>(), null!, null!), Times.Once);
     }
 
     [Fact]
-    public async Task PublishRoleFavoriteStatusChangedEventAsync_Should_Include_IsSignatory()
+    public async Task PublishRoleUpdatedEventAsync_Should_Include_All_Fields()
     {
         // arrange
         int accountId = 1;
         int contactId = 2;
-        bool isFavorite = true;
 
         var existingRole = new Core.Models.Role
         {
             AccountId = accountId,
             ContactId = contactId,
-            IsSignatory = true, // Le rôle existant a IsSignatory = true
+            IsSignatory = true,
             IsFavorite = false,
             IsDelegation = false,
             IsCustomerRelation = true
@@ -172,27 +181,25 @@ public class RoleEventPublisherTests
         var roleEventPublisher = new RoleEventPublisher(_eventPublisher.Object, _contactEventRepository.Object, _accountRepository.Object, _roleRepository.Object);
 
         // act
-        await roleEventPublisher.PublishRoleFavoriteStatusChangedEventAsync(accountId, contactId, isFavorite);
+        await roleEventPublisher.PublishRoleUpdatedEventAsync(accountId, contactId);
 
         // assert
         _eventPublisher.Verify(x => x.PublishAsync(
             It.Is<RoleUpdatedEvent>(e =>
                 e.Data.AccountId == accountId &&
                 e.Data.ContactId == contactId &&
-                e.Data.IsFavorite == isFavorite &&
-                e.Data.IsSignatory == true && // Vérifier que IsSignatory est préservé
+                e.Data.IsFavorite == false &&
+                e.Data.IsSignatory == true &&
                 e.Data.IsCustomerRelation == true
             ), null!, null!), Times.Once);
     }
 
     [Fact]
-    public async Task PublishRoleFavoriteStatusChangedEventAsync_WithNonExistentRole_Should_ThrowException()
+    public async Task PublishRoleUpdatedEventAsync_WithNonExistentRole_Should_ThrowException()
     {
         // arrange
         int accountId = 1;
         int contactId = 2;
-        bool isFavorite = true;
-
 
         _roleRepository.Setup(r => r.GetContactRoleAsync(accountId, contactId))
             .ReturnsAsync((Core.Models.Role?)null);
@@ -201,7 +208,7 @@ public class RoleEventPublisherTests
 
         // act & assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => roleEventPublisher.PublishRoleFavoriteStatusChangedEventAsync(accountId, contactId, isFavorite));
+            () => roleEventPublisher.PublishRoleUpdatedEventAsync(accountId, contactId));
 
         Assert.Contains($"Role not found for AccountId: {accountId}, ContactId: {contactId}", exception.Message);
         _eventPublisher.Verify(x => x.PublishAsync(It.IsAny<RoleUpdatedEvent>(), null!, null!), Times.Never);

@@ -55,7 +55,7 @@ namespace Pulse.Account.Core.Tests.Services
             _favoriteRepository.Setup(r => r.GetAccountFavoritesByContactIdAsync(It.IsAny<int>()))
                 .ReturnsAsync(listAccountFavoriteMocked);
 
-            _roleEventPublisher.Setup(r => r.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()));
+            _roleEventPublisher.Setup(r => r.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>()));
 
             var service = CreateService();
 
@@ -72,7 +72,7 @@ namespace Pulse.Account.Core.Tests.Services
             _favoriteRepository.Setup(r => r.UpdateAccountFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
                 .Returns(Task.CompletedTask);
 
-            _roleEventPublisher.Setup(r => r.PublishRoleFavoriteStatusChangedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
+            _roleEventPublisher.Setup(r => r.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(Task.CompletedTask);
 
             var service = CreateService();
@@ -111,7 +111,7 @@ namespace Pulse.Account.Core.Tests.Services
             _favoriteRepository.Setup(r => r.UpdateAccountFavoriteAsync(1, 1, true))
                 .Returns(Task.CompletedTask);
 
-            _roleEventPublisher.Setup(p => p.PublishRoleFavoriteStatusChangedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
+            _roleEventPublisher.Setup(p => p.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
 
@@ -119,10 +119,9 @@ namespace Pulse.Account.Core.Tests.Services
 
             await service.SetFavoriteAsync(1, 1, true);
 
-            _roleEventPublisher.Verify(p => p.PublishRoleFavoriteStatusChangedEventAsync(
+            _roleEventPublisher.Verify(p => p.PublishRoleUpdatedEventAsync(
                 It.IsAny<int>(),
-                It.IsAny<int>(),
-                true),
+                It.IsAny<int>()),
                 Times.Once);
         }
     }

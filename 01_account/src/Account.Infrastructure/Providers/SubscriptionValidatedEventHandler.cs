@@ -68,6 +68,7 @@ public class SubscriptionValidatedEventHandler : IEventHandler
             {
                 var isCustomerRelation = role.IsCustomerRelation.HasValue ? role.IsCustomerRelation.Value : false;
                 await _roleRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation, actionLevel);
+                await _roleEventPublisher.PublishRoleUpdatedEventAsync(accountId, contactId);
                 _logger.LogInformation("Le rôle AccountId {AccountId}/ContactId {ContactId} a été mis à jour", accountId, contactId);
             }
             else
