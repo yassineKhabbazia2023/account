@@ -113,42 +113,4 @@ public class DelegationController : ControllerBase
 
         return Ok();
     }
-
-    /// <summary>
-    /// Récupérer l'historique des délégations d'une entité morale.
-    /// </summary>
-    /// <param name="accountId">L'identifiant de l'identité morale.</param>
-    /// <param name="search">Critère de recherche (nom/prénom du délégateur ou du délégataire).</param>
-    /// <param name="pagination">Paramètres de pagination.</param>
-    /// <returns>Liste de délégations.</returns>
-    [HttpGet("{accountId}/history")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<Delegation>))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult<Paging<Delegation>>> GetAccountDelegationsHistoryAsync(int accountId,
-        string? search,
-        [FromQuery] Pagination? pagination)
-    {
-        var delegations = await _delegationService.GetAccountDelegationsHistoryAsync(accountId, search, pagination);
-        return Ok(delegations!);
-    }
-
-    /// <summary>
-    /// Récupérer l'historique des délégations d'un contact.
-    /// </summary>
-    /// <param name="contactId">L'identifiant du contact.</param>
-    /// <param name="pagination">Paramètres de pagination.</param>
-    /// <param name="sortAscending">Sens de sort colonne nom.</param>
-    /// <returns>Liste de délégations.</returns>
-    [HttpGet("{contactId}/historyDelegation")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<Delegation>))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult<Paging<Delegation>>> GetContactDelegationsHistoryAsync(int contactId,
-        [FromQuery] Pagination? pagination,
-        bool sortAscending = true)
-    {
-        var delegations = await _delegationService.GetContactDelegationsHistoryAsync(contactId, pagination, sortAscending);
-        return Ok(delegations!);
-    }
 }

@@ -108,36 +108,6 @@ public class DelegationService : IDelegationService
         return await _delegationRepository.GetDelegationsAsync(delegatorId, delegateeId);
     }
 
-    public async Task<Paging<Delegation>> GetAccountDelegationsHistoryAsync(int accountId, string? search, Pagination? pagination)
-    {
-        if (!await _delegationRepository.DoesAccountExistAsync(accountId))
-        {
-            throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
-        }
-
-        pagination = pagination ?? new Pagination();
-
-        pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
-        pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
-
-        return await _delegationRepository.GetAccountDelegationsHistoryAsync(accountId, search, pagination);
-    }
-
-    public async Task<Paging<Delegation>> GetContactDelegationsHistoryAsync(int contactId, Pagination? pagination, bool sortAscending)
-    {
-        if (!await _delegationRepository.DoesContactExistAsync(contactId))
-        {
-            throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
-        }
-
-        pagination = pagination ?? new Pagination();
-
-        pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
-        pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
-
-        return await _delegationRepository.GetContactDelegationsHistoryAsync(contactId, pagination, sortAscending);
-    }
-
     public static IEnumerable<CreateRoleRequest> CreateRoleRequests(int contactId, CreateDelegationRequest delegationRequest)
     {
         if (delegationRequest?.DelegationDetails?.Any() != true)
