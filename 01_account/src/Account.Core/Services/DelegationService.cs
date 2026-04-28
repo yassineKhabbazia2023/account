@@ -18,15 +18,18 @@ public class DelegationService : IDelegationService
 {
     private readonly IDelegationRepository _delegationRepository;
     private readonly IRoleEventPublisher _roleEventPublisher;
+    private readonly IHistoryEventPublisher _historyEventPublisher;
     private readonly ILogger<DelegationService> _logger;
 
     public DelegationService(
         IDelegationRepository delegationRepository,
         IRoleEventPublisher roleEventPublisher,
+        IHistoryEventPublisher historyEventPublisher,
         ILogger<DelegationService> logger)
     {
         _delegationRepository = delegationRepository;
         _roleEventPublisher = roleEventPublisher;
+        _historyEventPublisher = historyEventPublisher;
         _logger = logger;
     }
 
@@ -65,6 +68,7 @@ public class DelegationService : IDelegationService
             foreach (var role in rolesCreated)
             {
                 await PublishRoleCreatedEvent(role);
+                await PublishHistoryCreatedEvent(contactId, role.ContactId!.Value, role.AccountId, ActionCode.ADDKDELM.ToString());
             }
         }
     }
@@ -142,7 +146,6 @@ public class DelegationService : IDelegationService
 
     private async Task PublishRoleCreatedEvent(CreateRoleRequest role)
     {
-
         _logger.LogInformation("DelegationService: Start send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);
 
         await _roleEventPublisher.PublishRoleCreatedEventAsync(role);
@@ -157,5 +160,10 @@ public class DelegationService : IDelegationService
         await _roleEventPublisher.PublishRoleDeletedEventAsync(role.AccountId, role.ContactId);
 
         _logger.LogInformation("DelegationService: End send delete role event. AccountId : {accountId}, ContactId : {contactId}", role.AccountId, role.ContactId);
+    }
+
+    private async Task PublishHistoryCreatedEvent(int currentUserId, int contactId, int accountId, string actionCode)
+    {
+        await _historyEventPublisher.PublishHistoryCreatedEventAsync(currentUserId, contactId, accountId, actionCode);
     }
 }

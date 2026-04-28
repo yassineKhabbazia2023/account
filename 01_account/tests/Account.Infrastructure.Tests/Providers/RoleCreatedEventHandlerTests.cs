@@ -5,6 +5,7 @@
 using AutoFixture;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Providers;
@@ -31,11 +32,58 @@ public class RoleCreatedEventHandlerTests
         var eventRepository = new Mock<IRoleEventRepository>();
         eventRepository.Setup(r => r.CreateRoleForAutomaticDelegationsAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(roles);
         var publisher = new Mock<IRoleEventPublisher>();
+        var historyPublisher = new Mock<IHistoryEventPublisher>();
 
-        var handler = new RoleCreatedEventHandler(_logger.Object, eventRepository.Object, publisher.Object);
+        var handler = new RoleCreatedEventHandler(_logger.Object, eventRepository.Object, publisher.Object, historyPublisher.Object);
         await handler.HandleAsync(message);
 
         publisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Exactly(3));
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenRolesCreatedForAutomaticDelegations_ShouldPublishHistoryWithAddkdela()
+    {
+        var delegatorContactId = 123;
+        var delegateeContactIds = new[] { 11, 22, 33 };
+        var accountId = 456;
+        var roles = delegateeContactIds.Select(id => new CreateRoleRequest { AccountId = accountId, ContactId = id }).ToList();
+        var message = $"{{\"EventType\":\"RoleCreatedEvent\",\"Data\":{{\"ContactId\":{delegatorContactId}, \"AccountId\":{accountId}}}}}";
+
+        var eventRepository = new Mock<IRoleEventRepository>();
+        eventRepository.Setup(r => r.CreateRoleForAutomaticDelegationsAsync(delegatorContactId, accountId)).ReturnsAsync(roles);
+        var publisher = new Mock<IRoleEventPublisher>();
+        var historyPublisher = new Mock<IHistoryEventPublisher>();
+
+        var handler = new RoleCreatedEventHandler(_logger.Object, eventRepository.Object, publisher.Object, historyPublisher.Object);
+        await handler.HandleAsync(message);
+
+        historyPublisher.Verify(
+            x => x.PublishHistoryCreatedEventAsync(delegatorContactId, It.IsAny<int>(), accountId, ActionCode.ADDKDELA.ToString()),
+            Times.Exactly(3));
+
+        foreach (var delegateeId in delegateeContactIds)
+        {
+            historyPublisher.Verify(
+                x => x.PublishHistoryCreatedEventAsync(delegatorContactId, delegateeId, accountId, ActionCode.ADDKDELA.ToString()),
+                Times.Once);
+        }
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenNoRoleCreated_ShouldNotPublishHistory()
+    {
+        var message = "{\"EventType\":\"RoleCreatedEvent\",\"Data\":{\"ContactId\":123, \"AccountId\":456}}";
+        var eventRepository = new Mock<IRoleEventRepository>();
+        eventRepository.Setup(r => r.CreateRoleForAutomaticDelegationsAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(new List<CreateRoleRequest>());
+        var publisher = new Mock<IRoleEventPublisher>();
+        var historyPublisher = new Mock<IHistoryEventPublisher>();
+
+        var handler = new RoleCreatedEventHandler(_logger.Object, eventRepository.Object, publisher.Object, historyPublisher.Object);
+        await handler.HandleAsync(message);
+
+        historyPublisher.Verify(
+            x => x.PublishHistoryCreatedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     [Theory]
@@ -43,10 +91,12 @@ public class RoleCreatedEventHandlerTests
     public async Task HandleAsync_WithNullOrEmptyMessage_Should_Return(string message)
     {
         var publisher = new Mock<IRoleEventPublisher>();
-        var handler = new RoleCreatedEventHandler(_logger.Object, null!, publisher.Object);
+        var historyPublisher = new Mock<IHistoryEventPublisher>();
+        var handler = new RoleCreatedEventHandler(_logger.Object, null!, publisher.Object, historyPublisher.Object);
         await handler.HandleAsync(message);
 
         publisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>()), Times.Never);
+        historyPublisher.Verify(x => x.PublishHistoryCreatedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never);
     }
 
     public static TheoryData<string> Messages => new()

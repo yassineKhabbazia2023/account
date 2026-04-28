@@ -4,6 +4,7 @@
 
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Mappers.EventsMapper;
@@ -18,14 +19,17 @@ public class RoleCreatedEventHandler : IEventHandler
     private readonly ILogger<RoleCreatedEventHandler> _logger;
     private readonly IRoleEventRepository _roleEventRepository;
     private readonly IRoleEventPublisher _roleEventPublisher;
+    private readonly IHistoryEventPublisher _historyEventPublisher;
 
     public RoleCreatedEventHandler(ILogger<RoleCreatedEventHandler> logger,
         IRoleEventRepository roleEventRepository,
-        IRoleEventPublisher roleEventPublisher)
+        IRoleEventPublisher roleEventPublisher,
+        IHistoryEventPublisher historyEventPublisher)
     {
         _logger = logger;
         _roleEventRepository = roleEventRepository;
         _roleEventPublisher = roleEventPublisher;
+        _historyEventPublisher = historyEventPublisher;
     }
 
     public async Task HandleAsync(string message)
@@ -64,6 +68,7 @@ public class RoleCreatedEventHandler : IEventHandler
                 _logger.LogInformation("Le role de contact: {ContactId}, account: {AccountId} vient d'être crée.", roleCreated.ContactId, roleCreated.AccountId);
 
                 await PublishRoleCreatedEvent(roleCreated);
+                await PublishHistoryCreatedEvent(role.ContactId, roleCreated.ContactId!.Value, roleCreated.AccountId, ActionCode.ADDKDELA.ToString());
             }
         }
     }
@@ -75,5 +80,10 @@ public class RoleCreatedEventHandler : IEventHandler
         await _roleEventPublisher.PublishRoleCreatedEventAsync(role);
 
         _logger.LogInformation("RoleService: End send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);
+    }
+
+    private async Task PublishHistoryCreatedEvent(int currentUserId, int contactId, int accountId, string actionCode)
+    {
+        await _historyEventPublisher.PublishHistoryCreatedEventAsync(currentUserId, contactId, accountId, actionCode);
     }
 }
