@@ -2178,19 +2178,51 @@ public class AccountRepositoryTests
         Assert.Equal(clientAccount.AccountId, result.Items.Single().AccountId);
     }
 
+    [Theory]
+    [InlineData(100, AccountType.CLIENT)]
+    [InlineData(101, AccountType.PROSPECT)]
+    public async Task GetAccountDetailAsync_WithSupportedAccountType_ShouldReturnAccountDetail(int accountId, AccountType accountType)
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var account = new AccountEntity
+        {
+            AccountId = accountId,
+            AccountNumber = $"ACC-{accountType}-{accountId}",
+            LegalName = $"{accountType} Account",
+            AccountType = accountType.ToString(),
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        var result = await repository.GetAccountDetailAsync(accountId);
+
+        Assert.NotNull(result);
+        Assert.Equal(account.AccountId, result!.AccountId);
+        Assert.Equal(account.AccountNumber, result.AccountNumber);
+        Assert.Equal(account.LegalName, result.Legal!.LegalName);
+    }
+
     [Fact]
-    public async Task GetAccountDetailAsync_WithProspectAccount_ShouldThrowNotFoundException()
+    public async Task GetAccountDetailAsync_WithInactiveProspectAccount_ShouldThrowNotFoundException()
     {
         using var context = new AccountContext(_dbContextOptions);
 
         var prospectAccount = new AccountEntity
         {
-            AccountId = 100,
-            AccountNumber = "ACC-PROSPECT-100",
-            LegalName = "Prospect Account",
+            AccountId = 102,
+            AccountNumber = "ACC-PROSPECT-102",
+            LegalName = "Inactive Prospect Account",
             AccountType = GlobalConstants.ProspectAccountType,
             CreatedBy = "tests",
-            IsActive = true,
+            IsActive = false,
             DeploymentEntity = new DeploymentEntity { Status = 1 }
         };
 
@@ -2288,19 +2320,65 @@ public class AccountRepositoryTests
         await Assert.ThrowsAsync<NotFoundException>(() => repository.UpdateAccountAsync(prospectAccount.AccountId, update));
     }
 
+    #region Prospect account filtering
+
+    [Theory]
+    [InlineData(103, AccountType.CLIENT)]
+    [InlineData(104, AccountType.PROSPECT)]
+    public async Task GetAccountSummaryAsync_WithSupportedAccountType_ShouldReturnAccountSummary(int accountId, AccountType accountType)
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        const int contactId = 1;
+        var account = new AccountEntity
+        {
+            AccountId = accountId,
+            AccountNumber = $"ACC-{accountType}-{accountId}",
+            LegalName = $"{accountType} Account",
+            AccountType = accountType.ToString(),
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 },
+            RoleEntity =
+            [
+                new RoleEntity
+                {
+                    AccountId = accountId,
+                    ContactId = contactId,
+                    IsSignatory = true
+                }
+            ]
+        };
+
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        var result = await repository.GetAccountSummaryAsync(contactId, accountId);
+
+        Assert.NotNull(result);
+        Assert.Equal(account.AccountId, result!.AccountId);
+        Assert.Equal(account.AccountNumber, result.AccountNumber);
+        Assert.Equal(account.LegalName, result.LegalName);
+        Assert.Equal(account.AccountType, result.AccountType);
+        Assert.True(result.IsSignatory);
+    }
+
     [Fact]
-    public async Task GetAccountSummaryAsync_WithProspectAccount_ShouldThrowNotFoundException()
+    public async Task GetAccountSummaryAsync_WithInactiveProspectAccount_ShouldThrowNotFoundException()
     {
         using var context = new AccountContext(_dbContextOptions);
 
         var prospectAccount = new AccountEntity
         {
-            AccountId = 103,
-            AccountNumber = "ACC-PROSPECT-103",
-            LegalName = "Prospect Account",
+            AccountId = 105,
+            AccountNumber = "ACC-PROSPECT-105",
+            LegalName = "Inactive Prospect Account",
             AccountType = GlobalConstants.ProspectAccountType,
             CreatedBy = "tests",
-            IsActive = true,
+            IsActive = false,
             DeploymentEntity = new DeploymentEntity { Status = 1 }
         };
 
@@ -2312,6 +2390,66 @@ public class AccountRepositoryTests
 
         await Assert.ThrowsAsync<NotFoundException>(() => repository.GetAccountSummaryAsync(1, prospectAccount.AccountId));
     }
+
+    [Theory]
+    [InlineData("CLIENT")]
+    [InlineData("PROSPECT")]
+    public async Task GetContactsAccountAsync_WithSupportedAccountType_ShouldReturnContactsAccount(string accountType)
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        const int accountId = 106;
+        const int contactId = 206;
+        var contact = new ContactEntity
+        {
+            ContactId = contactId,
+            Email = "contact@test.fr",
+            FirstName = "Jean",
+            LastName = "Dupont",
+            PersonaName = "Jean Dupont",
+            Type = ContactType.Collaborator.ToString(),
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+            RoleLabelEntityContact = [],
+            RoleEntity =
+            [
+                new RoleEntity
+                {
+                    AccountId = accountId,
+                    ContactId = contactId,
+                    ActionLevel = 1,
+                    IsCustomerRelation = true
+                }
+            ]
+        };
+
+        var account = new AccountEntity
+        {
+            AccountId = accountId,
+            AccountNumber = $"ACC-{accountType}-106",
+            LegalName = $"{accountType} Account",
+            AccountType = accountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.AccountEntity.Add(account);
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+        var criteria = new SearchContactsAccountCriteria();
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        var result = await repository.GetContactsAccountAsync(accountId, criteria, pagination);
+
+        Assert.Single(result.Items);
+        Assert.Equal(contactId, result.Items.First().ContactId);
+    }
+
+    #endregion Prospect account filtering
 
     [Fact]
     public async Task GetAssociatedContactsAsync_WithOnlyProspectAccount_ShouldThrowNotFoundException()

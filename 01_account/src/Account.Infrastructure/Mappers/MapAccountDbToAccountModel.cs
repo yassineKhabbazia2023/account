@@ -88,6 +88,7 @@ public static class MapAccountDbToAccountModel
             AccountGlobalUniqueId = source.AccountGlobalUniqueId,
             AccountNumber = source.AccountNumber,
             LegalName = source.LegalName,
+            AccountType = source.AccountType,
             OfficeId = source.OfficeId,
             Office = source.Office?.MapToOffice(),
             MissionType = source.MissionType,

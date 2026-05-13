@@ -649,6 +649,50 @@ public class MapAccountDbToAccountModelTests
     }
 
     [Fact]
+    public void MapToAccountSummary_WithValidSource_ShouldMapCorrectly()
+    {
+        // Arrange
+        const int contactId = 1;
+        var source = new AccountEntity
+        {
+            AccountId = 1,
+            AccountGlobalUniqueId = Guid.NewGuid(),
+            AccountNumber = "123",
+            LegalName = "Test Company",
+            AccountType = AccountType.PROSPECT.ToString(),
+            MissionType = "Mission",
+            RoleEntity = new List<RoleEntity>
+            {
+                new()
+                {
+                    ContactId = contactId,
+                    IsSignatory = true
+                }
+            },
+            AddressEntity = new List<AddressEntity>
+            {
+                new AddressEntity { AddressType = "Delivery" }
+            },
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        // Act
+        var result = MapAccountDbToAccountModel.MapToAccountSummary(source, contactId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.AccountId.Should().Be(source.AccountId);
+        result.AccountGlobalUniqueId.Should().Be(source.AccountGlobalUniqueId);
+        result.AccountNumber.Should().Be(source.AccountNumber);
+        result.LegalName.Should().Be(source.LegalName);
+        result.AccountType.Should().Be(source.AccountType);
+        result.MissionType.Should().Be(source.MissionType);
+        result.Deployment.Should().NotBeNull();
+        result.Address.Should().NotBeNull();
+        result.IsSignatory.Should().BeTrue();
+    }
+
+    [Fact]
     public void MapToAccountDetail_WithNullSource_ShouldReturnNull()
     {
         // Arrange

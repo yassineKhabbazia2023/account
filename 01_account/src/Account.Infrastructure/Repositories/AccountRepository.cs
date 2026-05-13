@@ -236,7 +236,7 @@ public class AccountRepository : IAccountRepository
     {
         AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>
         {
-            return await _accountContext.AccountEntity
+            return await _accountContext.ActiveAccounts
                     .AsNoTracking()
                     .Include(a => a.DeploymentEntity)
                     .Include(a => a.OfferEligibilityEntity)
@@ -277,7 +277,7 @@ public class AccountRepository : IAccountRepository
     {
         AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>
         {
-            return await _accountContext.AccountEntity
+            return await _accountContext.ActiveAccounts
                     .AsNoTracking()
                     .Include(x => x.RoleEntity)
                     .ThenInclude(r => r.Contact)
