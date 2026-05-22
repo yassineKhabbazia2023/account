@@ -59,6 +59,15 @@ public class AccountService(
         return await _accountRepository.GetAllAccountsAsync(accountNumber, pagination, criteria ?? new SearchAccountCriteria());
     }
 
+    public async Task<Paging<AccountSearchResult>> SearchAccountsAsync(string? keyword, Pagination? pagination)
+    {
+        pagination = pagination ?? new Pagination();
+        pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
+        pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
+
+        return await _accountRepository.SearchAccountsAsync(keyword, pagination);
+    }
+
     public async Task<Models.Account?> GetAccountSummaryAsync(int contactId, int accountId)
     {
         return await _accountRepository.GetAccountSummaryAsync(contactId, accountId);

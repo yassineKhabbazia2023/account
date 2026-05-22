@@ -232,6 +232,47 @@ public class AccountRepository : IAccountRepository
         });
     }
 
+    public async Task<Paging<AccountSearchResult>> SearchAccountsAsync(string? keyword, Pagination pagination)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var baseQuery = _accountContext.AccountEntity.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var trimmedKeyword = keyword.Trim();
+                baseQuery = baseQuery.Where(a =>
+                    a.LegalName.Contains(trimmedKeyword) ||
+                    a.AccountNumber.Contains(trimmedKeyword));
+            }
+
+            int totalItems = await baseQuery.CountAsync();
+            int totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
+
+            var results = await baseQuery
+                .OrderBy(a => a.LegalName)
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .Select(a => new AccountSearchResult
+                {
+                    AccountId = a.AccountId,
+                    LegalName = a.LegalName,
+                    AccountNumber = a.AccountNumber,
+                    Siret = a.Siret,
+                    DirectorEmail = a.RoleEntity
+                        .Where(r => r.IsSignatory == true)
+                        .Select(r => r.Contact.Email)
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return results.MapToPagingAccountSearchResult(
+                pagination.PageNumber,
+                totalItems,
+                totalPages);
+        });
+    }
+
     public async Task<AccountModel?> GetAccountSummaryAsync(int contactId, int accountId)
     {
         AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>

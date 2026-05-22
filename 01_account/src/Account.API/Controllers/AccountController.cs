@@ -89,6 +89,23 @@ public class AccountController(IAccountService accountService) : ControllerBase
     }
 
     /// <summary>
+    /// Rechercher des entités morales par raison sociale ou code client.
+    /// </summary>
+    /// <param name="keyword">Texte à rechercher dans LegalName ou AccountNumber.</param>
+    /// <param name="pagination">Paramètres de pagination.</param>
+    /// <returns>Liste paginée d'entités morales correspondant à la recherche (accountId, legalName, accountNumber, SIRET, email dirigeant).</returns>
+    [HttpGet("search")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<AccountSearchResult>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<Paging<AccountSearchResult>>> SearchAccountsAsync(
+        string? keyword,
+        [FromQuery] Pagination? pagination)
+    {
+        var result = await accountService.SearchAccountsAsync(keyword, pagination);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Récupérer les informations détaillées d'une entité morale.
     /// </summary>
     /// <param name="accountId">ID de l'entité morale.</param>

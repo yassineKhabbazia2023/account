@@ -16,6 +16,8 @@ namespace Pulse.Account.Core.Interfaces
 
         Task<Paging<Models.Account>> GetAllAccountsAsync(string? accountNumber, Pagination pagination, SearchAccountCriteria criteria);
 
+        Task<Paging<AccountSearchResult>> SearchAccountsAsync(string? keyword, Pagination pagination);
+
         Task<Models.Account?> GetAccountSummaryAsync(int contactId, int accountId);
 
         Task<AccountDetail> GetAccountAsync(int accountId);

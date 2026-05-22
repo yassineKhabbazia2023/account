@@ -2646,4 +2646,323 @@ public class AccountRepositoryTests
         Assert.True(entity.CreationDate >= beforeCreate);
         Assert.True(entity.IsActive);
     }
+
+    [Fact]
+    public async Task SearchAccountsAsync_WithLegalNameMatch_ShouldReturnResults()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+        var repository = new AccountRepository(context);
+
+        var contact = new ContactEntity
+        {
+            Type = "1",
+            FirstName = "John",
+            LastName = "Director",
+            Email = "director@acme.fr",
+            CreationDate = DateTime.UtcNow,
+            PersonaName = "director",
+            IsActive = true,
+        };
+
+        var account = new AccountEntity
+        {
+            AccountNumber = "ACC00123",
+            LegalName = "ACME Corporation",
+            Siret = "12345678901234",
+            CreatedBy = "test@pulse.fr",
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString(),
+            RoleEntity = new List<RoleEntity>
+            {
+                new()
+                {
+                    IsSignatory = true,
+                    Contact = contact,
+                }
+            },
+            DeploymentEntity = new DeploymentEntity
+            {
+                Status = (int)DeploymentStatus.ToDeploy,
+                DeploymentDate = DateTime.UtcNow,
+            }
+        };
+
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        // Act
+        var result = await repository.SearchAccountsAsync("acme", pagination);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Items.Should().HaveCount(1);
+        result.TotalItems.Should().Be(1);
+        var firstItem = result.Items.First();
+        firstItem.AccountId.Should().Be(account.AccountId);
+        firstItem.LegalName.Should().Be("acme corporation");
+        firstItem.AccountNumber.Should().Be("acc00123");
+        firstItem.Siret.Should().Be("12345678901234");
+        firstItem.DirectorEmail.Should().Be("director@acme.fr");
+    }
+
+    [Fact]
+    public async Task SearchAccountsAsync_WithAccountNumberMatch_ShouldReturnResults()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+        var repository = new AccountRepository(context);
+
+        var contact = new ContactEntity
+        {
+            Type = "1",
+            FirstName = "Jane",
+            LastName = "Smith",
+            Email = "jane@test.fr",
+            CreationDate = DateTime.UtcNow,
+            PersonaName = "jane",
+            IsActive = true,
+        };
+
+        var account = new AccountEntity
+        {
+            AccountNumber = "TEST456",
+            LegalName = "Test Company",
+            Siret = "98765432109876",
+            CreatedBy = "test@pulse.fr",
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString(),
+            RoleEntity = new List<RoleEntity>
+            {
+                new()
+                {
+                    IsSignatory = true,
+                    Contact = contact,
+                }
+            },
+            DeploymentEntity = new DeploymentEntity
+            {
+                Status = (int)DeploymentStatus.ToDeploy,
+                DeploymentDate = DateTime.UtcNow,
+            }
+        };
+
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        // Act
+        var result = await repository.SearchAccountsAsync("test456", pagination);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Items.Should().HaveCount(1);
+        result.Items.First().AccountNumber.Should().Be("test456");
+    }
+
+    [Fact]
+    public async Task SearchAccountsAsync_WithPagination_ShouldReturnCorrectPage()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+        var repository = new AccountRepository(context);
+
+        var sharedContact = new ContactEntity
+        {
+            Type = "1",
+            FirstName = "Test",
+            LastName = "User",
+            Email = "test@test.fr",
+            CreationDate = DateTime.UtcNow,
+            PersonaName = "test",
+            IsActive = true,
+        };
+
+        for (int i = 1; i <= 25; i++)
+        {
+            var account = new AccountEntity
+            {
+                AccountNumber = $"ACC{i:D5}",
+                LegalName = $"Company {i}",
+                Siret = $"{i:D14}",
+                CreatedBy = "test@pulse.fr",
+                IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
+                RoleEntity = new List<RoleEntity>
+                {
+                    new()
+                    {
+                        IsSignatory = true,
+                        Contact = sharedContact,
+                    }
+                },
+                DeploymentEntity = new DeploymentEntity
+                {
+                    Status = (int)DeploymentStatus.ToDeploy,
+                    DeploymentDate = DateTime.UtcNow,
+                }
+            };
+
+            context.AccountEntity.Add(account);
+        }
+
+        await context.SaveChangesAsync();
+
+        var pagination = new Pagination { PageNumber = 2, PageSize = 10 };
+
+        // Act
+        var result = await repository.SearchAccountsAsync(null, pagination);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Items.Should().HaveCount(10);
+        result.TotalItems.Should().Be(25);
+        result.TotalPage.Should().Be(3);
+        result.CurrentPage.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task SearchAccountsAsync_ShouldReturnSortedByLegalName()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+        var repository = new AccountRepository(context);
+
+        var sharedContact = new ContactEntity
+        {
+            Type = "1",
+            FirstName = "Test",
+            LastName = "User",
+            Email = "test@test.fr",
+            CreationDate = DateTime.UtcNow,
+            PersonaName = "test",
+            IsActive = true,
+        };
+
+        var accounts = new[] { "Zebra Corp", "Apple Inc", "Microsoft Ltd" };
+        foreach (var name in accounts)
+        {
+            var account = new AccountEntity
+            {
+                AccountNumber = Guid.NewGuid().ToString(),
+                LegalName = name,
+                Siret = "12345678901234",
+                CreatedBy = "test@pulse.fr",
+                IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
+                RoleEntity = new List<RoleEntity>
+                {
+                    new()
+                    {
+                        IsSignatory = true,
+                        Contact = sharedContact,
+                    }
+                },
+                DeploymentEntity = new DeploymentEntity
+                {
+                    Status = (int)DeploymentStatus.ToDeploy,
+                    DeploymentDate = DateTime.UtcNow,
+                }
+            };
+
+            context.AccountEntity.Add(account);
+        }
+
+        await context.SaveChangesAsync();
+
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        // Act
+        var result = await repository.SearchAccountsAsync(null, pagination);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Items.Should().HaveCount(3);
+        var itemsList = result.Items.ToList();
+        itemsList[0].LegalName.Should().Be("apple inc");
+        itemsList[1].LegalName.Should().Be("microsoft ltd");
+        itemsList[2].LegalName.Should().Be("zebra corp");
+    }
+
+    [Fact]
+    public async Task SearchAccountsAsync_WithNoQuery_ShouldReturnAllAccounts()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+        var repository = new AccountRepository(context);
+
+        var sharedContact = new ContactEntity
+        {
+            Type = "1",
+            FirstName = "Test",
+            LastName = "User",
+            Email = "test@test.fr",
+            CreationDate = DateTime.UtcNow,
+            PersonaName = "test",
+            IsActive = true,
+        };
+
+        for (int i = 1; i <= 5; i++)
+        {
+            var account = new AccountEntity
+            {
+                AccountNumber = $"ACC{i}",
+                LegalName = $"Company {i}",
+                Siret = $"{i:D14}",
+                CreatedBy = "test@pulse.fr",
+                IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
+                RoleEntity = new List<RoleEntity>
+                {
+                    new()
+                    {
+                        IsSignatory = true,
+                        Contact = sharedContact,
+                    }
+                },
+                DeploymentEntity = new DeploymentEntity
+                {
+                    Status = (int)DeploymentStatus.ToDeploy,
+                    DeploymentDate = DateTime.UtcNow,
+                }
+            };
+
+            context.AccountEntity.Add(account);
+        }
+
+        await context.SaveChangesAsync();
+
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        // Act
+        var result = await repository.SearchAccountsAsync(null, pagination);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Items.Should().HaveCount(5);
+        result.TotalItems.Should().Be(5);
+    }
 }

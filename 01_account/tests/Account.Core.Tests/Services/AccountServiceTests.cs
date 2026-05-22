@@ -692,5 +692,94 @@ namespace Pulse.Account.Core.Tests.Services
             Assert.Null(updateAccount.Legal.StaffSizeRange);
             Assert.Null(updateAccount.Accounting.AccountingType);
         }
+
+        [Fact]
+        public async Task SearchAccountsAsync_WithNullPagination_ShouldUseDefaultPagination()
+        {
+            var expectedResult = _fixture.Create<Paging<AccountSearchResult>>();
+            _accountRepository.Setup(repository =>
+                    repository.SearchAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>()))
+                .ReturnsAsync(expectedResult);
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger);
+
+            // Act
+            var result = await accountService.SearchAccountsAsync("test", null);
+
+            // Assert
+            Assert.Equal(expectedResult, result);
+            _accountRepository.Verify(r => r.SearchAccountsAsync(
+                "test",
+                It.Is<Pagination>(p => p.PageNumber == 1 && p.PageSize == int.MaxValue)), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(-100)]
+        public async Task SearchAccountsAsync_WithInvalidPageNumber_ShouldNormalizeToOne(int invalidPageNumber)
+        {
+            var expectedResult = _fixture.Create<Paging<AccountSearchResult>>();
+            _accountRepository.Setup(repository =>
+                    repository.SearchAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>()))
+                .ReturnsAsync(expectedResult);
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger);
+            var pagination = new Pagination { PageNumber = invalidPageNumber, PageSize = 10 };
+
+            // Act
+            var result = await accountService.SearchAccountsAsync("test", pagination);
+
+            // Assert
+            Assert.Equal(expectedResult, result);
+            _accountRepository.Verify(r => r.SearchAccountsAsync(
+                "test",
+                It.Is<Pagination>(p => p.PageNumber == 1)), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(-50)]
+        public async Task SearchAccountsAsync_WithInvalidPageSize_ShouldNormalizeToMaxValue(int invalidPageSize)
+        {
+            var expectedResult = _fixture.Create<Paging<AccountSearchResult>>();
+            _accountRepository.Setup(repository =>
+                    repository.SearchAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>()))
+                .ReturnsAsync(expectedResult);
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger);
+            var pagination = new Pagination { PageNumber = 1, PageSize = invalidPageSize };
+
+            // Act
+            var result = await accountService.SearchAccountsAsync("test", pagination);
+
+            // Assert
+            Assert.Equal(expectedResult, result);
+            _accountRepository.Verify(r => r.SearchAccountsAsync(
+                "test",
+                It.Is<Pagination>(p => p.PageSize == int.MaxValue)), Times.Once);
+        }
+
+        [Fact]
+        public async Task SearchAccountsAsync_WithValidPagination_ShouldPassThrough()
+        {
+            var expectedResult = _fixture.Create<Paging<AccountSearchResult>>();
+            _accountRepository.Setup(repository =>
+                    repository.SearchAccountsAsync(It.IsAny<string>(), It.IsAny<Pagination>()))
+                .ReturnsAsync(expectedResult);
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger);
+            var pagination = new Pagination { PageNumber = 2, PageSize = 50 };
+
+            // Act
+            var result = await accountService.SearchAccountsAsync("test", pagination);
+
+            // Assert
+            Assert.Equal(expectedResult, result);
+            _accountRepository.Verify(r => r.SearchAccountsAsync(
+                "test",
+                It.Is<Pagination>(p => p.PageNumber == 2 && p.PageSize == 50)), Times.Once);
+        }
     }
 }

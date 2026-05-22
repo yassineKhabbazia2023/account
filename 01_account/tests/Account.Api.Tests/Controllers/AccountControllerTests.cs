@@ -593,4 +593,115 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         // Assert
         Assert.IsType<NotFoundResult>(result);
     }
+
+    [Fact]
+    public async Task SearchAccountsAsync_WithValidQuery_ShouldReturn200Ok()
+    {
+        // Arrange
+        var mockService = new Mock<IAccountService>();
+        var expectedResult = new Paging<AccountSearchResult>
+        {
+            Items = new List<AccountSearchResult>
+            {
+                new()
+                {
+                    AccountId = 1,
+                    LegalName = "ACME Corporation",
+                    AccountNumber = "ACC00123",
+                    Siret = "12345678901234",
+                    DirectorEmail = "director@acme.fr"
+                }
+            },
+            CurrentPage = 1,
+            TotalItems = 1,
+            TotalPage = 1
+        };
+
+        mockService.Setup(s => s.SearchAccountsAsync(
+            It.IsAny<string>(),
+            It.IsAny<Pagination>()))
+            .ReturnsAsync(expectedResult);
+
+        var controller = new AccountController(mockService.Object);
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        // Act
+        var result = await controller.SearchAccountsAsync("ACME", pagination);
+
+        // Assert
+        result.Should().NotBeNull();
+        var okResult = result.Result as OkObjectResult;
+        okResult.Should().NotBeNull();
+        okResult!.StatusCode.Should().Be(200);
+        var value = okResult.Value as Paging<AccountSearchResult>;
+        value.Should().NotBeNull();
+        value!.Items.Should().HaveCount(1);
+        value.Items.First().LegalName.Should().Be("ACME Corporation");
+    }
+
+    [Fact]
+    public async Task SearchAccountsAsync_WithNoResults_ShouldReturn200OkWithEmptyList()
+    {
+        // Arrange
+        var mockService = new Mock<IAccountService>();
+        var expectedResult = new Paging<AccountSearchResult>
+        {
+            Items = new List<AccountSearchResult>(),
+            CurrentPage = 1,
+            TotalItems = 0,
+            TotalPage = 0
+        };
+
+        mockService.Setup(s => s.SearchAccountsAsync(
+            It.IsAny<string>(),
+            It.IsAny<Pagination>()))
+            .ReturnsAsync(expectedResult);
+
+        var controller = new AccountController(mockService.Object);
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        // Act
+        var result = await controller.SearchAccountsAsync("NOTFOUND", pagination);
+
+        // Assert
+        result.Should().NotBeNull();
+        var okResult = result.Result as OkObjectResult;
+        okResult.Should().NotBeNull();
+        okResult!.StatusCode.Should().Be(200);
+        var value = okResult.Value as Paging<AccountSearchResult>;
+        value.Should().NotBeNull();
+        value!.Items.Should().BeEmpty();
+        value.TotalItems.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task SearchAccountsAsync_WithInvalidPagination_ShouldValidateAndCallService()
+    {
+        // Arrange
+        var mockService = new Mock<IAccountService>();
+        var expectedResult = new Paging<AccountSearchResult>
+        {
+            Items = new List<AccountSearchResult>(),
+            CurrentPage = 1,
+            TotalItems = 0,
+            TotalPage = 0
+        };
+
+        mockService.Setup(s => s.SearchAccountsAsync(
+            It.IsAny<string>(),
+            It.IsAny<Pagination>()))
+            .ReturnsAsync(expectedResult);
+
+        var controller = new AccountController(mockService.Object);
+        var pagination = new Pagination { PageNumber = 0, PageSize = 0 }; // Invalid values
+
+        // Act
+        var result = await controller.SearchAccountsAsync("TEST", pagination);
+
+        // Assert
+        result.Should().NotBeNull();
+        mockService.Verify(s => s.SearchAccountsAsync(
+            It.IsAny<string>(),
+            It.IsAny<Pagination>()), Times.Once);
+    }
 }
