@@ -518,6 +518,211 @@ public class RolesRepositoryTests
     }
 
     [Fact]
+    public async Task CreateRoleWithoutAccountValidationAsync_WithValidContact_ShouldReturnRoleCreated()
+    {
+        // Arrange
+        const int accountId = 200;
+        const int contactId = 300;
+        var roleRequest = new CreateRoleRequest
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsFavorite = true,
+            IsSignatory = false,
+            IsDelegation = false,
+            IncludePennylaneAccess = true,
+        };
+
+        using var accountContext = new AccountContext(_dbContextOptions);
+
+        accountContext.ContactEntity.Add(new ContactEntity
+        {
+            ContactId = contactId,
+            Email = "prospect-contact@kpmg.fr",
+            FirstName = "Prospect-FN",
+            LastName = "Prospect-LT",
+            Type = "customer",
+            Status = "Declared",
+            PersonaName = "Collaborateur ESC",
+            Office = "Paris",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true
+        });
+
+        await accountContext.SaveChangesAsync();
+        accountContext.ChangeTracker.Clear();
+
+        var rolesRepository = new RoleRepository(accountContext);
+
+        // Act
+        var result = await rolesRepository.CreateRoleWithoutAccountValidationAsync(roleRequest);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(contactId, result!.ContactId);
+        Assert.Equal(accountId, result.AccountId);
+    }
+
+    [Fact]
+    public async Task CreateRoleWithoutAccountValidationAsync_WithCollaboratorContact_ShouldSetIsCustomerRelationAndActionLevel()
+    {
+        // Arrange
+        const int accountId = 201;
+        const int contactId = 301;
+        var roleRequest = new CreateRoleRequest
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsSignatory = false,
+        };
+
+        using var accountContext = new AccountContext(_dbContextOptions);
+
+        accountContext.ContactEntity.Add(new ContactEntity
+        {
+            ContactId = contactId,
+            Email = "collab-contact@kpmg.fr",
+            FirstName = "Collab-FN",
+            LastName = "Collab-LT",
+            Type = ContactType.Collaborator.ToString(),
+            Status = "Declared",
+            PersonaName = "Collaborateur ESC",
+            Office = "Paris",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true
+        });
+
+        await accountContext.SaveChangesAsync();
+        accountContext.ChangeTracker.Clear();
+
+        var rolesRepository = new RoleRepository(accountContext);
+
+        // Act
+        var result = await rolesRepository.CreateRoleWithoutAccountValidationAsync(roleRequest);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.False(result!.IsCustomerRelation);
+        Assert.Equal((int)ActionLevelType.Observator, result.ActionLevel);
+    }
+
+    [Fact]
+    public async Task CreateRoleWithoutAccountValidationAsync_WithInvalidContact_ShouldThrowsNotFoundException()
+    {
+        // Arrange
+        const int accountId = 202;
+        const int invalidContactId = 999;
+        var roleRequest = new CreateRoleRequest
+        {
+            AccountId = accountId,
+            ContactId = invalidContactId,
+            IsSignatory = false,
+        };
+
+        using var accountContext = new AccountContext(_dbContextOptions);
+        var rolesRepository = new RoleRepository(accountContext);
+
+        // Act
+        Func<Task> action = async () => await rolesRepository.CreateRoleWithoutAccountValidationAsync(roleRequest);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<NotFoundException>(() => action());
+        Assert.Equal($"Le contact avec l'identifiant {invalidContactId} est introuvable", exception.Message);
+    }
+
+    [Fact]
+    public async Task CreateRoleWithoutAccountValidationAsync_WithInactiveContact_ShouldThrowsNotFoundException()
+    {
+        // Arrange
+        const int accountId = 203;
+        const int contactId = 303;
+        var roleRequest = new CreateRoleRequest
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsSignatory = false,
+        };
+
+        using var accountContext = new AccountContext(_dbContextOptions);
+
+        accountContext.ContactEntity.Add(new ContactEntity
+        {
+            ContactId = contactId,
+            Email = "inactive-contact@kpmg.fr",
+            FirstName = "Inactive-FN",
+            LastName = "Inactive-LT",
+            Type = "customer",
+            Status = "Declared",
+            PersonaName = "Collaborateur ESC",
+            Office = "Paris",
+            CreationDate = DateTime.UtcNow,
+            IsActive = false
+        });
+
+        await accountContext.SaveChangesAsync();
+        accountContext.ChangeTracker.Clear();
+
+        var rolesRepository = new RoleRepository(accountContext);
+
+        // Act
+        Func<Task> action = async () => await rolesRepository.CreateRoleWithoutAccountValidationAsync(roleRequest);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<NotFoundException>(() => action());
+        Assert.Equal($"Le contact avec l'identifiant {contactId} est introuvable", exception.Message);
+    }
+
+    [Fact]
+    public async Task CreateRoleWithoutAccountValidationAsync_WithExistingRole_ShouldThrowsConflictException()
+    {
+        // Arrange
+        const int accountId = 204;
+        const int contactId = 304;
+        var roleRequest = new CreateRoleRequest
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsSignatory = false,
+        };
+
+        using var accountContext = new AccountContext(_dbContextOptions);
+
+        accountContext.ContactEntity.Add(new ContactEntity
+        {
+            ContactId = contactId,
+            Email = "existing-contact@kpmg.fr",
+            FirstName = "Existing-FN",
+            LastName = "Existing-LT",
+            Type = "customer",
+            Status = "Declared",
+            PersonaName = "Collaborateur ESC",
+            Office = "Paris",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true
+        });
+
+        accountContext.RoleEntity.Add(new RoleEntity
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsFavorite = false,
+            IsSignatory = false,
+        });
+
+        await accountContext.SaveChangesAsync();
+        accountContext.ChangeTracker.Clear();
+
+        var rolesRepository = new RoleRepository(accountContext);
+
+        // Act
+        Func<Task> action = async () => await rolesRepository.CreateRoleWithoutAccountValidationAsync(roleRequest);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<ConflictException>(() => action());
+        Assert.Equal($"Le role ContactId {contactId}/AccountId {accountId} existe déjà", exception.Message);
+    }
+
+    [Fact]
     public async Task UpdateRoleAsync_ShouldReturnOk()
     {
         // Arrange

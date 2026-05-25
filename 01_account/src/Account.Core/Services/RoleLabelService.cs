@@ -1,9 +1,11 @@
-﻿// <copyright file="RoleLabelService.cs" company="Pulse">
+// <copyright file="RoleLabelService.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Microsoft.Extensions.Logging;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Services
 {
@@ -12,10 +14,17 @@ namespace Pulse.Account.Core.Services
         private static readonly HashSet<string> ExclusiveLabelCodes = new(StringComparer.OrdinalIgnoreCase) { "CLP", "AM" };
 
         private readonly IRoleLabelRepository _roleLabelRepository;
+        private readonly ILabelService _labelService;
+        private readonly ILogger<RoleLabelService> _logger;
 
-        public RoleLabelService(IRoleLabelRepository roleLabelRepository)
+        public RoleLabelService(
+            IRoleLabelRepository roleLabelRepository,
+            ILabelService labelService,
+            ILogger<RoleLabelService> logger)
         {
             _roleLabelRepository = roleLabelRepository;
+            _labelService = labelService;
+            _logger = logger;
         }
 
         public async Task AddRoleLabelAsync(RoleLabel roleLabel)
@@ -41,6 +50,42 @@ namespace Pulse.Account.Core.Services
             }
 
             await _roleLabelRepository.RemoveLabelAssignmentFromAccountAsync(accountId, labelId);
+        }
+
+        public async Task AssignRoleLabelFromCodeAsync(string? code, int accountId, int contactId)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return;
+            }
+
+            var labels = (await _labelService.GetLabelsAsync(new Pagination())).Items ?? Enumerable.Empty<Label>();
+            var label = labels.FirstOrDefault(l => l.Code.Equals(code, StringComparison.OrdinalIgnoreCase));
+
+            if (label == null)
+            {
+                _logger.LogWarning("Label avec le code {Code} introuvable en base pour le rôle AccountId: {AccountId} - ContactId: {ContactId}", code, accountId, contactId);
+                return;
+            }
+
+            if (await HasRoleLabel(contactId, accountId, label.LabelId))
+            {
+                _logger.LogWarning("Le label {Code} est déjà affecté au rôle AccountId: {AccountId} - ContactId: {ContactId}", code, accountId, contactId);
+                return;
+            }
+
+            await RevokeExclusiveLabelAsync(accountId, label.LabelId, label.Code);
+
+            await AddRoleLabelAsync(new RoleLabel
+            {
+                AccountId = accountId,
+                ContactId = contactId,
+                LabelId = label.LabelId,
+                CreatedDate = DateTime.UtcNow,
+                CreatedBy = contactId,
+            });
+
+            _logger.LogInformation("Le libellé {Code} a été ajouté sur le rôle AccountId {AccountId}/ContactId {ContactId}", code, accountId, contactId);
         }
     }
 }

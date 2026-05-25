@@ -52,6 +52,7 @@ public class AccountRepository : IAccountRepository
                 AccountNumber = request.AccountNumber,
                 LegalName = request.LegalName,
                 Siret = request.Siret,
+                AccountType = request.AccountType.ToString(),
                 CreatedBy = currentUser,
                 CreationDate = DateTime.UtcNow,
                 IsActive = true,
@@ -574,5 +575,24 @@ public class AccountRepository : IAccountRepository
         }
 
         return query;
+    }
+
+    public async Task<AccountDetail> GetAccountProspectIncludedAsync(int accountId)
+    {
+        AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>
+        {
+            return await _accountContext.ActiveAccounts
+                    .AsNoTracking()
+                    .Include(a => a.DeploymentEntity)
+                    .Include(h => h.Hub)
+                    .FirstOrDefaultAsync(a => a.AccountId == accountId);
+        });
+
+        if (account == null)
+        {
+            throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
+        }
+
+        return account.MapToAccountDetail();
     }
 }

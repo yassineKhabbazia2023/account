@@ -1,10 +1,13 @@
-﻿// <copyright file="RoleLabelServiceTests.cs" company="Pulse">
+// <copyright file="RoleLabelServiceTests.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Microsoft.Extensions.Logging;
 using Moq;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
+using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
 
 namespace Pulse.Account.Core.Tests.Services
@@ -12,12 +15,16 @@ namespace Pulse.Account.Core.Tests.Services
     public class RoleLabelServiceTests
     {
         private readonly Mock<IRoleLabelRepository> _mockRoleLabelRepository;
+        private readonly Mock<ILabelService> _mockLabelService;
+        private readonly Mock<ILogger<RoleLabelService>> _mockLogger;
         private readonly RoleLabelService _roleLabelService;
 
         public RoleLabelServiceTests()
         {
             _mockRoleLabelRepository = new Mock<IRoleLabelRepository>();
-            _roleLabelService = new RoleLabelService(_mockRoleLabelRepository.Object);
+            _mockLabelService = new Mock<ILabelService>();
+            _mockLogger = new Mock<ILogger<RoleLabelService>>();
+            _roleLabelService = new RoleLabelService(_mockRoleLabelRepository.Object, _mockLabelService.Object, _mockLogger.Object);
         }
 
         [Fact]
@@ -183,6 +190,95 @@ namespace Pulse.Account.Core.Tests.Services
 
             // Assert
             _mockRoleLabelRepository.Verify(repo => repo.RemoveLabelAssignmentFromAccountAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
+
+        private void SetupTwoLabels()
+        {
+            _mockLabelService.Setup(s => s.GetLabelsAsync(It.IsAny<Pagination>()))
+                .ReturnsAsync(new Paging<Label>
+                {
+                    Items = new List<Label>
+                    {
+                        new Label { LabelId = 1, Code = "CLP", CustomerLabel = "Responsable", CollaboratorLabel = "Maitre dossier", Business = "Transverse", IsVisible = false },
+                        new Label { LabelId = 2, Code = "AM", CustomerLabel = "Chargé de mission", CollaboratorLabel = "Resp compte", Business = "Transverse", IsVisible = false },
+                    }
+                });
+        }
+
+        [Fact]
+        public async Task AssignRoleLabelFromCodeAsync_WithNullCode_ShouldDoNothing()
+        {
+            // Act
+            await _roleLabelService.AssignRoleLabelFromCodeAsync(null, 1, 1);
+
+            // Assert
+            _mockLabelService.Verify(s => s.GetLabelsAsync(It.IsAny<Pagination>()), Times.Never);
+            _mockRoleLabelRepository.Verify(r => r.AddRoleLabelAsync(It.IsAny<RoleLabel>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task AssignRoleLabelFromCodeAsync_WithClpCode_ShouldRevokeAndAddLabel()
+        {
+            // Arrange
+            SetupTwoLabels();
+            _mockRoleLabelRepository.Setup(r => r.HasRoleLabel(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
+            _mockRoleLabelRepository.Setup(r => r.RemoveLabelAssignmentFromAccountAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.CompletedTask);
+            _mockRoleLabelRepository.Setup(r => r.AddRoleLabelAsync(It.IsAny<RoleLabel>())).Returns(Task.CompletedTask);
+
+            // Act
+            await _roleLabelService.AssignRoleLabelFromCodeAsync("CLP", 5, 9);
+
+            // Assert
+            _mockRoleLabelRepository.Verify(r => r.RemoveLabelAssignmentFromAccountAsync(5, 1), Times.Once);
+            _mockRoleLabelRepository.Verify(r => r.AddRoleLabelAsync(
+                It.Is<RoleLabel>(rl => rl.AccountId == 5 && rl.ContactId == 9 && rl.LabelId == 1)), Times.Once);
+        }
+
+        [Fact]
+        public async Task AssignRoleLabelFromCodeAsync_WithAmCode_ShouldRevokeAndAddLabel()
+        {
+            // Arrange
+            SetupTwoLabels();
+            _mockRoleLabelRepository.Setup(r => r.HasRoleLabel(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
+            _mockRoleLabelRepository.Setup(r => r.RemoveLabelAssignmentFromAccountAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.CompletedTask);
+            _mockRoleLabelRepository.Setup(r => r.AddRoleLabelAsync(It.IsAny<RoleLabel>())).Returns(Task.CompletedTask);
+
+            // Act
+            await _roleLabelService.AssignRoleLabelFromCodeAsync("AM", 5, 9);
+
+            // Assert
+            _mockRoleLabelRepository.Verify(r => r.RemoveLabelAssignmentFromAccountAsync(5, 2), Times.Once);
+            _mockRoleLabelRepository.Verify(r => r.AddRoleLabelAsync(
+                It.Is<RoleLabel>(rl => rl.AccountId == 5 && rl.ContactId == 9 && rl.LabelId == 2)), Times.Once);
+        }
+
+        [Fact]
+        public async Task AssignRoleLabelFromCodeAsync_WithUnknownCode_ShouldNotAddLabel()
+        {
+            // Arrange
+            SetupTwoLabels();
+
+            // Act
+            await _roleLabelService.AssignRoleLabelFromCodeAsync("UNKNOWN", 5, 9);
+
+            // Assert
+            _mockRoleLabelRepository.Verify(r => r.AddRoleLabelAsync(It.IsAny<RoleLabel>()), Times.Never);
+            _mockRoleLabelRepository.Verify(r => r.RemoveLabelAssignmentFromAccountAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task AssignRoleLabelFromCodeAsync_WhenAlreadyAssigned_ShouldNotReassign()
+        {
+            // Arrange
+            SetupTwoLabels();
+            _mockRoleLabelRepository.Setup(r => r.HasRoleLabel(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
+
+            // Act
+            await _roleLabelService.AssignRoleLabelFromCodeAsync("CLP", 5, 9);
+
+            // Assert
+            _mockRoleLabelRepository.Verify(r => r.RemoveLabelAssignmentFromAccountAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            _mockRoleLabelRepository.Verify(r => r.AddRoleLabelAsync(It.IsAny<RoleLabel>()), Times.Never);
         }
     }
 }

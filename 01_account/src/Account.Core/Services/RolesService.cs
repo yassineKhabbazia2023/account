@@ -10,6 +10,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
+using Pulse.Back.ExceptionMiddleware.BaseException;
 using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Core.Services;
@@ -20,18 +21,21 @@ public class RolesService : IRolesService
     private readonly IContactRepository _contactRepository;
     private readonly IRoleEventPublisher _roleEventPublisher;
     private readonly IHistoryEventPublisher _historyEventPublisher;
+    private readonly IRoleLabelService _roleLabelService;
     private readonly ILogger<RolesService> _logger;
 
     public RolesService(IRoleRepository rolesRepository,
         IContactRepository contactRepository,
         IRoleEventPublisher roleEventPublisher,
         IHistoryEventPublisher historyEventPublisher,
+        IRoleLabelService roleLabelService,
         ILogger<RolesService> logger)
     {
         _rolesRepository = rolesRepository;
         _contactRepository = contactRepository;
         _roleEventPublisher = roleEventPublisher;
         _historyEventPublisher = historyEventPublisher;
+        _roleLabelService = roleLabelService;
         _logger = logger;
     }
 
@@ -71,6 +75,76 @@ public class RolesService : IRolesService
             await PublishRoleCreatedEvent(roleToPublish);
             await PublishHistoryCreatedEvent(currentUserId, roleCreated.ContactId, roleCreated.AccountId, actionCode);
         }
+    }
+
+    private async Task CreateRoleForProspectAsync(CreateRoleRequest role)
+    {
+        await _rolesRepository.CreateRoleWithoutAccountValidationAsync(role);
+    }
+
+    public async Task<CreateRolesBulkResult> CreateRolesBulkAsync(int accountId, CreateRolesBulkRequest request, int currentUserId)
+    {
+        var result = new CreateRolesBulkResult();
+
+        if (request?.Contacts == null || request.Contacts.Count == 0)
+        {
+            return result;
+        }
+
+        foreach (var item in request.Contacts)
+        {
+            try
+            {
+                var contact = await _contactRepository.GetContactByIdAsync(item.ContactId);
+                var role = new CreateRoleRequest
+                {
+                    AccountId = accountId,
+                    ContactId = item.ContactId,
+                    IsSignatory = item.IsSignatory,
+                    IsFavorite = item.IsFavorite,
+                    IsDelegation = item.IsDelegation,
+                    IncludePennylaneAccess = item.IncludePennylaneAccess,
+                    IsCustomerRelation = ContactType.Collaborator.ToString().Equals(contact.Type) ? true : null,
+                };
+
+                await CreateRoleForProspectAsync(role);
+
+                try
+                {
+                    await _roleLabelService.AssignRoleLabelFromCodeAsync(item.RoleCode, accountId, item.ContactId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Bulk: échec de l'ajout du label {RoleCode} pour AccountId: {AccountId} - ContactId: {ContactId}", item.RoleCode, accountId, item.ContactId);
+                }
+
+                result.Succeeded.Add(new CreateRolesBulkItemResult { ContactId = item.ContactId });
+            }
+            catch (BusinessException ex)
+            {
+                _logger.LogWarning(ex, "RoleService: Bulk create failed for contact {contactId} on account {accountId}", item.ContactId, accountId);
+                result.Failed.Add(new CreateRolesBulkItemResult
+                {
+                    ContactId = item.ContactId,
+                    ErrorCode = ex.Code,
+                    ErrorMessage = ex.Message,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Account role assignment failed unexpectedly. ProspectCreationStep: {ProspectCreationStep}, ServiceName: {ServiceName}, OperationName: {OperationName}, AccountId: {AccountId}, ContactId: {ContactId}",
+                    "AssignAccountRolesAsync",
+                    "Pulse.Back.Account",
+                    nameof(CreateRolesBulkAsync),
+                    accountId,
+                    item.ContactId);
+                throw;
+            }
+        }
+
+        return result;
     }
 
     public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)

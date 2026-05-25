@@ -32,10 +32,26 @@ public class AccountService(
             throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, currentUserId));
         }
 
-        var createdAccount = await _accountRepository.CreateAccountAsync(currentUser.Email, request);
-        await _accountEventPublisher.PublishAccountCreatedEventAsync(createdAccount);
+        try
+        {
+            var createdAccount = await _accountRepository.CreateAccountAsync(currentUser.Email, request);
+            await _accountEventPublisher.PublishAccountCreatedEventAsync(createdAccount);
 
-        return createdAccount;
+            return createdAccount;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Account creation failed. ProspectCreationStep: {ProspectCreationStep}, ServiceName: {ServiceName}, OperationName: {OperationName}, Siret: {Siret}, AccountNumber: {AccountNumber}, CurrentUserId: {CurrentUserId}",
+                "CreateRydgeAccountAsync",
+                "Pulse.Back.Account",
+                nameof(CreateAccountAsync),
+                request.Siret,
+                request.AccountNumber,
+                currentUserId);
+            throw;
+        }
     }
 
     public async Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination? pagination)

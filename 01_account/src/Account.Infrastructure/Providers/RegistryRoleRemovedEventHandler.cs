@@ -56,7 +56,7 @@ public class RegistryRoleRemovedEventHandler : IEventHandler
         {
             _logger.LogInformation("L'entité avec l'identifiant suivant: AccountId: {AccountId}, ContactId: {ContactId} vient d'être supprimé", accountId, contactId);
 
-            await _roleEventPublisher.PublishRoleDeletedEventAsync(accountId, contactId);
+            await _roleEventPublisher.PublishRoleDeletedEventAsync(accountId, contactId, includeProspects: true);
         }
     }
 }

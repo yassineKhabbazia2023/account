@@ -390,7 +390,7 @@ public class DelegationServiceTest
         await service.DeleteDelegationAsync(1);
 
         _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>()), Times.Once);
-        _publisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+        _publisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Once);
     }
 
     [Theory]
@@ -405,7 +405,7 @@ public class DelegationServiceTest
         Assert.Equal(Errors.BadRequestDeleteDelegationCode, result.Code);
         Assert.Equal(Errors.BadRequestDeleteDelegationMessage, result.Message);
 
-        _publisher.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        _publisher.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
     }
 
     [Fact]

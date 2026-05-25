@@ -128,7 +128,8 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         {
             AccountNumber = "A12345",
             LegalName = "Account Test",
-            Siret = "12345678900000"
+            Siret = "12345678900000",
+            AccountType = AccountType.CLIENT
         };
 
         var expected = new AccountDetail
@@ -165,7 +166,8 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         {
             AccountNumber = string.Empty,
             LegalName = "Account Test",
-            Siret = "12345678900000"
+            Siret = "12345678900000",
+            AccountType = AccountType.CLIENT
         };
 
         var service = new Mock<IAccountService>(MockBehavior.Strict);
@@ -188,7 +190,8 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         {
             AccountNumber = "A12345",
             LegalName = "Account Test",
-            Siret = "12345678900000"
+            Siret = "12345678900000",
+            AccountType = AccountType.CLIENT
         };
 
         var service = new Mock<IAccountService>();

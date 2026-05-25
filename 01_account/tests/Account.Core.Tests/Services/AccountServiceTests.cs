@@ -89,6 +89,64 @@ namespace Pulse.Account.Core.Tests.Services
             Assert.Equal(accountMocked, accounts);
         }
 
+        #region GetAccountsAsync coverage additions
+
+        /// <summary>
+        /// Ensures null criteria and pagination are normalized before reaching the repository.
+        /// </summary>
+        [Fact]
+        public async Task GetAccountsAsync_WhenCriteriaAndPaginationAreNull_ShouldNormalizeInputsBeforeCallingRepository()
+        {
+            var accountMocked = _fixture.Create<Paging<AccountModel>>();
+            SearchAccountCriteria? capturedCriteria = null;
+            Pagination? capturedPagination = null;
+
+            _accountRepository.Setup(repository =>
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
+                .Callback<SearchAccountCriteria, Pagination>((criteria, pagination) =>
+                {
+                    capturedCriteria = criteria;
+                    capturedPagination = pagination;
+                })
+                .ReturnsAsync(accountMocked);
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger);
+
+            var accounts = await accountService.GetAccountsAsync(null!, null);
+
+            Assert.Equal(accountMocked, accounts);
+            Assert.NotNull(capturedCriteria);
+            Assert.NotNull(capturedPagination);
+            Assert.Equal(1, capturedPagination!.PageNumber);
+            Assert.Equal(int.MaxValue, capturedPagination.PageSize);
+            Assert.Equal(0, capturedCriteria!.ContactId);
+            Assert.Null(capturedCriteria.DeploymentStatus);
+        }
+
+        /// <summary>
+        /// Ensures invalid deployment status values are rejected before repository execution.
+        /// </summary>
+        [Fact]
+        public async Task GetAccountsAsync_WhenDeploymentStatusIsInvalid_ShouldThrowNotFoundException()
+        {
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger);
+            var criteria = new SearchAccountCriteria
+            {
+                ContactId = 123,
+                DeploymentStatus = int.MaxValue
+            };
+
+            var action = async () => await accountService.GetAccountsAsync(criteria, new Pagination());
+
+            var exception = await Assert.ThrowsAsync<NotFoundException>(action);
+            Assert.Equal(Errors.BadRequestDeploymentStatusCode, exception.Code);
+            _accountRepository.Verify(
+                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()),
+                Times.Never);
+        }
+
+        #endregion GetAccountsAsync coverage additions
+
         [Fact]
         public async Task GetAllAccountsAsync_NotEmptyPageNumberAndPageSize_ShouldReturnsAccounts()
         {
@@ -228,7 +286,8 @@ namespace Pulse.Account.Core.Tests.Services
             {
                 AccountNumber = "A12345",
                 LegalName = "Account Test",
-                Siret = "12345678900000"
+                Siret = "12345678900000",
+                AccountType = AccountType.CLIENT
             };
 
             var currentContact = _fixture.Build<Contact>().With(c => c.Email, "test@pulse.fr").Create();
@@ -256,7 +315,8 @@ namespace Pulse.Account.Core.Tests.Services
             {
                 AccountNumber = "A12345",
                 LegalName = "Account Test",
-                Siret = "12345678900000"
+                Siret = "12345678900000",
+                AccountType = AccountType.CLIENT
             };
 
             _contactRepository.Setup(c => c.GetContactByIdAsync(currentUserId)).ReturnsAsync((Contact)null!);
@@ -270,6 +330,87 @@ namespace Pulse.Account.Core.Tests.Services
             var exception = await Assert.ThrowsAsync<NotFoundException>(result);
             Assert.Equal(Errors.NotFoundContactCode, exception.Code);
         }
+
+        #region CreateAccountAsync coverage additions
+
+        /// <summary>
+        /// Ensures prospect account creation forwards the request and publishes the created-account event.
+        /// </summary>
+        [Fact]
+        public async Task CreateAccountAsync_WhenRequestIsProspect_ShouldCreateAccountAndPublishEvent()
+        {
+            var currentUserId = 10;
+            var request = new CreateAccountRequest
+            {
+                AccountNumber = "P12345",
+                LegalName = "Prospect Test",
+                Siret = "12345678900000",
+                AccountType = AccountType.PROSPECT
+            };
+            var currentContact = _fixture.Build<Contact>().With(c => c.Email, "prospect.creator@pulse.fr").Create();
+            var created = _fixture.Build<AccountDetail>()
+                .With(c => c.AccountNumber, request.AccountNumber)
+                .Create();
+
+            _contactRepository.Setup(contactRepository => contactRepository.GetContactByIdAsync(currentUserId))
+                .ReturnsAsync(currentContact);
+            _accountRepository.Setup(repository => repository.CreateAccountAsync(currentContact.Email, request))
+                .ReturnsAsync(created);
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger);
+
+            var result = await accountService.CreateAccountAsync(currentUserId, request);
+
+            result.Should().Be(created);
+            _accountRepository.Verify(repository => repository.CreateAccountAsync(currentContact.Email, request), Times.Once);
+            _accountEventPublisher.Verify(publisher => publisher.PublishAccountCreatedEventAsync(created), Times.Once);
+        }
+
+        /// <summary>
+        /// Ensures create-account failures are logged with structured prospect-creation context and do not publish events.
+        /// </summary>
+        [Fact]
+        public async Task CreateAccountAsync_WhenRepositoryCreateFails_ShouldLogStructuredErrorAndRethrow()
+        {
+            var currentUserId = 11;
+            var request = new CreateAccountRequest
+            {
+                AccountNumber = "P54321",
+                LegalName = "Broken Prospect",
+                Siret = "99999999999999",
+                AccountType = AccountType.PROSPECT
+            };
+            var currentContact = _fixture.Build<Contact>().With(c => c.Email, "creator@pulse.fr").Create();
+            var loggerMock = new Mock<ILogger<AccountService>>();
+            var failure = new System.InvalidOperationException("repository failed");
+
+            _contactRepository.Setup(contactRepository => contactRepository.GetContactByIdAsync(currentUserId))
+                .ReturnsAsync(currentContact);
+            _accountRepository.Setup(repository => repository.CreateAccountAsync(currentContact.Email, request))
+                .ThrowsAsync(failure);
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, loggerMock.Object);
+
+            var action = async () => await accountService.CreateAccountAsync(currentUserId, request);
+
+            var exception = await Assert.ThrowsAsync<System.InvalidOperationException>(action);
+            Assert.Same(failure, exception);
+            _accountEventPublisher.Verify(publisher => publisher.PublishAccountCreatedEventAsync(It.IsAny<AccountDetail>()), Times.Never);
+
+            var invocation = Assert.Single(loggerMock.Invocations.Where(i => i.Method.Name == nameof(ILogger.Log)));
+            Assert.Equal(LogLevel.Error, invocation.Arguments[0]);
+            Assert.Same(failure, invocation.Arguments[3]);
+
+            var state = Assert.IsAssignableFrom<IReadOnlyList<KeyValuePair<string, object?>>>(invocation.Arguments[2]);
+            Assert.Contains(state, item => item.Key == "ProspectCreationStep" && item.Value?.ToString() == "CreateRydgeAccountAsync");
+            Assert.Contains(state, item => item.Key == "ServiceName" && item.Value?.ToString() == "Pulse.Back.Account");
+            Assert.Contains(state, item => item.Key == "OperationName" && item.Value?.ToString() == "CreateAccountAsync");
+            Assert.Contains(state, item => item.Key == "Siret" && item.Value?.ToString() == request.Siret);
+            Assert.Contains(state, item => item.Key == "AccountNumber" && item.Value?.ToString() == request.AccountNumber);
+            Assert.Contains(state, item => item.Key == "CurrentUserId" && item.Value?.ToString() == currentUserId.ToString());
+        }
+
+        #endregion CreateAccountAsync coverage additions
 
         [Fact]
         public async Task GetContactsAccountAsync_WhenNotEmptyAccountId_ShouldReturnsContacts()
@@ -692,6 +833,114 @@ namespace Pulse.Account.Core.Tests.Services
             Assert.Null(updateAccount.Legal.StaffSizeRange);
             Assert.Null(updateAccount.Accounting.AccountingType);
         }
+
+        #region UpdateAccountAsync coverage additions
+
+        /// <summary>
+        /// Ensures update failures do not publish update events.
+        /// </summary>
+        [Fact]
+        public async Task UpdateAccountAsync_WhenRepositoryUpdateFails_ShouldNotPublishEvent()
+        {
+            var currentAccount = _fixture.Create<AccountDetail>();
+            var accountToUpdate = _fixture.Create<AccountDetail>();
+
+            _accountRepository.Setup(repository => repository.GetAccountAsync(1))
+                .ReturnsAsync(currentAccount);
+            _accountRepository.Setup(repository => repository.UpdateAccountAsync(1, accountToUpdate))
+                .ThrowsAsync(new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage));
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger);
+
+            var action = async () => await accountService.UpdateAccountAsync(1, accountToUpdate);
+
+            await Assert.ThrowsAsync<NotFoundException>(action);
+            _accountEventPublisher.Verify(publisher => publisher.PublishAccountUpdatedEventAsync(It.IsAny<AccountDetail>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Ensures protected-field removals preserve values and emit structured error logs.
+        /// </summary>
+        [Fact]
+        public async Task UpdateAccountAsync_WhenProtectedFieldsAreCleared_ShouldPreserveValuesAndLogStructuredErrors()
+        {
+            var loggerMock = new Mock<ILogger<AccountService>>();
+            var currentAccount = new AccountDetail
+            {
+                AccountId = 1,
+                AccountNumber = "A12345",
+                Legal = new Legal
+                {
+                    LegalName = "SAS TEST",
+                    Siren = "123456789",
+                    StaffSizeRange = "10-50"
+                },
+                Accounting = new Accounting
+                {
+                    AccountingType = "Engagement"
+                },
+                Phone = new List<Phone>()
+            };
+            var updateAccount = new AccountDetail
+            {
+                AccountNumber = "A12345",
+                Legal = new Legal
+                {
+                    LegalName = "SAS TEST",
+                    Siren = "123456789",
+                    StaffSizeRange = null
+                },
+                Accounting = new Accounting
+                {
+                    AccountingType = string.Empty
+                },
+                Phone = new List<Phone>()
+            };
+
+            _accountRepository.Setup(repository => repository.GetAccountAsync(1))
+                .ReturnsAsync(currentAccount);
+            _accountRepository.Setup(repository => repository.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+                .ReturnsAsync(updateAccount);
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, loggerMock.Object);
+
+            await accountService.UpdateAccountAsync(1, updateAccount);
+
+            Assert.Equal("10-50", updateAccount.Legal!.StaffSizeRange);
+            Assert.Equal("Engagement", updateAccount.Accounting!.AccountingType);
+
+            var logInvocations = loggerMock.Invocations
+                .Where(invocation => invocation.Method.Name == nameof(ILogger.Log))
+                .ToList();
+
+            Assert.Equal(2, logInvocations.Count);
+
+            var staffSizeLog = logInvocations.Single(invocation =>
+            {
+                var state = invocation.Arguments[2] as IReadOnlyList<KeyValuePair<string, object?>>;
+                return state?.Any(log => log.Key == "{OriginalFormat}" &&
+                    log.Value?.ToString() == "Tentative de suppression du champ StaffSizeRange pour le compte {AccountId}. Valeur actuelle: {CurrentValue}. La valeur existante sera conservée.") == true;
+            });
+
+            var staffSizeState = Assert.IsAssignableFrom<IReadOnlyList<KeyValuePair<string, object?>>>(staffSizeLog.Arguments[2]);
+            Assert.Equal(LogLevel.Error, staffSizeLog.Arguments[0]);
+            Assert.Contains(staffSizeState, log => log.Key == "AccountId" && log.Value?.ToString() == "1");
+            Assert.Contains(staffSizeState, log => log.Key == "CurrentValue" && log.Value?.ToString() == "10-50");
+
+            var accountingLog = logInvocations.Single(invocation =>
+            {
+                var state = invocation.Arguments[2] as IReadOnlyList<KeyValuePair<string, object?>>;
+                return state?.Any(log => log.Key == "{OriginalFormat}" &&
+                    log.Value?.ToString() == "Tentative de suppression du champ AccountingType pour le compte {AccountId}. Valeur actuelle: {CurrentValue}. La valeur existante sera conservée.") == true;
+            });
+
+            var accountingState = Assert.IsAssignableFrom<IReadOnlyList<KeyValuePair<string, object?>>>(accountingLog.Arguments[2]);
+            Assert.Equal(LogLevel.Error, accountingLog.Arguments[0]);
+            Assert.Contains(accountingState, log => log.Key == "AccountId" && log.Value?.ToString() == "1");
+            Assert.Contains(accountingState, log => log.Key == "CurrentValue" && log.Value?.ToString() == "Engagement");
+        }
+
+        #endregion UpdateAccountAsync coverage additions
 
         [Fact]
         public async Task SearchAccountsAsync_WithNullPagination_ShouldUseDefaultPagination()

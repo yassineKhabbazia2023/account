@@ -36,7 +36,7 @@ public class RegistryRoleRemovedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(repo => repo.RemoveRoleAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
-        publisherMock.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+        publisherMock.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), true), Times.Once);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class RegistryRoleRemovedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(repo => repo.RemoveRoleAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
-        publisherMock.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        publisherMock.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class RegistryRoleRemovedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(repo => repo.RemoveRoleAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-        publisherMock.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        publisherMock.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
     }
 
     [Fact]
@@ -98,6 +98,6 @@ public class RegistryRoleRemovedEventHandlerTests
 
         // Assert
         repositoryMock.Verify(repo => repo.RemoveRoleAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-        publisherMock.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        publisherMock.Verify(p => p.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
     }
 }

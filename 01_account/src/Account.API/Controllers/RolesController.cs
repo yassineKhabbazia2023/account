@@ -145,6 +145,25 @@ public class RolesController : ControllerBase
     }
 
     /// <summary>
+    /// Créer plusieurs roles pour une entité morale à partir d'une liste de contacts.
+    /// </summary>
+    /// <param name="currentUserId">L'identifiant de l'utilisateur courant.</param>
+    /// <param name="accountId">L'identifiant de l'entité morale.</param>
+    /// <param name="request">Liste des contacts à rattacher avec leurs options (signataire, favori, délégation, RoleCode optionnel "AM"/"CLP" pour assigner le label correspondant, ...).</param>
+    /// <returns>Résultat par contact : succès et échecs.</returns>
+    [HttpPost("bulk")]
+    [ProducesResponseType(typeof(CreateRolesBulkResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<CreateRolesBulkResult>> CreateRolesBulkAsync(
+        [FromHeader(Name = "CurrentUser")] int currentUserId,
+        [Required] int accountId,
+        [Required][FromBody] CreateRolesBulkRequest request)
+    {
+        var result = await _rolesService.CreateRolesBulkAsync(accountId, request, currentUserId);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Modifier un role pour un contact.
     /// </summary>
     /// <param name="accountId">Identifiant de l'entité morale.</param>

@@ -124,30 +124,13 @@ public class RoleRepository : IRoleRepository
                 throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, role.AccountId));
             }
 
-            var contact = await _accountContext.ContactEntity.FirstOrDefaultAsync(x => x.ContactId == role.ContactId && x.IsActive);
-            if (contact == null)
-            {
-                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
-            }
-
-            if (await GetContactRoleAsync(role.AccountId, (int)role.ContactId!) != null)
-            {
-                throw new ConflictException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, role.ContactId, role.AccountId));
-            }
-
-            SetIsCustomerRelationAndActionLevel(role, contact.Type);
-
-            var roleEntity = role.MapRoleToRoleDb();
-
-            if (roleEntity != null)
-            {
-                await _accountContext.RoleEntity.AddRangeAsync(roleEntity);
-            }
-
-            await _accountContext.SaveChangesAsync();
-
-            return roleEntity!.MapToRole();
+            return await CreateRoleInternalAsync(role);
         });
+    }
+
+    public async Task<Role?> CreateRoleWithoutAccountValidationAsync(CreateRoleRequest role)
+    {
+        return await _retryPolicy.ExecuteAsync(() => CreateRoleInternalAsync(role));
     }
 
     private static void SetIsCustomerRelationAndActionLevel(CreateRoleRequest role, string contactType)
@@ -162,6 +145,38 @@ public class RoleRepository : IRoleRepository
             role.IsCustomerRelation = null;
             role.ActionLevel = null;
         }
+    }
+
+    /// <summary>
+    /// Creates a role after the caller-specific preconditions have been validated.
+    /// </summary>
+    /// <param name="role">The role creation request.</param>
+    /// <returns>The created role.</returns>
+    private async Task<Role?> CreateRoleInternalAsync(CreateRoleRequest role)
+    {
+        var contact = await _accountContext.ContactEntity.FirstOrDefaultAsync(x => x.ContactId == role.ContactId);
+        if (contact == null)
+        {
+            throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
+        }
+
+        if (await GetContactRoleAsync(role.AccountId, (int)role.ContactId!) != null)
+        {
+            throw new ConflictException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, role.ContactId, role.AccountId));
+        }
+
+        SetIsCustomerRelationAndActionLevel(role, contact.Type);
+
+        var roleEntity = role.MapRoleToRoleDb();
+
+        if (roleEntity != null)
+        {
+            await _accountContext.RoleEntity.AddRangeAsync(roleEntity);
+        }
+
+        await _accountContext.SaveChangesAsync();
+
+        return roleEntity!.MapToRole();
     }
 
     public async Task<Role> UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)

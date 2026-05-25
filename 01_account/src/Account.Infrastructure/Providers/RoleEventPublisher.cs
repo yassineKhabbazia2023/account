@@ -2,7 +2,9 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Microsoft.Identity.Client;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Back.Events.Abstractions;
@@ -26,14 +28,17 @@ public class RoleEventPublisher : IRoleEventPublisher
         _roleRepository = roleRepository;
     }
 
-    public async Task PublishRoleCreatedEventAsync(CreateRoleRequest roleRequest, string? subRole = null)
+    public async Task PublishRoleCreatedEventAsync(CreateRoleRequest roleRequest, string? subRole = null, bool includeProspects = false)
     {
         if (roleRequest is null)
         {
             return;
         }
 
-        var selectedAccount = await _accountRepository.GetAccountAsync(roleRequest.AccountId);
+        var selectedAccount = includeProspects
+           ? await _accountRepository.GetAccountProspectIncludedAsync(roleRequest.AccountId)
+           : await _accountRepository.GetAccountAsync(roleRequest.AccountId);
+
         var selectedContact = await _contactEventRepository.GetContactAsync(roleRequest.ContactId ?? 0);
 
         roleRequest.AccountGlobalUniqueId = roleRequest.AccountGlobalUniqueId ??
@@ -85,10 +90,12 @@ public class RoleEventPublisher : IRoleEventPublisher
         await _eventPublisher.PublishAsync(new RoleUpdatedEvent(data) { AccountType = account.AccountType });
     }
 
-    public async Task PublishRoleDeletedEventAsync(int accountId, int contactId)
+    public async Task PublishRoleDeletedEventAsync(int accountId, int contactId, bool includeProspects = false)
     {
         var contact = await _contactEventRepository.GetContactAsync(contactId, true);
-        var account = await _accountRepository.GetAccountAsync(accountId);
+        var account = includeProspects
+            ? await _accountRepository.GetAccountProspectIncludedAsync(accountId)
+            : await _accountRepository.GetAccountAsync(accountId);
 
         var data = new RoleDeletedEventData
         {

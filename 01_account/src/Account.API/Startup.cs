@@ -6,10 +6,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Pulse.Account.API.Configuration;
 using Pulse.Account.API.Configuration.Model;
+using Pulse.Account.API.Logging;
 using Pulse.Back.ExceptionMiddleware;
 using Pulse.ExceptionMiddleware;
 
@@ -52,6 +55,17 @@ namespace Pulse.Account.API
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                 options.SerializerSettings.DateParseHandling = DateParseHandling.None;
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            });
+
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = context =>
+                {
+                    ProspectCreationValidationLogger.Log(context, "Pulse.Back.Account");
+                    var problemDetailsFactory = context.HttpContext.RequestServices.GetRequiredService<ProblemDetailsFactory>();
+                    var validationProblemDetails = problemDetailsFactory.CreateValidationProblemDetails(context.HttpContext, context.ModelState);
+                    return new BadRequestObjectResult(validationProblemDetails);
+                };
             });
 
             services.RegisterCors();

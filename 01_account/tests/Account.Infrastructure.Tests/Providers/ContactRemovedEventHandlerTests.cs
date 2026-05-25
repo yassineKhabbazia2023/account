@@ -53,7 +53,7 @@ public class ContactRemovedEventHandlerTests
         await handler.HandleAsync(message);
 
         // Assert
-        rolePublisher.Verify(publisher => publisher.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Exactly(3));
+        rolePublisher.Verify(publisher => publisher.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Exactly(3));
         repositoryMock.Verify(repo => repo.RemoveContactAsync(It.IsAny<int>()), Times.Once);
         roleRepository.Verify(repo => repo.DeleteContactRolesAsync(It.IsAny<int>()), Times.Once);
         delegationRepository.Verify(repo => repo.DeleteContactDelegationsAsync(It.IsAny<int>()), Times.Once);
@@ -78,7 +78,7 @@ public class ContactRemovedEventHandlerTests
         await handler.HandleAsync(null!);
 
         // Assert
-        rolePublisher.Verify(publisher => publisher.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        rolePublisher.Verify(publisher => publisher.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
         repositoryMock.Verify(repo => repo.RemoveContactAsync(It.IsAny<int>()), Times.Never);
         roleRepository.Verify(repo => repo.DeleteContactRolesAsync(It.IsAny<int>()), Times.Never);
         delegationRepository.Verify(repo => repo.DeleteContactDelegationsAsync(It.IsAny<int>()), Times.Never);
@@ -104,7 +104,7 @@ public class ContactRemovedEventHandlerTests
         await handler.HandleAsync(message);
 
         // Assert
-        rolePublisher.Verify(publisher => publisher.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        rolePublisher.Verify(publisher => publisher.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
         repositoryMock.Verify(repo => repo.RemoveContactAsync(It.IsAny<int>()), Times.Never);
         roleRepository.Verify(repo => repo.DeleteContactRolesAsync(It.IsAny<int>()), Times.Never);
         delegationRepository.Verify(repo => repo.DeleteContactDelegationsAsync(It.IsAny<int>()), Times.Never);
@@ -130,7 +130,7 @@ public class ContactRemovedEventHandlerTests
         await handler.HandleAsync(message);
 
         // Assert
-        rolePublisher.Verify(publisher => publisher.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        rolePublisher.Verify(publisher => publisher.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
         repositoryMock.Verify(repo => repo.RemoveContactAsync(It.IsAny<int>()), Times.Never);
         roleRepository.Verify(repo => repo.DeleteContactRolesAsync(It.IsAny<int>()), Times.Never);
         delegationRepository.Verify(repo => repo.DeleteContactDelegationsAsync(It.IsAny<int>()), Times.Never);

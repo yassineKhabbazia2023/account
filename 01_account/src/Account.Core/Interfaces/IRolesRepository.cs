@@ -28,4 +28,6 @@ public interface IRoleRepository
     Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber);
 
     Task UpdateRoleCollaboratorInformationAsync(int accountId, int contactId, bool isCustomerRelation, int expectedActionLevel = (int)ActionLevelType.NotAssigned);
+
+    Task<Role?> CreateRoleWithoutAccountValidationAsync(CreateRoleRequest role);
 }

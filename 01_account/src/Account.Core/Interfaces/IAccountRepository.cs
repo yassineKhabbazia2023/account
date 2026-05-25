@@ -29,5 +29,7 @@ namespace Pulse.Account.Core.Interfaces
         Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination pagination);
 
         Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request, Pagination pagination);
+
+        Task<AccountDetail> GetAccountProspectIncludedAsync(int accountId);
     }
 }

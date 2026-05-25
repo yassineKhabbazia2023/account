@@ -112,6 +112,38 @@ public class RolesControllerTests
     }
 
     [Fact]
+    public async Task CreateRolesAsync_Should_ReturnOkResultWithBulkResult()
+    {
+        // Arrange
+        var expected = new CreateRolesBulkResult
+        {
+            Succeeded = new List<CreateRolesBulkItemResult> { new() { ContactId = 1 } },
+            Failed = new List<CreateRolesBulkItemResult> { new() { ContactId = 2, ErrorCode = Errors.BadRequestExistingRoleCode } }
+        };
+        var request = new CreateRolesBulkRequest
+        {
+            Contacts = new List<CreateRolesBulkItem>
+            {
+                new() { ContactId = 1, IsSignatory = true },
+                new() { ContactId = 2, IsSignatory = false }
+            }
+        };
+        var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
+        rolesService.Setup(s => s.CreateRolesBulkAsync(10, request, 25)).ReturnsAsync(expected);
+
+        var rolesController = new RolesController(rolesService.Object);
+
+        // Act
+        var actionResult = await rolesController.CreateRolesBulkAsync(25, 10, request);
+        var okResult = actionResult.Result as OkObjectResult;
+
+        // Assert
+        okResult!.StatusCode.Should().Be(200);
+        okResult.Value.Should().BeSameAs(expected);
+        rolesService.Verify(s => s.CreateRolesBulkAsync(10, request, 25), Times.Once);
+    }
+
+    [Fact]
     public async Task UpdateRoleSignatoryAsync_Should_ReturnOkResult()
     {
         // Arrange

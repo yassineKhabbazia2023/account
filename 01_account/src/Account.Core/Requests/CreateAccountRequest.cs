@@ -3,6 +3,7 @@
 // </copyright>
 
 using System.ComponentModel.DataAnnotations;
+using Pulse.Account.Core.Enum;
 
 namespace Pulse.Account.Core.Requests
 {
@@ -16,5 +17,8 @@ namespace Pulse.Account.Core.Requests
 
         [Required]
         public required string Siret { get; set; }
+
+        [Required]
+        public required AccountType AccountType { get; set; }
     }
 }

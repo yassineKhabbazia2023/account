@@ -2362,7 +2362,7 @@ public class AccountRepositoryTests
         Assert.Equal(account.AccountId, result!.AccountId);
         Assert.Equal(account.AccountNumber, result.AccountNumber);
         Assert.Equal(account.LegalName, result.LegalName);
-        Assert.Equal(account.AccountType, result.AccountType);
+        Assert.Equal(AccountTypeTranscriber.ToExternal(account.AccountType), result.AccountType);
         Assert.True(result.IsSignatory);
     }
 
@@ -2522,7 +2522,8 @@ public class AccountRepositoryTests
         {
             AccountNumber = "NEW001",
             LegalName = "New Account",
-            Siret = "12345678901234"
+            Siret = "12345678901234",
+            AccountType = AccountType.CLIENT
         };
 
         // Act
@@ -2550,7 +2551,8 @@ public class AccountRepositoryTests
         {
             AccountNumber = "DUP001",
             LegalName = "First Account",
-            Siret = "12345678901234"
+            Siret = "12345678901234",
+            AccountType = AccountType.CLIENT
         };
 
         await repository.CreateAccountAsync("creator@pulse.fr", request);
@@ -2559,6 +2561,45 @@ public class AccountRepositoryTests
         var count = await context.AccountEntity.IgnoreQueryFilters().CountAsync(a => a.AccountNumber == request.AccountNumber.ToLower());
         Assert.Equal(2, count);
     }
+
+    #region CreateAccountAsync coverage additions
+
+    /// <summary>
+    /// Ensures prospect account creation persists the expected prospect type and deployment metadata.
+    /// </summary>
+    [Fact]
+    public async Task CreateAccountAsync_WithProspectRequest_ShouldPersistProspectAccountTypeAndDeployment()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+        var repository = new AccountRepository(context);
+
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = "PROSPECT001",
+            LegalName = "Prospect Account",
+            Siret = "12345678901234",
+            AccountType = AccountType.PROSPECT
+        };
+
+        var result = await repository.CreateAccountAsync("creator@pulse.fr", request);
+        var entity = await context.AccountEntity
+            .IgnoreQueryFilters()
+            .Include(account => account.DeploymentEntity)
+            .FirstAsync(account => account.AccountGlobalUniqueId == result.AccountGlobalUniqueId);
+
+        Assert.Equal(request.AccountType.ToString(), entity.AccountType);
+        Assert.Equal(request.AccountNumber, entity.AccountNumber);
+        Assert.Equal(request.LegalName, entity.LegalName);
+        Assert.NotNull(entity.DeploymentEntity);
+        Assert.Equal((int)DeploymentStatus.ToDeploy, entity.DeploymentEntity.Status);
+        Assert.True(entity.IsActive);
+    }
+
+    #endregion CreateAccountAsync coverage additions
 
     [Fact]
     public async Task CreateAccountAsync_ShouldGenerateNewGuid()
@@ -2575,7 +2616,8 @@ public class AccountRepositoryTests
         {
             AccountNumber = "GUID001",
             LegalName = "Guid Account",
-            Siret = "12345678901234"
+            Siret = "12345678901234",
+            AccountType = AccountType.CLIENT
         };
 
         // Act
@@ -2603,7 +2645,8 @@ public class AccountRepositoryTests
         {
             AccountNumber = "DEPLOY001",
             LegalName = "Deploy Account",
-            Siret = "12345678901234"
+            Siret = "12345678901234",
+            AccountType = AccountType.CLIENT
         };
 
         // Act
@@ -2633,7 +2676,8 @@ public class AccountRepositoryTests
         {
             AccountNumber = "META001",
             LegalName = "Meta Account",
-            Siret = "12345678901234"
+            Siret = "12345678901234",
+            AccountType = AccountType.CLIENT
         };
         var beforeCreate = DateTime.UtcNow;
 
@@ -2965,4 +3009,66 @@ public class AccountRepositoryTests
         result.Items.Should().HaveCount(5);
         result.TotalItems.Should().Be(5);
     }
+
+    #region Prospect filtering regression coverage additions
+
+    /// <summary>
+    /// Ensures account-number filtering in the global account list still excludes prospects.
+    /// </summary>
+    [Fact]
+    public async Task GetAllAccountsAsync_WithAccountNumberFilter_ShouldReturnMatchingClientAndExcludeMatchingProspect()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var contact = new ContactEntity
+        {
+            ContactId = 1,
+            Type = ContactType.Collaborator.ToString(),
+            FirstName = "Jean",
+            LastName = "Dupont",
+            Email = "jean.dupont@test.fr",
+            PersonaName = "Jean Dupont",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+        var clientAccount = new AccountEntity
+        {
+            AccountId = 200,
+            AccountNumber = "ACC-SHARED-CLIENT",
+            LegalName = "Client Account",
+            AccountType = AccountType.CLIENT.ToString(),
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 201,
+            AccountNumber = "ACC-SHARED-PROSPECT",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = clientAccount, Contact = contact, ContactId = contact.ContactId },
+            new RoleEntity { Account = prospectAccount, Contact = contact, ContactId = contact.ContactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        var result = await repository.GetAllAccountsAsync(
+            "ACC-SHARED",
+            new Pagination { PageNumber = 1, PageSize = 10 },
+            new SearchAccountCriteria());
+
+        Assert.Single(result.Items);
+        Assert.Equal(clientAccount.AccountId, result.Items.Single().AccountId);
+        Assert.Equal(clientAccount.AccountNumber, result.Items.Single().AccountNumber);
+    }
+
+    #endregion Prospect filtering regression coverage additions
 }

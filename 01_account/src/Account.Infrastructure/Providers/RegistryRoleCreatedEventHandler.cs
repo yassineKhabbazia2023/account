@@ -24,7 +24,6 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
     private readonly IRoleEventPublisher _roleEventPublisher;
     private readonly IHistoryEventPublisher _historyEventPublisher;
     private readonly IRoleRepository _roleRepository;
-    private readonly ILabelService _labelService;
     private readonly IRoleLabelService _roleLabelService;
 
     public RegistryRoleCreatedEventHandler(
@@ -33,7 +32,6 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
         IRoleEventPublisher roleEventPublisher,
         IHistoryEventPublisher historyEventPublisher,
         IRoleRepository roleRepository,
-        ILabelService labelService,
         IRoleLabelService roleLabelService)
     {
         _logger = logger;
@@ -41,7 +39,6 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
         _roleEventPublisher = roleEventPublisher;
         _historyEventPublisher = historyEventPublisher;
         _roleRepository = roleRepository;
-        _labelService = labelService;
         _roleLabelService = roleLabelService;
     }
 
@@ -132,11 +129,11 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
 
             // Re-lire l'état courant du rôle après les éventuelles mises à jour et publier une seule fois
             var currentRole = await _roleRepository.GetContactRoleAsync(accountId, contactId);
-            await _roleEventPublisher.PublishRoleCreatedEventAsync(currentRole!.ToCreateRoleRequest());
+            await _roleEventPublisher.PublishRoleCreatedEventAsync(currentRole!.ToCreateRoleRequest(), includeProspects: true);
 
             try
             {
-                await AssignRoleLabelFromDescriptionAsync(@event!.Data.Description, accountId, contactId);
+                await _roleLabelService.AssignRoleLabelFromCodeAsync(@event!.Data.Description, accountId, contactId);
             }
             catch (Exception ex)
             {
@@ -154,48 +151,12 @@ public class RegistryRoleCreatedEventHandler : IEventHandler
 
             try
             {
-                await AssignRoleLabelFromDescriptionAsync(@event.Data.Description, accountId, contactId);
+                await _roleLabelService.AssignRoleLabelFromCodeAsync(@event.Data.Description, accountId, contactId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erreur lors de l'ajout du label pour le nouveau rôle AccountId: {AccountId} - ContactId: {ContactId}, Description: {Description}", accountId, contactId, @event.Data.Description);
             }
         }
-    }
-
-    private async Task AssignRoleLabelFromDescriptionAsync(string? description, int accountId, int contactId)
-    {
-        if (string.IsNullOrWhiteSpace(description))
-        {
-            return;
-        }
-
-        var labels = (await _labelService.GetLabelsAsync(new Pagination())).Items ?? Enumerable.Empty<Label>();
-        var label = labels.FirstOrDefault(l => l.Code.Equals(description, StringComparison.OrdinalIgnoreCase));
-
-        if (label == null)
-        {
-            _logger.LogWarning("Label avec le code {Description} introuvable en base pour le rôle AccountId: {AccountId} - ContactId: {ContactId}", description, accountId, contactId);
-            return;
-        }
-
-        if (await _roleLabelService.HasRoleLabel(contactId, accountId, label.LabelId))
-        {
-            _logger.LogWarning("Le label {Description} est déjà affecté au rôle AccountId: {AccountId} - ContactId: {ContactId}", description, accountId, contactId);
-            return;
-        }
-
-        await _roleLabelService.RevokeExclusiveLabelAsync(accountId, label.LabelId, label.Code);
-
-        await _roleLabelService.AddRoleLabelAsync(new RoleLabel
-        {
-            AccountId = accountId,
-            ContactId = contactId,
-            LabelId = label.LabelId,
-            CreatedDate = DateTime.UtcNow,
-            CreatedBy = contactId,
-        });
-
-        _logger.LogInformation("Le libellé {Description} a été ajouté sur le rôle AccountId {AccountId}/ContactId {ContactId}", description, accountId, contactId);
     }
 }
