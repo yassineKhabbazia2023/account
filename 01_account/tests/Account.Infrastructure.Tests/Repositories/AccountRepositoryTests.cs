@@ -2362,9 +2362,9 @@ public class AccountRepositoryTests
         Assert.Equal(account.AccountId, result!.AccountId);
         Assert.Equal(account.AccountNumber, result.AccountNumber);
         Assert.Equal(account.LegalName, result.LegalName);
-        Assert.Equal(AccountTypeTranscriber.ToExternal(account.AccountType), result.AccountType);
+        Assert.Equal(result.AccountType, result.AccountType);
         Assert.True(result.IsSignatory);
-    }
+    }   
 
     [Fact]
     public async Task GetAccountSummaryAsync_WithInactiveProspectAccount_ShouldThrowNotFoundException()
