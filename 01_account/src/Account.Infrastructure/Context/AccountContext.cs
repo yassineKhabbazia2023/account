@@ -22,6 +22,8 @@ public partial class AccountContext : DbContext
 
     public virtual DbSet<DelegationEntity> DelegationEntity { get; set; }
 
+    public virtual DbSet<DelegationRequestEntity> DelegationRequestEntity { get; set; }
+
     public virtual DbSet<DeploymentEntity> DeploymentEntity { get; set; }
 
     public virtual DbSet<HubEntity> HubEntity { get; set; }
@@ -574,6 +576,48 @@ public partial class AccountContext : DbContext
             entity.HasOne(d => d.Label).WithMany(p => p.RoleLabelEntity)
                 .HasForeignKey(d => d.LabelId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<DelegationRequestEntity>(entity =>
+        {
+            entity.HasKey(e => e.DelegationRequestId).HasName("C_DelegationRequest_PK");
+
+            entity.ToTable("DelegationRequest", "account");
+
+            entity.HasIndex(e => new { e.RecipientId, e.Status }, "IX_DelegationRequest_RecipientId_Status");
+
+            entity.HasIndex(e => new { e.RequesterId, e.Status }, "IX_DelegationRequest_RequesterId_Status");
+
+            entity.HasIndex(e => new { e.RequesterId, e.RecipientId, e.AccountId }, "IX_DelegationRequest_Unique_Pending")
+                .IsUnique()
+                .HasFilter("[Status] = 'pending'");
+
+            entity.Property(e => e.DelegationRequestId).HasComment("L''identifiant technique de la demande de délégation");
+            entity.Property(e => e.RequesterId).HasComment("L''identifiant du contact demandeur");
+            entity.Property(e => e.RecipientId).HasComment("L''identifiant du contact destinataire");
+            entity.Property(e => e.AccountId).HasComment("L''identifiant du dossier concerné par la demande");
+            entity.Property(e => e.CreatedAt).HasComment("La date de création de la demande");
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasComment("Le statut de la demande (pending, accepted, refused)");
+            entity.Property(e => e.RespondedAt).HasComment("La date de réponse à la demande (acceptation ou refus)");
+
+            entity.HasOne(d => d.Requester).WithMany()
+                .HasForeignKey(d => d.RequesterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_DelegationRequest_Requester_FK");
+
+            entity.HasOne(d => d.Recipient).WithMany()
+                .HasForeignKey(d => d.RecipientId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_DelegationRequest_Recipient_FK");
+
+            entity.HasOne(d => d.Account).WithMany()
+                .HasForeignKey(d => d.AccountId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_DelegationRequest_Account_FK");
         });
 
         OnModelCreatingPartial(modelBuilder);

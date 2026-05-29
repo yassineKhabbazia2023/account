@@ -142,6 +142,7 @@ public class AccountRepositoryTests
             {
                 var deploimentEntityMock = _fixture.Build<DeploymentEntity>()
                     .With(a => a.Status, 1)
+                    .Without(a => a.Account)
                     .Create();
                 var accountMock = _fixture.Build<AccountEntity>()
                                                 .With(a => a.IsActive, true)

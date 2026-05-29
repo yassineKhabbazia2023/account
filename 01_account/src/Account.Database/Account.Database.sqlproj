@@ -78,6 +78,7 @@
     <Build Include="account\Tables\Hub.sql" />
     <Build Include="Security\Schemas\account.sql" />
     <Build Include="account\Tables\DelegationDetail.sql" />
+    <Build Include="account\Tables\DelegationRequest.sql" />
     <Build Include="account\Tables\Office.sql" />
     <Build Include="account\Tables\Label.sql" />
     <Build Include="account\Tables\RoleLabel.sql" />
@@ -88,6 +89,7 @@
     <None Include="Scripts\002_Synchro_taille_colonne_Account.sql" />
     <None Include="Scripts\004_Recuperation_Libelle_Role_Pennylane.sql" />
     <None Include="Scripts\005_Nettoyage_DataTest_Table_REC.sql" />
+    <None Include="Scripts\006_Create_DelegationRequest_Table.sql" />
     <Build Include="ext\Vues\vw_SignatoryPerAccount.sql" />
     <Build Include="account\Tables\OfferEligibility.sql" />
   </ItemGroup>

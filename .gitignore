@@ -364,3 +364,11 @@ FodyWeavers.xsd
 .DS_Store
 .vscode/launch.json
 01_account/nuget.config
+
+# Coding rules files (local only)
+CODE_RULES.md
+.coding-rules.json
+PR_CHECKLIST.md
+RULES_README.md
+COMMITS.md
+PR_*.md

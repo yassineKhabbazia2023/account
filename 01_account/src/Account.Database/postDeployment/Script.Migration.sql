@@ -5,3 +5,7 @@ CREATE TABLE [dbo].[tmp_delegation_detail](
 	[AccountId] [int] NULL,
 ) ON [PRIMARY]
 GO
+
+-- Exécuter le script de migration pour la table DelegationRequest
+:r ..\Scripts\006_Create_DelegationRequest_Table.sql
+

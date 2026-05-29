@@ -15,6 +15,8 @@ tags:
   - name: Account
   - name: Favorite
   - name: Delegation
+  - name: DelegationRequest
+    description: Gestion des demandes de délégation
 paths:
   /accounts:
     get:
@@ -292,6 +294,158 @@ paths:
           description: Bad Request
         '404':
           description: Not Found
+  /api/delegations/requests:
+    post:
+      tags:
+        - DelegationRequest
+      summary: Créer des demandes de délégation pour un dossier.
+      description: Permet à un utilisateur de créer plusieurs demandes de délégation simultanées pour un dossier spécifique.
+      parameters:
+        - name: contactId
+          in: query
+          description: L'identifiant du contact demandeur (utilisateur connecté)
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDelegationRequestsRequest'
+      responses:
+        '201':
+          description: Les demandes de délégation ont été créées avec succès
+        '400':
+          description: Bad Request - Validation échouée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found - Dossier ou contact introuvable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/delegations/requests/sent:
+    get:
+      tags:
+        - DelegationRequest
+      summary: Récupérer les demandes de délégation envoyées par l'utilisateur connecté.
+      description: Retourne une liste paginée des demandes de délégation envoyées par l'utilisateur.
+      parameters:
+        - name: contactId
+          in: query
+          description: L'identifiant du contact (utilisateur connecté)
+          required: true
+          schema:
+            type: integer
+        - name: PageNumber
+          in: query
+          description: L'identifiant du contact (utilisateur connecté)
+          required: true
+          schema:
+            type: integer
+        - name: PageNumber
+          in: query
+          description: Numéro de la page
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: PageSize
+          in: query
+          description: Nombre d'éléments par page
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagingDelegationRequest'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/delegations/requests/received:
+    get:
+      tags:
+        - DelegationRequest
+      summary: Récupérer les demandes de délégation reçues par l'utilisateur connecté.
+      description: Retourne une liste paginée des demandes de délégation reçues en attente (statut pending).
+      parameters:
+        - name: contactId
+          in: query
+          description: L'identifiant du contact (utilisateur connecté)
+          required: true
+          schema:
+            type: integer
+        - name: PageNumber
+          in: query
+          description: Numéro de la page
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: PageSize
+          in: query
+          description: Nombre d'éléments par page
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagingDelegationRequest'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/delegations/requests/eligibility:
+    get:
+      tags:
+        - DelegationRequest
+      summary: Vérifier si l'utilisateur peut demander une délégation sur un dossier donné.
+      description: Vérifie l'éligibilité d'un utilisateur à créer une demande de délégation pour un dossier spécifique.
+      parameters:
+        - name: contactId
+          in: query
+          description: L'identifiant du contact (utilisateur connecté)
+          required: true
+          schema:
+            type: integer
+        - name: accountId
+          in: query
+          description: L'identifiant du dossier
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DelegationEligibilityResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
       Account:
@@ -558,6 +712,105 @@ components:
             $ref: '#/components/schemas/Contact'
           delegator:
             $ref: '#/components/schemas/Contact'
+        additionalProperties: false
+      CreateDelegationRequestsRequest:
+        type: object
+        required:
+          - accountId
+          - recipientIds
+        properties:
+          accountId:
+            type: integer
+            description: L'identifiant du dossier pour lequel créer les demandes de délégation
+            example: 100
+          recipientIds:
+            type: array
+            description: Liste des identifiants des destinataires qui recevront les demandes
+            items:
+              type: integer
+            minItems: 1
+            example: [2, 3, 4]
+        additionalProperties: false
+      DelegationRequest:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: Identifiant unique de la demande de délégation
+            example: 1
+          requesterId:
+            type: integer
+            description: Identifiant du demandeur
+            example: 1
+          recipientId:
+            type: integer
+            description: Identifiant du destinataire
+            example: 2
+          accountId:
+            type: integer
+            description: Identifiant du dossier concerné
+            example: 100
+          status:
+            type: string
+            description: Statut de la demande (pending, approved, rejected)
+            example: pending
+          createdAt:
+            type: string
+            format: date-time
+            description: Date de création de la demande
+          updatedAt:
+            type: string
+            format: date-time
+            nullable: true
+            description: Date de dernière mise à jour
+        additionalProperties: false
+      PagingDelegationRequest:
+        type: object
+        properties:
+          items:
+            type: array
+            description: Liste des demandes de délégation
+            items:
+              $ref: '#/components/schemas/DelegationRequest'
+          currentPage:
+            type: integer
+            description: Numéro de la page actuelle
+            example: 1
+          totalPage:
+            type: integer
+            description: Nombre total de pages
+            example: 5
+          totalItems:
+            type: integer
+            description: Nombre total d'éléments
+            example: 42
+        additionalProperties: false
+      DelegationEligibilityResponse:
+        type: object
+        required:
+          - isEligible
+        properties:
+          isEligible:
+            type: boolean
+            description: Indique si l'utilisateur est éligible pour créer une demande de délégation
+            example: true
+          reason:
+            type: string
+            nullable: true
+            description: Raison pour laquelle l'utilisateur n'est pas éligible (AlreadyInPortfolio, AlreadyPending, etc.)
+            example: AlreadyPending
+        additionalProperties: false
+      ErrorResponse:
+        type: object
+        properties:
+          code:
+            type: string
+            description: Code d'erreur
+            example: ERR001
+          message:
+            type: string
+            description: Message d'erreur
+            example: Une erreur est survenue
         additionalProperties: false
   securitySchemes:
     Bearer:

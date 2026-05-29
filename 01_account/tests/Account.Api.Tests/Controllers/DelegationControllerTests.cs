@@ -21,11 +21,13 @@ namespace Account.Api.Tests.Controllers;
 public class DelegationControllerTests
 {
     private readonly Mock<IDelegationService> _service;
+    private readonly Mock<IDelegationRequestService> _delegationRequestService;
     private readonly Fixture _fixture;
 
     public DelegationControllerTests()
     {
         _service = new Mock<IDelegationService>(MockBehavior.Strict);
+        _delegationRequestService = new Mock<IDelegationRequestService>(MockBehavior.Strict);
         _fixture = new Fixture();
     }
 
@@ -50,7 +52,7 @@ public class DelegationControllerTests
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        var controller = new DelegationController(_service.Object);
+        var controller = new DelegationController(_service.Object, _delegationRequestService.Object);
         var actionResult = await controller.CreateDelegationAsync(contactId, createDelegation);
 
         actionResult.As<OkResult>().StatusCode.Should().Be(200);
@@ -78,8 +80,9 @@ public class DelegationControllerTests
             })
             .Returns(Task.CompletedTask)
             .Verifiable();
+        var mockDelegationRequestService = new Mock<IDelegationRequestService>();
 
-        var controller = new DelegationController(service.Object);
+        var controller = new DelegationController(service.Object, mockDelegationRequestService.Object);
         var actionResult = await controller.CreateDelegationAsync(contactId, createDelegation);
 
         actionResult.As<OkResult>().StatusCode.Should().Be(200);
@@ -102,7 +105,8 @@ public class DelegationControllerTests
         repository.Setup(x => x.IsClient(It.IsAny<IEnumerable<int>>())).ReturnsAsync(false);
         var service = new DelegationService(repository.Object, null!, null!, null!);
 
-        var controller = new DelegationController(service);
+        var mockDelegationRequestService2 = new Mock<IDelegationRequestService>();
+        var controller = new DelegationController(service, mockDelegationRequestService2.Object);
 
         // Act
         var act = async () => await controller.CreateDelegationAsync(contactId, createDelegation);
@@ -124,7 +128,7 @@ public class DelegationControllerTests
             .ReturnsAsync(delegationlist)
             .Verifiable();
 
-        var controller = new DelegationController(_service.Object);
+        var controller = new DelegationController(_service.Object, _delegationRequestService.Object);
         var actionResult = await controller.GetContactDelegationsAsync(contactId);
 
         actionResult.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
@@ -148,7 +152,7 @@ public class DelegationControllerTests
             .ReturnsAsync(delegationlist)
             .Verifiable();
 
-        var controller = new DelegationController(_service.Object);
+        var controller = new DelegationController(_service.Object, _delegationRequestService.Object);
         var actionResult = await controller.GetDelegationsAsync(delegatorId, delegateeId);
 
         actionResult.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
@@ -161,7 +165,7 @@ public class DelegationControllerTests
     {
         _service.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
 
-        var controller = new DelegationController(_service.Object);
+        var controller = new DelegationController(_service.Object, _delegationRequestService.Object);
 
         var result = await controller.DeleteDelegationAsync(It.IsAny<int>());
 
@@ -174,7 +178,7 @@ public class DelegationControllerTests
         var exception = new NotFoundException(It.IsAny<string>(), It.IsAny<string>());
         _service.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).ThrowsAsync(exception);
 
-        var controller = new DelegationController(_service.Object);
+        var controller = new DelegationController(_service.Object, _delegationRequestService.Object);
 
         var result = await Assert.ThrowsAsync<NotFoundException>(async () => await controller.DeleteDelegationAsync(It.IsAny<int>()));
 
@@ -195,7 +199,7 @@ public class DelegationControllerTests
             .ReturnsAsync(expected)
             .Verifiable();
 
-        var controller = new DelegationController(_service.Object);
+        var controller = new DelegationController(_service.Object, _delegationRequestService.Object);
         var actionResult = await controller.GetDelegatorDelegationsAsync(delegatorId, filter, pagination);
 
         actionResult.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
@@ -213,7 +217,7 @@ public class DelegationControllerTests
             .ThrowsAsync(new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, delegatorId)))
             .Verifiable();
 
-        var controller = new DelegationController(_service.Object);
+        var controller = new DelegationController(_service.Object, _delegationRequestService.Object);
 
         await Assert.ThrowsAsync<NotFoundException>(
             async () => await controller.GetDelegatorDelegationsAsync(delegatorId, filter, null));

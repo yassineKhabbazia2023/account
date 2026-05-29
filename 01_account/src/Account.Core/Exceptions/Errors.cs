@@ -128,4 +128,16 @@ public static class Errors
 
     public static readonly string InvalidAccountFieldsCode = "ACC041";
     public static readonly string InvalidAccountFieldsMessage = "Les champs obligatoires sont manquants ou invalides. Veuillez compléter les informations nécessaires.";
+
+    public static readonly string SelfDelegationRequestCode = "ACC042";
+    public static readonly string SelfDelegationRequestMessage = "Impossible de créer une demande de délégation : vous ne pouvez pas vous demander une délégation à vous-même.";
+
+    public static readonly string RequesterAlreadyHasAccessCode = "ACC043";
+    public static readonly string RequesterAlreadyHasAccessMessage = "Impossible de créer une demande de délégation : vous avez déjà accès à ce dossier.";
+
+    public static readonly string RecipientDoesNotHaveAccessCode = "ACC044";
+    public static readonly string RecipientDoesNotHaveAccessMessage = "Impossible de créer une demande de délégation : le destinataire avec l'identifiant {0} n'a pas accès à ce dossier.";
+
+    public static readonly string DelegationRequestAlreadyPendingCode = "ACC045";
+    public static readonly string DelegationRequestAlreadyPendingMessage = "Impossible de créer une demande de délégation : une demande en attente existe déjà pour ce dossier.";
 }

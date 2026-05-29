@@ -13,21 +13,24 @@ using Pulse.ExceptionMiddleware.Model;
 namespace Pulse.Account.API.Controllers;
 
 /// <summary>
-/// Les différents endpoints pour la gestion délégations.
+/// Les différents endpoints pour la gestion des délégations et leurs demandes.
 /// </summary>
 [ApiController]
 [Route("api/delegations")]
 public class DelegationController : ControllerBase
 {
     private readonly IDelegationService _delegationService;
+    private readonly IDelegationRequestService _delegationRequestService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DelegationController"/> class.
     /// </summary>
     /// <param name="delegationService">Une instance of delegation service.</param>
-    public DelegationController(IDelegationService delegationService)
+    /// <param name="delegationRequestService">Une instance du service de demandes de délégation.</param>
+    public DelegationController(IDelegationService delegationService, IDelegationRequestService delegationRequestService)
     {
         _delegationService = delegationService;
+        _delegationRequestService = delegationRequestService;
     }
 
     /// <summary>
@@ -112,5 +115,72 @@ public class DelegationController : ControllerBase
         await _delegationService.DeleteDelegationAsync(delegationId);
 
         return Ok();
+    }
+
+    // ========== Endpoints pour les demandes de délégation (workflow d'approbation) ==========
+
+    /// <summary>
+    /// Créer des demandes de délégation pour un dossier.
+    /// </summary>
+    /// <param name="currentUserId">L'identifiant du contact demandeur (utilisateur connecté).</param>
+    /// <param name="request">Les informations de la demande (AccountId et RecipientIds).</param>
+    /// <returns>201 Created si les demandes ont été créées avec succès.</returns>
+    [HttpPost("requests")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult> CreateDelegationRequestsAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromBody] CreateDelegationRequestsRequest request)
+    {
+        await _delegationRequestService.CreateDelegationRequestsAsync(currentUserId, request);
+
+        return Created();
+    }
+
+    /// <summary>
+    /// Récupérer les demandes de délégation envoyées par l'utilisateur connecté.
+    /// </summary>
+    /// <param name="currentUserId">L'identifiant du contact (utilisateur connecté).</param>
+    /// <param name="pagination">Paramètres de pagination.</param>
+    /// <returns>Liste paginée des demandes de délégation envoyées.</returns>
+    [HttpGet("requests/sent")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<DelegationRequest>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<Paging<DelegationRequest>>> GetSentRequestsAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromQuery] Pagination? pagination)
+    {
+        var result = await _delegationRequestService.GetSentRequestsAsync(currentUserId, pagination);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Récupérer les demandes de délégation reçues par l'utilisateur connecté (statut: pending).
+    /// </summary>
+    /// <param name="currentUserId">L'identifiant du contact (utilisateur connecté).</param>
+    /// <param name="pagination">Paramètres de pagination.</param>
+    /// <returns>Liste paginée des demandes de délégation reçues en attente.</returns>
+    [HttpGet("requests/received")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<DelegationRequest>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<Paging<DelegationRequest>>> GetReceivedRequestsAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromQuery] Pagination? pagination)
+    {
+        var result = await _delegationRequestService.GetReceivedRequestsAsync(currentUserId, pagination);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Vérifier si l'utilisateur peut demander une délégation sur un dossier donné.
+    /// </summary>
+    /// <param name="currentUserId">L'identifiant du contact (utilisateur connecté).</param>
+    /// <param name="accountId">L'identifiant du dossier.</param>
+    /// <returns>Réponse d'éligibilité (isEligible, reason).</returns>
+    [HttpGet("requests/eligibility")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DelegationEligibilityResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<DelegationEligibilityResponse>> CheckEligibilityAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromQuery] int accountId)
+    {
+        var result = await _delegationRequestService.CheckEligibilityAsync(currentUserId, accountId);
+
+        return Ok(result);
     }
 }

@@ -390,13 +390,27 @@ public class RegistryRoleEventRepositoryTests
 
         var account = _fixture.Build<AccountEntity>()
             .With(a => a.AccountId, 1)
+            .With(a => a.IsActive, true)
             .Without(a => a.RoleEntity)
+            .Without(a => a.AddressEntity)
+            .Without(a => a.PhoneEntity)
+            .Without(a => a.RoleLabelEntity)
+            .Without(a => a.Delegation)
+            .Without(a => a.DeploymentEntity)
+            .Without(a => a.Hub)
+            .Without(a => a.Naf)
+            .Without(a => a.OfferEligibilityEntity)
+            .Without(a => a.Office)
             .Create();
         context.AccountEntity.Add(account);
         var contact = _fixture.Build<ContactEntity>()
             .With(c => c.ContactId, 1)
             .With(c => c.IsActive, true)
             .Without(c => c.RoleEntity)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
             .Create();
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();

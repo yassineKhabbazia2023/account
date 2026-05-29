@@ -33,6 +33,8 @@ public static class ServicesConfiguration
         services.AddScoped<IFavoriteRepository, FavoriteRepository>();
         services.AddScoped<IDelegationService, DelegationService>();
         services.AddScoped<IDelegationRepository, DelegationRepository>();
+        services.AddScoped<IDelegationRequestService, DelegationRequestService>();
+        services.AddScoped<IDelegationRequestRepository, DelegationRequestRepository>();
         services.AddScoped<IRolesService, RolesService>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IReferentialService, ReferentialService>();
