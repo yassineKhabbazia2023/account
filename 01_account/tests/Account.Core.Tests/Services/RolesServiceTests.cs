@@ -174,6 +174,9 @@ public class RolesServiceTests
         _roleRepository.Setup(repo => repo.CreateRoleWithoutAccountValidationAsync(It.IsAny<CreateRoleRequest>()))
             .ReturnsAsync((CreateRoleRequest r) => new Role { AccountId = r.AccountId, ContactId = r.ContactId!.Value, IsSignatory = r.IsSignatory });
 
+        _rolePublisher!.Setup(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>(), It.IsAny<bool>()))
+            .Returns(Task.CompletedTask);
+
         var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object);
 
         // Act
@@ -185,6 +188,12 @@ public class RolesServiceTests
         result.Failed.Should().BeEmpty();
         _roleRepository.Verify(
             r => r.CreateRoleWithoutAccountValidationAsync(It.Is<CreateRoleRequest>(x => x.AccountId == accountId)),
+            Times.Exactly(3));
+        _rolePublisher.Verify(
+            publisher => publisher.PublishRoleCreatedEventAsync(
+                It.Is<CreateRoleRequest>(request => request.AccountId == accountId && request.DelegatorId == currentUserId),
+                It.IsAny<string>(),
+                It.Is<bool>(includeProspects => includeProspects)),
             Times.Exactly(3));
     }
 
@@ -218,6 +227,9 @@ public class RolesServiceTests
         _roleRepository.Setup(repo => repo.CreateRoleWithoutAccountValidationAsync(It.Is<CreateRoleRequest>(r => r.ContactId == 2)))
             .ThrowsAsync(new ConflictException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, 2, accountId)));
 
+        _rolePublisher!.Setup(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>(), It.IsAny<bool>()))
+            .Returns(Task.CompletedTask);
+
         var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object);
 
         // Act
@@ -227,6 +239,12 @@ public class RolesServiceTests
         result.Succeeded.Should().ContainSingle(s => s.ContactId == 1);
         result.Failed.Should().ContainSingle(f => f.ContactId == 2 && f.ErrorCode == Errors.BadRequestExistingRoleCode);
         _roleRepository.Verify(r => r.CreateRoleWithoutAccountValidationAsync(It.IsAny<CreateRoleRequest>()), Times.Exactly(2));
+        _rolePublisher.Verify(
+            publisher => publisher.PublishRoleCreatedEventAsync(
+                It.Is<CreateRoleRequest>(request => request.ContactId == 1 && request.AccountId == accountId && request.DelegatorId == currentUserId),
+                It.IsAny<string>(),
+                It.Is<bool>(includeProspects => includeProspects)),
+            Times.Once);
     }
 
     [Fact]

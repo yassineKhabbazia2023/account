@@ -444,15 +444,21 @@ public class RegistryRoleEventRepositoryTests
 
         using var context = new AccountContext(options);
 
-        // Fixtures pour la navigation "required"
         var deployment = _fixture.Build<DeploymentEntity>()
-    .With(d => d.DeploymentId, 100)
-    .With(d => d.AccountId, 2)
-    .Create();
+            .With(d => d.DeploymentId, 100)
+            .With(d => d.AccountId, 2)
+            .Without(d => d.Account)
+            .Create();
 
         var account = _fixture.Build<AccountEntity>()
             .With(a => a.AccountId, 2)
-            .With(a => a.DeploymentEntity, deployment) // bon nom de property
+            .With(a => a.DeploymentEntity, deployment)
+            .Without(a => a.AddressEntity)
+            .Without(a => a.PhoneEntity)
+            .Without(a => a.Hub)
+            .Without(a => a.Naf)
+            .Without(a => a.OfferEligibilityEntity)
+            .Without(a => a.Office)
             .Without(a => a.RoleEntity)
             .Without(a => a.RoleLabelEntity)
             .Without(a => a.Delegation)
@@ -466,6 +472,8 @@ public class RegistryRoleEventRepositoryTests
             .Without(c => c.RoleEntity)
             .Without(c => c.DelegationEntityDelegatee)
             .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
             .Create();
         context.ContactEntity.Add(contact);
         await context.SaveChangesAsync();

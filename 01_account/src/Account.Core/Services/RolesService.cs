@@ -77,9 +77,24 @@ public class RolesService : IRolesService
         }
     }
 
-    private async Task CreateRoleForProspectAsync(CreateRoleRequest role)
+    private async Task CreateRoleForProspectAsync(CreateRoleRequest role, int currentUserId)
     {
-        await _rolesRepository.CreateRoleWithoutAccountValidationAsync(role);
+        var roleCreated = await _rolesRepository.CreateRoleWithoutAccountValidationAsync(role);
+
+        if (roleCreated != null)
+        {
+            var roleToPublish = new CreateRoleRequest
+            {
+                ContactId = roleCreated.ContactId,
+                AccountId = roleCreated.AccountId,
+                IsSignatory = roleCreated.IsSignatory,
+                IsFavorite = roleCreated.IsFavorite,
+                IsDelegation = roleCreated.IsDelegation,
+                DelegatorId = currentUserId
+            };
+
+            await PublishRoleCreatedEvent(roleToPublish, includeProspects: true);
+        }
     }
 
     public async Task<CreateRolesBulkResult> CreateRolesBulkAsync(int accountId, CreateRolesBulkRequest request, int currentUserId)
@@ -107,7 +122,7 @@ public class RolesService : IRolesService
                     IsCustomerRelation = ContactType.Collaborator.ToString().Equals(contact.Type) ? true : null,
                 };
 
-                await CreateRoleForProspectAsync(role);
+                await CreateRoleForProspectAsync(role, currentUserId);
 
                 try
                 {
@@ -205,11 +220,11 @@ public class RolesService : IRolesService
         return await _rolesRepository.IsContactHasRoleOnAccount(contactId, accountId, accountNumber);
     }
 
-    private async Task PublishRoleCreatedEvent(CreateRoleRequest role)
+    private async Task PublishRoleCreatedEvent(CreateRoleRequest role, bool includeProspects = false)
     {
         _logger.LogInformation("RoleService: Start send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);
 
-        await _roleEventPublisher.PublishRoleCreatedEventAsync(role);
+        await _roleEventPublisher.PublishRoleCreatedEventAsync(role, includeProspects: includeProspects);
 
         _logger.LogInformation("RoleService: End send create role event. AccountId : {accountId} - ContactId : {contactId}", role.AccountId, role.ContactId);
     }
