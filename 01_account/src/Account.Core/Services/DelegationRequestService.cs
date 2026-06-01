@@ -22,7 +22,7 @@ public class DelegationRequestService : IDelegationRequestService
         _delegationRequestRepository = delegationRequestRepository;
     }
 
-    public async Task CreateDelegationRequestsAsync(int contactId, CreateDelegationRequestsRequest request)
+    public async Task<CreateDelegationRequestsResponse> CreateDelegationRequestsAsync(int contactId, CreateDelegationRequestsRequest request)
     {
         // Validate payload (empty or duplicates)
         if (request.RecipientIds == null || request.RecipientIds.Length == 0)
@@ -54,28 +54,10 @@ public class DelegationRequestService : IDelegationRequestService
             throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
         }
 
-        // Verify all recipients exist
-        foreach (var recipientId in request.RecipientIds)
-        {
-            if (!await _delegationRequestRepository.DoesContactExistAsync(recipientId))
-            {
-                throw new NotFoundException(Errors.NotFoundContactsCode, Errors.NotFoundContactsMessage);
-            }
-        }
-
-        // Verify requester does not already have access
-        if (await _delegationRequestRepository.HasRequesterAccessToAccountAsync(contactId, request.AccountId))
+        // Verify requester does not already have access (via role or active delegation)
+        if (await HasAccessToAccountAsync(contactId, request.AccountId))
         {
             throw new BadRequestException(Errors.RequesterAlreadyHasAccessCode, Errors.RequesterAlreadyHasAccessMessage);
-        }
-
-        // Verify all recipients have access to the account
-        foreach (var recipientId in request.RecipientIds)
-        {
-            if (!await _delegationRequestRepository.HasRecipientAccessToAccountAsync(recipientId, request.AccountId))
-            {
-                throw new BadRequestException(Errors.RecipientDoesNotHaveAccessCode, string.Format(Errors.RecipientDoesNotHaveAccessMessage, recipientId));
-            }
         }
 
         // Verify no pending request exists
@@ -84,9 +66,42 @@ public class DelegationRequestService : IDelegationRequestService
             throw new BadRequestException(Errors.DelegationRequestAlreadyPendingCode, Errors.DelegationRequestAlreadyPendingMessage);
         }
 
-        // Create delegation requests with pending status
+        // Validate each recipient individually (partial success approach)
+        var validRecipientIds = new List<int>();
+        var errors = new List<RecipientError>();
+
+        foreach (var recipientId in request.RecipientIds)
+        {
+            if (!await _delegationRequestRepository.DoesContactExistAsync(recipientId))
+            {
+                errors.Add(new RecipientError { RecipientId = recipientId, Reason = "RecipientNotFound" });
+                continue;
+            }
+
+            if (!await _delegationRequestRepository.HasRoleOnAccountAsync(recipientId, request.AccountId))
+            {
+                errors.Add(new RecipientError { RecipientId = recipientId, Reason = "RecipientDoesNotHaveAccess" });
+                continue;
+            }
+
+            validRecipientIds.Add(recipientId);
+        }
+
+        // If no valid recipients, throw an error
+        if (validRecipientIds.Count == 0)
+        {
+            throw new BadRequestException(Errors.RecipientDoesNotHaveAccessCode, Errors.RecipientDoesNotHaveAccessMessage);
+        }
+
+        // Create delegation requests with pending status for valid recipients
         var pendingStatus = DelegationRequestStatus.Pending.ToString().ToLower();
-        await _delegationRequestRepository.CreateDelegationRequestsAsync(contactId, request.AccountId, request.RecipientIds, pendingStatus);
+        await _delegationRequestRepository.CreateDelegationRequestsAsync(contactId, request.AccountId, validRecipientIds.ToArray(), pendingStatus);
+
+        return new CreateDelegationRequestsResponse
+        {
+            CreatedRecipientIds = validRecipientIds.ToArray(),
+            Errors = errors
+        };
     }
 
     public async Task<Paging<DelegationRequest>> GetSentRequestsAsync(int contactId, Pagination? pagination)
@@ -111,8 +126,20 @@ public class DelegationRequestService : IDelegationRequestService
 
     public async Task<DelegationEligibilityResponse> CheckEligibilityAsync(int contactId, int accountId)
     {
-        // Check if user already has access to the account (via existing role)
-        if (await _delegationRequestRepository.HasRequesterAccessToAccountAsync(contactId, accountId))
+        // Validate inputs
+        if (accountId <= 0)
+        {
+            throw new BadRequestException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
+        }
+
+        // Verify account exists
+        if (!await _delegationRequestRepository.DoesAccountExistAsync(accountId))
+        {
+            throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
+        }
+
+        // Check if user already has access to the account (via role or active delegation)
+        if (await HasAccessToAccountAsync(contactId, accountId))
         {
             return new DelegationEligibilityResponse
             {
@@ -137,5 +164,16 @@ public class DelegationRequestService : IDelegationRequestService
             IsEligible = true,
             Reason = null
         };
+    }
+
+    private async Task<bool> HasAccessToAccountAsync(int contactId, int accountId)
+    {
+        var hasRole = await _delegationRequestRepository.HasRoleOnAccountAsync(contactId, accountId);
+        if (hasRole)
+        {
+            return true;
+        }
+
+        return await _delegationRequestRepository.HasActiveDelegationOnAccountAsync(contactId, accountId);
     }
 }

@@ -16,9 +16,9 @@ public interface IDelegationRequestRepository
 
     Task<Paging<DelegationRequest>> GetReceivedRequestsAsync(int contactId, string? status, Pagination pagination);
 
-    Task<bool> HasRequesterAccessToAccountAsync(int contactId, int accountId);
+    Task<bool> HasRoleOnAccountAsync(int contactId, int accountId);
 
-    Task<bool> HasRecipientAccessToAccountAsync(int recipientId, int accountId);
+    Task<bool> HasActiveDelegationOnAccountAsync(int contactId, int accountId);
 
     Task<bool> HasPendingRequestAsync(int requesterId, int accountId);
 

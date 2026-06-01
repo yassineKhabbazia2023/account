@@ -301,9 +301,9 @@ paths:
       summary: Créer des demandes de délégation pour un dossier.
       description: Permet à un utilisateur de créer plusieurs demandes de délégation simultanées pour un dossier spécifique.
       parameters:
-        - name: contactId
-          in: query
-          description: L'identifiant du contact demandeur (utilisateur connecté)
+        - name: CurrentUser
+          in: header
+          description: L'identifiant du contact demandeur (résolu par la gateway)
           required: true
           schema:
             type: integer
@@ -335,15 +335,9 @@ paths:
       summary: Récupérer les demandes de délégation envoyées par l'utilisateur connecté.
       description: Retourne une liste paginée des demandes de délégation envoyées par l'utilisateur.
       parameters:
-        - name: contactId
-          in: query
-          description: L'identifiant du contact (utilisateur connecté)
-          required: true
-          schema:
-            type: integer
-        - name: PageNumber
-          in: query
-          description: L'identifiant du contact (utilisateur connecté)
+        - name: CurrentUser
+          in: header
+          description: L'identifiant du contact (résolu par la gateway)
           required: true
           schema:
             type: integer
@@ -381,9 +375,9 @@ paths:
       summary: Récupérer les demandes de délégation reçues par l'utilisateur connecté.
       description: Retourne une liste paginée des demandes de délégation reçues en attente (statut pending).
       parameters:
-        - name: contactId
-          in: query
-          description: L'identifiant du contact (utilisateur connecté)
+        - name: CurrentUser
+          in: header
+          description: L'identifiant du contact (résolu par la gateway)
           required: true
           schema:
             type: integer
@@ -421,9 +415,9 @@ paths:
       summary: Vérifier si l'utilisateur peut demander une délégation sur un dossier donné.
       description: Vérifie l'éligibilité d'un utilisateur à créer une demande de délégation pour un dossier spécifique.
       parameters:
-        - name: contactId
-          in: query
-          description: L'identifiant du contact (utilisateur connecté)
+        - name: CurrentUser
+          in: header
+          description: L'identifiant du contact (résolu par la gateway)
           required: true
           schema:
             type: integer

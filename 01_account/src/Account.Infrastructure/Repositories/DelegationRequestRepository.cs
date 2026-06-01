@@ -3,14 +3,12 @@
 // </copyright>
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
-using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Mappers;
 
 namespace Pulse.Account.Infrastructure.Repositories;
@@ -97,15 +95,18 @@ public class DelegationRequestRepository : IDelegationRequestRepository
         };
     }
 
-    public async Task<bool> HasRequesterAccessToAccountAsync(int contactId, int accountId)
+    public async Task<bool> HasRoleOnAccountAsync(int contactId, int accountId)
     {
         return await _context.RoleEntity.AnyAsync(r => r.ContactId == contactId && r.AccountId == accountId);
     }
 
-    public async Task<bool> HasRecipientAccessToAccountAsync(int recipientId, int accountId)
+    public async Task<bool> HasActiveDelegationOnAccountAsync(int contactId, int accountId)
     {
-        return await _context.RoleEntity.AnyAsync(r => r.ContactId == recipientId && r.AccountId == accountId);
+        var enabledStatus = DelegationStatus.Enabled.ToString().ToLower();
+        return await _context.DelegationEntity
+            .AnyAsync(d => d.DelegateeId == contactId && d.Status == enabledStatus && d.Account.Any(a => a.AccountId == accountId));
     }
+
 
     public async Task<bool> HasPendingRequestAsync(int requesterId, int accountId)
     {

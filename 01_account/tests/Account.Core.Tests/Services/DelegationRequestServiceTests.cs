@@ -42,14 +42,18 @@ public class DelegationRequestServiceTests
         _mockRepository.Setup(r => r.DoesContactExistAsync(contactId)).ReturnsAsync(true);
         _mockRepository.Setup(r => r.DoesContactExistAsync(2)).ReturnsAsync(true);
         _mockRepository.Setup(r => r.DoesContactExistAsync(3)).ReturnsAsync(true);
-        _mockRepository.Setup(r => r.HasRequesterAccessToAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
-        _mockRepository.Setup(r => r.HasRecipientAccessToAccountAsync(2, request.AccountId)).ReturnsAsync(true);
-        _mockRepository.Setup(r => r.HasRecipientAccessToAccountAsync(3, request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasActiveDelegationOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
         _mockRepository.Setup(r => r.HasPendingRequestAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(2, request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(3, request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.CreateDelegationRequestsAsync(contactId, request.AccountId, It.IsAny<int[]>(), It.IsAny<string>())).Returns(Task.CompletedTask);
 
-        await _service.CreateDelegationRequestsAsync(contactId, request);
+        var result = await _service.CreateDelegationRequestsAsync(contactId, request);
 
-        _mockRepository.Verify(r => r.CreateDelegationRequestsAsync(contactId, request.AccountId, request.RecipientIds, It.IsAny<string>()), Times.Once);
+        result.CreatedRecipientIds.Should().BeEquivalentTo(new[] { 2, 3 });
+        result.Errors.Should().BeEmpty();
+        _mockRepository.Verify(r => r.CreateDelegationRequestsAsync(contactId, request.AccountId, It.IsAny<int[]>(), It.IsAny<string>()), Times.Once);
     }
 
     [Fact]
@@ -138,7 +142,7 @@ public class DelegationRequestServiceTests
     }
 
     [Fact]
-    public async Task CreateDelegationRequestsAsync_WhenRecipientDoesNotExist_ShouldThrowNotFoundException()
+    public async Task CreateDelegationRequestsAsync_WhenRecipientDoesNotExist_ShouldThrowBadRequestException()
     {
         var contactId = 1;
         var request = new CreateDelegationRequestsRequest
@@ -150,11 +154,14 @@ public class DelegationRequestServiceTests
         _mockRepository.Setup(r => r.DoesAccountExistAsync(request.AccountId)).ReturnsAsync(true);
         _mockRepository.Setup(r => r.DoesContactExistAsync(contactId)).ReturnsAsync(true);
         _mockRepository.Setup(r => r.DoesContactExistAsync(2)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasActiveDelegationOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasPendingRequestAsync(contactId, request.AccountId)).ReturnsAsync(false);
 
         Func<Task> act = async () => await _service.CreateDelegationRequestsAsync(contactId, request);
 
-        await act.Should().ThrowAsync<NotFoundException>()
-            .Where(ex => ex.Code == Errors.NotFoundContactsCode);
+        await act.Should().ThrowAsync<BadRequestException>()
+            .Where(ex => ex.Code == Errors.RecipientDoesNotHaveAccessCode);
     }
 
     [Fact]
@@ -169,8 +176,7 @@ public class DelegationRequestServiceTests
 
         _mockRepository.Setup(r => r.DoesAccountExistAsync(request.AccountId)).ReturnsAsync(true);
         _mockRepository.Setup(r => r.DoesContactExistAsync(contactId)).ReturnsAsync(true);
-        _mockRepository.Setup(r => r.DoesContactExistAsync(2)).ReturnsAsync(true);
-        _mockRepository.Setup(r => r.HasRequesterAccessToAccountAsync(contactId, request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(true);
 
         Func<Task> act = async () => await _service.CreateDelegationRequestsAsync(contactId, request);
 
@@ -191,8 +197,10 @@ public class DelegationRequestServiceTests
         _mockRepository.Setup(r => r.DoesAccountExistAsync(request.AccountId)).ReturnsAsync(true);
         _mockRepository.Setup(r => r.DoesContactExistAsync(contactId)).ReturnsAsync(true);
         _mockRepository.Setup(r => r.DoesContactExistAsync(2)).ReturnsAsync(true);
-        _mockRepository.Setup(r => r.HasRequesterAccessToAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
-        _mockRepository.Setup(r => r.HasRecipientAccessToAccountAsync(2, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasActiveDelegationOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasPendingRequestAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(2, request.AccountId)).ReturnsAsync(false);
 
         Func<Task> act = async () => await _service.CreateDelegationRequestsAsync(contactId, request);
 
@@ -212,9 +220,8 @@ public class DelegationRequestServiceTests
 
         _mockRepository.Setup(r => r.DoesAccountExistAsync(request.AccountId)).ReturnsAsync(true);
         _mockRepository.Setup(r => r.DoesContactExistAsync(contactId)).ReturnsAsync(true);
-        _mockRepository.Setup(r => r.DoesContactExistAsync(2)).ReturnsAsync(true);
-        _mockRepository.Setup(r => r.HasRequesterAccessToAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
-        _mockRepository.Setup(r => r.HasRecipientAccessToAccountAsync(2, request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasActiveDelegationOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
         _mockRepository.Setup(r => r.HasPendingRequestAsync(contactId, request.AccountId)).ReturnsAsync(true);
 
         Func<Task> act = async () => await _service.CreateDelegationRequestsAsync(contactId, request);
@@ -358,12 +365,37 @@ public class DelegationRequestServiceTests
     }
 
     [Fact]
+    public async Task CheckEligibilityAsync_WhenAccountIdIsZero_ShouldThrowBadRequestException()
+    {
+        var contactId = 1;
+        var accountId = 0;
+
+        Func<Task> act = async () => await _service.CheckEligibilityAsync(contactId, accountId);
+
+        await act.Should().ThrowAsync<BadRequestException>();
+    }
+
+    [Fact]
+    public async Task CheckEligibilityAsync_WhenAccountDoesNotExist_ShouldThrowNotFoundException()
+    {
+        var contactId = 1;
+        var accountId = 999;
+
+        _mockRepository.Setup(r => r.DoesAccountExistAsync(accountId)).ReturnsAsync(false);
+
+        Func<Task> act = async () => await _service.CheckEligibilityAsync(contactId, accountId);
+
+        await act.Should().ThrowAsync<NotFoundException>();
+    }
+
+    [Fact]
     public async Task CheckEligibilityAsync_WhenUserHasAccess_ShouldReturnAlreadyInPortfolio()
     {
         var contactId = 1;
         var accountId = 100;
 
-        _mockRepository.Setup(r => r.HasRequesterAccessToAccountAsync(contactId, accountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.DoesAccountExistAsync(accountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, accountId)).ReturnsAsync(true);
 
         var result = await _service.CheckEligibilityAsync(contactId, accountId);
 
@@ -377,7 +409,9 @@ public class DelegationRequestServiceTests
         var contactId = 1;
         var accountId = 100;
 
-        _mockRepository.Setup(r => r.HasRequesterAccessToAccountAsync(contactId, accountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.DoesAccountExistAsync(accountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, accountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasActiveDelegationOnAccountAsync(contactId, accountId)).ReturnsAsync(false);
         _mockRepository.Setup(r => r.HasPendingRequestAsync(contactId, accountId)).ReturnsAsync(true);
 
         var result = await _service.CheckEligibilityAsync(contactId, accountId);
@@ -392,7 +426,9 @@ public class DelegationRequestServiceTests
         var contactId = 1;
         var accountId = 100;
 
-        _mockRepository.Setup(r => r.HasRequesterAccessToAccountAsync(contactId, accountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.DoesAccountExistAsync(accountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, accountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasActiveDelegationOnAccountAsync(contactId, accountId)).ReturnsAsync(false);
         _mockRepository.Setup(r => r.HasPendingRequestAsync(contactId, accountId)).ReturnsAsync(false);
 
         var result = await _service.CheckEligibilityAsync(contactId, accountId);

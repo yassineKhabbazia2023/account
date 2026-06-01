@@ -10,7 +10,7 @@ namespace Pulse.Account.Core.Interfaces;
 
 public interface IDelegationRequestService
 {
-    Task CreateDelegationRequestsAsync(int contactId, CreateDelegationRequestsRequest request);
+    Task<CreateDelegationRequestsResponse> CreateDelegationRequestsAsync(int contactId, CreateDelegationRequestsRequest request);
 
     Task<Paging<DelegationRequest>> GetSentRequestsAsync(int contactId, Pagination? pagination);
 

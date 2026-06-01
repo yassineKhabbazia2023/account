@@ -192,7 +192,7 @@ public class DelegationRequestRepositoryTests
     }
 
     [Fact]
-    public async Task HasRequesterAccessToAccountAsync_WhenRoleExists_ShouldReturnTrue()
+    public async Task HasRoleOnAccountAsync_WhenRoleExists_ShouldReturnTrue()
     {
         using var context = new AccountContext(_dbContextOptions);
         var contact = CreateContactEntity(1);
@@ -213,56 +213,29 @@ public class DelegationRequestRepositoryTests
 
         var repository = new DelegationRequestRepository(context);
 
-        var result = await repository.HasRequesterAccessToAccountAsync(contact.ContactId, account.AccountId);
+        var result = await repository.HasRoleOnAccountAsync(contact.ContactId, account.AccountId);
 
         result.Should().BeTrue();
     }
 
     [Fact]
-    public async Task HasRequesterAccessToAccountAsync_WhenRoleDoesNotExist_ShouldReturnFalse()
+    public async Task HasRoleOnAccountAsync_WhenRoleDoesNotExist_ShouldReturnFalse()
     {
         using var context = new AccountContext(_dbContextOptions);
         var repository = new DelegationRequestRepository(context);
 
-        var result = await repository.HasRequesterAccessToAccountAsync(1, 100);
+        var result = await repository.HasRoleOnAccountAsync(1, 100);
 
         result.Should().BeFalse();
     }
 
     [Fact]
-    public async Task HasRecipientAccessToAccountAsync_WhenRoleExists_ShouldReturnTrue()
-    {
-        using var context = new AccountContext(_dbContextOptions);
-        var contact = CreateContactEntity(1);
-        var account = CreateAccountEntity(100);
-        var role = new RoleEntity
-        {
-            ContactId = contact.ContactId,
-            AccountId = account.AccountId,
-            IsFavorite = false,
-            IsSignatory = false,
-            ActionLevel = 0
-        };
-
-        context.ContactEntity.Add(contact);
-        context.AccountEntity.Add(account);
-        context.RoleEntity.Add(role);
-        context.SaveChanges();
-
-        var repository = new DelegationRequestRepository(context);
-
-        var result = await repository.HasRecipientAccessToAccountAsync(contact.ContactId, account.AccountId);
-
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task HasRecipientAccessToAccountAsync_WhenRoleDoesNotExist_ShouldReturnFalse()
+    public async Task HasActiveDelegationOnAccountAsync_WhenNoDelegationExists_ShouldReturnFalse()
     {
         using var context = new AccountContext(_dbContextOptions);
         var repository = new DelegationRequestRepository(context);
 
-        var result = await repository.HasRecipientAccessToAccountAsync(1, 100);
+        var result = await repository.HasActiveDelegationOnAccountAsync(1, 100);
 
         result.Should().BeFalse();
     }

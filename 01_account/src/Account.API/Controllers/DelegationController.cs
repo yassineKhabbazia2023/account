@@ -124,16 +124,16 @@ public class DelegationController : ControllerBase
     /// </summary>
     /// <param name="currentUserId">L'identifiant du contact demandeur (utilisateur connecté).</param>
     /// <param name="request">Les informations de la demande (AccountId et RecipientIds).</param>
-    /// <returns>201 Created si les demandes ont été créées avec succès.</returns>
+    /// <returns>201 Created avec le résultat (succès partiels et erreurs éventuelles).</returns>
     [HttpPost("requests")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateDelegationRequestsResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult> CreateDelegationRequestsAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromBody] CreateDelegationRequestsRequest request)
+    public async Task<ActionResult<CreateDelegationRequestsResponse>> CreateDelegationRequestsAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromBody] CreateDelegationRequestsRequest request)
     {
-        await _delegationRequestService.CreateDelegationRequestsAsync(currentUserId, request);
+        var result = await _delegationRequestService.CreateDelegationRequestsAsync(currentUserId, request);
 
-        return Created();
+        return Created(string.Empty, result);
     }
 
     /// <summary>

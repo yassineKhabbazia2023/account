@@ -40,13 +40,13 @@ public class DelegationRequestControllerTests
         };
 
         _delegationRequestService.Setup(x => x.CreateDelegationRequestsAsync(contactId, request))
-            .Returns(Task.CompletedTask)
+            .ReturnsAsync(new CreateDelegationRequestsResponse { CreatedRecipientIds = new[] { 2, 3 }, Errors = new List<RecipientError>() })
             .Verifiable();
 
         var controller = new DelegationController(_delegationService.Object, _delegationRequestService.Object);
         var actionResult = await controller.CreateDelegationRequestsAsync(contactId, request);
 
-        actionResult.Should().BeOfType<CreatedResult>();
+        actionResult.Result.Should().BeOfType<CreatedResult>();
         _delegationRequestService.VerifyAll();
     }
 
