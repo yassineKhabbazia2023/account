@@ -173,6 +173,31 @@ namespace Pulse.Account.Core.Tests.Services
             Assert.Equal(accountMocked, accounts);
         }
 
+        /// <summary>
+        /// Ensures the contact widget service uses the dedicated non-paginated repository query.
+        /// </summary>
+        [Fact]
+        public async Task GetAccountContactWidgetContactsAsync_Should_ReturnRepositoryContacts()
+        {
+            var accountId = 123;
+            var expected = _fixture.CreateMany<Contact>(2).ToList();
+            _accountRepository.Setup(repository => repository.GetAccountContactWidgetContactsAsync(accountId))
+                .ReturnsAsync(expected);
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
+
+            var result = await accountService.GetAccountContactWidgetContactsAsync(accountId);
+
+            Assert.Equal(expected, result);
+            _accountRepository.Verify(repository => repository.GetAccountContactWidgetContactsAsync(accountId), Times.Once);
+            _accountRepository.Verify(
+                repository => repository.GetContactsAccountAsync(
+                    It.IsAny<int>(),
+                    It.IsAny<SearchContactsAccountCriteria>(),
+                    It.IsAny<Pagination>(),
+                    It.IsAny<bool>()),
+                Times.Never);
+        }
+
         [Fact]
         public async Task GetAllAccountsAsync_EmptyPageNumberAndPageSize_ShouldReturnsAccounts()
         {

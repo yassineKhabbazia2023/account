@@ -345,6 +345,52 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);
     }
 
+    /// <summary>
+    /// Ensures the contact widget endpoint only forwards the account identifier to the service.
+    /// </summary>
+    [Fact]
+    public async Task GetAccountContactWidgetContactsAsync_Should_Returns_Account_Contacts()
+    {
+        // Arrange
+        var accountId = 6000;
+        var expected = _fixture.CreateMany<Contact>(2).ToList();
+
+        var accountService = new Mock<IAccountService>(MockBehavior.Strict);
+        accountService.Setup(service => service.GetAccountContactWidgetContactsAsync(accountId))
+            .ReturnsAsync(expected);
+        var accountController = new AccountController(accountService.Object);
+
+        // Act
+        var result = await accountController.GetAccountContactWidgetContactsAsync(accountId);
+
+        // Assert
+        Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);
+        accountService.Verify(service => service.GetAccountContactWidgetContactsAsync(accountId), Times.Once);
+        accountService.Verify(
+            service => service.GetContactsAccountAsync(
+                It.IsAny<int>(),
+                It.IsAny<SearchContactsAccountCriteria>(),
+                It.IsAny<Pagination>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// Ensures the contact widget endpoint does not expose search criteria or pagination parameters.
+    /// </summary>
+    [Fact]
+    public void GetAccountContactWidgetContactsAsync_Should_Only_Take_AccountId()
+    {
+        // Act
+        var parameters = typeof(AccountController)
+            .GetMethod(nameof(AccountController.GetAccountContactWidgetContactsAsync)) !
+            .GetParameters();
+
+        // Assert
+        Assert.Single(parameters);
+        Assert.Equal("accountId", parameters[0].Name);
+        Assert.Equal(typeof(int), parameters[0].ParameterType);
+    }
+
     [Fact]
     public async Task GetAssociatedContactsAsync_Should_Returns_Contacts_Account()
     {

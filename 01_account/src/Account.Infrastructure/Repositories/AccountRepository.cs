@@ -26,6 +26,12 @@ namespace Pulse.Account.Infrastructure.Repositories;
 
 public class AccountRepository : IAccountRepository
 {
+    private static readonly string[] ContactWidgetRoleLabelCodes =
+    [
+        RoleLabelCodes.AccountManager,
+        RoleLabelCodes.CustomerLeadPartner
+    ];
+
     private readonly AccountContext _accountContext;
     private readonly AsyncRetryPolicy _retryPolicy;
 
@@ -402,6 +408,29 @@ public class AccountRepository : IAccountRepository
                 pagination!.PageNumber,
                 totalItems,
                 totalPages);
+        });
+    }
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<Contact>> GetAccountContactWidgetContactsAsync(int accountId)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var contacts = await _accountContext.ContactEntity.AsNoTracking()
+                .Include(c => c.RoleEntity)
+                .Include(c => c.RoleLabelEntityContact)
+                    .ThenInclude(roleLabel => roleLabel.Label)
+                .Where(contact =>
+                    contact.Type == ContactType.Collaborator.ToString()
+                    && contact.RoleEntity.Any(role => role.AccountId == accountId)
+                    && contact.RoleLabelEntityContact.Any(roleLabel =>
+                        roleLabel.AccountId == accountId
+                        && ContactWidgetRoleLabelCodes.Contains(roleLabel.Label.Code)))
+                .OrderBy(contact => contact.LastName)
+                .ThenBy(contact => contact.FirstName)
+                .ToListAsync();
+
+            return contacts.Select(contact => contact.MapToContact(accountId) !);
         });
     }
 

@@ -28,6 +28,13 @@ namespace Pulse.Account.Core.Interfaces
 
         public Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination? pagination);
 
+        /// <summary>
+        /// Gets account collaborators with contact widget role labels.
+        /// </summary>
+        /// <param name="accountId">Account identifier.</param>
+        /// <returns>Collaborators having the AM or CLP role label on the account.</returns>
+        public Task<IEnumerable<Contact>> GetAccountContactWidgetContactsAsync(int accountId);
+
         Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request, Pagination? pagination);
     }
 }

@@ -2489,6 +2489,160 @@ public class AccountRepositoryTests
         Assert.Equal(contactId, result.Items.First().ContactId);
     }
 
+    #region Contact widget contacts
+
+    /// <summary>
+    /// Ensures contact widget contacts include only collaborator roles labeled AM or CLP on the requested account.
+    /// </summary>
+    [Fact]
+    public async Task GetAccountContactWidgetContactsAsync_ShouldReturnOnlyCollaboratorsWithAmOrClpLabels()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        const int accountId = 306;
+        const int otherAccountId = 307;
+        var amContact = CreateContactWidgetContact(1, accountId, ContactType.Collaborator.ToString(), RoleLabelCodes.AccountManager);
+        var clpContact = CreateContactWidgetContact(2, accountId, ContactType.Collaborator.ToString(), RoleLabelCodes.CustomerLeadPartner);
+        var otherLabelContact = CreateContactWidgetContact(3, accountId, ContactType.Collaborator.ToString(), "OTHER");
+        var customerContact = CreateContactWidgetContact(4, accountId, ContactType.Customer.ToString(), RoleLabelCodes.AccountManager);
+        var otherAccountContact = CreateContactWidgetContact(5, otherAccountId, ContactType.Collaborator.ToString(), RoleLabelCodes.AccountManager);
+
+        context.ContactEntity.AddRange(amContact, clpContact, otherLabelContact, customerContact, otherAccountContact);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        var result = (await repository.GetAccountContactWidgetContactsAsync(accountId)).ToList();
+
+        Assert.Equal([amContact.ContactId, clpContact.ContactId], result.Select(contact => contact.ContactId));
+        Assert.All(result, contact => Assert.Equal(ContactType.Collaborator.ToString(), contact.Type));
+        Assert.Contains(result, contact => contact.Labels!.Any(label => label.Code == RoleLabelCodes.AccountManager));
+        Assert.Contains(result, contact => contact.Labels!.Any(label => label.Code == RoleLabelCodes.CustomerLeadPartner));
+        Assert.DoesNotContain(result, contact => contact.Labels!.Any(label => label.Code == "OTHER"));
+    }
+
+    /// <summary>
+    /// Ensures contact widget contacts keep the existing Contact response model mapping.
+    /// </summary>
+    [Fact]
+    public async Task GetAccountContactWidgetContactsAsync_ShouldKeepContactResponseShape()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        const int accountId = 406;
+        var contact = CreateContactWidgetContact(10, accountId, ContactType.Collaborator.ToString(), RoleLabelCodes.AccountManager);
+
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        var result = (await repository.GetAccountContactWidgetContactsAsync(accountId)).Single();
+
+        Assert.Equal(contact.ContactId, result.ContactId);
+        Assert.Equal(contact.ContactGlobalUniqueId, result.ContactGlobalUniqueId);
+        Assert.Equal(contact.FirstName, result.FirstName);
+        Assert.Equal(contact.LastName, result.LastName);
+        Assert.Equal(contact.Email, result.Email);
+        Assert.Equal(contact.MobilePhone, result.MobilePhone);
+        Assert.Equal(contact.Type, result.Type);
+        Assert.Equal(contact.Status, result.Status);
+        Assert.Equal(contact.PersonaName, result.PersonaName);
+        Assert.Equal(contact.Office, result.Office);
+        Assert.Equal(contact.CreationDate, result.CreationDate);
+        Assert.Equal(contact.IsActive, result.IsActive);
+        Assert.Equal(contact.RoleEntity.First().IsCustomerRelation, result.IsCustomerRelation);
+        Assert.Equal(contact.RoleEntity.First().ActionLevel, result.ActionLevel);
+        Assert.Equal(contact.RoleEntity.First().ContactFlagPortailFactures, result.ContactFlagPortailFactures);
+        Assert.Single(result.Labels!);
+        Assert.Equal(RoleLabelCodes.AccountManager, result.Labels!.Single().Code);
+    }
+
+    /// <summary>
+    /// Ensures contact widget contacts return an empty collection when no AM or CLP role label exists.
+    /// </summary>
+    [Fact]
+    public async Task GetAccountContactWidgetContactsAsync_WhenNoAmOrClpLabelExists_ShouldReturnEmptyResult()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        const int accountId = 506;
+        var contact = CreateContactWidgetContact(20, accountId, ContactType.Collaborator.ToString(), "OTHER");
+
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+
+        var result = await repository.GetAccountContactWidgetContactsAsync(accountId);
+
+        Assert.Empty(result);
+    }
+
+    /// <summary>
+    /// Creates a contact with a role and one role label for contact widget repository tests.
+    /// </summary>
+    /// <param name="contactId">Contact identifier.</param>
+    /// <param name="accountId">Account identifier.</param>
+    /// <param name="contactType">Contact type.</param>
+    /// <param name="labelCode">Role label code.</param>
+    /// <returns>A contact entity configured with one account role and one role label.</returns>
+    private static ContactEntity CreateContactWidgetContact(int contactId, int accountId, string contactType, string labelCode)
+    {
+        return new ContactEntity
+        {
+            ContactId = contactId,
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            Email = $"contact-{contactId}@test.fr",
+            FirstName = $"First{contactId}",
+            LastName = $"Last{contactId}",
+            MobilePhone = $"06000000{contactId:D2}",
+            Type = contactType,
+            Status = "Active",
+            PersonaName = $"First{contactId} Last{contactId}",
+            Office = "Office",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+            RoleEntity =
+            [
+                new RoleEntity
+                {
+                    AccountId = accountId,
+                    ContactId = contactId,
+                    ActionLevel = labelCode == RoleLabelCodes.CustomerLeadPartner ? 3 : 2,
+                    IsCustomerRelation = true,
+                    ContactFlagPortailFactures = true
+                }
+            ],
+            RoleLabelEntityContact =
+            [
+                new RoleLabelEntity
+                {
+                    AccountId = accountId,
+                    ContactId = contactId,
+                    LabelId = contactId,
+                    CreatedBy = contactId,
+                    CreatedDate = DateTime.UtcNow,
+                    Label = new LabelEntity
+                    {
+                        LabelId = contactId,
+                        Code = labelCode,
+                        CollaboratorLabel = $"Collaborator {labelCode}",
+                        CustomerLabel = $"Customer {labelCode}",
+                        Description = $"Description {labelCode}",
+                        Business = "Transverse",
+                        IsVisible = true
+                    }
+                }
+            ]
+        };
+    }
+
+    #endregion Contact widget contacts
+
     #endregion Prospect account filtering
 
     [Fact]

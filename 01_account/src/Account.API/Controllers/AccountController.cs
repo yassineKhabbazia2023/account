@@ -187,6 +187,21 @@ public class AccountController(IAccountService accountService) : ControllerBase
     }
 
     /// <summary>
+    /// Récupérer les contacts responsable compte et maître dossier d'une entité morale.
+    /// </summary>
+    /// <param name="accountId">ID de l'entité morale.</param>
+    /// <returns>La liste des contacts responsable compte et maître dossier.</returns>
+    [HttpGet("{accountId}/contacts/widget")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Contact>))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<IEnumerable<Contact>>> GetAccountContactWidgetContactsAsync(int accountId)
+    {
+        var result = await accountService.GetAccountContactWidgetContactsAsync(accountId);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Récupérer la liste des contacts d'une entité morale.
     /// </summary>
     /// <param name="accountId">ID de l'entité morale.</param>
