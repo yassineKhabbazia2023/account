@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
@@ -94,8 +95,7 @@ public class DelegationRequestService : IDelegationRequestService
         }
 
         // Create delegation requests with pending status for valid recipients
-        var pendingStatus = DelegationRequestStatus.Pending.ToString().ToLower();
-        await _delegationRequestRepository.CreateDelegationRequestsAsync(contactId, request.AccountId, validRecipientIds.ToArray(), pendingStatus);
+        await _delegationRequestRepository.CreateDelegationRequestsAsync(contactId, request.AccountId, validRecipientIds.ToArray(), DelegationStatusValues.Pending);
 
         return new CreateDelegationRequestsResponse
         {
@@ -120,8 +120,7 @@ public class DelegationRequestService : IDelegationRequestService
         pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
 
         // Only return pending requests (main use case)
-        var pendingStatus = DelegationRequestStatus.Pending.ToString().ToLower();
-        return await _delegationRequestRepository.GetReceivedRequestsAsync(contactId, pendingStatus, pagination);
+        return await _delegationRequestRepository.GetReceivedRequestsAsync(contactId, DelegationStatusValues.Pending, pagination);
     }
 
     public async Task<DelegationEligibilityResponse> CheckEligibilityAsync(int contactId, int accountId)
@@ -175,5 +174,61 @@ public class DelegationRequestService : IDelegationRequestService
         }
 
         return await _delegationRequestRepository.HasActiveDelegationOnAccountAsync(contactId, accountId);
+    }
+
+    public async Task<ProcessDelegationRequestsResponse> AcceptRequestsAsync(int currentUserId, AcceptDelegationRequestsRequest request)
+    {
+        var (validIds, errors) = await ValidateAndGetPendingRequestIdsAsync(currentUserId, request.DelegationRequestIds);
+
+        var respondedAt = DateTime.UtcNow;
+        await _delegationRequestRepository.AcceptRequestsAsync(validIds, respondedAt);
+
+        return new ProcessDelegationRequestsResponse
+        {
+            ProcessedIds = validIds,
+            Errors = errors
+        };
+    }
+
+    public async Task<ProcessDelegationRequestsResponse> RefuseRequestsAsync(int currentUserId, RefuseDelegationRequestsRequest request)
+    {
+        var (validIds, errors) = await ValidateAndGetPendingRequestIdsAsync(currentUserId, request.DelegationRequestIds);
+
+        var respondedAt = DateTime.UtcNow;
+        await _delegationRequestRepository.RefuseRequestsAsync(validIds, respondedAt);
+
+        return new ProcessDelegationRequestsResponse
+        {
+            ProcessedIds = validIds,
+            Errors = errors
+        };
+    }
+
+    private async Task<(int[] ValidIds, List<DelegationRequestError> Errors)> ValidateAndGetPendingRequestIdsAsync(int currentUserId, int[]? delegationRequestIds)
+    {
+        if (delegationRequestIds == null || delegationRequestIds.Length == 0)
+        {
+            throw new BadRequestException(Errors.DelegationRequestIdsEmptyCode, Errors.DelegationRequestIdsEmptyMessage);
+        }
+
+        var validRequests = await _delegationRequestRepository.GetPendingRequestsByIdsAndRecipientAsync(delegationRequestIds, currentUserId);
+
+        var validIds = validRequests.Select(dr => dr.DelegationRequestId).ToArray();
+        var errors = BuildErrorsForInvalidIds(delegationRequestIds, validIds);
+
+        if (validIds.Length == 0)
+        {
+            throw new BadRequestException(Errors.DelegationRequestAllInvalidCode, Errors.DelegationRequestAllInvalidMessage);
+        }
+
+        return (validIds, errors);
+    }
+
+    private static List<DelegationRequestError> BuildErrorsForInvalidIds(int[] requestedIds, int[] validIds)
+    {
+        return requestedIds
+            .Where(id => !validIds.Contains(id))
+            .Select(id => new DelegationRequestError { DelegationRequestId = id, Reason = "InvalidRequest" })
+            .ToList();
     }
 }

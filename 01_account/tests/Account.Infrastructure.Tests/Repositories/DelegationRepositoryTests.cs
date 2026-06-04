@@ -129,7 +129,19 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<AccountEntity>();
+            var tAccount = _fixture.Build<AccountEntity>()
+                .Without(x => x.RoleEntity)
+                .Without(x => x.RoleLabelEntity)
+                .Without(x => x.Office)
+                .Without(x => x.OfficeId)
+                .Without(x => x.AddressEntity)
+                .Without(x => x.PhoneEntity)
+                .Without(x => x.DeploymentEntity)
+                .Without(x => x.Hub)
+                .Without(x => x.Naf)
+                .Without(x => x.OfferEligibilityEntity)
+                .Without(x => x.Delegation)
+                .Create();
             context.AccountEntity.Add(tAccount);
             await context.SaveChangesAsync();
 
@@ -137,10 +149,20 @@ public class DelegationRepositoryTests
             var tDelegator = _fixture.Build<ContactEntity>()
                 .With(c => c.ContactId, 25)
                 .With(c => c.IsActive, true)
+                .Without(c => c.RoleEntity)
+                .Without(c => c.DelegationEntityDelegatee)
+                .Without(c => c.DelegationEntityDelegator)
+                .Without(c => c.RoleLabelEntityContact)
+                .Without(c => c.RoleLabelEntityCreatedByNavigation)
                 .Create();
             var tDelegatee = _fixture.Build<ContactEntity>()
                 .With(c => c.ContactId, 26)
                 .With(c => c.IsActive, true)
+                .Without(c => c.RoleEntity)
+                .Without(c => c.DelegationEntityDelegatee)
+                .Without(c => c.DelegationEntityDelegator)
+                .Without(c => c.RoleLabelEntityContact)
+                .Without(c => c.RoleLabelEntityCreatedByNavigation)
                 .Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator, tDelegatee });
 
@@ -301,12 +323,30 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<AccountEntity>();
+            var tAccount = _fixture.Build<AccountEntity>()
+                .Without(x => x.RoleEntity)
+                .Without(x => x.RoleLabelEntity)
+                .Without(x => x.Office)
+                .Without(x => x.OfficeId)
+                .Without(x => x.AddressEntity)
+                .Without(x => x.PhoneEntity)
+                .Without(x => x.DeploymentEntity)
+                .Without(x => x.Hub)
+                .Without(x => x.Naf)
+                .Without(x => x.OfferEligibilityEntity)
+                .Without(x => x.Delegation)
+                .Create();
             context.AccountEntity.Add(tAccount);
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegatee = _fixture.Create<ContactEntity>();
+            var tDelegatee = _fixture.Build<ContactEntity>()
+                .Without(c => c.RoleEntity)
+                .Without(c => c.DelegationEntityDelegatee)
+                .Without(c => c.DelegationEntityDelegator)
+                .Without(c => c.RoleLabelEntityContact)
+                .Without(c => c.RoleLabelEntityCreatedByNavigation)
+                .Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegatee });
             await context.SaveChangesAsync();
             context.ChangeTracker.Clear();
@@ -341,12 +381,30 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<AccountEntity>();
+            var tAccount = _fixture.Build<AccountEntity>()
+                .Without(x => x.RoleEntity)
+                .Without(x => x.RoleLabelEntity)
+                .Without(x => x.Office)
+                .Without(x => x.OfficeId)
+                .Without(x => x.AddressEntity)
+                .Without(x => x.PhoneEntity)
+                .Without(x => x.DeploymentEntity)
+                .Without(x => x.Hub)
+                .Without(x => x.Naf)
+                .Without(x => x.OfferEligibilityEntity)
+                .Without(x => x.Delegation)
+                .Create();
             context.AccountEntity.Add(tAccount);
             await context.SaveChangesAsync();
 
             // Create Contacts
-            var tDelegator = _fixture.Create<ContactEntity>();
+            var tDelegator = _fixture.Build<ContactEntity>()
+                .Without(c => c.RoleEntity)
+                .Without(c => c.DelegationEntityDelegatee)
+                .Without(c => c.DelegationEntityDelegator)
+                .Without(c => c.RoleLabelEntityContact)
+                .Without(c => c.RoleLabelEntityCreatedByNavigation)
+                .Create();
             context.ContactEntity.AddRange(new List<ContactEntity> { tDelegator });
             await context.SaveChangesAsync();
             context.ChangeTracker.Clear();
@@ -419,7 +477,19 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<AccountEntity>();
+            var tAccount = _fixture.Build<AccountEntity>()
+                .Without(x => x.RoleEntity)
+                .Without(x => x.RoleLabelEntity)
+                .Without(x => x.Office)
+                .Without(x => x.OfficeId)
+                .Without(x => x.AddressEntity)
+                .Without(x => x.PhoneEntity)
+                .Without(x => x.DeploymentEntity)
+                .Without(x => x.Hub)
+                .Without(x => x.Naf)
+                .Without(x => x.OfferEligibilityEntity)
+                .Without(x => x.Delegation)
+                .Create();
             context.AccountEntity.Add(tAccount);
             await context.SaveChangesAsync();
 
@@ -459,7 +529,19 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<AccountEntity>();
+            var tAccount = _fixture.Build<AccountEntity>()
+                .Without(x => x.RoleEntity)
+                .Without(x => x.RoleLabelEntity)
+                .Without(x => x.Office)
+                .Without(x => x.OfficeId)
+                .Without(x => x.AddressEntity)
+                .Without(x => x.PhoneEntity)
+                .Without(x => x.DeploymentEntity)
+                .Without(x => x.Hub)
+                .Without(x => x.Naf)
+                .Without(x => x.OfferEligibilityEntity)
+                .Without(x => x.Delegation)
+                .Create();
             await context.AccountEntity.AddAsync(tAccount);
             await context.SaveChangesAsync();
 
@@ -510,7 +592,19 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<AccountEntity>();
+            var tAccount = _fixture.Build<AccountEntity>()
+                .Without(x => x.RoleEntity)
+                .Without(x => x.RoleLabelEntity)
+                .Without(x => x.Office)
+                .Without(x => x.OfficeId)
+                .Without(x => x.AddressEntity)
+                .Without(x => x.PhoneEntity)
+                .Without(x => x.DeploymentEntity)
+                .Without(x => x.Hub)
+                .Without(x => x.Naf)
+                .Without(x => x.OfferEligibilityEntity)
+                .Without(x => x.Delegation)
+                .Create();
             await context.AccountEntity.AddAsync(tAccount);
             await context.SaveChangesAsync();
 
@@ -552,7 +646,19 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<AccountEntity>();
+            var tAccount = _fixture.Build<AccountEntity>()
+                .Without(x => x.RoleEntity)
+                .Without(x => x.RoleLabelEntity)
+                .Without(x => x.Office)
+                .Without(x => x.OfficeId)
+                .Without(x => x.AddressEntity)
+                .Without(x => x.PhoneEntity)
+                .Without(x => x.DeploymentEntity)
+                .Without(x => x.Hub)
+                .Without(x => x.Naf)
+                .Without(x => x.OfferEligibilityEntity)
+                .Without(x => x.Delegation)
+                .Create();
             await context.AccountEntity.AddAsync(tAccount);
             await context.SaveChangesAsync();
 
@@ -618,7 +724,19 @@ public class DelegationRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Create Account
-            var tAccount = _fixture.Create<AccountEntity>();
+            var tAccount = _fixture.Build<AccountEntity>()
+                .Without(x => x.RoleEntity)
+                .Without(x => x.RoleLabelEntity)
+                .Without(x => x.Office)
+                .Without(x => x.OfficeId)
+                .Without(x => x.AddressEntity)
+                .Without(x => x.PhoneEntity)
+                .Without(x => x.DeploymentEntity)
+                .Without(x => x.Hub)
+                .Without(x => x.Naf)
+                .Without(x => x.OfferEligibilityEntity)
+                .Without(x => x.Delegation)
+                .Create();
             await context.AccountEntity.AddAsync(tAccount);
             await context.SaveChangesAsync();
 

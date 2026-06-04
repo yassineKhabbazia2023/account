@@ -62,13 +62,25 @@ public class RoleEventRepositoryTests
         var account = fixture.Build<AccountEntity>()
             .With(x => x.AccountId, 1)
             .Without(x => x.RoleEntity)
+            .Without(x => x.RoleLabelEntity)
             .Without(x => x.Office)
             .Without(x => x.OfficeId)
+            .Without(x => x.AddressEntity)
+            .Without(x => x.PhoneEntity)
+            .Without(x => x.DeploymentEntity)
+            .Without(x => x.Hub)
+            .Without(x => x.Naf)
+            .Without(x => x.OfferEligibilityEntity)
+            .Without(x => x.Delegation)
             .Create();
 
         var contact = fixture.Build<ContactEntity>()
             .With(x => x.ContactId, 2)
             .Without(x => x.RoleEntity)
+            .Without(x => x.DelegationEntityDelegatee)
+            .Without(x => x.DelegationEntityDelegator)
+            .Without(x => x.RoleLabelEntityContact)
+            .Without(x => x.RoleLabelEntityCreatedByNavigation)
             .With(c => c.IsActive, true)
             .Create();
 
@@ -84,14 +96,14 @@ public class RoleEventRepositoryTests
             context.SaveChanges();
             context.RoleEntity.Add(role);
             context.SaveChanges();
-            context.ChangeTracker.Clear();
-            using (var newContext = new AccountContext(dbOptions))
-            {
-                var repos = new RoleRepository(newContext);
-                var action = async () => await repos.CreateRoleAsync(createRoleRequest);
+        }
 
-                await action.Should().ThrowAsync<ConflictException>();
-            }
+        using (var newContext = new AccountContext(dbOptions))
+        {
+            var repos = new RoleRepository(newContext);
+            var action = async () => await repos.CreateRoleAsync(createRoleRequest);
+
+            await action.Should().ThrowAsync<ConflictException>();
         }
     }
 

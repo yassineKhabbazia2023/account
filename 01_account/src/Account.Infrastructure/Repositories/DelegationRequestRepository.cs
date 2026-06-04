@@ -3,7 +3,7 @@
 // </copyright>
 
 using Microsoft.EntityFrameworkCore;
-using Pulse.Account.Core.Enum;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
@@ -102,16 +102,13 @@ public class DelegationRequestRepository : IDelegationRequestRepository
 
     public async Task<bool> HasActiveDelegationOnAccountAsync(int contactId, int accountId)
     {
-        var enabledStatus = DelegationStatus.Enabled.ToString().ToLower();
         return await _context.DelegationEntity
-            .AnyAsync(d => d.DelegateeId == contactId && d.Status == enabledStatus && d.Account.Any(a => a.AccountId == accountId));
+            .AnyAsync(d => d.DelegateeId == contactId && d.Status == DelegationStatusValues.Enabled && d.Account.Any(a => a.AccountId == accountId));
     }
-
 
     public async Task<bool> HasPendingRequestAsync(int requesterId, int accountId)
     {
-        var pendingStatus = DelegationRequestStatus.Pending.ToString().ToLower();
-        return await _context.DelegationRequestEntity.AnyAsync(dr => dr.RequesterId == requesterId && dr.AccountId == accountId && dr.Status == pendingStatus);
+        return await _context.DelegationRequestEntity.AnyAsync(dr => dr.RequesterId == requesterId && dr.AccountId == accountId && dr.Status == DelegationStatusValues.Pending);
     }
 
     public async Task<bool> DoesAccountExistAsync(int accountId)
@@ -122,5 +119,38 @@ public class DelegationRequestRepository : IDelegationRequestRepository
     public async Task<bool> DoesContactExistAsync(int contactId)
     {
         return await _context.ContactEntity.AnyAsync(c => c.ContactId == contactId);
+    }
+
+
+    public async Task<List<DelegationRequest>> GetPendingRequestsByIdsAndRecipientAsync(int[] delegationRequestIds, int recipientId)
+    {
+        var entities = await _context.DelegationRequestEntity
+            .AsNoTracking()
+            .Where(dr => delegationRequestIds.Contains(dr.DelegationRequestId)
+                         && dr.RecipientId == recipientId
+                         && dr.Status == DelegationStatusValues.Pending)
+            .Include(dr => dr.Requester)
+            .Include(dr => dr.Account)
+            .ToListAsync();
+
+        return entities.Select(dr => dr.ToDelegationRequest()).ToList();
+    }
+
+    public async Task AcceptRequestsAsync(int[] delegationRequestIds, DateTime respondedAt)
+    {
+        await _context.DelegationRequestEntity
+            .Where(dr => delegationRequestIds.Contains(dr.DelegationRequestId))
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(dr => dr.Status, DelegationStatusValues.Accepted)
+                .SetProperty(dr => dr.RespondedAt, respondedAt));
+    }
+
+    public async Task RefuseRequestsAsync(int[] delegationRequestIds, DateTime respondedAt)
+    {
+        await _context.DelegationRequestEntity
+            .Where(dr => delegationRequestIds.Contains(dr.DelegationRequestId))
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(dr => dr.Status, DelegationStatusValues.Refused)
+                .SetProperty(dr => dr.RespondedAt, respondedAt));
     }
 }

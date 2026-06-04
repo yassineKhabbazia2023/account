@@ -214,4 +214,80 @@ public class DelegationRequestControllerTests
 
         await Assert.ThrowsAsync<BadRequestException>(async () => await controller.CheckEligibilityAsync(contactId, accountId));
     }
+
+    // ========== AcceptRequests ==========
+
+    [Fact]
+    public async Task AcceptRequests_WhenRequestIsValid_ShouldReturnOkResultWithResponse()
+    {
+        var contactId = 25;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1, 2 } };
+        var expectedResponse = new ProcessDelegationRequestsResponse
+        {
+            ProcessedIds = new[] { 1, 2 },
+            Errors = new List<DelegationRequestError>()
+        };
+
+        _delegationRequestService.Setup(x => x.AcceptRequestsAsync(contactId, request))
+            .ReturnsAsync(expectedResponse)
+            .Verifiable();
+
+        var controller = new DelegationController(_delegationService.Object, _delegationRequestService.Object);
+        var actionResult = await controller.AcceptRequests(contactId, request);
+
+        actionResult.Result.Should().BeOfType<OkObjectResult>();
+        _delegationRequestService.VerifyAll();
+    }
+
+    [Fact]
+    public async Task AcceptRequests_WhenServiceThrowsBadRequestException_ShouldPropagate()
+    {
+        var contactId = 25;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 999 } };
+
+        _delegationRequestService.Setup(x => x.AcceptRequestsAsync(contactId, request))
+            .ThrowsAsync(new BadRequestException(Errors.DelegationRequestNotFoundCode, "Not found"));
+
+        var controller = new DelegationController(_delegationService.Object, _delegationRequestService.Object);
+
+        await Assert.ThrowsAsync<BadRequestException>(async () => await controller.AcceptRequests(contactId, request));
+    }
+
+    // ========== RefuseRequests ==========
+
+    [Fact]
+    public async Task RefuseRequests_WhenRequestIsValid_ShouldReturnOkResultWithResponse()
+    {
+        var contactId = 25;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+        var expectedResponse = new ProcessDelegationRequestsResponse
+        {
+            ProcessedIds = new[] { 1 },
+            Errors = new List<DelegationRequestError>()
+        };
+
+        _delegationRequestService.Setup(x => x.RefuseRequestsAsync(contactId, request))
+            .ReturnsAsync(expectedResponse)
+            .Verifiable();
+
+        var controller = new DelegationController(_delegationService.Object, _delegationRequestService.Object);
+        var actionResult = await controller.RefuseRequests(contactId, request);
+
+        actionResult.Result.Should().BeOfType<OkObjectResult>();
+        _delegationRequestService.VerifyAll();
+    }
+
+    [Fact]
+    public async Task RefuseRequests_WhenServiceThrowsBadRequestException_ShouldPropagate()
+    {
+        var contactId = 25;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 999 } };
+
+        _delegationRequestService.Setup(x => x.RefuseRequestsAsync(contactId, request))
+            .ThrowsAsync(new BadRequestException(Errors.DelegationRequestNotFoundCode, "Not found"));
+
+        var controller = new DelegationController(_delegationService.Object, _delegationRequestService.Object);
+
+        await Assert.ThrowsAsync<BadRequestException>(async () => await controller.RefuseRequests(contactId, request));
+    }
 }

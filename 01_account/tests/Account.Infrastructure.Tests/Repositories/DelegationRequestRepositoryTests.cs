@@ -334,6 +334,45 @@ public class DelegationRequestRepositoryTests
         result.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task GetPendingRequestsByIdsAndRecipientAsync_ShouldReturnOnlyMatchingRequests()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var requester = CreateContactEntity(1);
+        var recipient = CreateContactEntity(2);
+        var otherRecipient = CreateContactEntity(3);
+        var account = CreateAccountEntity(100);
+        var pendingForRecipient = CreateDelegationRequestEntity(1, requester.ContactId, recipient.ContactId, account.AccountId, "pending");
+        var pendingForOther = CreateDelegationRequestEntity(2, requester.ContactId, otherRecipient.ContactId, account.AccountId, "pending");
+        var acceptedForRecipient = CreateDelegationRequestEntity(3, requester.ContactId, recipient.ContactId, account.AccountId, "accepted");
+
+        context.ContactEntity.AddRange(requester, recipient, otherRecipient);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.AddRange(pendingForRecipient, pendingForOther, acceptedForRecipient);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+
+        var result = await repository.GetPendingRequestsByIdsAndRecipientAsync(new[] { 1, 2, 3 }, recipient.ContactId);
+
+        result.Should().HaveCount(1);
+        result.First().DelegationRequestId.Should().Be(1);
+        result.First().RecipientId.Should().Be(recipient.ContactId);
+        result.First().Status.Should().Be("pending");
+    }
+
+    [Fact]
+    public async Task GetPendingRequestsByIdsAndRecipientAsync_WhenNoMatchingRequests_ShouldReturnEmptyList()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new DelegationRequestRepository(context);
+
+        var result = await repository.GetPendingRequestsByIdsAndRecipientAsync(new[] { 999 }, 1);
+
+        result.Should().BeEmpty();
+    }
+
+
     private static ContactEntity CreateContactEntity(int contactId)
     {
         return new ContactEntity

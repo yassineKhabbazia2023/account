@@ -183,4 +183,38 @@ public class DelegationController : ControllerBase
 
         return Ok(result);
     }
+
+    /// <summary>
+    /// Accepter des demandes de délégation reçues.
+    /// </summary>
+    /// <param name="currentUserId">L'identifiant du contact (utilisateur connecté).</param>
+    /// <param name="request">Les identifiants des demandes à accepter.</param>
+    /// <returns>200 OK avec le résultat (succès partiels et erreurs éventuelles).</returns>
+    [HttpPost("requests/accept")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProcessDelegationRequestsResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<ProcessDelegationRequestsResponse>> AcceptRequests([FromHeader(Name = "CurrentUser")] int currentUserId, [FromBody] AcceptDelegationRequestsRequest request)
+    {
+        var result = await _delegationRequestService.AcceptRequestsAsync(currentUserId, request);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Refuser des demandes de délégation reçues.
+    /// </summary>
+    /// <param name="currentUserId">L'identifiant du contact (utilisateur connecté).</param>
+    /// <param name="request">Les identifiants des demandes à refuser.</param>
+    /// <returns>200 OK avec le résultat (succès partiels et erreurs éventuelles).</returns>
+    [HttpPost("requests/refuse")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProcessDelegationRequestsResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<ProcessDelegationRequestsResponse>> RefuseRequests([FromHeader(Name = "CurrentUser")] int currentUserId, [FromBody] RefuseDelegationRequestsRequest request)
+    {
+        var result = await _delegationRequestService.RefuseRequestsAsync(currentUserId, request);
+
+        return Ok(result);
+    }
 }

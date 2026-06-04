@@ -140,4 +140,19 @@ public static class Errors
 
     public static readonly string DelegationRequestAlreadyPendingCode = "ACC045";
     public static readonly string DelegationRequestAlreadyPendingMessage = "Impossible de créer une demande de délégation : une demande en attente existe déjà pour ce dossier.";
+
+    public static readonly string DelegationRequestNotFoundCode = "ACC046";
+    public static readonly string DelegationRequestNotFoundMessage = "La demande de délégation avec l'identifiant {0} est introuvable.";
+
+    public static readonly string DelegationRequestNotPendingCode = "ACC047";
+    public static readonly string DelegationRequestNotPendingMessage = "La demande de délégation n'est plus en attente de traitement.";
+
+    public static readonly string DelegationRequestNotRecipientCode = "ACC048";
+    public static readonly string DelegationRequestNotRecipientMessage = "Vous n'êtes pas destinataire de cette demande de délégation.";
+
+    public static readonly string DelegationRequestIdsEmptyCode = "ACC049";
+    public static readonly string DelegationRequestIdsEmptyMessage = "Veuillez fournir au moins un identifiant de demande de délégation.";
+
+    public static readonly string DelegationRequestAllInvalidCode = "ACC050";
+    public static readonly string DelegationRequestAllInvalidMessage = "Aucune demande de délégation valide n'a pu être traitée.";
 }

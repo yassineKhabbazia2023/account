@@ -17,4 +17,8 @@ public interface IDelegationRequestService
     Task<Paging<DelegationRequest>> GetReceivedRequestsAsync(int contactId, Pagination? pagination);
 
     Task<DelegationEligibilityResponse> CheckEligibilityAsync(int contactId, int accountId);
+
+    Task<ProcessDelegationRequestsResponse> AcceptRequestsAsync(int currentUserId, AcceptDelegationRequestsRequest request);
+
+    Task<ProcessDelegationRequestsResponse> RefuseRequestsAsync(int currentUserId, RefuseDelegationRequestsRequest request);
 }

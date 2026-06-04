@@ -436,4 +436,187 @@ public class DelegationRequestServiceTests
         result.IsEligible.Should().BeTrue();
         result.Reason.Should().BeNull();
     }
+
+    // ========== AcceptRequestsAsync ==========
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenRequestIdsEmpty_ShouldThrowBadRequestException()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = Array.Empty<int>() };
+
+        Func<Task> act = async () => await _service.AcceptRequestsAsync(currentUserId, request);
+
+        await act.Should().ThrowAsync<BadRequestException>()
+            .Where(ex => ex.Code == Errors.DelegationRequestIdsEmptyCode);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenAllIdsNotFound_ShouldThrowBadRequestException()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 999 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>());
+
+        Func<Task> act = async () => await _service.AcceptRequestsAsync(currentUserId, request);
+
+        await act.Should().ThrowAsync<BadRequestException>();
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenOneIdInvalid_ShouldProcessOthersAndReturnError()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1, 999 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.Is<int[]>(ids => ids.SequenceEqual(new[] { 1 })), It.IsAny<DateTime>()))
+            .Returns(Task.CompletedTask);
+
+        var result = await _service.AcceptRequestsAsync(currentUserId, request);
+
+        result.ProcessedIds.Should().ContainSingle().Which.Should().Be(1);
+        result.Errors.Should().HaveCount(1);
+        result.Errors[0].DelegationRequestId.Should().Be(999);
+        result.Errors[0].Reason.Should().Be("InvalidRequest");
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenNoValidRequestsFound_ShouldThrowBadRequestException()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>());
+
+        Func<Task> act = async () => await _service.AcceptRequestsAsync(currentUserId, request);
+
+        await act.Should().ThrowAsync<BadRequestException>()
+            .Where(ex => ex.Code == Errors.DelegationRequestAllInvalidCode);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenValid_ShouldCallRepositoryAcceptAndReturnProcessedIds()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1, 2 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, Status = "pending" },
+                new DelegationRequest { DelegationRequestId = 2, RecipientId = 10, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>()))
+            .Returns(Task.CompletedTask);
+
+        var result = await _service.AcceptRequestsAsync(currentUserId, request);
+
+        result.ProcessedIds.Should().BeEquivalentTo(new[] { 1, 2 });
+        result.Errors.Should().BeEmpty();
+        _mockRepository.Verify(r => r.AcceptRequestsAsync(It.Is<int[]>(ids => ids.Length == 2), It.IsAny<DateTime>()), Times.Once);
+    }
+
+    // ========== RefuseRequestsAsync ==========
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenRequestIdsEmpty_ShouldThrowBadRequestException()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = Array.Empty<int>() };
+
+        Func<Task> act = async () => await _service.RefuseRequestsAsync(currentUserId, request);
+
+        await act.Should().ThrowAsync<BadRequestException>()
+            .Where(ex => ex.Code == Errors.DelegationRequestIdsEmptyCode);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenNoValidRequestsFound_ShouldThrowBadRequestException()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 999 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>());
+
+        Func<Task> act = async () => await _service.RefuseRequestsAsync(currentUserId, request);
+
+        await act.Should().ThrowAsync<BadRequestException>()
+            .Where(ex => ex.Code == Errors.DelegationRequestAllInvalidCode);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenOneIdInvalid_ShouldProcessOthersAndReturnError()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 1, 2 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.RefuseRequestsAsync(It.Is<int[]>(ids => ids.SequenceEqual(new[] { 1 })), It.IsAny<DateTime>()))
+            .Returns(Task.CompletedTask);
+
+        var result = await _service.RefuseRequestsAsync(currentUserId, request);
+
+        result.ProcessedIds.Should().ContainSingle().Which.Should().Be(1);
+        result.Errors.Should().HaveCount(1);
+        result.Errors[0].DelegationRequestId.Should().Be(2);
+        result.Errors[0].Reason.Should().Be("InvalidRequest");
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenValid_ShouldCallRepositoryRefuseAndReturnProcessedIds()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.RefuseRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>()))
+            .Returns(Task.CompletedTask);
+
+        var result = await _service.RefuseRequestsAsync(currentUserId, request);
+
+        result.ProcessedIds.Should().ContainSingle().Which.Should().Be(1);
+        result.Errors.Should().BeEmpty();
+        _mockRepository.Verify(r => r.RefuseRequestsAsync(It.Is<int[]>(ids => ids.Length == 1), It.IsAny<DateTime>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenRequestIdsNull_ShouldThrowBadRequestException()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = null! };
+
+        Func<Task> act = async () => await _service.AcceptRequestsAsync(currentUserId, request);
+
+        await act.Should().ThrowAsync<BadRequestException>()
+            .Where(ex => ex.Code == Errors.DelegationRequestIdsEmptyCode);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenRequestIdsNull_ShouldThrowBadRequestException()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = null! };
+
+        Func<Task> act = async () => await _service.RefuseRequestsAsync(currentUserId, request);
+
+        await act.Should().ThrowAsync<BadRequestException>()
+            .Where(ex => ex.Code == Errors.DelegationRequestIdsEmptyCode);
+    }
 }
