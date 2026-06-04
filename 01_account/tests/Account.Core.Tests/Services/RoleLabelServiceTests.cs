@@ -9,6 +9,7 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Core.Tests.Services
 {
@@ -16,6 +17,7 @@ namespace Pulse.Account.Core.Tests.Services
     {
         private readonly Mock<IRoleLabelRepository> _mockRoleLabelRepository;
         private readonly Mock<ILabelService> _mockLabelService;
+        private readonly Mock<IRoleRepository> _mockRoleRepository;
         private readonly Mock<ILogger<RoleLabelService>> _mockLogger;
         private readonly RoleLabelService _roleLabelService;
 
@@ -23,8 +25,9 @@ namespace Pulse.Account.Core.Tests.Services
         {
             _mockRoleLabelRepository = new Mock<IRoleLabelRepository>();
             _mockLabelService = new Mock<ILabelService>();
+            _mockRoleRepository = new Mock<IRoleRepository>();
             _mockLogger = new Mock<ILogger<RoleLabelService>>();
-            _roleLabelService = new RoleLabelService(_mockRoleLabelRepository.Object, _mockLabelService.Object, _mockLogger.Object);
+            _roleLabelService = new RoleLabelService(_mockRoleLabelRepository.Object, _mockLabelService.Object, _mockRoleRepository.Object, _mockLogger.Object);
         }
 
         [Fact]
@@ -84,6 +87,7 @@ namespace Pulse.Account.Core.Tests.Services
             int contactId = 456;
             int labelId = 789;
 
+            _mockRoleLabelRepository.Setup(repo => repo.GetLabelCodeAsync(labelId)).ReturnsAsync("OTHER");
             _mockRoleLabelRepository.Setup(repo => repo.DeleteRoleLabelAsync(
                 It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(Task.CompletedTask);
@@ -106,6 +110,7 @@ namespace Pulse.Account.Core.Tests.Services
 
             var expectedException = new Exception("Repository error");
 
+            _mockRoleLabelRepository.Setup(repo => repo.GetLabelCodeAsync(labelId)).ReturnsAsync("OTHER");
             _mockRoleLabelRepository.Setup(repo => repo.DeleteRoleLabelAsync(
                 It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .ThrowsAsync(expectedException);
@@ -127,6 +132,7 @@ namespace Pulse.Account.Core.Tests.Services
             int contactId = 456;
             int labelId = 789;
 
+            _mockRoleLabelRepository.Setup(repo => repo.GetLabelCodeAsync(labelId)).ReturnsAsync((string?)null);
             _mockRoleLabelRepository.Setup(repo => repo.DeleteRoleLabelAsync(
                 It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(Task.CompletedTask);
@@ -137,6 +143,68 @@ namespace Pulse.Account.Core.Tests.Services
             // Assert
             _mockRoleLabelRepository.Verify(repo =>
                 repo.DeleteRoleLabelAsync(accountId, contactId, labelId), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("AM")]
+        [InlineData("am")]
+        [InlineData("CLP")]
+        [InlineData("clp")]
+        public async Task DeleteRoleLabelAsync_ExclusiveLabelOnProspect_ThrowsBadRequestException(string labelCode)
+        {
+            // Arrange
+            int accountId = 1;
+            int contactId = 2;
+            int labelId = 10;
+
+            _mockRoleLabelRepository.Setup(repo => repo.GetLabelCodeAsync(labelId)).ReturnsAsync(labelCode);
+            _mockRoleRepository.Setup(repo => repo.IsProspectAccountAsync(accountId)).ReturnsAsync(true);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<BadRequestException>(() =>
+                _roleLabelService.DeleteRoleLabelAsync(accountId, contactId, labelId));
+
+            _mockRoleLabelRepository.Verify(repo => repo.DeleteRoleLabelAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData("AM")]
+        [InlineData("CLP")]
+        public async Task DeleteRoleLabelAsync_ExclusiveLabelOnClientAccount_Succeeds(string labelCode)
+        {
+            // Arrange
+            int accountId = 1;
+            int contactId = 2;
+            int labelId = 10;
+
+            _mockRoleLabelRepository.Setup(repo => repo.GetLabelCodeAsync(labelId)).ReturnsAsync(labelCode);
+            _mockRoleRepository.Setup(repo => repo.IsProspectAccountAsync(accountId)).ReturnsAsync(false);
+            _mockRoleLabelRepository.Setup(repo => repo.DeleteRoleLabelAsync(accountId, contactId, labelId)).Returns(Task.CompletedTask);
+
+            // Act
+            await _roleLabelService.DeleteRoleLabelAsync(accountId, contactId, labelId);
+
+            // Assert
+            _mockRoleLabelRepository.Verify(repo => repo.DeleteRoleLabelAsync(accountId, contactId, labelId), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteRoleLabelAsync_NonExclusiveLabelOnProspect_Succeeds()
+        {
+            // Arrange
+            int accountId = 1;
+            int contactId = 2;
+            int labelId = 10;
+
+            _mockRoleLabelRepository.Setup(repo => repo.GetLabelCodeAsync(labelId)).ReturnsAsync("OTHER");
+            _mockRoleLabelRepository.Setup(repo => repo.DeleteRoleLabelAsync(accountId, contactId, labelId)).Returns(Task.CompletedTask);
+
+            // Act
+            await _roleLabelService.DeleteRoleLabelAsync(accountId, contactId, labelId);
+
+            // Assert
+            _mockRoleLabelRepository.Verify(repo => repo.DeleteRoleLabelAsync(accountId, contactId, labelId), Times.Once);
+            _mockRoleRepository.Verify(repo => repo.IsProspectAccountAsync(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]

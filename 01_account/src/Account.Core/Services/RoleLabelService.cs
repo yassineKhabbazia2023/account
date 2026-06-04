@@ -3,9 +3,11 @@
 // </copyright>
 
 using Microsoft.Extensions.Logging;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Core.Services
 {
@@ -15,15 +17,18 @@ namespace Pulse.Account.Core.Services
 
         private readonly IRoleLabelRepository _roleLabelRepository;
         private readonly ILabelService _labelService;
+        private readonly IRoleRepository _roleRepository;
         private readonly ILogger<RoleLabelService> _logger;
 
         public RoleLabelService(
             IRoleLabelRepository roleLabelRepository,
             ILabelService labelService,
+            IRoleRepository roleRepository,
             ILogger<RoleLabelService> logger)
         {
             _roleLabelRepository = roleLabelRepository;
             _labelService = labelService;
+            _roleRepository = roleRepository;
             _logger = logger;
         }
 
@@ -34,6 +39,13 @@ namespace Pulse.Account.Core.Services
 
         public async Task DeleteRoleLabelAsync(int accountId, int contactId, int labelId)
         {
+            var labelCode = await _roleLabelRepository.GetLabelCodeAsync(labelId);
+
+            if (labelCode is not null && ExclusiveLabelCodes.Contains(labelCode) && await _roleRepository.IsProspectAccountAsync(accountId))
+            {
+                throw new BadRequestException(Errors.CannotDeleteExclusiveLabelProspectCode, Errors.CannotDeleteExclusiveLabelProspectMessage);
+            }
+
             await _roleLabelRepository.DeleteRoleLabelAsync(accountId, contactId, labelId);
         }
 

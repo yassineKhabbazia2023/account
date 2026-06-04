@@ -3,6 +3,7 @@
 // </copyright>
 
 using Microsoft.Extensions.Logging;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
@@ -23,13 +24,15 @@ public class RolesService : IRolesService
     private readonly IHistoryEventPublisher _historyEventPublisher;
     private readonly IRoleLabelService _roleLabelService;
     private readonly ILogger<RolesService> _logger;
+    private readonly IFeatureFlagService _featureFlagService;
 
     public RolesService(IRoleRepository rolesRepository,
         IContactRepository contactRepository,
         IRoleEventPublisher roleEventPublisher,
         IHistoryEventPublisher historyEventPublisher,
         IRoleLabelService roleLabelService,
-        ILogger<RolesService> logger)
+        ILogger<RolesService> logger,
+        IFeatureFlagService featureFlagService)
     {
         _rolesRepository = rolesRepository;
         _contactRepository = contactRepository;
@@ -37,6 +40,7 @@ public class RolesService : IRolesService
         _historyEventPublisher = historyEventPublisher;
         _roleLabelService = roleLabelService;
         _logger = logger;
+        _featureFlagService = featureFlagService;
     }
 
     public async Task<Paging<Models.Account>> GetContactRolesAsync(int contactId, Pagination? pagination)
@@ -194,6 +198,11 @@ public class RolesService : IRolesService
 
         if (role.IsSignatory.HasValue && role.IsSignatory.Value)
         {
+            if (await _rolesRepository.IsProspectAccountAsync(accountId))
+            {
+                throw new BadRequestException(Errors.CannotDeleteSignatoryProspectCode, Errors.CannotDeleteSignatoryProspectMessage);
+            }
+
             var signatory = await _rolesRepository.GetSignatoryAsync(accountId);
             if (signatory.Count() == 1)
             {
@@ -212,7 +221,8 @@ public class RolesService : IRolesService
 
     public async Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email)
     {
-        return await _rolesRepository.CheckRoleExistsAsync(currentUserId, contactId, accountId, email);
+        var includeProspects = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.IncludeProspectsInContactsSearch);
+        return await _rolesRepository.CheckRoleExistsAsync(currentUserId, contactId, accountId, email, includeProspects);
     }
 
     public async Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber)

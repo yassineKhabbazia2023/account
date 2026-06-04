@@ -968,6 +968,16 @@ public class AccountRepositoryTests
             resultExpected.AddRange(contactsMock.Where(c => c.Type == type.ToString()!.ToLower()).Select(c => c.MapToContact(10))!);
         }
 
+        var accountMock = new AccountEntity
+        {
+            AccountId = 10,
+            AccountNumber = "ACC-10",
+            LegalName = "Test Account",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true
+        };
+        context.AccountEntity.Add(accountMock);
         context.ContactEntity.AddRange(contactsMock);
         await context.SaveChangesAsync();
 
@@ -1071,6 +1081,16 @@ public class AccountRepositoryTests
             .Without(c => c.RoleEntity)
             .Create();
 
+        var accountMock = new AccountEntity
+        {
+            AccountId = 1,
+            AccountNumber = "ACC-1",
+            LegalName = "Test Account",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true
+        };
+        context.AccountEntity.Add(accountMock);
         context.ContactEntity.AddRange(new List<ContactEntity> { contactIsCustomerRelation, contactIsNotCustomerRelation });
         context.RoleEntity.AddRange(new List<RoleEntity> { roleIsCustomerRelation, roleIsNotCustomerRelation });
         await context.SaveChangesAsync();
@@ -2248,7 +2268,7 @@ public class AccountRepositoryTests
     }
 
     [Fact]
-    public async Task GetAccountAsync_WithProspectAccount_ShouldThrowNotFoundException()
+    public async Task GetAccountAsync_WithProspectAccount_ShouldReturnAccountDetail()
     {
         using var context = new AccountContext(_dbContextOptions);
 
@@ -2269,11 +2289,15 @@ public class AccountRepositoryTests
 
         var repository = new AccountRepository(context);
 
-        await Assert.ThrowsAsync<NotFoundException>(() => repository.GetAccountAsync(prospectAccount.AccountId));
+        var result = await repository.GetAccountAsync(prospectAccount.AccountId);
+
+        result.Should().NotBeNull();
+        result.AccountId.Should().Be(prospectAccount.AccountId);
+        result.AccountType.Should().Be(GlobalConstants.ProspectAccountType);
     }
 
     [Fact]
-    public async Task GetAccountAsync_WithLowercaseProspectAccount_ShouldThrowNotFoundException()
+    public async Task GetAccountAsync_WithLowercaseProspectAccount_ShouldReturnAccountDetail()
     {
         using var context = new AccountContext(_dbContextOptions);
 
@@ -2294,7 +2318,11 @@ public class AccountRepositoryTests
 
         var repository = new AccountRepository(context);
 
-        await Assert.ThrowsAsync<NotFoundException>(() => repository.GetAccountAsync(prospectAccount.AccountId));
+        var result = await repository.GetAccountAsync(prospectAccount.AccountId);
+
+        result.Should().NotBeNull();
+        result.AccountId.Should().Be(prospectAccount.AccountId);
+        result.AccountType.Should().Be("prospect");
     }
 
     [Fact]
@@ -2455,7 +2483,7 @@ public class AccountRepositoryTests
         var criteria = new SearchContactsAccountCriteria();
         var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
 
-        var result = await repository.GetContactsAccountAsync(accountId, criteria, pagination);
+        var result = await repository.GetContactsAccountAsync(accountId, criteria, pagination, includeProspects: true);
 
         Assert.Single(result.Items);
         Assert.Equal(contactId, result.Items.First().ContactId);

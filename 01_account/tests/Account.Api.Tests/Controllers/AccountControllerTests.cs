@@ -13,6 +13,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Pulse.Account.API;
+using Pulse.Account.Core;
+using Pulse.Account.Core.Interfaces;
 using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
@@ -50,7 +52,9 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         var accountRepository = new AccountRepository(_context);
         var contactRepository = new Mock<IContactRepository>();
         var accountEventPublisher = new Mock<IAccountEventPublisher>();
-        var accountService = new AccountService(accountRepository, contactRepository.Object, accountEventPublisher.Object, NullLogger<AccountService>.Instance);
+        var featureFlagService = new Mock<IFeatureFlagService>();
+        featureFlagService.Setup(f => f.IsEnabledAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        var accountService = new AccountService(accountRepository, contactRepository.Object, accountEventPublisher.Object, NullLogger<AccountService>.Instance, featureFlagService.Object);
         _accountController = new AccountController(accountService);
     }
 

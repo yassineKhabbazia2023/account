@@ -93,4 +93,13 @@ public class RoleLabelRepository : IRoleLabelRepository
             await _accountContext.SaveChangesAsync();
         }
     }
+
+    public async Task<string?> GetLabelCodeAsync(int labelId)
+    {
+        return await _accountContext.LabelEntity
+            .AsNoTracking()
+            .Where(l => l.LabelId == labelId)
+            .Select(l => l.Code)
+            .FirstOrDefaultAsync();
+    }
 }

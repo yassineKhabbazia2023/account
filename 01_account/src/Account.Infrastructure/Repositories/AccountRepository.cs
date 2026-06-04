@@ -300,7 +300,7 @@ public class AccountRepository : IAccountRepository
     {
         AccountEntity? account = await _retryPolicy.ExecuteAsync(async () =>
         {
-            return await _accountContext.AccountEntity
+            return await _accountContext.ActiveAccounts
                     .AsNoTracking()
                     .Include(a => a.DeploymentEntity)
                     .Include(h => h.Hub)
@@ -362,11 +362,11 @@ public class AccountRepository : IAccountRepository
         return toReturn!;
     }
 
-    public async Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination pagination)
+    public async Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination pagination, bool includeProspects = false)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            IQueryable<ContactEntity> query = GetContactEntitiesByAccountId(accountId, criteria.IsCustomerRelation);
+            IQueryable<ContactEntity> query = GetContactEntitiesByAccountId(accountId, criteria.IsCustomerRelation, includeProspects);
 
             if (!string.IsNullOrWhiteSpace(criteria.Search))
             {
@@ -464,17 +464,24 @@ public class AccountRepository : IAccountRepository
         return query.OrderBy(a => a.LegalName);
     }
 
-    private IQueryable<ContactEntity> GetContactEntitiesByAccountId(int accountId, bool? isCustomerRelation)
+    private IQueryable<ContactEntity> GetContactEntitiesByAccountId(int accountId, bool? isCustomerRelation, bool includeProspects = false)
     {
-        var query = _accountContext.ContactEntity.AsNoTracking()
+        IQueryable<AccountEntity> accountSet = includeProspects
+            ? _accountContext.ActiveAccounts
+            : _accountContext.AccountEntity;
+
+        var contactQuery = includeProspects
+            ? _accountContext.ContactEntity.IgnoreQueryFilters().Where(c => c.IsActive).AsNoTracking()
+            : _accountContext.ContactEntity.AsNoTracking();
+
+        return contactQuery
                     .Include(c => c.RoleEntity)
                     .Include(c => c.RoleLabelEntityContact)
                     .ThenInclude(r => r.Label)
                     .Where(c => c.RoleEntity
                                     .Any(r => r.AccountId == accountId &&
+                                            accountSet.Any(a => a.AccountId == r.AccountId) &&
                                             (isCustomerRelation == null || r.IsCustomerRelation == isCustomerRelation)));
-
-        return query;
     }
 
     private static IQueryable<ContactEntity> GetContactEntitiesSorted(IQueryable<ContactEntity> query, Sorting? sorting, bool isCollab, int accountId)

@@ -39,6 +39,8 @@ public class Contact
 
     public int ActionLevel { get; set; }
 
+    public bool? IsSignatory { get; set; }
+
     public IEnumerable<Label>? Labels { get; set; }
 
     public bool? ContactFlagPortailFactures { get; set; }

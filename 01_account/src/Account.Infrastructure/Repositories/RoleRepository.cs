@@ -239,32 +239,32 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email)
+    public async Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email, bool includeProspects = false)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
             var contactToCheck = _accountContext.ContactEntity.FirstOrDefault(x => contactId != null ? x.ContactId == contactId : x.Email.Contains(email!));
 
-            // Check if the contact exists
             if (contactToCheck is null)
             {
                 return false;
             }
 
-            IQueryable<AccountEntity> query = _accountContext.AccountEntity
+            IQueryable<AccountEntity> accountSet = includeProspects
+                ? _accountContext.ActiveAccounts
+                : _accountContext.AccountEntity;
+
+            IQueryable<AccountEntity> query = accountSet
                                                     .AsNoTracking()
                                                     .Where(a => a.RoleEntity.Any(r => r.ContactId == currentUserId))
                                                     .Where(a => a.RoleEntity.Any(r => r.ContactId == contactToCheck.ContactId));
 
-            // Add the accountId filter if it's not null
             if (accountId is not null)
             {
                 query = query.Where(a => a.AccountId == accountId);
             }
 
-            var totalRows = await query.CountAsync();
-
-            return totalRows > 0;
+            return await query.AnyAsync();
         });
     }
 
@@ -279,6 +279,15 @@ public class RoleRepository : IRoleRepository
                                                                 (accountId.HasValue ?
                                                                 r.AccountId == accountId :
                                                                 r.Account.AccountNumber == accountNumber));
+        });
+    }
+
+    public async Task<bool> IsProspectAccountAsync(int accountId)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            return await _accountContext.ActiveAccounts
+                .AnyAsync(a => a.AccountId == accountId && a.AccountType == GlobalConstants.ProspectAccountType);
         });
     }
 

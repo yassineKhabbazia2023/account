@@ -49,7 +49,7 @@ public class AccountEventRepository : IAccountEventRepository
 
     public List<AccountEntity> GetAccountBySignatory(int contactId)
     {
-        return _accountContext.AccountEntity
+        return _accountContext.ActiveAccounts
                     .AsNoTracking()
                     .Include(x => x.RoleEntity)
                     .ThenInclude(r => r.Contact)
@@ -59,11 +59,11 @@ public class AccountEventRepository : IAccountEventRepository
 
     public async Task<AccountEntity> GetAccountByNumberAsync(string accountNumber)
     {
-        return await _accountContext.AccountEntity.FirstAsync(a => a.AccountNumber == accountNumber);
+        return await _accountContext.ActiveAccounts.FirstAsync(a => a.AccountNumber == accountNumber);
     }
 
     public async Task<bool> DoesAccountExistAsync(int accountId)
     {
-        return await _accountContext.AccountEntity.AnyAsync(a => a.AccountId == accountId);
+        return await _accountContext.ActiveAccounts.AnyAsync(a => a.AccountId == accountId);
     }
 }

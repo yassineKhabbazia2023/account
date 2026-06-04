@@ -3,6 +3,7 @@
 // </copyright>
 
 using Microsoft.Extensions.Logging;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
@@ -17,11 +18,13 @@ public class AccountService(
     IAccountRepository accountRepository,
     IContactRepository contactRepository,
     IAccountEventPublisher accountEventPublisher,
-    ILogger<AccountService> logger) : IAccountService
+    ILogger<AccountService> logger,
+    IFeatureFlagService featureFlagService) : IAccountService
 {
     private readonly IAccountRepository _accountRepository = accountRepository;
     private readonly IAccountEventPublisher _accountEventPublisher = accountEventPublisher;
     private readonly ILogger<AccountService> _logger = logger;
+    private readonly IFeatureFlagService _featureFlagService = featureFlagService;
 
     public async Task<AccountDetail> CreateAccountAsync(int currentUserId, CreateAccountRequest request)
     {
@@ -152,7 +155,8 @@ public class AccountService(
         pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
 
         criteria = criteria ?? new SearchContactsAccountCriteria();
-        return await _accountRepository.GetContactsAccountAsync(accountId, criteria, pagination);
+        var includeProspects = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.IncludeProspectsInContactsSearch);
+        return await _accountRepository.GetContactsAccountAsync(accountId, criteria, pagination, includeProspects);
     }
 
     public async Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request, Pagination? pagination)

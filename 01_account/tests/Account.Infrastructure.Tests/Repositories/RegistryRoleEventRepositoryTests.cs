@@ -338,6 +338,7 @@ public class RegistryRoleEventRepositoryTests
             .Without(x => x.PhoneEntity)
             .Without(x => x.AddressEntity)
             .Without(x => x.DeploymentEntity)
+            .Without(x => x.Delegation)
             .Create();
 
         var contact = _fixture.Build<ContactEntity>()

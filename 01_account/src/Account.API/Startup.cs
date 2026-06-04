@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Pulse.Account.API.Configuration;
+using Pulse.Account.API.FeatureFlags.Extensions;
 using Pulse.Account.API.Configuration.Model;
 using Pulse.Account.API.Logging;
 using Pulse.Back.ExceptionMiddleware;
@@ -71,7 +72,8 @@ namespace Pulse.Account.API
             services.RegisterCors();
             services.ConfigureSwaggerService(_swaggerConfiguration);
             services.RegisterOpenTelemetry(_configuration);
-            services.RegisterServices();
+            services.AddFeatureFlags(_configuration);
+            services.RegisterServices(_configuration);
             services.RegisterBrokerServices(_configuration);
             services.RegisterDatabase(_configuration!);
         }

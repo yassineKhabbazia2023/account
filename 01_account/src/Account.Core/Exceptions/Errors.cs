@@ -155,4 +155,9 @@ public static class Errors
 
     public static readonly string DelegationRequestAllInvalidCode = "ACC050";
     public static readonly string DelegationRequestAllInvalidMessage = "Aucune demande de délégation valide n'a pu être traitée.";
+    public static readonly string CannotDeleteSignatoryProspectCode = "ACC051";
+    public static readonly string CannotDeleteSignatoryProspectMessage = "Impossible de supprimer le rôle : la suppression d'un signataire n'est pas autorisée pour un compte de type prospect.";
+
+    public static readonly string CannotDeleteExclusiveLabelProspectCode = "ACC052";
+    public static readonly string CannotDeleteExclusiveLabelProspectMessage = "Impossible de supprimer le libellé : la suppression d'un libellé AM ou CLP n'est pas autorisée pour un compte de type prospect.";
 }

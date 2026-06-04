@@ -194,6 +194,10 @@ public static class MapAccountDbToAccountModel
 
     public static Contact? MapToContact(this ContactEntity tContact, int? accountId)
     {
+        var role = tContact?.RoleEntity.FirstOrDefault(r => r.AccountId == accountId);
+        var isCustomer = ContactType.Customer.ToString().Equals(tContact?.Type);
+        var dbLabels = tContact?.RoleLabelEntityContact.MapToLabels(accountId ?? 0) ?? Enumerable.Empty<Label>();
+
         return tContact == null ? null : new Contact
         {
             ContactId = tContact.ContactId,
@@ -209,10 +213,11 @@ public static class MapAccountDbToAccountModel
             CreationDate = tContact.CreationDate,
             Type = tContact.Type,
             IsActive = tContact.IsActive,
-            IsCustomerRelation = tContact.RoleEntity.FirstOrDefault(r => r.AccountId == accountId)?.IsCustomerRelation,
-            ActionLevel = tContact.RoleEntity.FirstOrDefault(r => r.AccountId == accountId)?.ActionLevel ?? 0,
-            Labels = tContact.RoleLabelEntityContact.MapToLabels(accountId ?? 0),
-            ContactFlagPortailFactures = tContact.RoleEntity.FirstOrDefault(r => r.AccountId == accountId)?.ContactFlagPortailFactures
+            IsCustomerRelation = role?.IsCustomerRelation,
+            ActionLevel = role?.ActionLevel ?? 0,
+            IsSignatory = isCustomer ? role?.IsSignatory : null,
+            Labels = dbLabels,
+            ContactFlagPortailFactures = role?.ContactFlagPortailFactures
         };
     }
 

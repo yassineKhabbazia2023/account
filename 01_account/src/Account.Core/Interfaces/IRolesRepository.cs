@@ -21,7 +21,7 @@ public interface IRoleRepository
 
     Task DeleteRoleAsync(int accountId, int contactId);
 
-    Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email);
+    Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email, bool includeProspects = false);
 
     Task<Role?> GetContactRoleAsync(int accountId, int contactId);
 
@@ -30,4 +30,6 @@ public interface IRoleRepository
     Task UpdateRoleCollaboratorInformationAsync(int accountId, int contactId, bool isCustomerRelation, int expectedActionLevel = (int)ActionLevelType.NotAssigned);
 
     Task<Role?> CreateRoleWithoutAccountValidationAsync(CreateRoleRequest role);
+
+    Task<bool> IsProspectAccountAsync(int accountId);
 }

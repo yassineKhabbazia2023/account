@@ -458,4 +458,41 @@ public class RoleLabelRepositoryTests
 
         await act.Should().NotThrowAsync();
     }
+
+    [Fact]
+    public async Task GetLabelCodeAsync_WhenLabelExists_ShouldReturnCode()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var label = new LabelEntity
+        {
+            LabelId = 42,
+            Code = "ESG_CODE",
+            Business = "ESG",
+            IsVisible = true,
+            CollaboratorLabel = "COLLAB",
+            CustomerLabel = "CUST"
+        };
+        context.LabelEntity.Add(label);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleLabelRepository(context);
+
+        var result = await repository.GetLabelCodeAsync(42);
+
+        result.Should().Be("ESG_CODE");
+    }
+
+    [Fact]
+    public async Task GetLabelCodeAsync_WhenLabelDoesNotExist_ShouldReturnNull()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var repository = new RoleLabelRepository(context);
+
+        var result = await repository.GetLabelCodeAsync(999);
+
+        result.Should().BeNull();
+    }
 }

@@ -85,7 +85,7 @@ public class ContactCreatedEventHandler : IEventHandler
             {
                 var role = await _roleEventRepository.CreateRoleForNewContactAsync(contactId, accountEntity.AccountId);
                 _logger.LogInformation("Le rôle du contact {ContactId} sur l'entité {AccountId} vient d'être créé.", contactId, accountEntity.AccountId);
-                await _roleEventPublisher.PublishRoleCreatedEventAsync(role!);
+                await _roleEventPublisher.PublishRoleCreatedEventAsync(role!, includeProspects: true);
                 await _historyEventPublisher.PublishHistoryCreatedEventAsync(currentUserId, contactId, accountEntity.AccountId, ActionCode.ADDCMANU.ToString());
             }
             else

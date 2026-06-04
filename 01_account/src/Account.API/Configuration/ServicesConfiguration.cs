@@ -25,7 +25,7 @@ namespace Pulse.Account.API.Configuration;
 [ExcludeFromCodeCoverage]
 public static class ServicesConfiguration
 {
-    public static void RegisterServices(this IServiceCollection services)
+    public static void RegisterServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IFavoriteService, FavoriteService>();
         services.AddScoped<IAccountService, AccountService>();

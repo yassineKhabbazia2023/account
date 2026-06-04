@@ -1469,4 +1469,66 @@ public class RolesRepositoryTests
 
         Assert.False(result);
     }
+
+    [Fact]
+    public async Task IsProspectAccountAsync_WhenAccountIsProspectAndActive_ShouldReturnTrue()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 50,
+            AccountNumber = "ACC-PROSPECT-050",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true
+        };
+        context.AccountEntity.Add(prospectAccount);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        var result = await repository.IsProspectAccountAsync(50);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task IsProspectAccountAsync_WhenAccountIsNotProspect_ShouldReturnFalse()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var clientAccount = new AccountEntity
+        {
+            AccountId = 51,
+            AccountNumber = "ACC-CLIENT-051",
+            LegalName = "Client Account",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true
+        };
+        context.AccountEntity.Add(clientAccount);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        var result = await repository.IsProspectAccountAsync(51);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task IsProspectAccountAsync_WhenAccountDoesNotExist_ShouldReturnFalse()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var repository = new RoleRepository(context);
+
+        var result = await repository.IsProspectAccountAsync(9999);
+
+        Assert.False(result);
+    }
 }
