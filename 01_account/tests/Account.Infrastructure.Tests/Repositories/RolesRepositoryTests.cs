@@ -1531,4 +1531,78 @@ public class RolesRepositoryTests
 
         Assert.False(result);
     }
+
+    [Fact]
+    public async Task IsContactHasRoleOnAccount_WithProspectAccount_ByAccountNumber_ShouldReturnTrue()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 201,
+            AccountNumber = "ACC-PROSPECT-201",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+        var contact = new ContactEntity
+        {
+            ContactId = 201,
+            FirstName = "Jean",
+            LastName = "Dupont",
+            Email = "jean.dupont@prospect.fr",
+            PersonaName = "Jean Dupont",
+            Type = "Collaborateur",
+            IsActive = true
+        };
+
+        context.RoleEntity.Add(new RoleEntity { Account = prospectAccount, Contact = contact, ContactId = contact.ContactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        var result = await repository.IsContactHasRoleOnAccount(contact.ContactId, null, prospectAccount.AccountNumber);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task IsContactHasRoleOnAccount_WithProspectAccount_ByAccountId_ShouldReturnTrue()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 202,
+            AccountNumber = "ACC-PROSPECT-202",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+        var contact = new ContactEntity
+        {
+            ContactId = 202,
+            FirstName = "Marie",
+            LastName = "Dupont",
+            Email = "marie.dupont@prospect.fr",
+            PersonaName = "Marie Dupont",
+            Type = "Collaborateur",
+            IsActive = true
+        };
+
+        context.RoleEntity.Add(new RoleEntity { Account = prospectAccount, Contact = contact, ContactId = contact.ContactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        var result = await repository.IsContactHasRoleOnAccount(contact.ContactId, prospectAccount.AccountId, null);
+
+        Assert.True(result);
+    }
 }

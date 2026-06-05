@@ -274,11 +274,12 @@ public class RoleRepository : IRoleRepository
         {
             return await _accountContext.RoleEntity
                                                     .Include(x => x.Account)
+                                                    .IgnoreQueryFilters()
                                                     .AsNoTracking()
                                                     .AnyAsync(r => r.ContactId == contactId &&
                                                                 (accountId.HasValue ?
                                                                 r.AccountId == accountId :
-                                                                r.Account.AccountNumber == accountNumber));
+                                                                r.Account.IsActive && r.Account.AccountNumber == accountNumber));
         });
     }
 

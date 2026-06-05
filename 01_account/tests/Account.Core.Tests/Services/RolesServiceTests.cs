@@ -635,6 +635,25 @@ public class RolesServiceTests
     }
 
     [Fact]
+    public void DeleteRoleAsync_ForProspectAccount_ShouldPublishWithIncludeProspectsTrue()
+    {
+        // Arrange
+        var currentUserId = 25;
+        var roleRepository = DeleteRole_MockRepo();
+        roleRepository.Setup(repo => repo.IsProspectAccountAsync(1)).ReturnsAsync(true);
+        _contactRepository.Setup(repo => repo.GetContactByIdAsync(It.IsAny<int>())).ReturnsAsync(_fixture.Create<Contact>());
+
+        var roleService = new RolesService(roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        Task DeleteRole() => roleService!.DeleteRoleAsync(currentUserId, 1, 1);
+
+        // Assert
+        Assert.Equal(Task.CompletedTask, DeleteRole());
+        _rolePublisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), true), Times.Once);
+    }
+
+    [Fact]
     public async Task CheckRoleExistsAsync_ReturnsOkResultAsync()
     {
         // Arrange

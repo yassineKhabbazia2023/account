@@ -252,7 +252,7 @@ public class RolesService : IRolesService
     {
         _logger.LogInformation("RoleService: Start send delete role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
 
-        await _roleEventPublisher.PublishRoleDeletedEventAsync(accountId, contactId);
+        await _roleEventPublisher.PublishRoleDeletedEventAsync(accountId, contactId, includeProspects: true);
 
         _logger.LogInformation("RoleService: End send delete role event. AccountId : {accountId} - ContactId : {contactId}", accountId, contactId);
     }
