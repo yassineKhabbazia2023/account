@@ -503,6 +503,54 @@ namespace Pulse.Account.Core.Tests.Services
             Assert.Equal(Errors.NotFoundContactsMessage, exception.Message);
         }
 
+        #region IsContactProspectOnlyAsync
+
+        /// <summary>
+        /// Ensures the service returns the repository result for the prospect-only contact check.
+        /// </summary>
+        /// <param name="isProspectOnly">The repository result.</param>
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task IsContactProspectOnlyAsync_Should_Return_Repository_Result(bool isProspectOnly)
+        {
+            // Arrange
+            var contactId = 6000;
+            _accountRepository.Setup(repository => repository.IsContactProspectOnlyAsync(contactId))
+                .ReturnsAsync(isProspectOnly);
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
+
+            // Act
+            var result = await accountService.IsContactProspectOnlyAsync(contactId);
+
+            // Assert
+            Assert.Equal(isProspectOnly, result);
+            _accountRepository.Verify(repository => repository.IsContactProspectOnlyAsync(contactId), Times.Once);
+        }
+
+        /// <summary>
+        /// Ensures the service preserves the existing contact-not-found behavior from the repository.
+        /// </summary>
+        [Fact]
+        public async Task IsContactProspectOnlyAsync_WhenContactDoesNotExist_Should_Throw_NotFoundException()
+        {
+            // Arrange
+            var contactId = 0;
+            _accountRepository.Setup(repository => repository.IsContactProspectOnlyAsync(contactId))
+                .ThrowsAsync(new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId)));
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
+
+            // Act
+            var result = async () => await accountService.IsContactProspectOnlyAsync(contactId);
+
+            // Assert
+            var exception = await Assert.ThrowsAsync<NotFoundException>(result);
+            Assert.Equal(Errors.NotFoundContactCode, exception.Code);
+            Assert.Equal(string.Format(Errors.NotFoundContactMessage, contactId), exception.Message);
+        }
+
+        #endregion IsContactProspectOnlyAsync
+
         [Fact]
         public async Task GetAssociatedContactsAsync_WhenValidContactId_ShouldReturnsContacts()
         {

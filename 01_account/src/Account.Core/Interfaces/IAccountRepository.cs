@@ -35,6 +35,13 @@ namespace Pulse.Account.Core.Interfaces
         /// <returns>Collaborators having the AM or CLP role label on the account.</returns>
         Task<IEnumerable<Contact>> GetAccountContactWidgetContactsAsync(int accountId);
 
+        /// <summary>
+        /// Checks whether an existing contact has roles only on prospect accounts.
+        /// </summary>
+        /// <param name="contactId">The contact identifier.</param>
+        /// <returns><c>true</c> when the contact has at least one role and all linked accounts are prospects; otherwise, <c>false</c>.</returns>
+        Task<bool> IsContactProspectOnlyAsync(int contactId);
+
         Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request, Pagination pagination);
 
         Task<AccountDetail> GetAccountProspectIncludedAsync(int accountId);

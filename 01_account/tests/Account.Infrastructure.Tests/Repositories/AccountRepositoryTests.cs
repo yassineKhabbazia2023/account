@@ -9,6 +9,7 @@ using Moq;
 using Newtonsoft.Json;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
@@ -3203,6 +3204,219 @@ public class AccountRepositoryTests
         result.Items.Should().HaveCount(5);
         result.TotalItems.Should().Be(5);
     }
+
+    #region IsContactProspectOnlyAsync
+
+    /// <summary>
+    /// Ensures the prospect-only check returns true when the contact has only prospect account roles.
+    /// </summary>
+    [Fact]
+    public async Task IsContactProspectOnlyAsync_WithOnlyProspectRoles_ShouldReturnTrue()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new AccountRepository(context);
+        var contact = CreateProspectOnlyContact(100);
+        var firstProspectAccount = CreateProspectOnlyAccount(200, GlobalConstants.ProspectAccountType);
+        var secondProspectAccount = CreateProspectOnlyAccount(201, AccountType.PROSPECT.ToString());
+
+        context.RoleEntity.AddRange(
+            CreateProspectOnlyRole(contact, firstProspectAccount),
+            CreateProspectOnlyRole(contact, secondProspectAccount));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var result = await repository.IsContactProspectOnlyAsync(contact.ContactId);
+
+        result.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// Ensures the prospect-only check returns false when the contact has a non-prospect account role.
+    /// </summary>
+    [Fact]
+    public async Task IsContactProspectOnlyAsync_WithNonProspectRole_ShouldReturnFalse()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new AccountRepository(context);
+        var contact = CreateProspectOnlyContact(101);
+        var clientAccount = CreateProspectOnlyAccount(202, AccountType.CLIENT.ToString());
+
+        context.RoleEntity.Add(CreateProspectOnlyRole(contact, clientAccount));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var result = await repository.IsContactProspectOnlyAsync(contact.ContactId);
+
+        result.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Ensures the prospect-only check returns false when the contact has both prospect and non-prospect roles.
+    /// </summary>
+    [Fact]
+    public async Task IsContactProspectOnlyAsync_WithMixedProspectAndNonProspectRoles_ShouldReturnFalse()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new AccountRepository(context);
+        var contact = CreateProspectOnlyContact(102);
+        var prospectAccount = CreateProspectOnlyAccount(203, GlobalConstants.ProspectAccountType);
+        var clientAccount = CreateProspectOnlyAccount(204, AccountType.CLIENT.ToString());
+
+        context.RoleEntity.AddRange(
+            CreateProspectOnlyRole(contact, prospectAccount),
+            CreateProspectOnlyRole(contact, clientAccount));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var result = await repository.IsContactProspectOnlyAsync(contact.ContactId);
+
+        result.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Ensures the prospect-only check returns false for an existing contact without roles.
+    /// </summary>
+    [Fact]
+    public async Task IsContactProspectOnlyAsync_WithNoRoles_ShouldReturnFalse()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new AccountRepository(context);
+        var contact = CreateProspectOnlyContact(103);
+
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var result = await repository.IsContactProspectOnlyAsync(contact.ContactId);
+
+        result.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Ensures the prospect-only check throws the existing contact-not-found exception when the contact does not exist.
+    /// </summary>
+    [Fact]
+    public async Task IsContactProspectOnlyAsync_WhenContactDoesNotExist_ShouldThrowNotFoundException()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new AccountRepository(context);
+        var contactId = 104;
+
+        var result = async () => await repository.IsContactProspectOnlyAsync(contactId);
+
+        var exception = await Assert.ThrowsAsync<NotFoundException>(result);
+        exception.Code.Should().Be(Errors.NotFoundContactCode);
+        exception.Message.Should().Be(string.Format(Errors.NotFoundContactMessage, contactId));
+    }
+
+    /// <summary>
+    /// Ensures contact existence is checked before evaluating roles for the requested identifier.
+    /// </summary>
+    [Fact]
+    public async Task IsContactProspectOnlyAsync_WhenRoleExistsButContactDoesNotExist_ShouldThrowNotFoundException()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new AccountRepository(context);
+        var contactId = 105;
+        var prospectAccount = CreateProspectOnlyAccount(205, GlobalConstants.ProspectAccountType);
+
+        context.RoleEntity.Add(new RoleEntity
+        {
+            ContactId = contactId,
+            Account = prospectAccount,
+            AccountId = prospectAccount.AccountId
+        });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var result = async () => await repository.IsContactProspectOnlyAsync(contactId);
+
+        var exception = await Assert.ThrowsAsync<NotFoundException>(result);
+        exception.Code.Should().Be(Errors.NotFoundContactCode);
+        exception.Message.Should().Be(string.Format(Errors.NotFoundContactMessage, contactId));
+    }
+
+    /// <summary>
+    /// Ensures the prospect-only check is scoped to the requested contact identifier.
+    /// </summary>
+    [Fact]
+    public async Task IsContactProspectOnlyAsync_WhenAnotherContactHasClientRole_ShouldReturnTrueForProspectOnlyContact()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new AccountRepository(context);
+        var prospectOnlyContact = CreateProspectOnlyContact(106);
+        var otherContact = CreateProspectOnlyContact(107);
+        var prospectAccount = CreateProspectOnlyAccount(206, GlobalConstants.ProspectAccountType);
+        var clientAccount = CreateProspectOnlyAccount(207, AccountType.CLIENT.ToString());
+
+        context.RoleEntity.AddRange(
+            CreateProspectOnlyRole(prospectOnlyContact, prospectAccount),
+            CreateProspectOnlyRole(otherContact, clientAccount));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var result = await repository.IsContactProspectOnlyAsync(prospectOnlyContact.ContactId);
+
+        result.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// Creates a contact entity for prospect-only repository tests.
+    /// </summary>
+    /// <param name="contactId">The contact identifier.</param>
+    /// <returns>A contact entity.</returns>
+    private static ContactEntity CreateProspectOnlyContact(int contactId)
+    {
+        return new ContactEntity
+        {
+            ContactId = contactId,
+            Type = ContactType.Collaborator.ToString(),
+            FirstName = $"First {contactId}",
+            LastName = $"Last {contactId}",
+            Email = $"contact{contactId}@test.fr",
+            PersonaName = $"Contact {contactId}",
+            CreationDate = DateTime.UtcNow,
+            IsActive = true,
+        };
+    }
+
+    /// <summary>
+    /// Creates an account entity for prospect-only repository tests.
+    /// </summary>
+    /// <param name="accountId">The account identifier.</param>
+    /// <param name="accountType">The account type.</param>
+    /// <returns>An account entity.</returns>
+    private static AccountEntity CreateProspectOnlyAccount(int accountId, string accountType)
+    {
+        return new AccountEntity
+        {
+            AccountId = accountId,
+            AccountNumber = $"ACC-{accountId}",
+            LegalName = $"Account {accountId}",
+            AccountType = accountType,
+            CreatedBy = "tests",
+            IsActive = true,
+        };
+    }
+
+    /// <summary>
+    /// Creates a role entity linking a contact to an account for prospect-only repository tests.
+    /// </summary>
+    /// <param name="contact">The contact entity.</param>
+    /// <param name="account">The account entity.</param>
+    /// <returns>A role entity.</returns>
+    private static RoleEntity CreateProspectOnlyRole(ContactEntity contact, AccountEntity account)
+    {
+        return new RoleEntity
+        {
+            Contact = contact,
+            ContactId = contact.ContactId,
+            Account = account,
+            AccountId = account.AccountId
+        };
+    }
+
+    #endregion IsContactProspectOnlyAsync
 
     #region Prospect filtering regression coverage additions
 

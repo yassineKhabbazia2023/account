@@ -19,7 +19,6 @@ using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
-using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
@@ -343,6 +342,69 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
 
         // Assert
         Assert.Equal(expected, (result.Result as OkObjectResult)?.Value);
+    }
+
+    /// <summary>
+    /// Ensures the prospect-only contact endpoint returns the boolean value provided by the service.
+    /// </summary>
+    /// <param name="isProspectOnly">The service result.</param>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task IsContactProspectOnlyAsync_Should_Return_Service_Result(bool isProspectOnly)
+    {
+        // Arrange
+        var contactId = 6000;
+        var accountService = new Mock<IAccountService>(MockBehavior.Strict);
+        accountService.Setup(service => service.IsContactProspectOnlyAsync(contactId))
+            .ReturnsAsync(isProspectOnly);
+        var accountController = new AccountController(accountService.Object);
+
+        // Act
+        var result = await accountController.IsContactProspectOnlyAsync(contactId);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(isProspectOnly, okResult.Value);
+        accountService.Verify(service => service.IsContactProspectOnlyAsync(contactId), Times.Once);
+    }
+
+    /// <summary>
+    /// Ensures the prospect-only contact endpoint propagates the existing contact-not-found exception.
+    /// </summary>
+    [Fact]
+    public async Task IsContactProspectOnlyAsync_WhenContactDoesNotExist_Should_Throw_NotFoundException()
+    {
+        // Arrange
+        var contactId = 6000;
+        var accountService = new Mock<IAccountService>(MockBehavior.Strict);
+        accountService.Setup(service => service.IsContactProspectOnlyAsync(contactId))
+            .ThrowsAsync(new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId)));
+        var accountController = new AccountController(accountService.Object);
+
+        // Act
+        var result = async () => await accountController.IsContactProspectOnlyAsync(contactId);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<NotFoundException>(result);
+        Assert.Equal(Errors.NotFoundContactCode, exception.Code);
+        Assert.Equal(string.Format(Errors.NotFoundContactMessage, contactId), exception.Message);
+    }
+
+    /// <summary>
+    /// Ensures the prospect-only contact endpoint keeps the requested downstream route shape.
+    /// </summary>
+    [Fact]
+    public void IsContactProspectOnlyAsync_Should_Use_Expected_Route()
+    {
+        // Arrange
+        var method = typeof(AccountController).GetMethod(nameof(AccountController.IsContactProspectOnlyAsync));
+
+        // Act
+        var attribute = Assert.Single(method!.GetCustomAttributes(typeof(HttpGetAttribute), false).OfType<HttpGetAttribute>());
+
+        // Assert
+        Assert.Equal("contacts/{contactId}/is-prospect-only", attribute.Template);
     }
 
     /// <summary>

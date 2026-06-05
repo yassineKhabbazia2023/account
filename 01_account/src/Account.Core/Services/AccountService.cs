@@ -165,6 +165,12 @@ public class AccountService(
         return await _accountRepository.GetAccountContactWidgetContactsAsync(accountId);
     }
 
+    /// <inheritdoc/>
+    public async Task<bool> IsContactProspectOnlyAsync(int contactId)
+    {
+        return await _accountRepository.IsContactProspectOnlyAsync(contactId);
+    }
+
     public async Task<Paging<Contact>> GetAssociatedContactsAsync(int contactId, GetAssociatedContactsRequest request, Pagination? pagination)
     {
         pagination = pagination ?? new Pagination();

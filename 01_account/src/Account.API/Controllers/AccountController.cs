@@ -219,6 +219,21 @@ public class AccountController(IAccountService accountService) : ControllerBase
     }
 
     /// <summary>
+    /// Vérifier si un contact a uniquement des rôles sur des entités prospectes.
+    /// </summary>
+    /// <param name="contactId">Identifiant du contact.</param>
+    /// <returns><c>true</c> si le contact existe, possède au moins un rôle et tous ses rôles sont sur des entités prospectes; sinon <c>false</c>.</returns>
+    [HttpGet("contacts/{contactId}/is-prospect-only")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<bool>> IsContactProspectOnlyAsync(int contactId)
+    {
+        var result = await accountService.IsContactProspectOnlyAsync(contactId);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Récupérer la liste des contacts rattachés aux entités d'un contact admin.
     /// </summary>
     /// <param name="contactId">Identifiant du contact connecté.</param>

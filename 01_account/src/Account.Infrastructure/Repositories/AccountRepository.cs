@@ -1,4 +1,4 @@
-﻿// <copyright file="AccountRepository.cs" company="Pulse">
+// <copyright file="AccountRepository.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -408,6 +408,42 @@ public class AccountRepository : IAccountRepository
                 pagination!.PageNumber,
                 totalItems,
                 totalPages);
+        });
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> IsContactProspectOnlyAsync(int contactId)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var contactExists = await _accountContext.ContactEntity
+                .AsNoTracking()
+                .AnyAsync(contact => contact.ContactId == contactId);
+
+            if (!contactExists)
+            {
+                throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
+            }
+
+            var rolesForContact = _accountContext.RoleEntity
+                .AsNoTracking()
+                .Where(role => role.ContactId == contactId);
+
+            var hasAnyRole = await rolesForContact.AnyAsync();
+            if (!hasAnyRole)
+            {
+                return false;
+            }
+
+            var hasNonProspectRole = await (
+                from role in rolesForContact
+                join account in _accountContext.AccountEntity.IgnoreQueryFilters().AsNoTracking()
+                    on role.AccountId equals account.AccountId
+                where account.AccountType != GlobalConstants.ProspectAccountType
+                select role)
+                .AnyAsync();
+
+            return !hasNonProspectRole;
         });
     }
 
