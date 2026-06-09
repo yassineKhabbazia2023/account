@@ -612,6 +612,11 @@ public class RegistryRoleEventRepositoryTests
             .With(a => a.IsActive, true)
             .With(a => a.AccountType, GlobalConstants.ProspectAccountType)
             .Without(a => a.RoleEntity)
+            .Without(a => a.PhoneEntity)
+            .Without(a => a.AddressEntity)
+            .Without(a => a.DeploymentEntity)
+            .Without(a => a.RoleLabelEntity)
+            .Without(a => a.Delegation)
             .Create();
         context.AccountEntity.Add(account);
 

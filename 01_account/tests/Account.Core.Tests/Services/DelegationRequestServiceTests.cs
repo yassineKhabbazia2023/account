@@ -3,8 +3,6 @@
 // </copyright>
 
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
@@ -20,12 +18,14 @@ namespace Pulse.Account.Core.Tests.Services;
 public class DelegationRequestServiceTests
 {
     private readonly Mock<IDelegationRequestRepository> _mockRepository;
+    private readonly Mock<IDelegationService> _mockDelegationService;
     private readonly DelegationRequestService _service;
 
     public DelegationRequestServiceTests()
     {
         _mockRepository = new Mock<IDelegationRequestRepository>();
-        _service = new DelegationRequestService(_mockRepository.Object);
+        _mockDelegationService = new Mock<IDelegationService>();
+        _service = new DelegationRequestService(_mockRepository.Object, _mockDelegationService.Object);
     }
 
     [Fact]
@@ -474,10 +474,11 @@ public class DelegationRequestServiceTests
         _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
             .ReturnsAsync(new List<DelegationRequest>
             {
-                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, Status = "pending" }
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" }
             });
-        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.Is<int[]>(ids => ids.SequenceEqual(new[] { 1 })), It.IsAny<DateTime>()))
-            .Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.Is<int[]>(ids => ids.SequenceEqual(new[] { 1 })), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
 
         var result = await _service.AcceptRequestsAsync(currentUserId, request);
 
@@ -511,17 +512,255 @@ public class DelegationRequestServiceTests
         _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
             .ReturnsAsync(new List<DelegationRequest>
             {
-                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, Status = "pending" },
-                new DelegationRequest { DelegationRequestId = 2, RecipientId = 10, Status = "pending" }
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" },
+                new DelegationRequest { DelegationRequestId = 2, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" }
             });
-        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>()))
-            .Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
 
         var result = await _service.AcceptRequestsAsync(currentUserId, request);
 
         result.ProcessedIds.Should().BeEquivalentTo(new[] { 1, 2 });
         result.Errors.Should().BeEmpty();
         _mockRepository.Verify(r => r.AcceptRequestsAsync(It.Is<int[]>(ids => ids.Length == 2), It.IsAny<DateTime>()), Times.Once);
+        _mockDelegationService.Verify(s => s.CreateDelegationAsync(currentUserId, It.IsAny<CreateDelegationRequest>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenValid_ShouldCreateDelegationForRequester()
+    {
+        var currentUserId = 10;
+        var requesterId = 5;
+        var accountId = 100;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = requesterId, AccountId = accountId, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
+
+        await _service.AcceptRequestsAsync(currentUserId, request);
+
+        _mockDelegationService.Verify(s => s.CreateDelegationAsync(currentUserId, It.Is<CreateDelegationRequest>(d => d.AccountIds!.Contains(accountId) && d.DelegationDetails.Any(dd => dd.DelegateeId == requesterId) && !d.IsFullDelegation)), Times.Once);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenMultipleDistinctPairs_ShouldCreateDelegationForEachPair()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1, 2 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" },
+                new DelegationRequest { DelegationRequestId = 2, RecipientId = 10, RequesterId = 7, AccountId = 200, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
+
+        await _service.AcceptRequestsAsync(currentUserId, request);
+
+        _mockDelegationService.Verify(s => s.CreateDelegationAsync(currentUserId, It.Is<CreateDelegationRequest>(d => d.AccountIds!.Contains(100) && d.DelegationDetails.Any(dd => dd.DelegateeId == 5))), Times.Once);
+        _mockDelegationService.Verify(s => s.CreateDelegationAsync(currentUserId, It.Is<CreateDelegationRequest>(d => d.AccountIds!.Contains(200) && d.DelegationDetails.Any(dd => dd.DelegateeId == 7))), Times.Once);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenSameRequesterAndAccount_ShouldCreateDelegationOnlyOnce()
+    {
+        var currentUserId = 10;
+        var requesterId = 5;
+        var accountId = 100;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1, 2 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = requesterId, AccountId = accountId, Status = "pending" },
+                new DelegationRequest { DelegationRequestId = 2, RecipientId = 10, RequesterId = requesterId, AccountId = accountId, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
+
+        await _service.AcceptRequestsAsync(currentUserId, request);
+
+        _mockDelegationService.Verify(s => s.CreateDelegationAsync(currentUserId, It.IsAny<CreateDelegationRequest>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenValid_ShouldCreateDelegationWithCorrectStartDate()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
+
+        await _service.AcceptRequestsAsync(currentUserId, request);
+
+        _mockDelegationService.Verify(s => s.CreateDelegationAsync(currentUserId, It.Is<CreateDelegationRequest>(d => d.DelegationDetails.All(dd => dd.StartDate != null && dd.StartDate.Value.Date == DateTime.UtcNow.Date) && d.DelegationDetails.All(dd => !dd.IsAutomaticDelegation))), Times.Once);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenDelegationServiceThrows_ShouldPropagateException()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>()))
+            .ThrowsAsync(new BadRequestException("ERR", "Delegation creation failed"));
+
+        Func<Task> act = async () => await _service.AcceptRequestsAsync(currentUserId, request);
+
+        await act.Should().ThrowAsync<BadRequestException>();
+    }
+
+    // ========== AcceptSiblingRequestsAsync coverage ==========
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenValid_ShouldCallAcceptSiblingRequestsForEachPair()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
+
+        await _service.AcceptRequestsAsync(currentUserId, request);
+
+        _mockRepository.Verify(r => r.AcceptSiblingRequestsAsync(5, 100, It.IsAny<DateTime>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenMultipleDistinctPairs_ShouldCallAcceptSiblingRequestsForEach()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1, 2 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" },
+                new DelegationRequest { DelegationRequestId = 2, RecipientId = 10, RequesterId = 7, AccountId = 200, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
+
+        await _service.AcceptRequestsAsync(currentUserId, request);
+
+        _mockRepository.Verify(r => r.AcceptSiblingRequestsAsync(5, 100, It.IsAny<DateTime>()), Times.Once);
+        _mockRepository.Verify(r => r.AcceptSiblingRequestsAsync(7, 200, It.IsAny<DateTime>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenSameRequesterAndAccount_ShouldCallAcceptSiblingRequestsOnlyOnce()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1, 2 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" },
+                new DelegationRequest { DelegationRequestId = 2, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
+
+        await _service.AcceptRequestsAsync(currentUserId, request);
+
+        _mockRepository.Verify(r => r.AcceptSiblingRequestsAsync(5, 100, It.IsAny<DateTime>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenAcceptSiblingRequestsThrows_ShouldPropagateException()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).ThrowsAsync(new System.InvalidOperationException("DB error"));
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
+
+        Func<Task> act = async () => await _service.AcceptRequestsAsync(currentUserId, request);
+
+        await act.Should().ThrowAsync<System.InvalidOperationException>().WithMessage("DB error");
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_ShouldCallAcceptSiblingRequestsWithSameRespondedAtAsAcceptRequests()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+        DateTime capturedAcceptDate = default;
+        DateTime capturedSiblingDate = default;
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Callback<int[], DateTime>((_, d) => capturedAcceptDate = d).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<DateTime>())).Callback<int, int, DateTime>((_, _, d) => capturedSiblingDate = d).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
+
+        await _service.AcceptRequestsAsync(currentUserId, request);
+
+        capturedAcceptDate.Should().Be(capturedSiblingDate);
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_WhenSiblingRequestsSucceed_ShouldStillCreateDelegation()
+    {
+        var currentUserId = 10;
+        var request = new AcceptDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.AcceptRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AcceptSiblingRequestsAsync(5, 100, It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockDelegationService.Setup(s => s.CreateDelegationAsync(It.IsAny<int>(), It.IsAny<CreateDelegationRequest>())).Returns(Task.CompletedTask);
+
+        await _service.AcceptRequestsAsync(currentUserId, request);
+
+        _mockRepository.Verify(r => r.AcceptSiblingRequestsAsync(5, 100, It.IsAny<DateTime>()), Times.Once);
+        _mockDelegationService.Verify(s => s.CreateDelegationAsync(currentUserId, It.Is<CreateDelegationRequest>(d => d.AccountIds!.Contains(100) && d.DelegationDetails.Any(dd => dd.DelegateeId == 5))), Times.Once);
     }
 
     // ========== RefuseRequestsAsync ==========
@@ -564,8 +803,7 @@ public class DelegationRequestServiceTests
             {
                 new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, Status = "pending" }
             });
-        _mockRepository.Setup(r => r.RefuseRequestsAsync(It.Is<int[]>(ids => ids.SequenceEqual(new[] { 1 })), It.IsAny<DateTime>()))
-            .Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.RefuseRequestsAsync(It.Is<int[]>(ids => ids.SequenceEqual(new[] { 1 })), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
 
         var result = await _service.RefuseRequestsAsync(currentUserId, request);
 
@@ -586,8 +824,7 @@ public class DelegationRequestServiceTests
             {
                 new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, Status = "pending" }
             });
-        _mockRepository.Setup(r => r.RefuseRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>()))
-            .Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.RefuseRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
 
         var result = await _service.RefuseRequestsAsync(currentUserId, request);
 

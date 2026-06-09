@@ -5,12 +5,15 @@
 using System.Linq;
 using AutoFixture;
 using FluentAssertions;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
+using Pulse.Account.Infrastructure.Tests.Helpers;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
@@ -372,6 +375,331 @@ public class DelegationRequestRepositoryTests
         result.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task AreAllSiblingRequestsRefusedAsync_ShouldReturnFalse_WhenPendingRequestExists()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var requester = CreateContactEntity(1);
+        var recipient1 = CreateContactEntity(2);
+        var recipient2 = CreateContactEntity(3);
+        var account = CreateAccountEntity(100);
+        var refusedRequest = CreateDelegationRequestEntity(1, requester.ContactId, recipient1.ContactId, account.AccountId, "refused");
+        var pendingRequest = CreateDelegationRequestEntity(2, requester.ContactId, recipient2.ContactId, account.AccountId, "pending");
+
+        context.ContactEntity.AddRange(requester, recipient1, recipient2);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.AddRange(refusedRequest, pendingRequest);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+
+        var result = await repository.AreAllSiblingRequestsRefusedAsync(requester.ContactId, account.AccountId);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task AreAllSiblingRequestsRefusedAsync_ShouldReturnFalse_WhenAcceptedRequestExists()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var requester = CreateContactEntity(1);
+        var recipient = CreateContactEntity(2);
+        var account = CreateAccountEntity(100);
+        var acceptedRequest = CreateDelegationRequestEntity(1, requester.ContactId, recipient.ContactId, account.AccountId, "accepted");
+
+        context.ContactEntity.AddRange(requester, recipient);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.Add(acceptedRequest);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+
+        var result = await repository.AreAllSiblingRequestsRefusedAsync(requester.ContactId, account.AccountId);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task AreAllSiblingRequestsRefusedAsync_ShouldReturnTrue_WhenAllSiblingRequestsAreRefused()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var requester = CreateContactEntity(1);
+        var recipient1 = CreateContactEntity(2);
+        var recipient2 = CreateContactEntity(3);
+        var account = CreateAccountEntity(100);
+        var refusedRequest1 = CreateDelegationRequestEntity(1, requester.ContactId, recipient1.ContactId, account.AccountId, "refused");
+        var refusedRequest2 = CreateDelegationRequestEntity(2, requester.ContactId, recipient2.ContactId, account.AccountId, "refused");
+
+        context.ContactEntity.AddRange(requester, recipient1, recipient2);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.AddRange(refusedRequest1, refusedRequest2);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+
+        var result = await repository.AreAllSiblingRequestsRefusedAsync(requester.ContactId, account.AccountId);
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task AreAllSiblingRequestsRefusedAsync_ShouldReturnFalse_WhenNoSiblingRequestsExist()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new DelegationRequestRepository(context);
+
+        var result = await repository.AreAllSiblingRequestsRefusedAsync(999, 999);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_ShouldAcceptMultipleRequestsByIds()
+    {
+        using var context = CreateSqliteContext();
+        var requester = CreateContactEntity(1);
+        var recipient1 = CreateContactEntity(2);
+        var recipient2 = CreateContactEntity(3);
+        var account = CreateAccountEntity(100);
+        var request1 = CreateDelegationRequestEntity(1, requester.ContactId, recipient1.ContactId, account.AccountId, "pending");
+        var request2 = CreateDelegationRequestEntity(2, requester.ContactId, recipient2.ContactId, account.AccountId, "pending");
+
+        context.ContactEntity.AddRange(requester, recipient1, recipient2);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.AddRange(request1, request2);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+        var respondedAt = DateTime.UtcNow;
+        var idsToAccept = new[] { 1, 2 };
+
+        await repository.AcceptRequestsAsync(idsToAccept, respondedAt);
+        context.ChangeTracker.Clear();
+
+        var results = context.DelegationRequestEntity
+            .Where(dr => idsToAccept.Contains(dr.DelegationRequestId))
+            .OrderBy(dr => dr.DelegationRequestId)
+            .ToList();
+
+        results.Should().HaveCount(2);
+        results.Should().AllSatisfy(r =>
+        {
+            r.Status.Should().Be(DelegationStatusValues.Accepted);
+            r.RespondedAt.Should().BeCloseTo(respondedAt, TimeSpan.FromSeconds(1));
+        });
+    }
+
+    [Fact]
+    public async Task AcceptRequestsAsync_ShouldNotAffectOtherRequests()
+    {
+        using var context = CreateSqliteContext();
+        var requester = CreateContactEntity(1);
+        var recipient1 = CreateContactEntity(2);
+        var recipient2 = CreateContactEntity(3);
+        var account = CreateAccountEntity(100);
+        var request1 = CreateDelegationRequestEntity(1, requester.ContactId, recipient1.ContactId, account.AccountId, "pending");
+        var request2 = CreateDelegationRequestEntity(2, requester.ContactId, recipient2.ContactId, account.AccountId, "pending");
+
+        context.ContactEntity.AddRange(requester, recipient1, recipient2);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.AddRange(request1, request2);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+        var respondedAt = DateTime.UtcNow;
+
+        await repository.AcceptRequestsAsync(new[] { 1 }, respondedAt);
+        context.ChangeTracker.Clear();
+
+        var untouched = context.DelegationRequestEntity.First(dr => dr.DelegationRequestId == 2);
+        untouched.Status.Should().Be("pending");
+        untouched.RespondedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_ShouldRefuseMultipleRequestsByIds()
+    {
+        using var context = CreateSqliteContext();
+        var requester = CreateContactEntity(1);
+        var recipient1 = CreateContactEntity(2);
+        var recipient2 = CreateContactEntity(3);
+        var account = CreateAccountEntity(100);
+        var request1 = CreateDelegationRequestEntity(1, requester.ContactId, recipient1.ContactId, account.AccountId, "pending");
+        var request2 = CreateDelegationRequestEntity(2, requester.ContactId, recipient2.ContactId, account.AccountId, "pending");
+
+        context.ContactEntity.AddRange(requester, recipient1, recipient2);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.AddRange(request1, request2);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+        var respondedAt = DateTime.UtcNow;
+        var idsToRefuse = new[] { 1, 2 };
+
+        await repository.RefuseRequestsAsync(idsToRefuse, respondedAt);
+        context.ChangeTracker.Clear();
+
+        var results = context.DelegationRequestEntity
+            .Where(dr => idsToRefuse.Contains(dr.DelegationRequestId))
+            .OrderBy(dr => dr.DelegationRequestId)
+            .ToList();
+
+        results.Should().HaveCount(2);
+        results.Should().AllSatisfy(r =>
+        {
+            r.Status.Should().Be(DelegationStatusValues.Refused);
+            r.RespondedAt.Should().BeCloseTo(respondedAt, TimeSpan.FromSeconds(1));
+        });
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WithPartialIds_ShouldRefuseOnlySelectedRequests()
+    {
+        using var context = CreateSqliteContext();
+        var requester = CreateContactEntity(1);
+        var recipients = Enumerable.Range(2, 3).Select(i => CreateContactEntity(i)).ToList();
+        var account = CreateAccountEntity(100);
+        var requests = recipients.Select((r, i) =>
+            CreateDelegationRequestEntity(i + 1, requester.ContactId, r.ContactId, account.AccountId, "pending")).ToList();
+
+        context.ContactEntity.AddRange(requester);
+        context.ContactEntity.AddRange(recipients);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.AddRange(requests);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+        var respondedAt = DateTime.UtcNow;
+        var idsToRefuse = new[] { 1, 2 };
+
+        await repository.RefuseRequestsAsync(idsToRefuse, respondedAt);
+        context.ChangeTracker.Clear();
+
+        var refused = context.DelegationRequestEntity.Where(dr => dr.Status == DelegationStatusValues.Refused).ToList();
+        var pending = context.DelegationRequestEntity.Where(dr => dr.Status == "pending").ToList();
+
+        refused.Should().HaveCount(2);
+        refused.Select(r => r.DelegationRequestId).Should().BeEquivalentTo(idsToRefuse);
+        pending.Should().HaveCount(1);
+        pending.First().DelegationRequestId.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WithEmptyIdArray_ShouldNotRefuseAnyRequests()
+    {
+        using var context = CreateSqliteContext();
+        var requester = CreateContactEntity(1);
+        var recipient = CreateContactEntity(2);
+        var account = CreateAccountEntity(100);
+        var request = CreateDelegationRequestEntity(1, requester.ContactId, recipient.ContactId, account.AccountId, "pending");
+
+        context.ContactEntity.AddRange(requester, recipient);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.Add(request);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+        var respondedAt = DateTime.UtcNow;
+
+        await repository.RefuseRequestsAsync(Array.Empty<int>(), respondedAt);
+        context.ChangeTracker.Clear();
+
+        var allRequests = context.DelegationRequestEntity.ToList();
+        allRequests.Should().HaveCount(1);
+        allRequests.First().Status.Should().Be("pending");
+        allRequests.First().RespondedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task AcceptSiblingRequestsAsync_ShouldAcceptOnlyPendingSiblingRequests()
+    {
+        using var context = CreateSqliteContext();
+        var requester = CreateContactEntity(1);
+        var recipient1 = CreateContactEntity(2);
+        var recipient2 = CreateContactEntity(3);
+        var account = CreateAccountEntity(100);
+        var pendingRequest1 = CreateDelegationRequestEntity(1, requester.ContactId, recipient1.ContactId, account.AccountId, "pending");
+        var pendingRequest2 = CreateDelegationRequestEntity(2, requester.ContactId, recipient2.ContactId, account.AccountId, "pending");
+        var refusedRequest = CreateDelegationRequestEntity(3, requester.ContactId, recipient2.ContactId, account.AccountId, "refused");
+
+        context.ContactEntity.AddRange(requester, recipient1, recipient2);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.AddRange(pendingRequest1, pendingRequest2, refusedRequest);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+        var respondedAt = DateTime.UtcNow;
+
+        await repository.AcceptSiblingRequestsAsync(requester.ContactId, account.AccountId, respondedAt);
+        context.ChangeTracker.Clear();
+
+        var accepted = context.DelegationRequestEntity.Where(dr => dr.Status == DelegationStatusValues.Accepted).ToList();
+        var refused = context.DelegationRequestEntity.Where(dr => dr.Status == DelegationStatusValues.Refused).ToList();
+
+        accepted.Should().HaveCount(2);
+        accepted.Select(dr => dr.DelegationRequestId).Should().BeEquivalentTo(new[] { 1, 2 });
+        refused.Should().HaveCount(1);
+        refused.First().DelegationRequestId.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task AcceptSiblingRequestsAsync_ShouldNotAffectOtherAccountRequests()
+    {
+        using var context = CreateSqliteContext();
+        var requester = CreateContactEntity(1);
+        var recipient = CreateContactEntity(2);
+        var account1 = CreateAccountEntity(100);
+        var account2 = CreateAccountEntity(200);
+        var request1 = CreateDelegationRequestEntity(1, requester.ContactId, recipient.ContactId, account1.AccountId, "pending");
+        var request2 = CreateDelegationRequestEntity(2, requester.ContactId, recipient.ContactId, account2.AccountId, "pending");
+
+        context.ContactEntity.AddRange(requester, recipient);
+        context.AccountEntity.AddRange(account1, account2);
+        context.DelegationRequestEntity.AddRange(request1, request2);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+        var respondedAt = DateTime.UtcNow;
+
+        await repository.AcceptSiblingRequestsAsync(requester.ContactId, account1.AccountId, respondedAt);
+        context.ChangeTracker.Clear();
+
+        var accepted = context.DelegationRequestEntity.Where(dr => dr.Status == DelegationStatusValues.Accepted).ToList();
+        var pending = context.DelegationRequestEntity.Where(dr => dr.Status == "pending").ToList();
+
+        accepted.Should().HaveCount(1);
+        accepted.First().DelegationRequestId.Should().Be(1);
+        pending.Should().HaveCount(1);
+        pending.First().DelegationRequestId.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task AcceptSiblingRequestsAsync_WithMultipleSiblings_ShouldAcceptAllPending()
+    {
+        using var context = CreateSqliteContext();
+        var requester = CreateContactEntity(1);
+        var recipients = Enumerable.Range(2, 4).Select(i => CreateContactEntity(i)).ToList();
+        var account = CreateAccountEntity(100);
+        var requests = recipients.Select((r, i) =>
+            CreateDelegationRequestEntity(i + 1, requester.ContactId, r.ContactId, account.AccountId, "pending")).ToList();
+
+        context.ContactEntity.AddRange(requester);
+        context.ContactEntity.AddRange(recipients);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.AddRange(requests);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+        var respondedAt = DateTime.UtcNow;
+
+        await repository.AcceptSiblingRequestsAsync(requester.ContactId, account.AccountId, respondedAt);
+        context.ChangeTracker.Clear();
+
+        var allAccepted = context.DelegationRequestEntity.Where(dr => dr.Status == DelegationStatusValues.Accepted).ToList();
+
+        allAccepted.Should().HaveCount(4);
+        allAccepted.Should().AllSatisfy(r => r.RespondedAt.Should().BeCloseTo(respondedAt, TimeSpan.FromSeconds(1)));
+    }
 
     private static ContactEntity CreateContactEntity(int contactId)
     {
@@ -445,5 +773,19 @@ public class DelegationRequestRepositoryTests
             Status = status,
             RespondedAt = status == "pending" ? null : DateTime.UtcNow
         };
+    }
+
+    private static AccountContext CreateSqliteContext()
+    {
+        var connection = new SqliteConnection("DataSource=:memory:");
+        connection.Open();
+        connection.CreateFunction("newid", () => Guid.NewGuid().ToString());
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseSqlite(connection)
+            .Options;
+        var context = new AccountContext(options);
+        context.Database.EnsureCreated();
+        context.Database.ExecuteSqlRaw("PRAGMA foreign_keys = OFF;");
+        return context;
     }
 }

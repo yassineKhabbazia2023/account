@@ -290,7 +290,7 @@ public class RegistryAccountUpdatedEventHandlerTests
         var handler = new RegistryAccountUpdatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
 
         // Act
-        await handler.HandleAsync("");
+        await handler.HandleAsync(string.Empty);
 
         // Assert
         repositoryMock.Verify(repo => repo.UpdateAccountAsync(It.IsAny<RegistryAccountUpdatedEventData>()), Times.Never);

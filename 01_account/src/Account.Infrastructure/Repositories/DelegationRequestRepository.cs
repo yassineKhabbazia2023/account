@@ -75,7 +75,7 @@ public class DelegationRequestRepository : IDelegationRequestRepository
         var totalItems = await query.CountAsync();
 
         var items = await query
-            .OrderByDescending(dr => dr.CreatedAt)
+            .OrderBy(dr => dr.CreatedAt)
             .Skip((pagination.PageNumber - 1) * pagination.PageSize)
             .Take(pagination.PageSize)
             .Include(dr => dr.Requester)
@@ -121,7 +121,6 @@ public class DelegationRequestRepository : IDelegationRequestRepository
         return await _context.ContactEntity.AnyAsync(c => c.ContactId == contactId);
     }
 
-
     public async Task<List<DelegationRequest>> GetPendingRequestsByIdsAndRecipientAsync(int[] delegationRequestIds, int recipientId)
     {
         var entities = await _context.DelegationRequestEntity
@@ -138,19 +137,45 @@ public class DelegationRequestRepository : IDelegationRequestRepository
 
     public async Task AcceptRequestsAsync(int[] delegationRequestIds, DateTime respondedAt)
     {
-        await _context.DelegationRequestEntity
-            .Where(dr => delegationRequestIds.Contains(dr.DelegationRequestId))
-            .ExecuteUpdateAsync(setters => setters
-                .SetProperty(dr => dr.Status, DelegationStatusValues.Accepted)
-                .SetProperty(dr => dr.RespondedAt, respondedAt));
+        await UpdateRequestsAsync(delegationRequestIds, DelegationStatusValues.Accepted, respondedAt);
     }
 
     public async Task RefuseRequestsAsync(int[] delegationRequestIds, DateTime respondedAt)
     {
+        await UpdateRequestsAsync(delegationRequestIds, DelegationStatusValues.Refused, respondedAt);
+    }
+
+    public async Task AcceptSiblingRequestsAsync(int requesterId, int accountId, DateTime respondedAt)
+    {
+        await UpdateSiblingRequestsAsync(requesterId, accountId, DelegationStatusValues.Accepted, respondedAt);
+    }
+
+    public async Task<bool> AreAllSiblingRequestsRefusedAsync(int requesterId, int accountId)
+    {
+        var siblingRequests = _context.DelegationRequestEntity
+            .Where(dr => dr.RequesterId == requesterId
+                         && dr.AccountId == accountId);
+
+        return await siblingRequests.AnyAsync() && await siblingRequests.AllAsync(dr => dr.Status == DelegationStatusValues.Refused);
+    }
+
+    private async Task UpdateRequestsAsync(int[] delegationRequestIds, string status, DateTime respondedAt)
+    {
         await _context.DelegationRequestEntity
             .Where(dr => delegationRequestIds.Contains(dr.DelegationRequestId))
             .ExecuteUpdateAsync(setters => setters
-                .SetProperty(dr => dr.Status, DelegationStatusValues.Refused)
+                .SetProperty(dr => dr.Status, status)
+                .SetProperty(dr => dr.RespondedAt, respondedAt));
+    }
+
+    private async Task UpdateSiblingRequestsAsync(int requesterId, int accountId, string status, DateTime respondedAt)
+    {
+        await _context.DelegationRequestEntity
+            .Where(dr => dr.RequesterId == requesterId
+                         && dr.AccountId == accountId
+                         && dr.Status == DelegationStatusValues.Pending)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(dr => dr.Status, status)
                 .SetProperty(dr => dr.RespondedAt, respondedAt));
     }
 }

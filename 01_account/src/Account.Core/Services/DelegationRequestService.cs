@@ -17,10 +17,12 @@ namespace Pulse.Account.Core.Services;
 public class DelegationRequestService : IDelegationRequestService
 {
     private readonly IDelegationRequestRepository _delegationRequestRepository;
+    private readonly IDelegationService _delegationService;
 
-    public DelegationRequestService(IDelegationRequestRepository delegationRequestRepository)
+    public DelegationRequestService(IDelegationRequestRepository delegationRequestRepository, IDelegationService delegationService)
     {
         _delegationRequestRepository = delegationRequestRepository;
+        _delegationService = delegationService;
     }
 
     public async Task<CreateDelegationRequestsResponse> CreateDelegationRequestsAsync(int contactId, CreateDelegationRequestsRequest request)
@@ -165,6 +167,90 @@ public class DelegationRequestService : IDelegationRequestService
         };
     }
 
+    public async Task<ProcessDelegationRequestsResponse> AcceptRequestsAsync(int currentUserId, AcceptDelegationRequestsRequest request)
+    {
+        var (validIds, errors, validRequests) = await ValidateAndGetPendingRequestIdsAsync(currentUserId, request.DelegationRequestIds);
+
+        var respondedAt = DateTime.UtcNow;
+        await _delegationRequestRepository.AcceptRequestsAsync(validIds, respondedAt);
+
+        // Une seule validation suffit : accepter toutes les demandes sibling pending (même requester + account)
+        var processedPairs = validRequests
+            .Where(dr => validIds.Contains(dr.DelegationRequestId))
+            .Select(dr => (dr.RequesterId, dr.AccountId))
+            .Distinct()
+            .ToList();
+
+        foreach (var (requesterId, accountId) in processedPairs)
+        {
+            await _delegationRequestRepository.AcceptSiblingRequestsAsync(requesterId, accountId, respondedAt);
+        }
+
+        // Créer effectivement la délégation pour donner accès au demandeur
+        foreach (var (requesterId, accountId) in processedPairs)
+        {
+            await CreateDelegationForAcceptedRequestAsync(currentUserId, requesterId, accountId);
+        }
+
+        return new ProcessDelegationRequestsResponse
+        {
+            ProcessedIds = validIds,
+            Errors = errors
+        };
+    }
+
+    private async Task CreateDelegationForAcceptedRequestAsync(int delegatorId, int requesterId, int accountId)
+    {
+        var delegationRequest = new CreateDelegationRequest
+        {
+            DelegationDetails = new List<DelegationDetails>
+            {
+                new DelegationDetails
+                {
+                    DelegateeId = requesterId,
+                    StartDate = DateTime.UtcNow,
+                    IsAutomaticDelegation = false
+                }
+            },
+            AccountIds = new List<int> { accountId },
+            IsFullDelegation = false
+        };
+
+
+        await _delegationService.CreateDelegationAsync(delegatorId, delegationRequest);
+    }
+
+    public async Task<ProcessDelegationRequestsResponse> RefuseRequestsAsync(int currentUserId, RefuseDelegationRequestsRequest request)
+    {
+        var (validIds, errors, validRequests) = await ValidateAndGetPendingRequestIdsAsync(currentUserId, request.DelegationRequestIds);
+
+        var respondedAt = DateTime.UtcNow;
+        await _delegationRequestRepository.RefuseRequestsAsync(validIds, respondedAt);
+
+        // Vérifier si tous les collaborateurs ont refusé (plus aucune demande pending pour ce requester/account)
+        var processedPairs = validRequests
+            .Where(dr => validIds.Contains(dr.DelegationRequestId))
+            .Select(dr => (dr.RequesterId, dr.AccountId))
+            .Distinct()
+            .ToList();
+
+        var allRefusedRequesterIds = new List<int>();
+        foreach (var (requesterId, accountId) in processedPairs)
+        {
+            if (await _delegationRequestRepository.AreAllSiblingRequestsRefusedAsync(requesterId, accountId))
+            {
+                allRefusedRequesterIds.Add(requesterId);
+            }
+        }
+
+        return new ProcessDelegationRequestsResponse
+        {
+            ProcessedIds = validIds,
+            Errors = errors,
+            AllRefusedRequesterIds = allRefusedRequesterIds.Distinct().ToArray()
+        };
+    }
+
     private async Task<bool> HasAccessToAccountAsync(int contactId, int accountId)
     {
         var hasRole = await _delegationRequestRepository.HasRoleOnAccountAsync(contactId, accountId);
@@ -176,35 +262,7 @@ public class DelegationRequestService : IDelegationRequestService
         return await _delegationRequestRepository.HasActiveDelegationOnAccountAsync(contactId, accountId);
     }
 
-    public async Task<ProcessDelegationRequestsResponse> AcceptRequestsAsync(int currentUserId, AcceptDelegationRequestsRequest request)
-    {
-        var (validIds, errors) = await ValidateAndGetPendingRequestIdsAsync(currentUserId, request.DelegationRequestIds);
-
-        var respondedAt = DateTime.UtcNow;
-        await _delegationRequestRepository.AcceptRequestsAsync(validIds, respondedAt);
-
-        return new ProcessDelegationRequestsResponse
-        {
-            ProcessedIds = validIds,
-            Errors = errors
-        };
-    }
-
-    public async Task<ProcessDelegationRequestsResponse> RefuseRequestsAsync(int currentUserId, RefuseDelegationRequestsRequest request)
-    {
-        var (validIds, errors) = await ValidateAndGetPendingRequestIdsAsync(currentUserId, request.DelegationRequestIds);
-
-        var respondedAt = DateTime.UtcNow;
-        await _delegationRequestRepository.RefuseRequestsAsync(validIds, respondedAt);
-
-        return new ProcessDelegationRequestsResponse
-        {
-            ProcessedIds = validIds,
-            Errors = errors
-        };
-    }
-
-    private async Task<(int[] ValidIds, List<DelegationRequestError> Errors)> ValidateAndGetPendingRequestIdsAsync(int currentUserId, int[]? delegationRequestIds)
+    private async Task<(int[] ValidIds, List<DelegationRequestError> Errors, List<DelegationRequest> ValidRequests)> ValidateAndGetPendingRequestIdsAsync(int currentUserId, int[]? delegationRequestIds)
     {
         if (delegationRequestIds == null || delegationRequestIds.Length == 0)
         {
@@ -221,7 +279,7 @@ public class DelegationRequestService : IDelegationRequestService
             throw new BadRequestException(Errors.DelegationRequestAllInvalidCode, Errors.DelegationRequestAllInvalidMessage);
         }
 
-        return (validIds, errors);
+        return (validIds, errors, validRequests);
     }
 
     private static List<DelegationRequestError> BuildErrorsForInvalidIds(int[] requestedIds, int[] validIds)

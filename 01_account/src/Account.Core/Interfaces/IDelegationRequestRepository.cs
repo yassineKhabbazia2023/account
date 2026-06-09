@@ -26,10 +26,13 @@ public interface IDelegationRequestRepository
 
     Task<bool> DoesContactExistAsync(int contactId);
 
-
     Task<List<DelegationRequest>> GetPendingRequestsByIdsAndRecipientAsync(int[] delegationRequestIds, int recipientId);
 
     Task AcceptRequestsAsync(int[] delegationRequestIds, DateTime respondedAt);
 
     Task RefuseRequestsAsync(int[] delegationRequestIds, DateTime respondedAt);
+
+    Task AcceptSiblingRequestsAsync(int requesterId, int accountId, DateTime respondedAt);
+
+    Task<bool> AreAllSiblingRequestsRefusedAsync(int requesterId, int accountId);
 }
