@@ -555,6 +555,7 @@ public class AccountRepository : IAccountRepository
         if (sorting != null)
         {
             Expression<Func<ContactEntity, object>> exp = null!;
+            bool sortingApplied = false;
             switch (sorting.Field)
             {
                 case SortingConstants.NAME:
@@ -581,17 +582,38 @@ public class AccountRepository : IAccountRepository
                     exp = c => c.CreationDate;
                     break;
 
+                case SortingConstants.LABEL:
+                    if (isCollab)
+                    {
+                        query = sorting.Descending
+                            ? query.OrderByDescending(x => x.RoleLabelEntityContact.Any(rl => rl.AccountId == accountId))
+                            : query.OrderBy(x => x.RoleLabelEntityContact.Any(rl => rl.AccountId == accountId));
+                    }
+                    else
+                    {
+                        query = sorting.Descending
+                            ? query.OrderByDescending(x => x.RoleEntity.Where(r => r.AccountId == accountId).Select(r => r.IsSignatory).FirstOrDefault())
+                                   .ThenByDescending(x => x.RoleEntity.Where(r => r.AccountId == accountId).Select(r => r.ContactFlagPortailFactures).FirstOrDefault())
+                            : query.OrderBy(x => x.RoleEntity.Where(r => r.AccountId == accountId).Select(r => r.IsSignatory).FirstOrDefault())
+                                   .ThenBy(x => x.RoleEntity.Where(r => r.AccountId == accountId).Select(r => r.ContactFlagPortailFactures).FirstOrDefault());
+                    }
+                    sortingApplied = true;
+                    break;
+
                 default:
                     throw new BadRequestException(Errors.BadRequestContactsAccountCode, string.Format(Errors.BadRequestContactsAccountMessage, sorting.Field));
             }
 
-            if (sorting.Descending)
+            if (!sortingApplied)
             {
-                query = query.OrderByDescending(exp);
-            }
-            else
-            {
-                query = query.OrderBy(exp);
+                if (sorting.Descending)
+                {
+                    query = query.OrderByDescending(exp);
+                }
+                else
+                {
+                    query = query.OrderBy(exp);
+                }
             }
         }
         else

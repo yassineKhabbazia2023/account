@@ -64,6 +64,11 @@ namespace Pulse.Account.Core.Services
             await _roleLabelRepository.RemoveLabelAssignmentFromAccountAsync(accountId, labelId);
         }
 
+        public async Task<bool> HasExclusiveLabelAsync(int accountId, int contactId)
+        {
+            return await _roleLabelRepository.HasExclusiveLabelAsync(accountId, contactId);
+        }
+
         public async Task AssignRoleLabelFromCodeAsync(string? code, int accountId, int contactId)
         {
             if (string.IsNullOrWhiteSpace(code))

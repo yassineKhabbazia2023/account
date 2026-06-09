@@ -25,5 +25,7 @@ namespace Pulse.Account.Core.Constants
         public const string LEADER = "leader";
 
         public const string CITY = "city";
+
+        public const string LABEL = "label";
     }
 }

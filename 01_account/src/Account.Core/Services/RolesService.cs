@@ -76,7 +76,7 @@ public class RolesService : IRolesService
             var contact = await _contactRepository.GetContactByIdAsync(roleCreated.ContactId);
             var actionCode = ContactType.Collaborator.ToString().Equals(contact.Type) ? ActionCode.ADDKMANU.ToString() : ActionCode.ADDCMANU.ToString();
 
-            await PublishRoleCreatedEvent(roleToPublish);
+            await PublishRoleCreatedEvent(roleToPublish, includeProspects: true);
             await PublishHistoryCreatedEvent(currentUserId, roleCreated.ContactId, roleCreated.AccountId, actionCode);
         }
     }
@@ -209,6 +209,11 @@ public class RolesService : IRolesService
             {
                 throw new BadRequestException(Errors.CannotDeleteSignatoryCode, Errors.CannotDeleteSignatoryMessage);
             }
+        }
+
+        if (await _rolesRepository.IsProspectAccountAsync(accountId) && await _roleLabelService.HasExclusiveLabelAsync(accountId, contactId))
+        {
+            throw new BadRequestException(Errors.CannotDeleteRoleWithExclusiveLabelCode, Errors.CannotDeleteRoleWithExclusiveLabelMessage);
         }
 
         await _rolesRepository.DeleteRoleAsync(accountId, contactId);

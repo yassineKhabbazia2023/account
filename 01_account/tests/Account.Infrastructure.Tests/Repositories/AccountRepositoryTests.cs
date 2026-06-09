@@ -3522,4 +3522,129 @@ public class AccountRepositoryTests
     }
 
     #endregion Prospect filtering regression coverage additions
+
+    #region LABEL sorting coverage
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetContactsAccountAsync_LabelSorting_Collab_SortsByHasLabel(bool descending)
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var accountId = 50;
+        var account = new AccountEntity { AccountId = accountId, AccountNumber = "ACC-50", LegalName = "Test", AccountType = "CLIENT", CreatedBy = "tests", IsActive = true };
+
+        var labelAm = new LabelEntity { LabelId = 10, Code = "AM", Business = "ESG", IsVisible = true, CollaboratorLabel = "AM", CustomerLabel = "AM" };
+
+        var contactWithLabel = new ContactEntity
+        {
+            ContactId = 101,
+            Email = "with@label.fr",
+            FirstName = "WithLabel",
+            LastName = "A",
+            PersonaName = "WithLabel A",
+            Type = ContactType.Collaborator.ToString(),
+            IsActive = true,
+            RoleLabelEntityContact = new List<RoleLabelEntity> { new() { AccountId = accountId, ContactId = 101, LabelId = 10 } },
+            RoleEntity = new List<RoleEntity> { new() { AccountId = accountId, ContactId = 101 } }
+        };
+        var contactWithoutLabel = new ContactEntity
+        {
+            ContactId = 102,
+            Email = "without@label.fr",
+            FirstName = "WithoutLabel",
+            LastName = "B",
+            PersonaName = "WithoutLabel B",
+            Type = ContactType.Collaborator.ToString(),
+            IsActive = true,
+            RoleLabelEntityContact = new List<RoleLabelEntity>(),
+            RoleEntity = new List<RoleEntity> { new() { AccountId = accountId, ContactId = 102 } }
+        };
+
+        context.AccountEntity.Add(account);
+        context.LabelEntity.Add(labelAm);
+        context.ContactEntity.AddRange(contactWithLabel, contactWithoutLabel);
+        await context.SaveChangesAsync();
+
+        var criteria = new SearchContactsAccountCriteria
+        {
+            Type = ContactType.Collaborator,
+            Sorting = new Sorting { Field = SortingConstants.LABEL, Descending = descending }
+        };
+        var repository = new AccountRepository(context);
+
+        var result = await repository.GetContactsAccountAsync(accountId, criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Should().HaveCount(2);
+        if (descending)
+        {
+            result.Items.First().ContactId.Should().Be(101);
+        }
+        else
+        {
+            result.Items.First().ContactId.Should().Be(102);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GetContactsAccountAsync_LabelSorting_Customer_SortsByIsSignatoryThenFlagPortail(bool descending)
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var accountId = 60;
+        var account = new AccountEntity { AccountId = accountId, AccountNumber = "ACC-60", LegalName = "Test", AccountType = "CLIENT", CreatedBy = "tests", IsActive = true };
+
+        var contactSignatory = new ContactEntity
+        {
+            ContactId = 201,
+            Email = "signatory@test.fr",
+            FirstName = "Signatory",
+            LastName = "A",
+            PersonaName = "Signatory A",
+            Type = ContactType.Customer.ToString(),
+            IsActive = true,
+            RoleLabelEntityContact = new List<RoleLabelEntity>(),
+            RoleEntity = new List<RoleEntity> { new() { AccountId = accountId, ContactId = 201, IsSignatory = true, ContactFlagPortailFactures = false } }
+        };
+        var contactNonSignatory = new ContactEntity
+        {
+            ContactId = 202,
+            Email = "nonsignatory@test.fr",
+            FirstName = "NonSignatory",
+            LastName = "B",
+            PersonaName = "NonSignatory B",
+            Type = ContactType.Customer.ToString(),
+            IsActive = true,
+            RoleLabelEntityContact = new List<RoleLabelEntity>(),
+            RoleEntity = new List<RoleEntity> { new() { AccountId = accountId, ContactId = 202, IsSignatory = false, ContactFlagPortailFactures = false } }
+        };
+
+        context.AccountEntity.Add(account);
+        context.ContactEntity.AddRange(contactSignatory, contactNonSignatory);
+        await context.SaveChangesAsync();
+
+        var criteria = new SearchContactsAccountCriteria
+        {
+            Type = ContactType.Customer,
+            Sorting = new Sorting { Field = SortingConstants.LABEL, Descending = descending }
+        };
+        var repository = new AccountRepository(context);
+
+        var result = await repository.GetContactsAccountAsync(accountId, criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Should().HaveCount(2);
+        if (descending)
+        {
+            result.Items.First().ContactId.Should().Be(201);
+        }
+        else
+        {
+            result.Items.First().ContactId.Should().Be(202);
+        }
+    }
+
+    #endregion LABEL sorting coverage
 }

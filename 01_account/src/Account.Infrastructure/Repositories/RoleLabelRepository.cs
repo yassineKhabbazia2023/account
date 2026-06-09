@@ -3,6 +3,7 @@
 // </copyright>
 
 using Microsoft.EntityFrameworkCore;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
@@ -101,5 +102,13 @@ public class RoleLabelRepository : IRoleLabelRepository
             .Where(l => l.LabelId == labelId)
             .Select(l => l.Code)
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<bool> HasExclusiveLabelAsync(int accountId, int contactId)
+    {
+        return await _accountContext.RoleLabelEntity
+            .AsNoTracking()
+            .AnyAsync(rl => rl.AccountId == accountId && rl.ContactId == contactId
+                && (rl.Label.Code == RoleLabelCodes.AccountManager || rl.Label.Code == RoleLabelCodes.CustomerLeadPartner));
     }
 }

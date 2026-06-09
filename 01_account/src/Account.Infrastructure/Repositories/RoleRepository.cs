@@ -119,7 +119,7 @@ public class RoleRepository : IRoleRepository
                 role.ContactId = contactId;
             }
 
-            if (!await _accountContext.AccountEntity.AnyAsync(x => x.AccountId == role.AccountId))
+            if (!await _accountContext.ActiveAccounts.AnyAsync(x => x.AccountId == role.AccountId))
             {
                 throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, role.AccountId));
             }

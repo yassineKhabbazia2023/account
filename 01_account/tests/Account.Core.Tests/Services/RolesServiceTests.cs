@@ -130,6 +130,46 @@ public class RolesServiceTests
     }
 
     [Fact]
+    public async Task CreateRoleAsync_ShouldPublishWithIncludeProspectsTrue()
+    {
+        // Arrange
+        var newRole = new Role { AccountId = 6, ContactId = 6 };
+        var createRoleRequest = new CreateRoleRequest { AccountId = 6, ContactId = 6 };
+
+        _roleRepository.Setup(repo => repo.CreateRoleAsync(It.IsAny<CreateRoleRequest>())).ReturnsAsync(newRole);
+        _contactRepository.Setup(repo => repo.GetContactByIdAsync(It.IsAny<int>())).ReturnsAsync(_fixture.Create<Contact>());
+        _rolePublisher!.Setup(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        await roleService.CreateRoleAsync(createRoleRequest, 123);
+
+        // Assert
+        _rolePublisher.Verify(x => x.PublishRoleCreatedEventAsync(It.IsAny<CreateRoleRequest>(), It.IsAny<string>(), true), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteRoleAsync_WhenProspectAccountWithoutExclusiveLabel_ShouldSucceed()
+    {
+        // Arrange
+        var currentUserId = 25;
+        var roleRepository = DeleteRole_MockRepo();
+        roleRepository.Setup(repo => repo.IsProspectAccountAsync(1)).ReturnsAsync(true);
+        _roleLabelService.Setup(s => s.HasExclusiveLabelAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(false);
+        _contactRepository.Setup(repo => repo.GetContactByIdAsync(It.IsAny<int>())).ReturnsAsync(_fixture.Create<Contact>());
+
+        var roleService = new RolesService(roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        Task DeleteRole() => roleService!.DeleteRoleAsync(currentUserId, 1, 1);
+
+        // Assert
+        Assert.Equal(Task.CompletedTask, DeleteRole());
+        _rolePublisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), true), Times.Once);
+    }
+
+    [Fact]
     public async Task CreateRoleAsync_ShouldThrow_BadRequestException()
     {
         // Arrange
@@ -712,6 +752,45 @@ public class RolesServiceTests
         // Assert
         Assert.Equal(Task.CompletedTask, DeleteRole());
         _rolePublisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), true), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteRoleAsync_ShouldThrow_BadRequestException_WhenProspectCollabHasExclusiveLabel()
+    {
+        // Arrange
+        var currentUserId = 25;
+        var roleRepository = DeleteRole_MockRepo();
+        roleRepository.Setup(repo => repo.IsProspectAccountAsync(1)).ReturnsAsync(true);
+        _roleLabelService.Setup(s => s.HasExclusiveLabelAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
+
+        var roleService = new RolesService(roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        Task DeleteRole() => roleService.DeleteRoleAsync(currentUserId, 1, 1);
+
+        // Assert
+        await Assert.ThrowsAsync<BadRequestException>(DeleteRole);
+        _rolePublisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Never);
+    }
+
+    [Fact]
+    public void DeleteRoleAsync_ShouldNotThrow_WhenNonProspectCollabHasExclusiveLabel()
+    {
+        // Arrange
+        var currentUserId = 25;
+        var roleRepository = DeleteRole_MockRepo();
+        roleRepository.Setup(repo => repo.IsProspectAccountAsync(1)).ReturnsAsync(false);
+        _roleLabelService.Setup(s => s.HasExclusiveLabelAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
+        _contactRepository.Setup(repo => repo.GetContactByIdAsync(It.IsAny<int>())).ReturnsAsync(_fixture.Create<Contact>());
+
+        var roleService = new RolesService(roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        Task DeleteRole() => roleService!.DeleteRoleAsync(currentUserId, 1, 1);
+
+        // Assert
+        Assert.Equal(Task.CompletedTask, DeleteRole());
+        _rolePublisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()), Times.Once);
     }
 
     [Fact]

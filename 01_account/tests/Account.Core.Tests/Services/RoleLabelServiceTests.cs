@@ -348,5 +348,33 @@ namespace Pulse.Account.Core.Tests.Services
             _mockRoleLabelRepository.Verify(r => r.RemoveLabelAssignmentFromAccountAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
             _mockRoleLabelRepository.Verify(r => r.AddRoleLabelAsync(It.IsAny<RoleLabel>()), Times.Never);
         }
+
+        [Fact]
+        public async Task HasExclusiveLabelAsync_WhenContactHasExclusiveLabel_ReturnsTrue()
+        {
+            // Arrange
+            _mockRoleLabelRepository.Setup(r => r.HasExclusiveLabelAsync(1, 2)).ReturnsAsync(true);
+
+            // Act
+            var result = await _roleLabelService.HasExclusiveLabelAsync(1, 2);
+
+            // Assert
+            Assert.True(result);
+            _mockRoleLabelRepository.Verify(r => r.HasExclusiveLabelAsync(1, 2), Times.Once);
+        }
+
+        [Fact]
+        public async Task HasExclusiveLabelAsync_WhenContactHasNoExclusiveLabel_ReturnsFalse()
+        {
+            // Arrange
+            _mockRoleLabelRepository.Setup(r => r.HasExclusiveLabelAsync(1, 2)).ReturnsAsync(false);
+
+            // Act
+            var result = await _roleLabelService.HasExclusiveLabelAsync(1, 2);
+
+            // Assert
+            Assert.False(result);
+            _mockRoleLabelRepository.Verify(r => r.HasExclusiveLabelAsync(1, 2), Times.Once);
+        }
     }
 }

@@ -495,4 +495,56 @@ public class RoleLabelRepositoryTests
 
         result.Should().BeNull();
     }
+
+    [Theory]
+    [InlineData("AM")]
+    [InlineData("CLP")]
+    public async Task HasExclusiveLabelAsync_WhenContactHasExclusiveLabel_ReturnsTrue(string labelCode)
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var label = new LabelEntity { LabelId = 1, Code = labelCode, Business = "ESG", IsVisible = true, CollaboratorLabel = "COLLAB", CustomerLabel = "CUST" };
+        var roleLabelEntity = new RoleLabelEntity { AccountId = 10, ContactId = 5, LabelId = 1, CreatedBy = 1 };
+        context.LabelEntity.Add(label);
+        context.RoleLabelEntity.Add(roleLabelEntity);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleLabelRepository(context);
+
+        var result = await repository.HasExclusiveLabelAsync(10, 5);
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task HasExclusiveLabelAsync_WhenContactHasNoExclusiveLabel_ReturnsFalse()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var label = new LabelEntity { LabelId = 1, Code = "OTHER", Business = "ESG", IsVisible = true, CollaboratorLabel = "COLLAB", CustomerLabel = "CUST" };
+        var roleLabelEntity = new RoleLabelEntity { AccountId = 10, ContactId = 5, LabelId = 1, CreatedBy = 1 };
+        context.LabelEntity.Add(label);
+        context.RoleLabelEntity.Add(roleLabelEntity);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleLabelRepository(context);
+
+        var result = await repository.HasExclusiveLabelAsync(10, 5);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task HasExclusiveLabelAsync_WhenContactHasNoLabel_ReturnsFalse()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var repository = new RoleLabelRepository(context);
+
+        var result = await repository.HasExclusiveLabelAsync(10, 5);
+
+        result.Should().BeFalse();
+    }
 }

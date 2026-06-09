@@ -17,5 +17,7 @@ namespace Pulse.Account.Core.Interfaces
         Task RevokeExclusiveLabelAsync(int accountId, int labelId, string labelCode);
 
         Task AssignRoleLabelFromCodeAsync(string? code, int accountId, int contactId);
+
+        Task<bool> HasExclusiveLabelAsync(int accountId, int contactId);
     }
 }

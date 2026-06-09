@@ -160,4 +160,7 @@ public static class Errors
 
     public static readonly string CannotDeleteExclusiveLabelProspectCode = "ACC052";
     public static readonly string CannotDeleteExclusiveLabelProspectMessage = "Impossible de supprimer le libellé : la suppression d'un libellé AM ou CLP n'est pas autorisée pour un compte de type prospect.";
+
+    public static readonly string CannotDeleteRoleWithExclusiveLabelCode = "ACC053";
+    public static readonly string CannotDeleteRoleWithExclusiveLabelMessage = "Impossible de retirer le collaborateur : le contact possède un libellé AM ou CLP sur ce compte.";
 }
