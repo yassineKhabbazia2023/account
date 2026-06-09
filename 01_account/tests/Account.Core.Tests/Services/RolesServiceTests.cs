@@ -499,6 +499,67 @@ public class RolesServiceTests
     }
 
     [Fact]
+    public async Task CreateRolesBulkAsync_Should_PropagateContactFlagPortailFactures_WhenSetInRequest()
+    {
+        // Arrange
+        var request = new CreateRolesBulkRequest
+        {
+            Contacts = new List<CreateRolesBulkItem>
+            {
+                new() { ContactId = 55, IsSignatory = true, ContactFlagPortailFactures = true }
+            }
+        };
+
+        _contactRepository.Setup(repo => repo.GetContactByIdAsync(55))
+            .ReturnsAsync(new Contact { ContactId = 55, FirstName = "A", LastName = "B", Email = "a@b.fr", Type = "Customer" });
+
+        _roleRepository.Setup(repo => repo.CreateRoleWithoutAccountValidationAsync(
+                It.Is<CreateRoleRequest>(r => r.ContactId == 55 && r.ContactFlagPortailFactures == true)))
+            .ReturnsAsync(new Role { AccountId = 10, ContactId = 55 });
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        var result = await roleService.CreateRolesBulkAsync(10, request, 25);
+
+        // Assert
+        result.Succeeded.Should().ContainSingle(s => s.ContactId == 55);
+        result.Failed.Should().BeEmpty();
+        _roleRepository.Verify(repo => repo.CreateRoleWithoutAccountValidationAsync(
+            It.Is<CreateRoleRequest>(r => r.ContactId == 55 && r.ContactFlagPortailFactures == true)), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateRolesBulkAsync_Should_LeaveContactFlagPortailFacturesNull_WhenNotSetInRequest()
+    {
+        // Arrange
+        var request = new CreateRolesBulkRequest
+        {
+            Contacts = new List<CreateRolesBulkItem>
+            {
+                new() { ContactId = 56, IsSignatory = false }
+            }
+        };
+
+        _contactRepository.Setup(repo => repo.GetContactByIdAsync(56))
+            .ReturnsAsync(new Contact { ContactId = 56, FirstName = "C", LastName = "D", Email = "c@d.fr", Type = "Customer" });
+
+        _roleRepository.Setup(repo => repo.CreateRoleWithoutAccountValidationAsync(
+                It.Is<CreateRoleRequest>(r => r.ContactId == 56 && r.ContactFlagPortailFactures == null)))
+            .ReturnsAsync(new Role { AccountId = 10, ContactId = 56 });
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        var result = await roleService.CreateRolesBulkAsync(10, request, 25);
+
+        // Assert
+        result.Succeeded.Should().ContainSingle(s => s.ContactId == 56);
+        _roleRepository.Verify(repo => repo.CreateRoleWithoutAccountValidationAsync(
+            It.Is<CreateRoleRequest>(r => r.ContactId == 56 && r.ContactFlagPortailFactures == null)), Times.Once);
+    }
+
+    [Fact]
     public async Task UpdateRole_Should_ReturnsOkResultAsync()
     {
         // Arrange

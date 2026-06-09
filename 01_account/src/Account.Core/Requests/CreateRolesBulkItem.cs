@@ -19,6 +19,8 @@ namespace Pulse.Account.Core.Requests
 
         public bool? IncludePennylaneAccess { get; set; }
 
+        public bool? ContactFlagPortailFactures { get; set; }
+
         [RegularExpression(@"^(AM|CLP)$", ErrorMessage = "RoleCode doit valoir AM ou CLP.")]
         public string? RoleCode { get; set; }
     }

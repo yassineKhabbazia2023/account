@@ -66,10 +66,14 @@ public class DelegationRepositoryTests
     [Fact]
     public async Task CreateDelegationAsync_ShouldThrowNotFoundException_WhenNoExistingAccountsFound()
     {
-        var contactId = 25;
         CreateDelegationRequest createDelegationRequest = _fixture
             .Build<CreateDelegationRequest>()
             .Create();
+
+        var contactId = createDelegationRequest.DelegationDetails
+            .Select(d => d.DelegateeId)
+            .Append(0)
+            .Max() + 1;
 
         List<CreateRoleRequest> roleRequestList = _fixture
             .Build<CreateRoleRequest>()

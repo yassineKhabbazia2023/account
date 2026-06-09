@@ -123,6 +123,7 @@ public class RolesService : IRolesService
                     IsFavorite = item.IsFavorite,
                     IsDelegation = item.IsDelegation,
                     IncludePennylaneAccess = item.IncludePennylaneAccess,
+                    ContactFlagPortailFactures = item.ContactFlagPortailFactures,
                     IsCustomerRelation = ContactType.Collaborator.ToString().Equals(contact.Type) ? true : null,
                 };
 
