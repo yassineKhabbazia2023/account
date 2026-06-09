@@ -348,12 +348,13 @@ public class AccountRepository : IAccountRepository
         return account.MapToAccountDetail();
     }
 
-    public async Task<AccountDetail> UpdateAccountAsync(int accountId, AccountDetail accountDetail)
+    public async Task<AccountDetail> UpdateAccountAsync(int accountId, AccountDetail accountDetail, bool includeProspects = false)
     {
         AccountDetail? toReturn = null!;
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            var existingAccount = await _accountContext.AccountEntity.Include(a => a.DeploymentEntity).FirstOrDefaultAsync(x => x.AccountId == accountId);
+            IQueryable<AccountEntity> accounts = includeProspects ? _accountContext.ActiveAccounts : _accountContext.AccountEntity;
+            var existingAccount = await accounts.Include(a => a.DeploymentEntity).FirstOrDefaultAsync(x => x.AccountId == accountId);
             if (existingAccount == null)
             {
                 throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));

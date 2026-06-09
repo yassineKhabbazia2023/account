@@ -24,7 +24,7 @@ namespace Pulse.Account.Core.Interfaces
 
         Task<AccountDetail?> GetAccountDetailAsync(int accountId);
 
-        Task<AccountDetail> UpdateAccountAsync(int accountId, AccountDetail accountDetail);
+        Task<AccountDetail> UpdateAccountAsync(int accountId, AccountDetail accountDetail, bool includeProspects = false);
 
         Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination pagination, bool includeProspects = false);
 

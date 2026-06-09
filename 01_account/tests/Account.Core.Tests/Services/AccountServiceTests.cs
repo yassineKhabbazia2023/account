@@ -8,6 +8,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
@@ -292,7 +293,7 @@ namespace Pulse.Account.Core.Tests.Services
             var accountMocked = _fixture.Create<AccountDetail>();
             _accountRepository.Setup(repository => repository.GetAccountAsync(It.IsAny<int>()))
                 .ReturnsAsync(accountMocked);
-            _accountRepository.Setup(repository => repository.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>()))
+            _accountRepository.Setup(repository => repository.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>(), It.IsAny<bool>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
@@ -301,7 +302,7 @@ namespace Pulse.Account.Core.Tests.Services
             await accountService.UpdateAccountAsync(accountId: 1, accountMocked);
 
             // Assert
-            _accountRepository.Verify(repository => repository.UpdateAccountAsync(1, accountMocked));
+            _accountRepository.Verify(repository => repository.UpdateAccountAsync(1, accountMocked, It.IsAny<bool>()));
             _accountEventPublisher.Verify(e => e.PublishAccountUpdatedEventAsync(It.IsAny<AccountDetail>()), Times.Once);
         }
 
@@ -704,7 +705,7 @@ namespace Pulse.Account.Core.Tests.Services
             };
             _accountRepository.Setup(repo => repo.GetAccountAsync(It.IsAny<int>()))
                 .ReturnsAsync(accountDetail);
-            _accountRepository.Setup(repo => repo.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>()))
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>(), It.IsAny<bool>()))
                 .ReturnsAsync(accountDetail);
 
             var service = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
@@ -733,7 +734,7 @@ namespace Pulse.Account.Core.Tests.Services
 
             _accountRepository.Setup(repo => repo.GetAccountAsync(1))
                 .ReturnsAsync(currentAccount);
-            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>(), It.IsAny<bool>()))
                 .ReturnsAsync(currentAccount);
 
             var service = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
@@ -767,7 +768,7 @@ namespace Pulse.Account.Core.Tests.Services
 
             _accountRepository.Setup(repo => repo.GetAccountAsync(1))
                 .ReturnsAsync(currentAccount);
-            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>(), It.IsAny<bool>()))
                 .ReturnsAsync(currentAccount);
 
             var service = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
@@ -801,7 +802,7 @@ namespace Pulse.Account.Core.Tests.Services
 
             _accountRepository.Setup(repo => repo.GetAccountAsync(1))
                 .ReturnsAsync(currentAccount);
-            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>(), It.IsAny<bool>()))
                 .ReturnsAsync(currentAccount);
 
             var service = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
@@ -836,7 +837,7 @@ namespace Pulse.Account.Core.Tests.Services
 
             _accountRepository.Setup(repo => repo.GetAccountAsync(1))
                 .ReturnsAsync(currentAccount);
-            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>(), It.IsAny<bool>()))
                 .ReturnsAsync(updateAccount);
 
             var service = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
@@ -862,7 +863,7 @@ namespace Pulse.Account.Core.Tests.Services
 
             _accountRepository.Setup(repo => repo.GetAccountAsync(1))
                 .ReturnsAsync((AccountDetail?)null);
-            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>(), It.IsAny<bool>()))
                 .ReturnsAsync(updateAccount);
 
             var service = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
@@ -872,7 +873,7 @@ namespace Pulse.Account.Core.Tests.Services
 
             // Assert
             Assert.Null(updateAccount.Legal.StaffSizeRange);
-            _accountRepository.Verify(repo => repo.UpdateAccountAsync(1, updateAccount), Times.Once);
+            _accountRepository.Verify(repo => repo.UpdateAccountAsync(1, updateAccount, It.IsAny<bool>()), Times.Once);
         }
 
         [Fact]
@@ -897,7 +898,7 @@ namespace Pulse.Account.Core.Tests.Services
 
             _accountRepository.Setup(repo => repo.GetAccountAsync(1))
                 .ReturnsAsync(currentAccount);
-            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+            _accountRepository.Setup(repo => repo.UpdateAccountAsync(1, It.IsAny<AccountDetail>(), It.IsAny<bool>()))
                 .ReturnsAsync(updateAccount);
 
             var service = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
@@ -923,7 +924,7 @@ namespace Pulse.Account.Core.Tests.Services
 
             _accountRepository.Setup(repository => repository.GetAccountAsync(1))
                 .ReturnsAsync(currentAccount);
-            _accountRepository.Setup(repository => repository.UpdateAccountAsync(1, accountToUpdate))
+            _accountRepository.Setup(repository => repository.UpdateAccountAsync(1, accountToUpdate, It.IsAny<bool>()))
                 .ThrowsAsync(new NotFoundException(Errors.NotFoundAccountCode, Errors.NotFoundAccountMessage));
 
             var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
@@ -975,7 +976,7 @@ namespace Pulse.Account.Core.Tests.Services
 
             _accountRepository.Setup(repository => repository.GetAccountAsync(1))
                 .ReturnsAsync(currentAccount);
-            _accountRepository.Setup(repository => repository.UpdateAccountAsync(1, It.IsAny<AccountDetail>()))
+            _accountRepository.Setup(repository => repository.UpdateAccountAsync(1, It.IsAny<AccountDetail>(), It.IsAny<bool>()))
                 .ReturnsAsync(updateAccount);
 
             var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, loggerMock.Object, _featureFlagService.Object);
@@ -1014,6 +1015,47 @@ namespace Pulse.Account.Core.Tests.Services
             Assert.Equal(LogLevel.Error, accountingLog.Arguments[0]);
             Assert.Contains(accountingState, log => log.Key == "AccountId" && log.Value?.ToString() == "1");
             Assert.Contains(accountingState, log => log.Key == "CurrentValue" && log.Value?.ToString() == "Engagement");
+        }
+
+        /// <summary>
+        /// When the prospect experience flag is ON, the update must include prospect accounts.
+        /// </summary>
+        [Fact]
+        public async Task UpdateAccountAsync_WhenProspectExperienceEnabled_ShouldUpdateIncludingProspects()
+        {
+            var accountMocked = _fixture.Create<AccountDetail>();
+            _featureFlagService.Setup(f => f.IsEnabledAsync(FeatureFlagKeys.IncludeProspectsInContactsSearch, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+            _accountRepository.Setup(repository => repository.GetAccountAsync(It.IsAny<int>()))
+                .ReturnsAsync(accountMocked);
+            _accountRepository.Setup(repository => repository.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>(), It.IsAny<bool>()))
+                .ReturnsAsync(accountMocked);
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
+
+            await accountService.UpdateAccountAsync(1, accountMocked);
+
+            _accountRepository.Verify(repository => repository.UpdateAccountAsync(1, accountMocked, true), Times.Once);
+            _accountEventPublisher.Verify(e => e.PublishAccountUpdatedEventAsync(It.IsAny<AccountDetail>()), Times.Once);
+        }
+
+        /// <summary>
+        /// When the prospect experience flag is OFF, the update must keep excluding prospect accounts.
+        /// </summary>
+        [Fact]
+        public async Task UpdateAccountAsync_WhenProspectExperienceDisabled_ShouldUpdateExcludingProspects()
+        {
+            var accountMocked = _fixture.Create<AccountDetail>();
+            _accountRepository.Setup(repository => repository.GetAccountAsync(It.IsAny<int>()))
+                .ReturnsAsync(accountMocked);
+            _accountRepository.Setup(repository => repository.UpdateAccountAsync(It.IsAny<int>(), It.IsAny<AccountDetail>(), It.IsAny<bool>()))
+                .ReturnsAsync(accountMocked);
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
+
+            await accountService.UpdateAccountAsync(1, accountMocked);
+
+            _accountRepository.Verify(repository => repository.UpdateAccountAsync(1, accountMocked, false), Times.Once);
         }
 
         #endregion UpdateAccountAsync coverage additions

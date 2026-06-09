@@ -104,6 +104,8 @@ public class AccountService(
 
     public async Task UpdateAccountAsync(int accountId, AccountDetail accountDetail)
     {
+        var includeProspects = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.IncludeProspectsInContactsSearch);
+
         // Récupérer l'état actuel pour vérifier les champs protégés
         var currentAccount = await _accountRepository.GetAccountAsync(accountId);
         if (currentAccount != null)
@@ -111,7 +113,7 @@ public class AccountService(
             ProtectRequiredFields(currentAccount, accountDetail);
         }
 
-        var updatedAccount = await _accountRepository.UpdateAccountAsync(accountId, accountDetail);
+        var updatedAccount = await _accountRepository.UpdateAccountAsync(accountId, accountDetail, includeProspects);
         await _accountEventPublisher.PublishAccountUpdatedEventAsync(updatedAccount);
     }
 

@@ -2361,6 +2361,49 @@ public class AccountRepositoryTests
         await Assert.ThrowsAsync<NotFoundException>(() => repository.UpdateAccountAsync(prospectAccount.AccountId, update));
     }
 
+    [Fact]
+    public async Task UpdateAccountAsync_WithProspectAccount_AndIncludeProspects_ShouldUpdate()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 103,
+            AccountNumber = "ACC-PROSPECT-103",
+            LegalName = "Prospect Account",
+            AccountType = GlobalConstants.ProspectAccountType,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.AccountEntity.Add(prospectAccount);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new AccountRepository(context);
+        var update = new AccountDetail
+        {
+            AccountNumber = "ACC-PROSPECT-103",
+            Legal = new Legal
+            {
+                LegalName = "Updated Prospect",
+                Siren = "123456789",
+                StaffSizeRange = "10-50"
+            },
+            Phone = new List<Phone>()
+        };
+
+        var result = await repository.UpdateAccountAsync(prospectAccount.AccountId, update, includeProspects: true);
+
+        result.Should().NotBeNull();
+        result.AccountId.Should().Be(prospectAccount.AccountId);
+
+        var persisted = await context.AccountEntity.IgnoreQueryFilters()
+            .FirstAsync(a => a.AccountId == prospectAccount.AccountId);
+        persisted.StaffSizeRange.Should().Be("10-50");
+    }
+
     #region Prospect account filtering
 
     [Theory]
