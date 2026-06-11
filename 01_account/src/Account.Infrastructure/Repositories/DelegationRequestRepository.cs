@@ -62,14 +62,14 @@ public class DelegationRequestRepository : IDelegationRequestRepository
         };
     }
 
-    public async Task<Paging<DelegationRequest>> GetReceivedRequestsAsync(int contactId, string? status, Pagination pagination)
+    public async Task<Paging<DelegationRequest>> GetReceivedRequestsAsync(int contactId, string[]? statuses, Pagination pagination)
     {
         var query = _context.DelegationRequestEntity
             .Where(dr => dr.RecipientId == contactId);
 
-        if (!string.IsNullOrWhiteSpace(status))
+        if (statuses is { Length: > 0 })
         {
-            query = query.Where(dr => dr.Status == status);
+            query = query.Where(dr => statuses.Contains(dr.Status));
         }
 
         var totalItems = await query.CountAsync();

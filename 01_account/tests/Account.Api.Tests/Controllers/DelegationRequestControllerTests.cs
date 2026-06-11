@@ -7,6 +7,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -130,12 +131,12 @@ public class DelegationRequestControllerTests
         var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
         var expected = _fixture.Create<Paging<DelegationRequest>>();
 
-        _delegationRequestService.Setup(x => x.GetReceivedRequestsAsync(contactId, pagination))
+        _delegationRequestService.Setup(x => x.GetReceivedRequestsAsync(contactId, pagination, null))
             .ReturnsAsync(expected)
             .Verifiable();
 
         var controller = new DelegationController(_delegationService.Object, _delegationRequestService.Object);
-        var actionResult = await controller.GetReceivedRequestsAsync(contactId, pagination);
+        var actionResult = await controller.GetReceivedRequestsAsync(contactId, pagination, null);
 
         actionResult.Result.As<OkObjectResult>().StatusCode.Should().Be(200);
         actionResult.Result.As<OkObjectResult>().Value.Should().BeEquivalentTo(expected);
@@ -147,12 +148,12 @@ public class DelegationRequestControllerTests
     {
         var contactId = 25;
 
-        _delegationRequestService.Setup(x => x.GetReceivedRequestsAsync(contactId, It.IsAny<Pagination>()))
+        _delegationRequestService.Setup(x => x.GetReceivedRequestsAsync(contactId, It.IsAny<Pagination>(), It.IsAny<DelegationRequestStatus[]>()))
             .ThrowsAsync(new BadRequestException("BAD001", "Bad request"));
 
         var controller = new DelegationController(_delegationService.Object, _delegationRequestService.Object);
 
-        await Assert.ThrowsAsync<BadRequestException>(async () => await controller.GetReceivedRequestsAsync(contactId, null));
+        await Assert.ThrowsAsync<BadRequestException>(async () => await controller.GetReceivedRequestsAsync(contactId, null, null));
     }
 
     [Fact]

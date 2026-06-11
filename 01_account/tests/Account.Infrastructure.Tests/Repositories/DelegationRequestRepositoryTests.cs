@@ -187,7 +187,7 @@ public class DelegationRequestRepositoryTests
         var repository = new DelegationRequestRepository(context);
         var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
 
-        var result = await repository.GetReceivedRequestsAsync(recipient.ContactId, "refused", pagination);
+        var result = await repository.GetReceivedRequestsAsync(recipient.ContactId, new[] { "refused" }, pagination);
 
         result.Items.Should().HaveCount(1);
         result.Items.First().Status.Should().Be("refused");

@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
@@ -14,7 +15,7 @@ public interface IDelegationRequestService
 
     Task<Paging<DelegationRequest>> GetSentRequestsAsync(int contactId, Pagination? pagination);
 
-    Task<Paging<DelegationRequest>> GetReceivedRequestsAsync(int contactId, Pagination? pagination);
+    Task<Paging<DelegationRequest>> GetReceivedRequestsAsync(int contactId, Pagination? pagination, DelegationRequestStatus[]? statuses);
 
     Task<DelegationEligibilityResponse> CheckEligibilityAsync(int contactId, int accountId);
 

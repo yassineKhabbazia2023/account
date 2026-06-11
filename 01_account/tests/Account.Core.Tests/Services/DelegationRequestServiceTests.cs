@@ -310,12 +310,12 @@ public class DelegationRequestServiceTests
             TotalItems = 0
         };
 
-        _mockRepository.Setup(r => r.GetReceivedRequestsAsync(contactId, "pending", It.IsAny<Pagination>())).ReturnsAsync(expectedResult);
+        _mockRepository.Setup(r => r.GetReceivedRequestsAsync(contactId, It.Is<string[]>(s => s.Contains("pending")), It.IsAny<Pagination>())).ReturnsAsync(expectedResult);
 
-        var result = await _service.GetReceivedRequestsAsync(contactId, pagination);
+        var result = await _service.GetReceivedRequestsAsync(contactId, pagination, null);
 
         result.Should().NotBeNull();
-        _mockRepository.Verify(r => r.GetReceivedRequestsAsync(contactId, "pending", It.IsAny<Pagination>()), Times.Once);
+        _mockRepository.Verify(r => r.GetReceivedRequestsAsync(contactId, It.Is<string[]>(s => s.Contains("pending")), It.IsAny<Pagination>()), Times.Once);
     }
 
     [Fact]
@@ -330,12 +330,12 @@ public class DelegationRequestServiceTests
             TotalItems = 0
         };
 
-        _mockRepository.Setup(r => r.GetReceivedRequestsAsync(contactId, "pending", It.IsAny<Pagination>())).ReturnsAsync(expectedResult);
+        _mockRepository.Setup(r => r.GetReceivedRequestsAsync(contactId, It.Is<string[]>(s => s.Contains("pending")), It.IsAny<Pagination>())).ReturnsAsync(expectedResult);
 
-        var result = await _service.GetReceivedRequestsAsync(contactId, null);
+        var result = await _service.GetReceivedRequestsAsync(contactId, null, null);
 
         result.Should().NotBeNull();
-        _mockRepository.Verify(r => r.GetReceivedRequestsAsync(contactId, "pending", It.Is<Pagination>(p => p.PageNumber == 1 && p.PageSize == int.MaxValue)), Times.Once);
+        _mockRepository.Verify(r => r.GetReceivedRequestsAsync(contactId, It.Is<string[]>(s => s.Contains("pending")), It.Is<Pagination>(p => p.PageNumber == 1 && p.PageSize == int.MaxValue)), Times.Once);
     }
 
     [Theory]
@@ -356,12 +356,12 @@ public class DelegationRequestServiceTests
             TotalItems = 0
         };
 
-        _mockRepository.Setup(r => r.GetReceivedRequestsAsync(contactId, "pending", It.Is<Pagination>(p => p.PageNumber == expectedPageNumber && p.PageSize == expectedPageSize))).ReturnsAsync(expectedResult);
+        _mockRepository.Setup(r => r.GetReceivedRequestsAsync(contactId, It.Is<string[]>(s => s.Contains("pending")), It.Is<Pagination>(p => p.PageNumber == expectedPageNumber && p.PageSize == expectedPageSize))).ReturnsAsync(expectedResult);
 
-        var result = await _service.GetReceivedRequestsAsync(contactId, pagination);
+        var result = await _service.GetReceivedRequestsAsync(contactId, pagination, null);
 
         result.Should().NotBeNull();
-        _mockRepository.Verify(r => r.GetReceivedRequestsAsync(contactId, "pending", It.Is<Pagination>(p => p.PageNumber == expectedPageNumber && p.PageSize == expectedPageSize)), Times.Once);
+        _mockRepository.Verify(r => r.GetReceivedRequestsAsync(contactId, It.Is<string[]>(s => s.Contains("pending")), It.Is<Pagination>(p => p.PageNumber == expectedPageNumber && p.PageSize == expectedPageSize)), Times.Once);
     }
 
     [Fact]

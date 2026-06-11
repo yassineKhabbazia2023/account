@@ -4,6 +4,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
@@ -153,17 +154,18 @@ public class DelegationController : ControllerBase
     }
 
     /// <summary>
-    /// Récupérer les demandes de délégation reçues par l'utilisateur connecté (statut: pending).
+    /// Récupérer les demandes de délégation reçues par l'utilisateur connecté.
     /// </summary>
     /// <param name="currentUserId">L'identifiant du contact (utilisateur connecté).</param>
     /// <param name="pagination">Paramètres de pagination.</param>
-    /// <returns>Liste paginée des demandes de délégation reçues en attente.</returns>
+    /// <param name="statuses">Filtrer par statuts (Pending, Accepted, Refused). Par défaut: Pending.</param>
+    /// <returns>Liste paginée des demandes de délégation reçues.</returns>
     [HttpGet("requests/received")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<DelegationRequest>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult<Paging<DelegationRequest>>> GetReceivedRequestsAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromQuery] Pagination? pagination)
+    public async Task<ActionResult<Paging<DelegationRequest>>> GetReceivedRequestsAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromQuery] Pagination? pagination, [FromQuery] DelegationRequestStatus[]? statuses)
     {
-        var result = await _delegationRequestService.GetReceivedRequestsAsync(currentUserId, pagination);
+        var result = await _delegationRequestService.GetReceivedRequestsAsync(currentUserId, pagination, statuses);
 
         return Ok(result);
     }

@@ -16,6 +16,8 @@ namespace Pulse.Account.Core.Services;
 
 public class DelegationRequestService : IDelegationRequestService
 {
+    private static readonly string[] DefaultStatuses = { DelegationStatusValues.Pending };
+
     private readonly IDelegationRequestRepository _delegationRequestRepository;
     private readonly IDelegationService _delegationService;
 
@@ -115,14 +117,18 @@ public class DelegationRequestService : IDelegationRequestService
         return await _delegationRequestRepository.GetSentRequestsAsync(contactId, null, pagination);
     }
 
-    public async Task<Paging<DelegationRequest>> GetReceivedRequestsAsync(int contactId, Pagination? pagination)
+    public async Task<Paging<DelegationRequest>> GetReceivedRequestsAsync(int contactId, Pagination? pagination, DelegationRequestStatus[]? statuses)
     {
         pagination ??= new Pagination();
         pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
         pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
 
-        // Only return pending requests (main use case)
-        return await _delegationRequestRepository.GetReceivedRequestsAsync(contactId, DelegationStatusValues.Pending, pagination);
+        // Convert enums to lowercase strings; default to pending only
+        var statusStrings = statuses is { Length: > 0 }
+            ? statuses.Select(s => s.ToString().ToLowerInvariant()).ToArray()
+            : DefaultStatuses;
+
+        return await _delegationRequestRepository.GetReceivedRequestsAsync(contactId, statusStrings, pagination);
     }
 
     public async Task<DelegationEligibilityResponse> CheckEligibilityAsync(int contactId, int accountId)

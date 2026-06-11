@@ -14,7 +14,7 @@ public interface IDelegationRequestRepository
 
     Task<Paging<DelegationRequest>> GetSentRequestsAsync(int contactId, string? status, Pagination pagination);
 
-    Task<Paging<DelegationRequest>> GetReceivedRequestsAsync(int contactId, string? status, Pagination pagination);
+    Task<Paging<DelegationRequest>> GetReceivedRequestsAsync(int contactId, string[]? statuses, Pagination pagination);
 
     Task<bool> HasRoleOnAccountAsync(int contactId, int accountId);
 
