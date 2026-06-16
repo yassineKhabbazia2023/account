@@ -166,6 +166,7 @@ public class RolesController : ControllerBase
     /// <summary>
     /// Modifier un role pour un contact.
     /// </summary>
+    /// <param name="currentUserId">Identifiant de l'utilisateur courant.</param>
     /// <param name="accountId">Identifiant de l'entité morale.</param>
     /// <param name="contactId">Identifiant de l'utilisateur.</param>
     /// <param name="isSignatory">True si l'utilisateur est signataire, false sinon.</param>
@@ -174,9 +175,9 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult> UpdateRoleSignatoryAsync([Required] int accountId, [Required] int contactId, [Required] bool isSignatory)
+    public async Task<ActionResult> UpdateRoleSignatoryAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [Required] int accountId, [Required] int contactId, [Required] bool isSignatory)
     {
-        await _rolesService.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
+        await _rolesService.UpdateRoleSignatoryAsync(currentUserId, accountId, contactId, isSignatory);
         return Ok();
     }
 

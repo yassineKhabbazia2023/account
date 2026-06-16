@@ -12,5 +12,7 @@ public enum ActionCode
     DELCMANU,
     DELKMANU,
     ADDKDELM,
-    ADDKDELA
+    ADDKDELA,
+    ADDSIGNMANU,
+    DELSIGNMANU
 }

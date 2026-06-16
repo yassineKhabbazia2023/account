@@ -600,7 +600,7 @@ public class RolesServiceTests
     }
 
     [Fact]
-    public async Task UpdateRole_Should_ReturnsOkResultAsync()
+    public async Task UpdateRoleSignatoryAsync_Should_ReturnsOkResultAsync()
     {
         // Arrange
         int accountId = 10;
@@ -629,10 +629,50 @@ public class RolesServiceTests
         var roleService = new RolesService(_roleRepository.Object, null!, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
 
         // Act
-        await roleService.UpdateRoleSignatoryAsync(accountId, contactId, true);
+        await roleService.UpdateRoleSignatoryAsync(1, accountId, contactId, true);
 
         // Assert
         _roleRepository.VerifyAll();
+        _rolePublisher.Verify(x => x.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+        _historyPublisher.Verify(x => x.PublishHistoryCreatedEventAsync(1, contactId, accountId, "ADDSIGNMANU"), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateRoleSignatoryAsync_WhenRemovingSignatory_ShouldPublishDelsignmanuHistory()
+    {
+        // Arrange
+        int accountId = 10;
+        int contactId = 25;
+        var newRole = new Role()
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsFavorite = false,
+            IsSignatory = true
+        };
+
+        _roleRepository.Setup(repo => repo.UpdateRoleSignatoryAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
+            .ReturnsAsync(newRole)
+            .Verifiable();
+
+        _rolePublisher!.Setup(x => x.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>()))
+          .Callback<int, int>((accId, contId) =>
+          {
+              contId.Should().Be(contactId);
+              accId.Should().Be(accountId);
+          })
+          .Returns(Task.CompletedTask)
+          .Verifiable();
+
+        var roleService = new RolesService(_roleRepository.Object, null!, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        await roleService.UpdateRoleSignatoryAsync(1, accountId, contactId, false);
+
+        // Assert
+        _roleRepository.VerifyAll();
+        _rolePublisher.Verify(x => x.PublishRoleUpdatedEventAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Once);
+        _historyPublisher.Verify(x => x.PublishHistoryCreatedEventAsync(1, contactId, accountId, "DELSIGNMANU"), Times.Once);
     }
 
     private static Mock<IRoleRepository> DeleteRole_MockRepo()

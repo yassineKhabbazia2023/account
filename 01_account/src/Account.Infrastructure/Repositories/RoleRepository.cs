@@ -154,11 +154,8 @@ public class RoleRepository : IRoleRepository
     /// <returns>The created role.</returns>
     private async Task<Role?> CreateRoleInternalAsync(CreateRoleRequest role)
     {
-        var contact = await _accountContext.ContactEntity.FirstOrDefaultAsync(x => x.ContactId == role.ContactId);
-        if (contact == null)
-        {
-            throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
-        }
+        var contact = await _accountContext.ContactEntity.FirstOrDefaultAsync(x => x.ContactId == role.ContactId)
+            ?? throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, role.ContactId));
 
         if (await GetContactRoleAsync(role.AccountId, (int)role.ContactId!) != null)
         {
@@ -187,11 +184,8 @@ public class RoleRepository : IRoleRepository
                         where r.AccountId.Equals(accountId) && r.ContactId.Equals(contactId)
                         select r;
 
-            var role = await roles.FirstOrDefaultAsync();
-            if (role == null)
-            {
-                throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
-            }
+            var role = await roles.FirstOrDefaultAsync()
+                ?? throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
 
             if (role.IsSignatory != isSignatory)
             {
@@ -213,12 +207,8 @@ public class RoleRepository : IRoleRepository
             throw new InvalidOperationExceptionMiddleware(Errors.NoClientLabelCode, Errors.NoClientLabelMessage);
         }
 
-        var roleDb = await _accountContext.RoleEntity.FirstOrDefaultAsync(role => role.AccountId == accountId && role.ContactId == contactId);
-
-        if (roleDb is null)
-        {
-            throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
-        }
+        var roleDb = await _accountContext.RoleEntity.FirstOrDefaultAsync(role => role.AccountId == accountId && role.ContactId == contactId)
+            ?? throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
 
         var hasRoleLabel = await HasRoleLabel(contactId, accountId);
         roleDb.ActionLevel = ActionLevelHelper.SetupActionLevel(expectedActionLevel, isCustomerRelation, hasRoleLabel);

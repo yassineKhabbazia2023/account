@@ -148,17 +148,17 @@ public class RolesControllerTests
     {
         // Arrange
         var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
-        rolesService.Setup(service => service.UpdateRoleSignatoryAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
+        rolesService.Setup(service => service.UpdateRoleSignatoryAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(Task.CompletedTask);
         var rolesController = new RolesController(rolesService.Object);
 
         // Act
-        var actionResult = await rolesController.UpdateRoleSignatoryAsync(1, 1, true);
+        var actionResult = await rolesController.UpdateRoleSignatoryAsync(2, 1, 1, true);
         var result = actionResult as StatusCodeResult;
 
         // Assert
         result!.StatusCode.Should().Be(200);
-        rolesService.Verify(x => x.UpdateRoleSignatoryAsync(1, 1, true), Times.Once);
+        rolesService.Verify(x => x.UpdateRoleSignatoryAsync(2, 1, 1, true), Times.Once);
     }
 
     [Fact]

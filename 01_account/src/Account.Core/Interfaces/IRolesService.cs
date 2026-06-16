@@ -18,7 +18,7 @@ public interface IRolesService
 
     Task<CreateRolesBulkResult> CreateRolesBulkAsync(int accountId, CreateRolesBulkRequest request, int currentUserId);
 
-    Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory);
+    Task UpdateRoleSignatoryAsync(int currentUserId, int accountId, int contactId, bool isSignatory);
 
     Task DeleteRoleAsync(int currentUserId, int accountId, int contactId);
 

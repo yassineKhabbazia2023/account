@@ -167,16 +167,14 @@ public class RolesService : IRolesService
         return result;
     }
 
-    public async Task UpdateRoleSignatoryAsync(int accountId, int contactId, bool isSignatory)
+    public async Task UpdateRoleSignatoryAsync(int currentUserId, int accountId, int contactId, bool isSignatory)
     {
-        var role = await _rolesRepository.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
+        await _rolesRepository.UpdateRoleSignatoryAsync(accountId, contactId, isSignatory);
 
-        if (role == null)
-        {
-            throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleCode, contactId, accountId));
-        }
+        var actionCode = isSignatory ? ActionCode.ADDSIGNMANU.ToString() : ActionCode.DELSIGNMANU.ToString();
 
         await PublishRoleUpdatedEvent(accountId, contactId);
+        await PublishHistoryCreatedEvent(currentUserId, contactId, accountId, actionCode);
     }
 
     public async Task UpdateRoleCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation)
@@ -190,12 +188,8 @@ public class RolesService : IRolesService
 
     public async Task DeleteRoleAsync(int currentUserId, int accountId, int contactId)
     {
-        var role = await _rolesRepository.GetContactRoleAsync(accountId, contactId);
-
-        if (role == null)
-        {
-            throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
-        }
+        var role = await _rolesRepository.GetContactRoleAsync(accountId, contactId)
+            ?? throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
 
         if (role.IsSignatory.HasValue && role.IsSignatory.Value)
         {
