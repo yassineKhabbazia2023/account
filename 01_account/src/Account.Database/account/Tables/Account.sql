@@ -68,6 +68,10 @@ CREATE NONCLUSTERED INDEX [IX_Office_OfficeId]
     ON  [account].[Account]([OfficeId] ASC)
 
 GO
+CREATE NONCLUSTERED INDEX [IX_Account_MissionType]
+    ON  [account].[Account]([MissionType] ASC)
+
+GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'L''identifiant de l''utilisateur ou du système qui a effectué la dernière modification',
     @level0type = N'SCHEMA',

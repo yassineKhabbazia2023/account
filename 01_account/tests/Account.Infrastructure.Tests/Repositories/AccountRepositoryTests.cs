@@ -1304,6 +1304,133 @@ public class AccountRepositoryTests
         }
     }
 
+    [Theory]
+    [InlineData("Tenue")]
+    [InlineData("Revision")]
+    public async Task GetAccountsAsync_WithMissionType_ShouldFilterResults(string missionType)
+    {
+        // Arrange
+        using var context = new AccountContext(_dbContextOptions);
+
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 1)
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+
+        var tenueAccount = new AccountEntity
+        {
+            AccountId = 1,
+            AccountNumber = "ACC-TENUE-001",
+            LegalName = "Tenue Account",
+            AccountType = "CLIENT",
+            MissionType = "Tenue",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+        var revisionAccount = new AccountEntity
+        {
+            AccountId = 2,
+            AccountNumber = "ACC-REVISION-001",
+            LegalName = "Revision Account",
+            AccountType = "CLIENT",
+            MissionType = "Revision",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.ContactEntity.Add(contact);
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = tenueAccount, ContactId = contact.ContactId },
+            new RoleEntity { Account = revisionAccount, ContactId = contact.ContactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var accountRepository = new AccountRepository(context);
+
+        // Act
+        var result = await accountRepository.GetAccountsAsync(
+            new SearchAccountCriteria { ContactId = contact.ContactId, MissionType = missionType },
+            new Pagination { PageNumber = 1, PageSize = 10 });
+
+        // Assert
+        Assert.Single(result.Items);
+        Assert.All(result.Items, item => Assert.Equal(missionType, item.MissionType));
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WithMissionTypeAndDeploymentStatus_ShouldApplyBothCumulatively()
+    {
+        // Arrange
+        using var context = new AccountContext(_dbContextOptions);
+
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 1)
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+
+        var matching = new AccountEntity
+        {
+            AccountId = 1,
+            AccountNumber = "ACC-1",
+            LegalName = "Matching",
+            AccountType = "CLIENT",
+            MissionType = "Tenue",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = (int)DeploymentStatus.Connected }
+        };
+        var wrongStatus = new AccountEntity
+        {
+            AccountId = 2,
+            AccountNumber = "ACC-2",
+            LegalName = "WrongStatus",
+            AccountType = "CLIENT",
+            MissionType = "Tenue",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = (int)DeploymentStatus.ToDeploy }
+        };
+        var wrongMission = new AccountEntity
+        {
+            AccountId = 3,
+            AccountNumber = "ACC-3",
+            LegalName = "WrongMission",
+            AccountType = "CLIENT",
+            MissionType = "Revision",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = (int)DeploymentStatus.Connected }
+        };
+
+        context.ContactEntity.Add(contact);
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = matching, ContactId = contact.ContactId },
+            new RoleEntity { Account = wrongStatus, ContactId = contact.ContactId },
+            new RoleEntity { Account = wrongMission, ContactId = contact.ContactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var accountRepository = new AccountRepository(context);
+
+        // Act : statut ET type de mission doivent se cumuler (ET)
+        var result = await accountRepository.GetAccountsAsync(
+            new SearchAccountCriteria
+            {
+                ContactId = contact.ContactId,
+                MissionType = "Tenue",
+                DeploymentStatus = (int)DeploymentStatus.Connected
+            },
+            new Pagination { PageNumber = 1, PageSize = 10 });
+
+        // Assert : seul le compte respectant les deux critères est retourné
+        Assert.Single(result.Items);
+        Assert.Equal(matching.AccountId, result.Items.Single().AccountId);
+    }
+
     [Fact]
     public async Task GetAllAccountsAsync_WithAccountNumber_ShouldFilterResults()
     {

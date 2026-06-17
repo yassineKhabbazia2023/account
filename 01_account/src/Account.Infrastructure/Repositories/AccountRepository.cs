@@ -18,6 +18,7 @@ using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.ExceptionMiddleware.Exceptions;
 using AccountModel = Pulse.Account.Core.Models.Account;
@@ -87,26 +88,11 @@ public class AccountRepository : IAccountRepository
                         (criteria.IsCustomerRelationFilter != true || r.IsCustomerRelation == true)
                         select a;
 
-        // Filtrer par "Search"
-        if (!string.IsNullOrWhiteSpace(criteria.Search))
-        {
-            var search = criteria.Search.Trim();
-
-            // Filtrer par LegalName, AccountNumber, ou par un rôle signataire dont le Contact correspond à la recherche
-            baseQuery = baseQuery.Where(a =>
-                a.LegalName.Contains(search) ||
-                a.AccountNumber.Contains(search) ||
-                a.RoleEntity.Any(r =>
-                    r.IsSignatory == true &&
-                    ((r.Contact.FirstName + " " + r.Contact.LastName).Contains(search)
-                        || r.Contact.Email.Contains(search))));
-        }
-
-        // Filtrer par DeploymentStatus
-        if (criteria.DeploymentStatus.HasValue)
-        {
-            baseQuery = baseQuery.Where(a => a.DeploymentEntity.Status == criteria.DeploymentStatus.Value);
-        }
+        // Appliquer les filtres
+        baseQuery = baseQuery
+            .ApplySearch(criteria.Search)
+            .ApplyDeploymentStatus(criteria.DeploymentStatus)
+            .ApplyMissionType(criteria.MissionType);
 
         // Calcul du nombre total d'éléments (après filtres) pour la pagination
         var totalItems = await baseQuery.CountAsync();

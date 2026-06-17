@@ -149,6 +149,55 @@ namespace Pulse.Account.Core.Tests.Services
                 Times.Never);
         }
 
+        /// <summary>
+        /// Ensures invalid mission type values are rejected before repository execution.
+        /// </summary>
+        [Fact]
+        public async Task GetAccountsAsync_WhenMissionTypeIsInvalid_ShouldThrowBadRequestException()
+        {
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
+            var criteria = new SearchAccountCriteria
+            {
+                ContactId = 123,
+                MissionType = "Invalide"
+            };
+
+            var action = async () => await accountService.GetAccountsAsync(criteria, new Pagination());
+
+            var exception = await Assert.ThrowsAsync<BadRequestException>(action);
+            Assert.Equal(Errors.BadRequestMissionTypeCode, exception.Code);
+            _accountRepository.Verify(
+                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()),
+                Times.Never);
+        }
+
+        /// <summary>
+        /// Ensures a valid mission type is forwarded unchanged to the repository.
+        /// </summary>
+        [Theory]
+        [InlineData("Tenue")]
+        [InlineData("Revision")]
+        public async Task GetAccountsAsync_WhenMissionTypeIsValid_ShouldForwardItToRepository(string missionType)
+        {
+            SearchAccountCriteria? capturedCriteria = null;
+            _accountRepository.Setup(repository =>
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
+                .Callback<SearchAccountCriteria, Pagination>((criteria, pagination) => capturedCriteria = criteria)
+                .ReturnsAsync(_fixture.Create<Paging<AccountModel>>());
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
+            var inputCriteria = new SearchAccountCriteria
+            {
+                ContactId = 123,
+                MissionType = missionType
+            };
+
+            await accountService.GetAccountsAsync(inputCriteria, new Pagination());
+
+            Assert.NotNull(capturedCriteria);
+            Assert.Equal(missionType, capturedCriteria!.MissionType);
+        }
+
         #endregion GetAccountsAsync coverage additions
 
         [Fact]

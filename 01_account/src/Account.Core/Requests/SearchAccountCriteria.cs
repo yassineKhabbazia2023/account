@@ -19,6 +19,8 @@ namespace Pulse.Account.Core.Requests
 
         public bool? IsCustomerRelationFilter { get; set; }
 
+        public string? MissionType { get; set; }
+
         public Sorting? Sorting { get; set; }
 
     }

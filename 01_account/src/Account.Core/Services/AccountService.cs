@@ -65,6 +65,7 @@ public class AccountService(
 
         criteria = criteria ?? new SearchAccountCriteria();
         criteria.DeploymentStatus = DeploymentStatusValidation.GetValidDeploymentStatus(criteria.DeploymentStatus);
+        criteria.MissionType = MissionTypeValidation.GetValidMissionType(criteria.MissionType);
 
         return await _accountRepository.GetAccountsAsync(criteria, pagination);
     }
