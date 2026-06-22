@@ -291,7 +291,7 @@ public class StatisticsRepositoryTests
             new SearchAccountCriteria
             {
                 ContactId = currentUserId,
-                DeploymentStatus = (int)DeploymentStatus.Connected,
+                DeploymentStatus = new List<int> { (int)DeploymentStatus.Connected },
             },
             new Pagination
             {

@@ -1,4 +1,4 @@
-﻿// <copyright file="DeploymentStatusValidationTests.cs" company="Pulse">
+// <copyright file="DeploymentStatusValidationTests.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -14,23 +14,34 @@ namespace Pulse.Account.Core.Tests.Extensions
         [InlineData(2)]
         [InlineData(3)]
         [InlineData(4)]
-        [InlineData(null)]
-        public void GetValidDeploymentStatus_Should_Return0K(int? deploymentStatus)
+        public void GetValidDeploymentStatuses_Should_ReturnOK(int deploymentStatus)
         {
             // Arrange
+            var input = new List<int> { deploymentStatus };
+
             // Act
-            var result = DeploymentStatusValidation.GetValidDeploymentStatus(deploymentStatus);
+            var result = DeploymentStatusValidation.GetValidDeploymentStatuses(input);
 
             // Assert
-            Assert.Equal(result, deploymentStatus);
+            Assert.Equal(input, result);
+        }
+
+        [Fact]
+        public void GetValidDeploymentStatuses_WhenNull_ShouldReturnNull()
+        {
+            // Act
+            var result = DeploymentStatusValidation.GetValidDeploymentStatuses(null);
+
+            // Assert
+            Assert.Null(result);
         }
 
         [Theory]
         [InlineData(0)]
         [InlineData(5)]
-        public void GetValidDeploymentStatus_Should_ReturnNotOK(int? deploymentStatus)
+        public void GetValidDeploymentStatuses_Should_ThrowBadRequest(int deploymentStatus)
         {
-            var result = Assert.Throws<NotFoundException>(() => DeploymentStatusValidation.GetValidDeploymentStatus(deploymentStatus));
+            Assert.Throws<BadRequestException>(() => DeploymentStatusValidation.GetValidDeploymentStatuses(new List<int> { deploymentStatus }));
         }
     }
 }

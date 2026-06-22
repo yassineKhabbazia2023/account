@@ -64,8 +64,8 @@ public class AccountService(
         pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
 
         criteria = criteria ?? new SearchAccountCriteria();
-        criteria.DeploymentStatus = DeploymentStatusValidation.GetValidDeploymentStatus(criteria.DeploymentStatus);
-        criteria.MissionType = MissionTypeValidation.GetValidMissionType(criteria.MissionType);
+        criteria.DeploymentStatus = DeploymentStatusValidation.GetValidDeploymentStatuses(criteria.DeploymentStatus);
+        criteria.MissionType = MissionTypeValidation.GetValidMissionTypes(criteria.MissionType);
 
         return await _accountRepository.GetAccountsAsync(criteria, pagination);
     }

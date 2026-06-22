@@ -32,24 +32,24 @@ namespace Pulse.Account.Infrastructure.Extensions
                         || r.Contact.Email.Contains(term))));
         }
 
-        public static IQueryable<AccountEntity> ApplyDeploymentStatus(this IQueryable<AccountEntity> query, int? deploymentStatus)
+        public static IQueryable<AccountEntity> ApplyDeploymentStatus(this IQueryable<AccountEntity> query, ICollection<int>? deploymentStatuses)
         {
-            if (!deploymentStatus.HasValue)
+            if (deploymentStatuses == null || deploymentStatuses.Count == 0)
             {
                 return query;
             }
 
-            return query.Where(a => a.DeploymentEntity.Status == deploymentStatus.Value);
+            return query.Where(a => deploymentStatuses.Contains(a.DeploymentEntity.Status));
         }
 
-        public static IQueryable<AccountEntity> ApplyMissionType(this IQueryable<AccountEntity> query, string? missionType)
+        public static IQueryable<AccountEntity> ApplyMissionType(this IQueryable<AccountEntity> query, ICollection<string>? missionTypes)
         {
-            if (string.IsNullOrWhiteSpace(missionType))
+            if (missionTypes == null || missionTypes.Count == 0)
             {
                 return query;
             }
 
-            return query.Where(a => a.MissionType == missionType);
+            return query.Where(a => missionTypes.Contains(a.MissionType));
         }
     }
 }

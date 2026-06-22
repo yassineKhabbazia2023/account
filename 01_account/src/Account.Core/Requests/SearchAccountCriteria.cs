@@ -10,7 +10,7 @@ namespace Pulse.Account.Core.Requests
     {
         public string? Search { get; set; }
 
-        public int? DeploymentStatus { get; set; }
+        public List<int>? DeploymentStatus { get; set; }
 
         [Required]
         public int ContactId { get; set; }
@@ -19,7 +19,7 @@ namespace Pulse.Account.Core.Requests
 
         public bool? IsCustomerRelationFilter { get; set; }
 
-        public string? MissionType { get; set; }
+        public List<string>? MissionType { get; set; }
 
         public Sorting? Sorting { get; set; }
 

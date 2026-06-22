@@ -131,18 +131,18 @@ namespace Pulse.Account.Core.Tests.Services
         /// Ensures invalid deployment status values are rejected before repository execution.
         /// </summary>
         [Fact]
-        public async Task GetAccountsAsync_WhenDeploymentStatusIsInvalid_ShouldThrowNotFoundException()
+        public async Task GetAccountsAsync_WhenDeploymentStatusIsInvalid_ShouldThrowBadRequestException()
         {
             var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object);
             var criteria = new SearchAccountCriteria
             {
                 ContactId = 123,
-                DeploymentStatus = int.MaxValue
+                DeploymentStatus = new List<int> { int.MaxValue }
             };
 
             var action = async () => await accountService.GetAccountsAsync(criteria, new Pagination());
 
-            var exception = await Assert.ThrowsAsync<NotFoundException>(action);
+            var exception = await Assert.ThrowsAsync<BadRequestException>(action);
             Assert.Equal(Errors.BadRequestDeploymentStatusCode, exception.Code);
             _accountRepository.Verify(
                 repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()),
@@ -159,7 +159,7 @@ namespace Pulse.Account.Core.Tests.Services
             var criteria = new SearchAccountCriteria
             {
                 ContactId = 123,
-                MissionType = "Invalide"
+                MissionType = new List<string> { "Invalide" }
             };
 
             var action = async () => await accountService.GetAccountsAsync(criteria, new Pagination());
@@ -189,13 +189,13 @@ namespace Pulse.Account.Core.Tests.Services
             var inputCriteria = new SearchAccountCriteria
             {
                 ContactId = 123,
-                MissionType = missionType
+                MissionType = new List<string> { missionType }
             };
 
             await accountService.GetAccountsAsync(inputCriteria, new Pagination());
 
             Assert.NotNull(capturedCriteria);
-            Assert.Equal(missionType, capturedCriteria!.MissionType);
+            Assert.Equal(new[] { missionType }, capturedCriteria!.MissionType);
         }
 
         #endregion GetAccountsAsync coverage additions

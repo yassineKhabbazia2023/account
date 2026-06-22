@@ -1291,7 +1291,7 @@ public class AccountRepositoryTests
             // ... (add test data setup here)
             var searchCriteria = new SearchAccountCriteria
             {
-                DeploymentStatus = (int)deploymentStatus,
+                DeploymentStatus = new List<int> { (int)deploymentStatus },
                 ContactId = contactId
             };
             var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
@@ -1302,6 +1302,74 @@ public class AccountRepositoryTests
             // Assert
             Assert.All(result.Items, item => Assert.Equal((int)deploymentStatus, item.Deployment.Status));
         }
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WithMultipleDeploymentStatuses_ShouldReturnUnion()
+    {
+        // Arrange
+        using var context = new AccountContext(_dbContextOptions);
+
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 1)
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+
+        var connectedAccount = new AccountEntity
+        {
+            AccountId = 1,
+            AccountNumber = "ACC-1",
+            LegalName = "Connected",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = (int)DeploymentStatus.Connected }
+        };
+        var toDeployAccount = new AccountEntity
+        {
+            AccountId = 2,
+            AccountNumber = "ACC-2",
+            LegalName = "ToDeploy",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = (int)DeploymentStatus.ToDeploy }
+        };
+        var revokedAccount = new AccountEntity
+        {
+            AccountId = 3,
+            AccountNumber = "ACC-3",
+            LegalName = "Revoked",
+            AccountType = "CLIENT",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = (int)DeploymentStatus.Revoked }
+        };
+
+        context.ContactEntity.Add(contact);
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = connectedAccount, ContactId = contact.ContactId },
+            new RoleEntity { Account = toDeployAccount, ContactId = contact.ContactId },
+            new RoleEntity { Account = revokedAccount, ContactId = contact.ContactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var accountRepository = new AccountRepository(context);
+
+        // Act : filtrer sur Connected ET ToDeploy => union, en excluant Revoked
+        var result = await accountRepository.GetAccountsAsync(
+            new SearchAccountCriteria
+            {
+                ContactId = contact.ContactId,
+                DeploymentStatus = new List<int> { (int)DeploymentStatus.Connected, (int)DeploymentStatus.ToDeploy }
+            },
+            new Pagination { PageNumber = 1, PageSize = 10 });
+
+        // Assert
+        Assert.Equal(2, result.TotalItems);
+        Assert.All(result.Items, item => Assert.Contains(item.Deployment.Status, new[] { (int)DeploymentStatus.Connected, (int)DeploymentStatus.ToDeploy }));
+        Assert.DoesNotContain(result.Items, item => item.Deployment.Status == (int)DeploymentStatus.Revoked);
     }
 
     [Theory]
@@ -1352,12 +1420,79 @@ public class AccountRepositoryTests
 
         // Act
         var result = await accountRepository.GetAccountsAsync(
-            new SearchAccountCriteria { ContactId = contact.ContactId, MissionType = missionType },
+            new SearchAccountCriteria { ContactId = contact.ContactId, MissionType = new List<string> { missionType } },
             new Pagination { PageNumber = 1, PageSize = 10 });
 
         // Assert
         Assert.Single(result.Items);
         Assert.All(result.Items, item => Assert.Equal(missionType, item.MissionType));
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WithMultipleMissionTypes_ShouldReturnUnion()
+    {
+        // Arrange
+        using var context = new AccountContext(_dbContextOptions);
+
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 1)
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Create();
+
+        var tenueAccount = new AccountEntity
+        {
+            AccountId = 1,
+            AccountNumber = "ACC-1",
+            LegalName = "Tenue Account",
+            AccountType = "CLIENT",
+            MissionType = "Tenue",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+        var revisionAccount = new AccountEntity
+        {
+            AccountId = 2,
+            AccountNumber = "ACC-2",
+            LegalName = "Revision Account",
+            AccountType = "CLIENT",
+            MissionType = "Revision",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+        var otherAccount = new AccountEntity
+        {
+            AccountId = 3,
+            AccountNumber = "ACC-3",
+            LegalName = "Other Account",
+            AccountType = "CLIENT",
+            MissionType = "Audit",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.ContactEntity.Add(contact);
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = tenueAccount, ContactId = contact.ContactId },
+            new RoleEntity { Account = revisionAccount, ContactId = contact.ContactId },
+            new RoleEntity { Account = otherAccount, ContactId = contact.ContactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var accountRepository = new AccountRepository(context);
+
+        // Act : filtrer sur Tenue ET Revision => union des deux, en excluant les autres
+        var result = await accountRepository.GetAccountsAsync(
+            new SearchAccountCriteria { ContactId = contact.ContactId, MissionType = new List<string> { "Tenue", "Revision" } },
+            new Pagination { PageNumber = 1, PageSize = 10 });
+
+        // Assert
+        Assert.Equal(2, result.TotalItems);
+        Assert.All(result.Items, item => Assert.Contains(item.MissionType, new[] { "Tenue", "Revision" }));
+        Assert.DoesNotContain(result.Items, item => item.MissionType == "Audit");
     }
 
     [Fact]
@@ -1421,8 +1556,8 @@ public class AccountRepositoryTests
             new SearchAccountCriteria
             {
                 ContactId = contact.ContactId,
-                MissionType = "Tenue",
-                DeploymentStatus = (int)DeploymentStatus.Connected
+                MissionType = new List<string> { "Tenue" },
+                DeploymentStatus = new List<int> { (int)DeploymentStatus.Connected }
             },
             new Pagination { PageNumber = 1, PageSize = 10 });
 

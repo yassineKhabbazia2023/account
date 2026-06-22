@@ -9,11 +9,24 @@ namespace Pulse.Account.Core.Extensions
 {
     public static class DeploymentStatusValidation
     {
-        public static int? GetValidDeploymentStatus(int? deploymentStatus)
+        public static List<int>? GetValidDeploymentStatuses(List<int>? deploymentStatuses)
         {
-            return deploymentStatus == null || System.Enum.IsDefined(typeof(DeploymentStatus), deploymentStatus)
-                ? deploymentStatus
-                : throw new NotFoundException(Errors.BadRequestDeploymentStatusCode, string.Format(Errors.BadRequestDeploymentStatusMessage, deploymentStatus));
+            if (deploymentStatuses == null)
+            {
+                return null;
+            }
+
+            var firstInvalid = deploymentStatuses
+                .Where(deploymentStatus => !System.Enum.IsDefined(typeof(DeploymentStatus), deploymentStatus))
+                .Cast<int?>()
+                .FirstOrDefault();
+
+            if (firstInvalid.HasValue)
+            {
+                throw new BadRequestException(Errors.BadRequestDeploymentStatusCode, string.Format(Errors.BadRequestDeploymentStatusMessage, firstInvalid.Value));
+            }
+
+            return deploymentStatuses;
         }
     }
 }
