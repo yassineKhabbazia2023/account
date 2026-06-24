@@ -93,6 +93,22 @@ public class RoleRepository : IRoleRepository
         });
     }
 
+    public async Task<IReadOnlyList<int>> GetAccountsWhereContactIsLastCollaboratorAsync(int contactId, IReadOnlyCollection<int> accountIds)
+    {
+        return await _retryPolicy.ExecuteAsync<IReadOnlyList<int>>(async () =>
+        {
+            var collaborator = ContactType.Collaborator.ToString();
+
+            return await _accountContext.RoleEntity
+                .AsNoTracking()
+                .Where(role => accountIds.Contains(role.AccountId) && role.Contact.Type == collaborator)
+                .GroupBy(role => role.AccountId)
+                .Where(accountGroup => accountGroup.Count() == 1 && accountGroup.Min(role => role.ContactId) == contactId)
+                .Select(accountGroup => accountGroup.Key)
+                .ToListAsync();
+        });
+    }
+
     public async Task<Role?> GetContactRoleAsync(int accountId, int contactId)
     {
         return await _retryPolicy.ExecuteAsync(async () =>

@@ -6,6 +6,7 @@ using AutoFixture;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -935,5 +936,138 @@ public class RolesServiceTests
         await act.Should().ThrowAsync<NotFoundException>()
             .WithMessage(Errors.NotFoundRoleMessage);
         _roleRepository.VerifyAll();
+    }
+
+    [Fact]
+    public async Task BulkDeleteRolesAsync_Should_ReturnAllSucceeded_WhenAllRemovable()
+    {
+        // Arrange
+        var currentUserId = 25;
+        var request = new BulkRoleDeleteRequest { AccountIds = new List<int> { 10, 20, 30 } };
+
+        _roleRepository.Setup(r => r.GetContactRoleAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync((int accountId, int contactId) => new Role { AccountId = accountId, ContactId = contactId, IsSignatory = false });
+        _roleRepository.Setup(r => r.IsProspectAccountAsync(It.IsAny<int>())).ReturnsAsync(false);
+        _roleRepository.Setup(r => r.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.CompletedTask);
+        _contactRepository.Setup(repo => repo.GetContactByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new Contact { ContactId = currentUserId, Type = ContactType.Collaborator.ToString(), FirstName = "Test", LastName = "User", Email = "test.user@test.fr" });
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        var result = await roleService.BulkDeleteRolesAsync(currentUserId, request);
+
+        // Assert
+        result.Succeeded.Select(s => s.AccountId).Should().BeEquivalentTo(new[] { 10, 20, 30 });
+        result.Failed.Should().BeEmpty();
+        _roleRepository.Verify(r => r.DeleteRoleAsync(It.IsAny<int>(), currentUserId), Times.Exactly(3));
+        _rolePublisher.Verify(x => x.PublishRoleDeletedEventAsync(It.IsAny<int>(), currentUserId, It.IsAny<bool>()), Times.Exactly(3));
+    }
+
+    [Fact]
+    public async Task BulkDeleteRolesAsync_Should_ReturnFailed_WhenRoleNotFound()
+    {
+        // Arrange
+        var currentUserId = 25;
+        var request = new BulkRoleDeleteRequest { AccountIds = new List<int> { 10 } };
+
+        _roleRepository.Setup(r => r.GetContactRoleAsync(10, currentUserId)).ReturnsAsync((Role?)null);
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        var result = await roleService.BulkDeleteRolesAsync(currentUserId, request);
+
+        // Assert
+        result.Succeeded.Should().BeEmpty();
+        result.Failed.Should().ContainSingle(f => f.AccountId == 10 && f.ErrorCode == Errors.NotFoundRoleCode);
+        _roleRepository.Verify(r => r.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task BulkDeleteRolesAsync_Should_ReturnPartialResult_WhenSomeFail()
+    {
+        // Arrange
+        var currentUserId = 25;
+        var request = new BulkRoleDeleteRequest { AccountIds = new List<int> { 10, 20 } };
+
+        _roleRepository.Setup(r => r.GetContactRoleAsync(10, currentUserId))
+            .ReturnsAsync(new Role { AccountId = 10, ContactId = currentUserId, IsSignatory = false });
+        _roleRepository.Setup(r => r.GetContactRoleAsync(20, currentUserId)).ReturnsAsync((Role?)null);
+        _roleRepository.Setup(r => r.IsProspectAccountAsync(It.IsAny<int>())).ReturnsAsync(false);
+        _roleRepository.Setup(r => r.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>())).Returns(Task.CompletedTask);
+        _contactRepository.Setup(repo => repo.GetContactByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new Contact { ContactId = currentUserId, Type = ContactType.Collaborator.ToString(), FirstName = "Test", LastName = "User", Email = "test.user@test.fr" });
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        var result = await roleService.BulkDeleteRolesAsync(currentUserId, request);
+
+        // Assert
+        result.Succeeded.Should().ContainSingle(s => s.AccountId == 10);
+        result.Failed.Should().ContainSingle(f => f.AccountId == 20 && f.ErrorCode == Errors.NotFoundRoleCode);
+        _roleRepository.Verify(r => r.DeleteRoleAsync(10, currentUserId), Times.Once);
+        _roleRepository.Verify(r => r.DeleteRoleAsync(20, currentUserId), Times.Never);
+    }
+
+    [Fact]
+    public async Task BulkDeleteRolesAsync_Should_ReturnEmptyResult_WhenAccountIdsEmpty()
+    {
+        // Arrange
+        var currentUserId = 25;
+        var request = new BulkRoleDeleteRequest { AccountIds = new List<int>() };
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        var result = await roleService.BulkDeleteRolesAsync(currentUserId, request);
+
+        // Assert
+        result.Succeeded.Should().BeEmpty();
+        result.Failed.Should().BeEmpty();
+        _roleRepository.Verify(r => r.GetContactRoleAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        _roleRepository.Verify(r => r.DeleteRoleAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CheckLastCollaboratorAsync_Should_ReturnFlagsAndAccountIds_WhenLastOnSome()
+    {
+        // Arrange
+        var contactId = 25;
+        var accountIds = new List<int> { 10, 20, 30 };
+
+        _roleRepository.Setup(r => r.GetAccountsWhereContactIsLastCollaboratorAsync(contactId, It.IsAny<IReadOnlyCollection<int>>()))
+            .ReturnsAsync(new List<int> { 10, 30 });
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        var result = await roleService.CheckLastCollaboratorAsync(contactId, accountIds);
+
+        // Assert
+        result.IsLastCollaboratorOnAny.Should().BeTrue();
+        result.AccountIdsWhereLastCollaborator.Should().BeEquivalentTo(new[] { 10, 30 });
+        _roleRepository.Verify(r => r.GetAccountsWhereContactIsLastCollaboratorAsync(contactId, It.IsAny<IReadOnlyCollection<int>>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CheckLastCollaboratorAsync_Should_ReturnFalse_WhenLastOnNone()
+    {
+        // Arrange
+        var contactId = 25;
+        var accountIds = new List<int> { 10, 20 };
+
+        _roleRepository.Setup(r => r.GetAccountsWhereContactIsLastCollaboratorAsync(contactId, It.IsAny<IReadOnlyCollection<int>>()))
+            .ReturnsAsync(new List<int>());
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        var result = await roleService.CheckLastCollaboratorAsync(contactId, accountIds);
+
+        // Assert
+        result.IsLastCollaboratorOnAny.Should().BeFalse();
+        result.AccountIdsWhereLastCollaborator.Should().BeEmpty();
     }
 }

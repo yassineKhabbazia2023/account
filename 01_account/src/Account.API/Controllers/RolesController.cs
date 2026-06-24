@@ -207,4 +207,38 @@ public class RolesController : ControllerBase
         await _rolesService.DeleteRoleAsync(currentUserId, accountId, contactId);
         return Ok();
     }
+
+    /// <summary>
+    /// Permet à l'utilisateur courant de se retirer lui-même d'une liste d'entités morales.
+    /// </summary>
+    /// <param name="currentUserId">Identifiant de l'utilisateur courant (header CurrentUser résolu par la Gateway), à la fois acteur et contact retiré.</param>
+    /// <param name="request">Liste des entités morales dont se retirer.</param>
+    /// <returns>Bilan par dossier : succès et échecs.</returns>
+    [HttpPost("bulk-delete")]
+    [ProducesResponseType(typeof(BulkRoleDeleteResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<BulkRoleDeleteResult>> BulkDeleteRolesAsync(
+        [FromHeader(Name = "CurrentUser")] int currentUserId,
+        [Required][FromBody] BulkRoleDeleteRequest request)
+    {
+        var result = await _rolesService.BulkDeleteRolesAsync(currentUserId, request);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Vérifier si un contact est le dernier collaborateur sur une liste d'entités morales.
+    /// </summary>
+    /// <param name="contactId">Identifiant de l'utilisateur courant (header CurrentUser résolu par la Gateway).</param>
+    /// <param name="accountIds">Liste des identifiants d'entités morales à vérifier.</param>
+    /// <returns>Les dossiers où le contact est le dernier collaborateur.</returns>
+    [HttpGet("last-collaborator")]
+    [ProducesResponseType(typeof(LastCollaboratorCheckResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<LastCollaboratorCheckResult>> CheckLastCollaboratorAsync(
+        [FromHeader(Name = "CurrentUser")] int contactId,
+        [FromQuery][Required][MinLength(1)] List<int> accountIds)
+    {
+        var result = await _rolesService.CheckLastCollaboratorAsync(contactId, accountIds);
+        return Ok(result);
+    }
 }

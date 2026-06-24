@@ -354,4 +354,56 @@ public class RolesControllerTests
         // Assert
         await Assert.ThrowsAsync<BadRequestException>(ContactHasRoleOnAccount);
     }
+
+    [Fact]
+    public async Task BulkDeleteRolesAsync_Should_ReturnOkResultWithResult()
+    {
+        // Arrange
+        var currentUserId = 25;
+        var expected = new BulkRoleDeleteResult
+        {
+            Succeeded = new List<BulkRoleDeleteItemResult> { new() { AccountId = 1 } },
+            Failed = new List<BulkRoleDeleteItemResult> { new() { AccountId = 2, ErrorCode = Errors.NotFoundRoleCode } },
+        };
+        var request = new BulkRoleDeleteRequest { AccountIds = new List<int> { 1, 2 } };
+        var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
+        rolesService.Setup(s => s.BulkDeleteRolesAsync(currentUserId, request)).ReturnsAsync(expected);
+
+        var rolesController = new RolesController(rolesService.Object);
+
+        // Act
+        var actionResult = await rolesController.BulkDeleteRolesAsync(currentUserId, request);
+        var okResult = actionResult.Result as OkObjectResult;
+
+        // Assert
+        okResult!.StatusCode.Should().Be(200);
+        okResult.Value.Should().BeSameAs(expected);
+        rolesService.Verify(s => s.BulkDeleteRolesAsync(currentUserId, request), Times.Once);
+    }
+
+    [Fact]
+    public async Task CheckLastCollaboratorAsync_Should_ReturnOkResultWithResult()
+    {
+        // Arrange
+        var contactId = 25;
+        var accountIds = new List<int> { 1, 2 };
+        var expected = new LastCollaboratorCheckResult
+        {
+            IsLastCollaboratorOnAny = true,
+            AccountIdsWhereLastCollaborator = new List<int> { 1 },
+        };
+        var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
+        rolesService.Setup(s => s.CheckLastCollaboratorAsync(contactId, accountIds)).ReturnsAsync(expected);
+
+        var rolesController = new RolesController(rolesService.Object);
+
+        // Act
+        var actionResult = await rolesController.CheckLastCollaboratorAsync(contactId, accountIds);
+        var okResult = actionResult.Result as OkObjectResult;
+
+        // Assert
+        okResult!.StatusCode.Should().Be(200);
+        okResult.Value.Should().BeSameAs(expected);
+        rolesService.Verify(s => s.CheckLastCollaboratorAsync(contactId, accountIds), Times.Once);
+    }
 }

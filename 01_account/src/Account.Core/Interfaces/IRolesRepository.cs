@@ -32,4 +32,6 @@ public interface IRoleRepository
     Task<Role?> CreateRoleWithoutAccountValidationAsync(CreateRoleRequest role);
 
     Task<bool> IsProspectAccountAsync(int accountId);
+
+    Task<IReadOnlyList<int>> GetAccountsWhereContactIsLastCollaboratorAsync(int contactId, IReadOnlyCollection<int> accountIds);
 }

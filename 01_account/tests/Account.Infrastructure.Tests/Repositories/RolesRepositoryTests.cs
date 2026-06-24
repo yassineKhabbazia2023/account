@@ -1605,4 +1605,79 @@ public class RolesRepositoryTests
 
         Assert.True(result);
     }
+
+    [Fact]
+    public async Task GetAccountsWhereContactIsLastCollaboratorAsync_Should_ReturnAccounts_WhereContactIsOnlyCollaborator()
+    {
+        // Arrange
+        var contactId = 25;
+        using var context = new AccountContext(_dbContextOptions);
+
+        SeedContact(context, contactId, ContactType.Collaborator);
+        SeedContact(context, 26, ContactType.Collaborator);
+        SeedContact(context, 99, ContactType.Customer);
+
+        SeedRole(context, accountId: 10, contactId);                  // seul collaborateur -> dernier
+        SeedRole(context, accountId: 20, contactId);                  // 2 collaborateurs   -> pas dernier
+        SeedRole(context, accountId: 20, contactId: 26);
+        SeedRole(context, accountId: 30, contactId);                  // seul collaborateur + 1 client -> dernier
+        SeedRole(context, accountId: 30, contactId: 99);
+        SeedRole(context, accountId: 40, contactId: 26);              // 25 n'a pas de rôle -> exclu
+
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        // Act
+        var result = await repository.GetAccountsWhereContactIsLastCollaboratorAsync(contactId, new[] { 10, 20, 30, 40 });
+
+        // Assert
+        Assert.Equal(new[] { 10, 30 }, result.OrderBy(x => x).ToArray());
+    }
+
+    [Fact]
+    public async Task GetAccountsWhereContactIsLastCollaboratorAsync_Should_ReturnEmpty_WhenAccountHasOtherCollaborators()
+    {
+        // Arrange
+        var contactId = 25;
+        using var context = new AccountContext(_dbContextOptions);
+
+        SeedContact(context, contactId, ContactType.Collaborator);
+        SeedContact(context, 26, ContactType.Collaborator);
+
+        SeedRole(context, accountId: 20, contactId);
+        SeedRole(context, accountId: 20, contactId: 26);
+
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        // Act
+        var result = await repository.GetAccountsWhereContactIsLastCollaboratorAsync(contactId, new[] { 20 });
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    private void SeedContact(AccountContext context, int contactId, ContactType type)
+    {
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, contactId)
+            .With(c => c.Type, type.ToString())
+            .With(c => c.IsActive, true)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Create();
+        context.ContactEntity.Add(contact);
+    }
+
+    private static void SeedRole(AccountContext context, int accountId, int contactId)
+    {
+        context.RoleEntity.Add(new RoleEntity { AccountId = accountId, ContactId = contactId });
+    }
 }

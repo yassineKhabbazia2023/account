@@ -22,6 +22,10 @@ public interface IRolesService
 
     Task DeleteRoleAsync(int currentUserId, int accountId, int contactId);
 
+    Task<BulkRoleDeleteResult> BulkDeleteRolesAsync(int currentUserId, BulkRoleDeleteRequest request);
+
+    Task<LastCollaboratorCheckResult> CheckLastCollaboratorAsync(int contactId, IReadOnlyCollection<int> accountIds);
+
     Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email);
 
     Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber);

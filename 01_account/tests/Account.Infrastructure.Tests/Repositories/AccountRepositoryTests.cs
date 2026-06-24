@@ -1438,6 +1438,10 @@ public class AccountRepositoryTests
             .With(c => c.ContactId, 1)
             .With(c => c.IsActive, true)
             .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
             .Create();
 
         var tenueAccount = new AccountEntity

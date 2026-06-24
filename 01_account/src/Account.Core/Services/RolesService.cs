@@ -188,6 +188,11 @@ public class RolesService : IRolesService
 
     public async Task DeleteRoleAsync(int currentUserId, int accountId, int contactId)
     {
+        await RemoveRoleInternalAsync(currentUserId, accountId, contactId);
+    }
+
+    private async Task RemoveRoleInternalAsync(int currentUserId, int accountId, int contactId)
+    {
         var role = await _rolesRepository.GetContactRoleAsync(accountId, contactId)
             ?? throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
 
@@ -217,6 +222,55 @@ public class RolesService : IRolesService
 
         await PublishRoleDeletedEvent(accountId, contactId);
         await PublishHistoryCreatedEvent(currentUserId, contactId, accountId, actionCode);
+    }
+
+    public async Task<BulkRoleDeleteResult> BulkDeleteRolesAsync(int currentUserId, BulkRoleDeleteRequest request)
+    {
+        var result = new BulkRoleDeleteResult();
+
+        if (request?.AccountIds == null || request.AccountIds.Count == 0)
+        {
+            return result;
+        }
+
+        foreach (var accountId in request.AccountIds.Distinct())
+        {
+            try
+            {
+                await RemoveRoleInternalAsync(currentUserId, accountId, currentUserId);
+                result.Succeeded.Add(new BulkRoleDeleteItemResult { AccountId = accountId });
+            }
+            catch (BusinessException ex)
+            {
+                _logger.LogWarning(ex, "RoleService: bulk role delete failed for contact {ContactId} on account {AccountId}", currentUserId, accountId);
+                result.Failed.Add(new BulkRoleDeleteItemResult
+                {
+                    AccountId = accountId,
+                    ErrorCode = ex.Code,
+                    ErrorMessage = ex.Message,
+                });
+            }
+        }
+
+        return result;
+    }
+
+    public async Task<LastCollaboratorCheckResult> CheckLastCollaboratorAsync(int contactId, IReadOnlyCollection<int> accountIds)
+    {
+        var result = new LastCollaboratorCheckResult();
+
+        if (accountIds == null || accountIds.Count == 0)
+        {
+            return result;
+        }
+
+        var distinctAccountIds = accountIds.Distinct().ToList();
+        var lastCollaboratorAccountIds = await _rolesRepository.GetAccountsWhereContactIsLastCollaboratorAsync(contactId, distinctAccountIds);
+
+        result.AccountIdsWhereLastCollaborator = lastCollaboratorAccountIds.ToList();
+        result.IsLastCollaboratorOnAny = result.AccountIdsWhereLastCollaborator.Count > 0;
+
+        return result;
     }
 
     public async Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email)
