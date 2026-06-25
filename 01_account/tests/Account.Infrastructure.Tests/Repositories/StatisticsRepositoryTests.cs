@@ -10,6 +10,7 @@ using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
+using Pulse.Account.Infrastructure.Tests.Helpers;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
@@ -23,6 +24,7 @@ public class StatisticsRepositoryTests
         _fixture = new Fixture();
         _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        _fixture.Customizations.Add(new OmitNavigationCollectionsSpecimenBuilder());
         _options = new DbContextOptionsBuilder<AccountContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;

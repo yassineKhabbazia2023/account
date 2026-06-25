@@ -10,6 +10,7 @@ using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
+using Pulse.Account.Infrastructure.Tests.Helpers;
 using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
@@ -56,6 +57,7 @@ public class RoleEventRepositoryTests
         var fixture = new Fixture();
         fixture.Behaviors.Remove(new ThrowingRecursionBehavior());
         fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        fixture.Customizations.Add(new OmitNavigationCollectionsSpecimenBuilder());
 
         var role = new RoleEntity { AccountId = 1, ContactId = 2 };
 

@@ -9,6 +9,7 @@ using Pulse.Account.Core.Constants;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
+using Pulse.Account.Infrastructure.Tests.Helpers;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Enum;
 using Pulse.ExceptionMiddleware.Exceptions;
@@ -25,6 +26,7 @@ public class FavoriteRepositoryTests
         _fixture = new Fixture();
         _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        _fixture.Customizations.Add(new OmitNavigationCollectionsSpecimenBuilder());
         _options = new DbContextOptionsBuilder<AccountContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
@@ -37,7 +39,14 @@ public class FavoriteRepositoryTests
         {
             // Arrange
             var accountsModel = _fixture.Create<List<AccountEntity>>();
-            accountsModel.ForEach(account => account.RoleEntity.First().IsFavorite = true);
+            accountsModel.ForEach(account => account.RoleEntity = new List<RoleEntity>
+            {
+                _fixture.Build<RoleEntity>()
+                    .Without(role => role.Account)
+                    .Without(role => role.Contact)
+                    .With(role => role.IsFavorite, true)
+                    .Create()
+            });
             context.AccountEntity.AddRange(accountsModel);
             await context.SaveChangesAsync();
             var contactId = accountsModel.Select(account => account.RoleEntity.Where(role => role.IsFavorite == true).Select(role => role.ContactId).FirstOrDefault()).FirstOrDefault();
@@ -102,7 +111,14 @@ public class FavoriteRepositoryTests
         {
             // Arrange
             var accountsModel = _fixture.Create<List<AccountEntity>>();
-            accountsModel.ForEach(account => account.RoleEntity.First().IsFavorite = true);
+            accountsModel.ForEach(account => account.RoleEntity = new List<RoleEntity>
+            {
+                _fixture.Build<RoleEntity>()
+                    .Without(role => role.Account)
+                    .Without(role => role.Contact)
+                    .With(role => role.IsFavorite, true)
+                    .Create()
+            });
             context.AccountEntity.AddRange(accountsModel);
             await context.SaveChangesAsync();
 

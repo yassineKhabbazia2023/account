@@ -10,6 +10,7 @@ using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Repositories;
+using Pulse.Account.Infrastructure.Tests.Helpers;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
 using Pulse.ExceptionMiddleware.Exceptions;
 
@@ -24,6 +25,7 @@ public class RegistryRoleEventRepositoryTests
         _fixture = new Fixture();
         _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        _fixture.Customizations.Add(new OmitNavigationCollectionsSpecimenBuilder());
     }
 
     [Fact]

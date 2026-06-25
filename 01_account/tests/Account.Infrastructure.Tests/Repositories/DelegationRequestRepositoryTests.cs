@@ -27,6 +27,7 @@ public class DelegationRequestRepositoryTests
         _fixture = new Fixture();
         _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        _fixture.Customizations.Add(new OmitNavigationCollectionsSpecimenBuilder());
         _dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;

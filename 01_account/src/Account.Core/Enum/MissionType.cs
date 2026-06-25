@@ -2,11 +2,11 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-namespace Pulse.Account.Core.Enum
+namespace Pulse.Account.Core.Enum;
+
+public enum MissionType
 {
-    public enum MissionType
-    {
-        Tenue = 1,
-        Revision = 2,
-    }
+    Tenue = 1,
+    Revision = 2,
+    None = 3,
 }

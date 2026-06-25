@@ -35,6 +35,7 @@ public class AccountRepositoryTests
         _fixture = new Fixture();
         _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList().ForEach(b => _fixture.Behaviors.Remove(b));
         _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        _fixture.Customizations.Add(new OmitNavigationCollectionsSpecimenBuilder());
         _dbContextOptions = new DbContextOptionsBuilder<AccountContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
@@ -163,7 +164,7 @@ public class AccountRepositoryTests
                 accountMock.RoleEntity.Add(roleMock);
 
                 context.AccountEntity.Add(accountMock);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
 
                 resultExpected.Add(accountMock.MapToAccount(contactMock.ContactId)!);
             }
@@ -238,7 +239,7 @@ public class AccountRepositoryTests
 
                 accountMock.RoleEntity.Add(firstRoleMock);
                 context.AccountEntity.Add(accountMock);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
                 resultExpected.Add(accountMock.MapToAccount(mockedContacts[0].ContactId)!);
             }
 
@@ -263,7 +264,7 @@ public class AccountRepositoryTests
                                         .Create();
                 accountMock.RoleEntity.Add(secondRoleMock);
                 context.AccountEntity.Add(accountMock);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
                 resultExpected.Add(accountMock.MapToAccount(mockedContacts[0].ContactId)!);
             }
 
@@ -395,7 +396,7 @@ public class AccountRepositoryTests
             context.DeploymentEntity.AddRange([deploymentENtity, deploymentENtity2]);
             await context.SaveChangesAsync();
 
-            var repo = new AccountRepository(context);
+            var accountRepository = new AccountRepository(context);
             var criteria = new SearchAccountCriteria
             {
                 ContactId = 1,
@@ -404,7 +405,7 @@ public class AccountRepositoryTests
 
             var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
 
-            var result = await repo.GetAccountsAsync(criteria, pagination);
+            var result = await accountRepository.GetAccountsAsync(criteria, pagination);
 
             Assert.NotNull(result);
             Assert.True(result.Items.Count() > 0);
@@ -511,7 +512,7 @@ public class AccountRepositoryTests
             context.DeploymentEntity.AddRange([deploymentENtity, deploymentENtity2]);
             await context.SaveChangesAsync();
 
-            var repo = new AccountRepository(context);
+            var accountRepository = new AccountRepository(context);
             var criteria = new SearchAccountCriteria
             {
                 ContactId = 1,
@@ -520,7 +521,7 @@ public class AccountRepositoryTests
 
             var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
 
-            Task Accounts() => repo.GetAccountsAsync(criteria, pagination);
+            Task Accounts() => accountRepository.GetAccountsAsync(criteria, pagination);
 
             await Assert.ThrowsAsync<BadRequestException>(Accounts);
         }
@@ -579,7 +580,7 @@ public class AccountRepositoryTests
                                                 .With(a => a.DeploymentEntity, deploymentMock)
                                                 .Create();
             context.AccountEntity.Add(accountMockInactive);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var accountRepository = new AccountRepository(context);
 
@@ -1161,7 +1162,7 @@ public class AccountRepositoryTests
                     .Select(x => x.Contact.ToContact()!));
             }
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var accountRepository = new AccountRepository(context);
 
@@ -1230,11 +1231,9 @@ public class AccountRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             context.AccountEntity.Add(accountEntity);
-            context.SaveChanges();
             context.ContactEntity.AddRange(contacts);
-            context.SaveChanges();
             context.RoleEntity.AddRange(roles);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var repos = new AccountRepository(context);
             var result = await repos.GetAssociatedContactsAsync(contacts.FirstOrDefault().ContactId, request, pagination);
@@ -1259,7 +1258,7 @@ public class AccountRepositoryTests
             var accountsMock = _fixture.Create<List<AccountEntity>>();
 
             context.AccountEntity.AddRange(accountsMock);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var accountRepository = new AccountRepository(context);
 
@@ -1500,6 +1499,76 @@ public class AccountRepositoryTests
     }
 
     [Fact]
+    public async Task GetAccountsAsync_WithMissionTypeNone_ShouldReturnAccountsWithoutMissionType()
+    {
+        // Arrange
+        using var context = new AccountContext(_dbContextOptions);
+
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 1)
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .Create();
+
+        var tenueAccount = new AccountEntity
+        {
+            AccountId = 1,
+            AccountNumber = "ACC-1",
+            LegalName = "Tenue Account",
+            AccountType = "CLIENT",
+            MissionType = "Tenue",
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+        var nullMissionAccount = new AccountEntity
+        {
+            AccountId = 2,
+            AccountNumber = "ACC-2",
+            LegalName = "Null Mission Account",
+            AccountType = "CLIENT",
+            MissionType = null,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+        var emptyMissionAccount = new AccountEntity
+        {
+            AccountId = 3,
+            AccountNumber = "ACC-3",
+            LegalName = "Empty Mission Account",
+            AccountType = "CLIENT",
+            MissionType = string.Empty,
+            CreatedBy = "tests",
+            IsActive = true,
+            DeploymentEntity = new DeploymentEntity { Status = 1 }
+        };
+
+        context.ContactEntity.Add(contact);
+        context.RoleEntity.AddRange(
+            new RoleEntity { Account = tenueAccount, ContactId = contact.ContactId },
+            new RoleEntity { Account = nullMissionAccount, ContactId = contact.ContactId },
+            new RoleEntity { Account = emptyMissionAccount, ContactId = contact.ContactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var accountRepository = new AccountRepository(context);
+
+        // Act : MissionType = None => Accounts sans mission renseignée (null ou vide)
+        var result = await accountRepository.GetAccountsAsync(
+            new SearchAccountCriteria { ContactId = contact.ContactId, MissionType = new List<string> { MissionType.None.ToString() } },
+            new Pagination { PageNumber = 1, PageSize = 10 });
+
+        // Assert
+        Assert.Equal(2, result.TotalItems);
+        Assert.All(result.Items, item => Assert.True(string.IsNullOrEmpty(item.MissionType)));
+    }
+
+    [Fact]
     public async Task GetAccountsAsync_WithMissionTypeAndDeploymentStatus_ShouldApplyBothCumulatively()
     {
         // Arrange
@@ -1509,6 +1578,10 @@ public class AccountRepositoryTests
             .With(c => c.ContactId, 1)
             .With(c => c.IsActive, true)
             .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.RoleLabelEntityCreatedByNavigation)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
             .Create();
 
         var matching = new AccountEntity
@@ -1753,9 +1826,9 @@ public class AccountRepositoryTests
             // Arrange
             context.AccountEntity.Add(account);
             context.ContactEntity.Add(contact);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
             context.RoleEntity.Add(role);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var accountRepository = new AccountRepository(context);
 
@@ -1776,7 +1849,6 @@ public class AccountRepositoryTests
     public async Task GetContactsAccountAsync_WithSearchCriteriaForTypeCollaborator_ShouldFilterResultsAndReturnContactsOrderedDescendingByActionLevel()
     {
         var accountId = 1;
-        ContactType collaborator = ContactType.Collaborator;
 
         var account = _fixture.Build<AccountEntity>()
                 .With(x => x.AccountId, accountId)
@@ -1859,9 +1931,9 @@ public class AccountRepositoryTests
             // Arrange
             context.AccountEntity.Add(account);
             context.ContactEntity.AddRange(new List<ContactEntity>() { contact1, contact2, contact3 });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
             context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var accountRepository = new AccountRepository(context);
 
@@ -2009,9 +2081,9 @@ public class AccountRepositoryTests
 
             context.AccountEntity.Add(account);
             context.ContactEntity.AddRange(new List<ContactEntity>() { contact1, contact2, contact3 });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
             context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
             var accountRepository = new AccountRepository(context);
 
             // Act
@@ -2130,9 +2202,9 @@ public class AccountRepositoryTests
 
             context.AccountEntity.Add(account);
             context.ContactEntity.AddRange(new List<ContactEntity>() { contact1, contact2, contact3 });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
             context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
             var accountRepository = new AccountRepository(context);
 
             // Act
@@ -2252,9 +2324,9 @@ public class AccountRepositoryTests
 
             context.AccountEntity.Add(account);
             context.ContactEntity.AddRange(new List<ContactEntity>() { contact1, contact2, contact3 });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
             context.RoleEntity.AddRange(new List<RoleEntity>() { role1, role2, role3 });
-            context.SaveChanges();
+            await context.SaveChangesAsync();
             var accountRepository = new AccountRepository(context);
 
             // Act
