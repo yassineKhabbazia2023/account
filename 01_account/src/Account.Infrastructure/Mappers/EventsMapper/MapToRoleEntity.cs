@@ -6,6 +6,7 @@ using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Back.Events.IntegrationEvents.EventsData;
 

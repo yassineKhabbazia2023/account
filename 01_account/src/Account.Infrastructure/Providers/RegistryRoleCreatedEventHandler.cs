@@ -9,6 +9,7 @@ using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
+using Pulse.Account.Core.Extensions;
 using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Providers.Interfaces;

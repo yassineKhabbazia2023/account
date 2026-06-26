@@ -162,21 +162,61 @@ public class RolesControllerTests
     }
 
     [Fact]
-    public async Task UpdateRoleRelationClientAsync_Should_ReturnOkResult()
+    public async Task BulkUpdateRoleCustomerRelationAsync_Should_ReturnOkResultWithBulkResult()
     {
         // Arrange
+        var currentUserId = 25;
+        var request = new UpdateRoleCustomerRelationRequest
+        {
+            IsCustomerRelation = true,
+            AccountIds = new List<int> { 1, 2 }
+        };
+        var expected = new UpdateRoleCustomerRelationResponse
+        {
+            Succeeded = new List<UpdateRoleCustomerRelationItemResponse>
+            {
+                new() { AccountId = 1 },
+                new() { AccountId = 2 }
+            }
+        };
+
         var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
-        rolesService.Setup(service => service.UpdateRoleCustomerRelationAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
-            .Returns(Task.CompletedTask);
+        rolesService.Setup(service => service.BulkUpdateRoleCustomerRelationAsync(currentUserId, request))
+            .ReturnsAsync(expected);
         var rolesController = new RolesController(rolesService.Object);
 
         // Act
-        var actionResult = await rolesController.UpdateRoleCustomerRelationAsync(1, 1, true);
-        var result = actionResult as StatusCodeResult;
+        var actionResult = await rolesController.BulkUpdateRoleCustomerRelationAsync(currentUserId, request);
+        var okResult = actionResult.Result as OkObjectResult;
 
         // Assert
-        result!.StatusCode.Should().Be(200);
-        rolesService.Verify(x => x.UpdateRoleCustomerRelationAsync(1, 1, true), Times.Once);
+        okResult!.StatusCode.Should().Be(200);
+        okResult.Value.Should().BeSameAs(expected);
+        rolesService.Verify(x => x.BulkUpdateRoleCustomerRelationAsync(currentUserId, request), Times.Once);
+    }
+
+    [Fact]
+    public async Task BulkUpdateRoleCustomerRelationAsync_Should_PropagateNotFoundException_WhenServiceThrows()
+    {
+        // Arrange
+        var currentUserId = 25;
+        var request = new UpdateRoleCustomerRelationRequest
+        {
+            IsCustomerRelation = true,
+            AccountIds = new List<int> { 1 }
+        };
+
+        var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
+        rolesService.Setup(service => service.BulkUpdateRoleCustomerRelationAsync(currentUserId, request))
+            .ThrowsAsync(new NotFoundException(Errors.NotFoundRoleCode, Errors.NotFoundRoleMessage));
+        var rolesController = new RolesController(rolesService.Object);
+
+        // Act
+        Func<Task> act = async () => await rolesController.BulkUpdateRoleCustomerRelationAsync(currentUserId, request);
+
+        // Assert
+        await act.Should().ThrowAsync<NotFoundException>();
+        rolesService.Verify(x => x.BulkUpdateRoleCustomerRelationAsync(currentUserId, request), Times.Once);
     }
 
     [Fact]

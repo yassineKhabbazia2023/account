@@ -13,6 +13,7 @@ using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Back.ExceptionMiddleware.BaseException;
 using Pulse.ExceptionMiddleware.Exceptions;
+using PulseInvalidOperationException = Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException;
 
 namespace Pulse.Account.Core.Services;
 
@@ -179,11 +180,76 @@ public class RolesService : IRolesService
 
     public async Task UpdateRoleCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation)
     {
-        var actionLevel = isCustomerRelation ? (int)ActionLevelType.DirectClientRelation : (int)ActionLevelType.Observator;
+        await ValidateContactIsCollaboratorAsync(contactId);
+
+        var expectedActionLevel = isCustomerRelation
+            ? (int)ActionLevelType.DirectClientRelation
+            : (int)ActionLevelType.Observator;
+
+        var accountIdsWithRoleLabel = await _rolesRepository.GetAccountIdsWithRoleLabelAsync(contactId, new List<int> { accountId });
+        var actionLevel = ActionLevelHelper.SetupActionLevel(expectedActionLevel, isCustomerRelation, accountIdsWithRoleLabel.Contains(accountId));
 
         await _rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation, actionLevel);
 
         await PublishRoleUpdatedEvent(accountId, contactId);
+    }
+
+    public async Task<UpdateRoleCustomerRelationResponse> BulkUpdateRoleCustomerRelationAsync(int currentUserId, UpdateRoleCustomerRelationRequest request)
+    {
+        await ValidateContactIsCollaboratorAsync(currentUserId);
+
+        var requestedAccountIds = request.AccountIds.Distinct().ToList();
+        var roles = await _rolesRepository.GetRolesByContactAndAccountIdsAsync(currentUserId, requestedAccountIds);
+        var accountIdsWithRoleLabel = await _rolesRepository.GetAccountIdsWithRoleLabelAsync(currentUserId, requestedAccountIds);
+
+        var expectedActionLevel = request.IsCustomerRelation
+            ? (int)ActionLevelType.DirectClientRelation
+            : (int)ActionLevelType.Observator;
+
+        var result = new UpdateRoleCustomerRelationResponse();
+        var accountActionLevels = new Dictionary<int, int>();
+
+        result.Failed.AddRange(
+            requestedAccountIds
+                .Except(roles.Select(r => r.AccountId))
+                .Select(accountId => new UpdateRoleCustomerRelationItemResponse
+                {
+                    AccountId = accountId,
+                    ErrorCode = Errors.NotFoundRoleCode,
+                    ErrorMessage = string.Format(Errors.NotFoundRoleMessage, currentUserId, accountId)
+                }));
+
+        foreach (var role in roles)
+        {
+            var hasRoleLabel = accountIdsWithRoleLabel.Contains(role.AccountId);
+            var actionLevel = ActionLevelHelper.SetupActionLevel(expectedActionLevel, request.IsCustomerRelation, hasRoleLabel);
+            accountActionLevels.Add(role.AccountId, actionLevel);
+        }
+
+        if (accountActionLevels.Count > 0)
+        {
+            var repositoryResult = await _rolesRepository.UpdateRoleCustomerRelationAsync(currentUserId, request.IsCustomerRelation, accountActionLevels);
+            result.Succeeded.AddRange(repositoryResult.Succeeded);
+            result.Failed.AddRange(repositoryResult.Failed);
+        }
+
+        foreach (var item in result.Succeeded)
+        {
+            await PublishRoleUpdatedEvent(item.AccountId, currentUserId);
+        }
+
+        return result;
+    }
+
+    private async Task ValidateContactIsCollaboratorAsync(int contactId)
+    {
+        var contact = await _contactRepository.GetContactByIdAsync(contactId)
+            ?? throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
+
+        if (!ContactType.Collaborator.ToString().Equals(contact.Type))
+        {
+            throw new PulseInvalidOperationException(Errors.NoClientLabelCode, Errors.NoClientLabelMessage);
+        }
     }
 
     public async Task DeleteRoleAsync(int currentUserId, int accountId, int contactId)

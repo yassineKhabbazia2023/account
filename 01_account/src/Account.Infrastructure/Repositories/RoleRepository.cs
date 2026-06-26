@@ -19,7 +19,6 @@ using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.ExceptionMiddleware.Exceptions;
-using InvalidOperationExceptionMiddleware = Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
@@ -214,23 +213,78 @@ public class RoleRepository : IRoleRepository
         });
     }
 
-    public async Task UpdateRoleCollaboratorInformationAsync(int accountId, int contactId, bool isCustomerRelation, int expectedActionLevel = (int)ActionLevelType.NotAssigned)
+    public async Task UpdateRoleCollaboratorInformationAsync(int accountId, int contactId, bool isCustomerRelation, int actionLevel)
     {
-        var isCollab = await _accountContext.ContactEntity.AsNoTracking().AnyAsync(c => c.ContactId == contactId && c.Type == ContactType.Collaborator.ToString());
-
-        if (!isCollab)
-        {
-            throw new InvalidOperationExceptionMiddleware(Errors.NoClientLabelCode, Errors.NoClientLabelMessage);
-        }
-
         var roleDb = await _accountContext.RoleEntity.FirstOrDefaultAsync(role => role.AccountId == accountId && role.ContactId == contactId)
             ?? throw new NotFoundException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, contactId, accountId));
 
-        var hasRoleLabel = await HasRoleLabel(contactId, accountId);
-        roleDb.ActionLevel = ActionLevelHelper.SetupActionLevel(expectedActionLevel, isCustomerRelation, hasRoleLabel);
+        roleDb.ActionLevel = actionLevel;
         roleDb.IsCustomerRelation = isCustomerRelation;
-        _accountContext.Entry(roleDb).State = EntityState.Modified;
         await _accountContext.SaveChangesAsync();
+    }
+
+    public async Task<List<Role>> GetRolesByContactAndAccountIdsAsync(int contactId, List<int> accountIds)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var roles = await _accountContext.RoleEntity
+                .AsNoTracking()
+                .Where(role => role.ContactId == contactId && accountIds.Contains(role.AccountId))
+                .ToListAsync();
+
+            return roles.Select(r => r.MapToRole()).OfType<Role>().ToList();
+        });
+    }
+
+    public async Task<HashSet<int>> GetAccountIdsWithRoleLabelAsync(int contactId, List<int> accountIds)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            return await _accountContext.RoleLabelEntity
+                .AsNoTracking()
+                .Where(rl => rl.ContactId == contactId && accountIds.Contains(rl.AccountId))
+                .Select(rl => rl.AccountId)
+                .ToHashSetAsync();
+        });
+    }
+
+    public async Task<UpdateRoleCustomerRelationResponse> UpdateRoleCustomerRelationAsync(int contactId, bool isCustomerRelation, Dictionary<int, int> accountActionLevels)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var accountIds = accountActionLevels.Keys.ToList();
+
+            var roles = await _accountContext.RoleEntity
+                .Where(role => role.ContactId == contactId && accountIds.Contains(role.AccountId))
+                .ToListAsync();
+
+            var result = new UpdateRoleCustomerRelationResponse();
+
+            foreach (var (accountId, actionLevel) in accountActionLevels)
+            {
+                var roleDb = roles.FirstOrDefault(role => role.AccountId == accountId);
+
+                if (roleDb is null)
+                {
+                    result.Failed.Add(new UpdateRoleCustomerRelationItemResponse
+                    {
+                        AccountId = accountId,
+                        ErrorCode = Errors.NotFoundRoleCode,
+                        ErrorMessage = string.Format(Errors.NotFoundRoleMessage, contactId, accountId)
+                    });
+                    continue;
+                }
+
+                roleDb.ActionLevel = actionLevel;
+                roleDb.IsCustomerRelation = isCustomerRelation;
+
+                result.Succeeded.Add(new UpdateRoleCustomerRelationItemResponse { AccountId = accountId });
+            }
+
+            await _accountContext.SaveChangesAsync();
+
+            return result;
+        });
     }
 
     public async Task DeleteRoleAsync(int accountId, int contactId)

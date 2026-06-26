@@ -2,10 +2,10 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Infrastructure.Extensions;
+using Pulse.Account.Core.Extensions;
 using InvalidOperationException = Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException;
 
-namespace Pulse.Account.Infrastructure.Tests.Extensions;
+namespace Pulse.Account.Core.Tests.Extensions;
 
 public class ActionLevelHelperTests
 {

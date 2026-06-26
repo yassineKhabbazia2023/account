@@ -1,8 +1,7 @@
-﻿// <copyright file="IRolesRepository.cs" company="Pulse">
+// <copyright file="IRolesRepository.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
@@ -27,7 +26,13 @@ public interface IRoleRepository
 
     Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber);
 
-    Task UpdateRoleCollaboratorInformationAsync(int accountId, int contactId, bool isCustomerRelation, int expectedActionLevel = (int)ActionLevelType.NotAssigned);
+    Task UpdateRoleCollaboratorInformationAsync(int accountId, int contactId, bool isCustomerRelation, int actionLevel);
+
+    Task<List<Role>> GetRolesByContactAndAccountIdsAsync(int contactId, List<int> accountIds);
+
+    Task<HashSet<int>> GetAccountIdsWithRoleLabelAsync(int contactId, List<int> accountIds);
+
+    Task<UpdateRoleCustomerRelationResponse> UpdateRoleCustomerRelationAsync(int contactId, bool isCustomerRelation, Dictionary<int, int> accountActionLevels);
 
     Task<Role?> CreateRoleWithoutAccountValidationAsync(CreateRoleRequest role);
 

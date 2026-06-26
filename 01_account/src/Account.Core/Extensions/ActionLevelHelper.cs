@@ -1,4 +1,4 @@
-﻿// <copyright file="ActionLevelHelper.cs" company="Pulse">
+// <copyright file="ActionLevelHelper.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -6,7 +6,7 @@ using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
 using InvalidOperationException = Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException;
 
-namespace Pulse.Account.Infrastructure.Extensions;
+namespace Pulse.Account.Core.Extensions;
 
 public static class ActionLevelHelper
 {

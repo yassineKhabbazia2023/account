@@ -19,7 +19,6 @@ using Pulse.Account.Infrastructure.Repositories;
 using Pulse.Account.Infrastructure.Tests.Helpers;
 using Pulse.ExceptionMiddleware.Exceptions;
 using AccountModel = Pulse.Account.Core.Models.Account;
-using InvalidOperationExceptionMiddleware = Pulse.ExceptionMiddleware.Exceptions.InvalidOperationException;
 
 namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
@@ -751,7 +750,7 @@ public class RolesRepositoryTests
     }
 
     [Fact]
-    public async Task UpdateRoleRelationClientAsync_WithExistingRole_ShouldUpdateIsCustomerRelationAndSetActionLevelTo4()
+    public async Task UpdateRoleCollaboratorInformationAsync_WithExistingRole_ShouldUpdateIsCustomerRelationAndActionLevel()
     {
         // Arrange
         const int accountId = 123;
@@ -759,15 +758,6 @@ public class RolesRepositoryTests
         const bool newIsCustomerRelation = true;
 
         using var context = new AccountContext(_dbContextOptions);
-        var contact = _fixture.Build<ContactEntity>()
-            .With(c => c.ContactId, contactId)
-            .With(c => c.Type, ContactType.Collaborator.ToString())
-            .Without(c => c.DelegationEntityDelegatee)
-            .Without(c => c.DelegationEntityDelegator)
-            .Without(c => c.RoleEntity)
-            .Without(c => c.RoleLabelEntityContact)
-            .Without(c => c.RoleLabelEntityCreatedByNavigation)
-            .Create();
         var roleEntity = new RoleEntity
         {
             AccountId = accountId,
@@ -775,26 +765,24 @@ public class RolesRepositoryTests
             IsCustomerRelation = false,
             ActionLevel = 0
         };
-        context.ContactEntity.Add(contact);
         context.RoleEntity.Add(roleEntity);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        context.ChangeTracker.Clear();
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, newIsCustomerRelation);
+        await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, newIsCustomerRelation, (int)ActionLevelType.DirectClientRelation);
 
         // Assert
         var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
         Assert.NotNull(updatedRole);
         Assert.Equal(newIsCustomerRelation, updatedRole.IsCustomerRelation);
-        Assert.Equal(4, updatedRole.ActionLevel);
+        Assert.Equal((int)ActionLevelType.DirectClientRelation, updatedRole.ActionLevel);
     }
 
     [Fact]
-    public async Task UpdateRoleRelationClientAsyncToFalse_WithExistingRoleAndNoRoleLabel_ShouldUpdateIsCustomerRelationAndSetActionLevelTo1()
+    public async Task UpdateRoleCollaboratorInformationAsyncToFalse_WithExistingRole_ShouldUpdateIsCustomerRelationAndActionLevel()
     {
         // Arrange
         const int accountId = 123;
@@ -802,28 +790,17 @@ public class RolesRepositoryTests
         const bool newIsCustomerRelation = false;
 
         using var context = new AccountContext(_dbContextOptions);
-        var contact = _fixture.Build<ContactEntity>()
-            .With(c => c.ContactId, contactId)
-            .With(c => c.Type, ContactType.Collaborator.ToString())
-            .Without(c => c.DelegationEntityDelegatee)
-            .Without(c => c.DelegationEntityDelegator)
-            .Without(c => c.RoleEntity)
-            .Without(c => c.RoleLabelEntityContact)
-            .Without(c => c.RoleLabelEntityCreatedByNavigation)
-            .Create();
         var roleEntity = new RoleEntity
         {
             AccountId = accountId,
             ContactId = contactId,
             IsCustomerRelation = true,
-            ActionLevel = 4
+            ActionLevel = (int)ActionLevelType.DirectClientRelation
         };
-        context.ContactEntity.Add(contact);
         context.RoleEntity.Add(roleEntity);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
-        context.ChangeTracker.Clear();
         var rolesRepository = new RoleRepository(context);
 
         // Act
@@ -833,61 +810,11 @@ public class RolesRepositoryTests
         var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
         Assert.NotNull(updatedRole);
         Assert.Equal(newIsCustomerRelation, updatedRole.IsCustomerRelation);
-        Assert.Equal(1, updatedRole.ActionLevel);
+        Assert.Equal((int)ActionLevelType.Observator, updatedRole.ActionLevel);
     }
 
     [Fact]
-    public async Task UpdateRoleRelationClientAsyncToFalse_WithExistingRoleAndRoleLabel_ShouldUpdateIsCustomerRelationAndSetActionLevelTo3()
-    {
-        // Arrange
-        const int accountId = 123;
-        const int contactId = 456;
-        const bool newIsCustomerRelation = false;
-
-        using var context = new AccountContext(_dbContextOptions);
-        var contact = _fixture.Build<ContactEntity>()
-            .With(c => c.ContactId, contactId)
-            .With(c => c.Type, ContactType.Collaborator.ToString())
-            .Without(c => c.DelegationEntityDelegatee)
-            .Without(c => c.DelegationEntityDelegator)
-            .Without(c => c.RoleEntity)
-            .Without(c => c.RoleLabelEntityContact)
-            .Without(c => c.RoleLabelEntityCreatedByNavigation)
-            .Create();
-        var roleEntity = new RoleEntity
-        {
-            AccountId = accountId,
-            ContactId = contactId,
-            IsCustomerRelation = true,
-            ActionLevel = 4
-        };
-        var roleLabel = new RoleLabelEntity
-        {
-            AccountId = accountId,
-            ContactId = contactId,
-            LabelId = 1
-        };
-        context.ContactEntity.Add(contact);
-        context.RoleEntity.Add(roleEntity);
-        context.RoleLabelEntity.Add(roleLabel);
-        await context.SaveChangesAsync();
-        context.ChangeTracker.Clear();
-
-        context.ChangeTracker.Clear();
-        var rolesRepository = new RoleRepository(context);
-
-        // Act
-        await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, newIsCustomerRelation, (int)ActionLevelType.Observator);
-
-        // Assert
-        var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
-        Assert.NotNull(updatedRole);
-        Assert.Equal(newIsCustomerRelation, updatedRole.IsCustomerRelation);
-        Assert.Equal(3, updatedRole.ActionLevel);
-    }
-
-    [Fact]
-    public async Task UpdateRoleRelationClientAsync_WithNonExistingRole_ShouldThrowNotFoundException()
+    public async Task UpdateRoleCollaboratorInformationAsync_WithNonExistingRole_ShouldThrowNotFoundException()
     {
         // Arrange
         const int accountId = 123;
@@ -895,32 +822,18 @@ public class RolesRepositoryTests
         const bool newIsCustomerRelation = true;
 
         using var context = new AccountContext(_dbContextOptions);
-        var contact = _fixture.Build<ContactEntity>()
-            .With(c => c.ContactId, contactId)
-            .With(c => c.Type, ContactType.Collaborator.ToString())
-            .Without(c => c.DelegationEntityDelegatee)
-            .Without(c => c.DelegationEntityDelegator)
-            .Without(c => c.RoleEntity)
-            .Without(c => c.RoleLabelEntityContact)
-            .Without(c => c.RoleLabelEntityCreatedByNavigation)
-            .Create();
-        context.ContactEntity.Add(contact);
-        await context.SaveChangesAsync();
-        context.ChangeTracker.Clear();
-
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        Func<Task> action = async () => await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, newIsCustomerRelation);
+        Func<Task> action = async () => await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, newIsCustomerRelation, (int)ActionLevelType.DirectClientRelation);
 
         // Assert
         var exception = await Assert.ThrowsAsync<NotFoundException>(() => action());
-        Assert.Equal("ACC004", exception.Code);
-        Assert.Equal("Le contact avec l'identifiant 456 n'a aucun role sur l'account 123", exception.Message);
+        Assert.Equal(Errors.NotFoundRoleCode, exception.Code);
     }
 
     [Fact]
-    public async Task UpdateRoleRelationClientAsync_WithNoChange_ShouldNotUpdateDatabase()
+    public async Task UpdateRoleCollaboratorInformationAsync_WithNoChange_ShouldNotUpdateDatabase()
     {
         // Arrange
         const int accountId = 123;
@@ -928,22 +841,13 @@ public class RolesRepositoryTests
         const bool isCustomerRelation = true;
 
         using var context = new AccountContext(_dbContextOptions);
-        var contact = _fixture.Build<ContactEntity>()
-            .With(c => c.ContactId, contactId)
-            .With(c => c.Type, ContactType.Collaborator.ToString())
-            .Without(c => c.DelegationEntityDelegatee)
-            .Without(c => c.DelegationEntityDelegator)
-            .Without(c => c.RoleEntity)
-            .Without(c => c.RoleLabelEntityContact)
-            .Without(c => c.RoleLabelEntityCreatedByNavigation)
-            .Create();
         var roleEntity = new RoleEntity
         {
             AccountId = accountId,
             ContactId = contactId,
-            IsCustomerRelation = isCustomerRelation
+            IsCustomerRelation = isCustomerRelation,
+            ActionLevel = (int)ActionLevelType.DirectClientRelation
         };
-        context.ContactEntity.Add(contact);
         context.RoleEntity.Add(roleEntity);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
@@ -951,45 +855,244 @@ public class RolesRepositoryTests
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation);
+        await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation, (int)ActionLevelType.DirectClientRelation);
 
         // Assert
         var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
         Assert.NotNull(updatedRole);
         Assert.Equal(isCustomerRelation, updatedRole.IsCustomerRelation);
+        Assert.Equal((int)ActionLevelType.DirectClientRelation, updatedRole.ActionLevel);
     }
 
     [Fact]
-    public async Task UpdateRoleRelationClientAsync_WithClient_ShouldThrowInvalidOperationException()
+    public async Task UpdateRoleCustomerRelationAsync_WithMultipleExistingRoles_ShouldUpdateAll()
     {
         // Arrange
-        const int accountId = 123;
         const int contactId = 456;
+        var accountIds = new List<int> { 123, 124, 125 };
         const bool newIsCustomerRelation = true;
+        var accountActionLevels = accountIds.ToDictionary(id => id, _ => (int)ActionLevelType.DirectClientRelation);
 
         using var context = new AccountContext(_dbContextOptions);
-        var contact = _fixture.Build<ContactEntity>()
-            .With(c => c.ContactId, contactId)
-            .With(c => c.Type, ContactType.Customer.ToString())
-            .Without(c => c.DelegationEntityDelegatee)
-            .Without(c => c.DelegationEntityDelegator)
-            .Without(c => c.RoleEntity)
-            .Without(c => c.RoleLabelEntityContact)
-            .Without(c => c.RoleLabelEntityCreatedByNavigation)
-            .Create();
-        context.ContactEntity.Add(contact);
+        var roles = accountIds.Select(accountId => new RoleEntity
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsCustomerRelation = false,
+            ActionLevel = 0
+        }).ToList();
+
+        context.RoleEntity.AddRange(roles);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
 
         var rolesRepository = new RoleRepository(context);
 
         // Act
-        Func<Task> action = async () => await rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, newIsCustomerRelation);
+        var result = await rolesRepository.UpdateRoleCustomerRelationAsync(contactId, newIsCustomerRelation, accountActionLevels);
 
         // Assert
-        var exception = await Assert.ThrowsAsync<InvalidOperationExceptionMiddleware>(() => action());
-        Assert.Equal("ACC035", exception.Code);
-        Assert.Equal("Impossible d'ajouter des libellés pour un client.", exception.Message);
+        Assert.Equal(3, result.Succeeded.Count);
+        Assert.Empty(result.Failed);
+
+        foreach (var accountId in accountIds)
+        {
+            var updatedRole = await context.RoleEntity
+                .FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
+            Assert.NotNull(updatedRole);
+            Assert.Equal(newIsCustomerRelation, updatedRole.IsCustomerRelation);
+            Assert.Equal((int)ActionLevelType.DirectClientRelation, updatedRole.ActionLevel);
+        }
+    }
+
+    [Fact]
+    public async Task UpdateRoleCustomerRelationAsync_WithMissingRoles_ShouldReturnPartialFailure()
+    {
+        // Arrange
+        const int contactId = 456;
+        const int existingAccountId = 123;
+        const int missingAccountId = 999;
+        var accountActionLevels = new Dictionary<int, int>
+        {
+            { existingAccountId, (int)ActionLevelType.DirectClientRelation },
+            { missingAccountId, (int)ActionLevelType.DirectClientRelation }
+        };
+        const bool newIsCustomerRelation = true;
+
+        using var context = new AccountContext(_dbContextOptions);
+        var roleEntity = new RoleEntity
+        {
+            AccountId = existingAccountId,
+            ContactId = contactId,
+            IsCustomerRelation = false,
+            ActionLevel = 0
+        };
+
+        context.RoleEntity.Add(roleEntity);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var rolesRepository = new RoleRepository(context);
+
+        // Act
+        var result = await rolesRepository.UpdateRoleCustomerRelationAsync(contactId, newIsCustomerRelation, accountActionLevels);
+
+        // Assert
+        Assert.Single(result.Succeeded, x => x.AccountId == existingAccountId);
+        Assert.Single(result.Failed, x => x.AccountId == missingAccountId);
+        Assert.Equal(Errors.NotFoundRoleCode, result.Failed.First().ErrorCode);
+
+        var updatedRole = await context.RoleEntity
+            .FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == existingAccountId);
+        Assert.NotNull(updatedRole);
+        Assert.Equal(newIsCustomerRelation, updatedRole.IsCustomerRelation);
+    }
+
+    [Fact]
+    public async Task UpdateRoleCustomerRelationAsync_WithAllMissingRoles_ShouldReturnAllFailed()
+    {
+        // Arrange
+        const int contactId = 456;
+        var accountIds = new List<int> { 111, 222, 333 };
+        const bool newIsCustomerRelation = true;
+        var accountActionLevels = accountIds.ToDictionary(id => id, _ => (int)ActionLevelType.DirectClientRelation);
+
+        using var context = new AccountContext(_dbContextOptions);
+        var rolesRepository = new RoleRepository(context);
+
+        // Act
+        var result = await rolesRepository.UpdateRoleCustomerRelationAsync(contactId, newIsCustomerRelation, accountActionLevels);
+
+        // Assert
+        Assert.Empty(result.Succeeded);
+        Assert.Equal(3, result.Failed.Count);
+        Assert.All(result.Failed, item => Assert.Equal(Errors.NotFoundRoleCode, item.ErrorCode));
+    }
+
+    [Fact]
+    public async Task UpdateRoleCustomerRelationAsyncToFalse_WithSingleExistingRole_ShouldUpdateIsCustomerRelationAndActionLevel()
+    {
+        // Arrange
+        const int accountId = 123;
+        const int contactId = 456;
+        const bool newIsCustomerRelation = false;
+        var accountActionLevels = new Dictionary<int, int> { { accountId, (int)ActionLevelType.Observator } };
+
+        using var context = new AccountContext(_dbContextOptions);
+        var roleEntity = new RoleEntity
+        {
+            AccountId = accountId,
+            ContactId = contactId,
+            IsCustomerRelation = true,
+            ActionLevel = (int)ActionLevelType.DirectClientRelation
+        };
+        context.RoleEntity.Add(roleEntity);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var rolesRepository = new RoleRepository(context);
+
+        // Act
+        var result = await rolesRepository.UpdateRoleCustomerRelationAsync(contactId, newIsCustomerRelation, accountActionLevels);
+
+        // Assert
+        Assert.Single(result.Succeeded, x => x.AccountId == accountId);
+        Assert.Empty(result.Failed);
+
+        var updatedRole = await context.RoleEntity.FirstOrDefaultAsync(x => x.ContactId == contactId && x.AccountId == accountId);
+        Assert.NotNull(updatedRole);
+        Assert.Equal(newIsCustomerRelation, updatedRole.IsCustomerRelation);
+        Assert.Equal((int)ActionLevelType.Observator, updatedRole.ActionLevel);
+    }
+
+    [Fact]
+    public async Task GetRolesByContactAndAccountIdsAsync_WithExistingRoles_ShouldReturnMappedRoles()
+    {
+        // Arrange
+        const int contactId = 456;
+        var accountIds = new List<int> { 10, 11 };
+
+        using var context = new AccountContext(_dbContextOptions);
+        context.RoleEntity.AddRange(
+            new RoleEntity { AccountId = 10, ContactId = contactId, ActionLevel = 1 },
+            new RoleEntity { AccountId = 11, ContactId = contactId, ActionLevel = 4 },
+            new RoleEntity { AccountId = 12, ContactId = contactId, ActionLevel = 3 });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var rolesRepository = new RoleRepository(context);
+
+        // Act
+        var result = await rolesRepository.GetRolesByContactAndAccountIdsAsync(contactId, accountIds);
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.All(result, role => Assert.Equal(contactId, role.ContactId));
+        Assert.Contains(result, role => role.AccountId == 10);
+        Assert.Contains(result, role => role.AccountId == 11);
+    }
+
+    [Fact]
+    public async Task GetRolesByContactAndAccountIdsAsync_WithNoMatchingRoles_ShouldReturnEmptyList()
+    {
+        // Arrange
+        const int contactId = 456;
+        var accountIds = new List<int> { 99 };
+
+        using var context = new AccountContext(_dbContextOptions);
+        var rolesRepository = new RoleRepository(context);
+
+        // Act
+        var result = await rolesRepository.GetRolesByContactAndAccountIdsAsync(contactId, accountIds);
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetAccountIdsWithRoleLabelAsync_WithExistingLabels_ShouldReturnAccountIds()
+    {
+        // Arrange
+        const int contactId = 456;
+        const int labeledAccountId = 10;
+        const int unlabeledAccountId = 11;
+        var accountIds = new List<int> { labeledAccountId, unlabeledAccountId };
+
+        using var context = new AccountContext(_dbContextOptions);
+        context.RoleLabelEntity.Add(new RoleLabelEntity
+        {
+            AccountId = labeledAccountId,
+            ContactId = contactId,
+            LabelId = 1
+        });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var rolesRepository = new RoleRepository(context);
+
+        // Act
+        var result = await rolesRepository.GetAccountIdsWithRoleLabelAsync(contactId, accountIds);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Contains(labeledAccountId, result);
+    }
+
+    [Fact]
+    public async Task GetAccountIdsWithRoleLabelAsync_WithNoLabels_ShouldReturnEmptySet()
+    {
+        // Arrange
+        const int contactId = 456;
+        var accountIds = new List<int> { 10, 11 };
+
+        using var context = new AccountContext(_dbContextOptions);
+        var rolesRepository = new RoleRepository(context);
+
+        // Act
+        var result = await rolesRepository.GetAccountIdsWithRoleLabelAsync(contactId, accountIds);
+
+        // Assert
+        Assert.Empty(result);
     }
 
     [Fact]
