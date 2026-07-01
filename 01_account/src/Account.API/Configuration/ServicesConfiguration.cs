@@ -105,6 +105,8 @@ public static class ServicesConfiguration
         services.AddKeyedScoped<IEventHandler, SubscriptionValidatedEventHandler>(nameof(SubscriptionValidatedEvent));
         services.AddKeyedScoped<IEventHandler, ReportCreatedEventHandler>(nameof(ReportCreatedEvent));
 
+        services.AddScoped<IProspectConversionService, ProspectConversionService>();
+
         services.AddScoped<IAccountEventPublisher, AccountEventPublisher>();
         services.AddScoped<IRoleEventPublisher, RoleEventPublisher>();
         services.AddScoped<IHistoryEventPublisher, HistoryEventPublisher>();

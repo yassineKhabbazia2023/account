@@ -7,4 +7,6 @@ namespace Pulse.Account.Core.Constants;
 public static class FeatureFlagKeys
 {
     public const string IncludeProspectsInContactsSearch = "isProspectExperienceEnabled";
+
+    public const string ProspectToClientConversion = "isProspectToClientConversionEnabled";
 }

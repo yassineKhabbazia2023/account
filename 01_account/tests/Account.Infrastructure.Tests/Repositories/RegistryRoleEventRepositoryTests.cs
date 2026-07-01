@@ -3,6 +3,7 @@
 // </copyright>
 
 using AutoFixture;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;

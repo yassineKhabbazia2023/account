@@ -15,7 +15,11 @@ public interface IRegistryAccountEventRepository
 
     public Task<(int AccountId, string? AccountType)> RemoveAccountAsync(Guid accountGlobalUniqueIdentifier);
 
+    public Task<(int AccountId, string? AccountType)> RemoveAccountAsync(int accountId);
+
     Task<bool> DoesAccountExistAsync(Guid accountGlobalUniqueId);
 
     Task<AccountDetail?> GetAccountByGuidAsync(Guid accountGlobalUniqueId);
+
+    Task<IReadOnlyList<ProspectRef>> FindActiveProspectsBySiretAsync(string siret);
 }

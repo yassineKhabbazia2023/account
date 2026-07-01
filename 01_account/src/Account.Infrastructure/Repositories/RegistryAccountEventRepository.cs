@@ -3,6 +3,7 @@
 // </copyright>
 
 using Microsoft.EntityFrameworkCore;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
@@ -47,6 +48,23 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
             throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountGlobalUniqueIdentifier));
         }
 
+        return await DeactivateAccountAsync(accountToRemove);
+    }
+
+    public async Task<(int AccountId, string? AccountType)> RemoveAccountAsync(int accountId)
+    {
+        var accountToRemove = await _context.ActiveAccounts.FirstOrDefaultAsync(a => a.AccountId == accountId);
+
+        if (accountToRemove == null)
+        {
+            throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
+        }
+
+        return await DeactivateAccountAsync(accountToRemove);
+    }
+
+    private async Task<(int AccountId, string? AccountType)> DeactivateAccountAsync(AccountEntity accountToRemove)
+    {
         accountToRemove.IsActive = false;
 
         _context.AccountEntity.Update(accountToRemove);
@@ -89,6 +107,19 @@ public class RegistryAccountEventRepository : IRegistryAccountEventRepository
             .FirstOrDefaultAsync(a => a.AccountGlobalUniqueId == accountGlobalUniqueId);
 
         return account?.MapToAccountDetail();
+    }
+
+    public async Task<IReadOnlyList<ProspectRef>> FindActiveProspectsBySiretAsync(string siret)
+    {
+        // Le filtre AccountType == PROSPECT exclut déjà le client qui vient d'être créé (type CLIENT) :
+        // pas besoin d'exclure son GUID.
+        return await _context.ActiveAccounts
+            .AsNoTracking()
+            .Where(a => a.Siret == siret
+                && a.AccountType != null
+                && a.AccountType.ToLower() == GlobalConstants.ProspectAccountType.ToLower())
+            .Select(a => new ProspectRef(a.AccountId, a.AccountGlobalUniqueId))
+            .ToListAsync();
     }
 
     private async Task<Naf?> GetNafByCodeAsync(string? nafCode)

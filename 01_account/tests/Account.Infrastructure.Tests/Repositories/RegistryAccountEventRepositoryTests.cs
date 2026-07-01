@@ -147,6 +147,42 @@ public class RegistryAccountEventRepositoryTests
     }
 
     [Fact]
+    public async Task RemoveAccountAsync_WithAccountId_ShouldRemoveAccount()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using var context = new AccountContext(options);
+        var repository = new RegistryAccountEventRepository(context);
+        await context.AccountEntity.AddAsync(_accountEntity);
+        await context.SaveChangesAsync();
+
+        // Act
+        var (removedAccountId, _) = await repository.RemoveAccountAsync(_accountEntity.AccountId);
+        var removedAccount = await context.AccountEntity.IgnoreQueryFilters().FirstOrDefaultAsync();
+        var removedAccountDetail = removedAccount!.MapToAccountDetail();
+
+        // Assert
+        Assert.NotNull(removedAccount);
+        removedAccountId.Should().Be(_accountEntity.AccountId);
+        removedAccountDetail.IsActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RemoveAccountAsync_ShouldThrowNotFoundException_IfAccountIdIntDoesNotExist()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+        using var context = new AccountContext(options);
+        var action = async () => await new RegistryAccountEventRepository(context).RemoveAccountAsync(404);
+
+        await action.Should().ThrowAsync<NotFoundException>();
+    }
+
+    [Fact]
     public async Task UpdateAccountAsync_ShouldThrowNotFoundException_IfGlobalIdDoesNotExistsInDB()
     {
         // arrange
@@ -460,5 +496,101 @@ public class RegistryAccountEventRepositoryTests
         removedAccount.Should().NotBeNull();
         removedAccount!.IsActive.Should().BeFalse();
         removedAccount.AccountType.Should().Be(GlobalConstants.ProspectAccountType);
+    }
+
+    [Fact]
+    public async Task FindActiveProspectsBySiretAsync_WithMatchingActiveProspect_ShouldReturnIt()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+        using var context = new AccountContext(options);
+
+        const string siret = "12345678901234";
+        var prospect = BuildAccount(10, siret, GlobalConstants.ProspectAccountType, isActive: true);
+        context.AccountEntity.Add(prospect);
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        var result = await repository.FindActiveProspectsBySiretAsync(siret);
+
+        result.Should().ContainSingle();
+        result[0].AccountId.Should().Be(prospect.AccountId);
+        result[0].AccountGlobalUniqueId.Should().Be(prospect.AccountGlobalUniqueId);
+    }
+
+    [Fact]
+    public async Task FindActiveProspectsBySiretAsync_ShouldExcludeClientWithSameSiret()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+        using var context = new AccountContext(options);
+
+        const string siret = "12345678901234";
+        context.AccountEntity.Add(BuildAccount(20, siret, AccountType.CLIENT.ToString(), isActive: true));
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        var result = await repository.FindActiveProspectsBySiretAsync(siret);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task FindActiveProspectsBySiretAsync_ShouldExcludeInactiveProspect()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+        using var context = new AccountContext(options);
+
+        const string siret = "12345678901234";
+        context.AccountEntity.Add(BuildAccount(30, siret, GlobalConstants.ProspectAccountType, isActive: false));
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        var result = await repository.FindActiveProspectsBySiretAsync(siret);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task FindActiveProspectsBySiretAsync_WithSeveralProspects_ShouldReturnAll()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+        using var context = new AccountContext(options);
+
+        const string siret = "12345678901234";
+        context.AccountEntity.Add(BuildAccount(50, siret, GlobalConstants.ProspectAccountType, isActive: true));
+        context.AccountEntity.Add(BuildAccount(51, siret, GlobalConstants.ProspectAccountType, isActive: true));
+        await context.SaveChangesAsync();
+
+        var repository = new RegistryAccountEventRepository(context);
+
+        var result = await repository.FindActiveProspectsBySiretAsync(siret);
+
+        result.Should().HaveCount(2);
+    }
+
+    private static AccountEntity BuildAccount(int accountId, string siret, string accountType, bool isActive)
+    {
+        return new AccountEntity
+        {
+            AccountId = accountId,
+            AccountGlobalUniqueId = Guid.NewGuid(),
+            AccountNumber = accountId.ToString(),
+            LegalName = "legal",
+            Email = "account@test.fr",
+            CreatedBy = "test",
+            IsActive = isActive,
+            AccountType = accountType,
+            Siret = siret,
+        };
     }
 }

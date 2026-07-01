@@ -16,15 +16,18 @@ public class RegistryAccountCreatedEventHandler : IEventHandler
     private readonly ILogger<RegistryAccountCreatedEventHandler> _logger;
     private readonly IRegistryAccountEventRepository _accountEventRepository;
     private readonly IAccountEventPublisher _accountEventPublisher;
+    private readonly IProspectConversionService _prospectConversionService;
 
     public RegistryAccountCreatedEventHandler(
         ILogger<RegistryAccountCreatedEventHandler> logger,
         IRegistryAccountEventRepository accountEventRepository,
-        IAccountEventPublisher accountEventPublisher)
+        IAccountEventPublisher accountEventPublisher,
+        IProspectConversionService prospectConversionService)
     {
         _logger = logger;
         _accountEventRepository = accountEventRepository;
         _accountEventPublisher = accountEventPublisher;
+        _prospectConversionService = prospectConversionService;
     }
 
     public async Task HandleAsync(string message)
@@ -50,6 +53,8 @@ public class RegistryAccountCreatedEventHandler : IEventHandler
             _logger.LogInformation("L'entité avec l'identifiant suivant: {AccountId} vient d'être créée.", createdAccount.AccountId);
 
             await _accountEventPublisher.PublishAccountCreatedEventAsync(createdAccount);
+
+            await _prospectConversionService.HandleClientCreatedAsync(@event.Data);
         }
         else
         {

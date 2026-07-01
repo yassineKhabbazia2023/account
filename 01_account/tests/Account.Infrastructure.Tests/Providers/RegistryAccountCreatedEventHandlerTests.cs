@@ -17,6 +17,8 @@ namespace Pulse.Account.Infrastructure.Tests.Providers;
 
 public class RegistryAccountCreatedEventHandlerTests
 {
+    private readonly Mock<IProspectConversionService> _prospectConversionServiceMock = new();
+
     private readonly AccountEntity _accountEntity = new AccountEntity
     {
         AccountId = 1,
@@ -44,7 +46,7 @@ public class RegistryAccountCreatedEventHandlerTests
             It.IsAny<Exception?>(),
             (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
 
-        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, _prospectConversionServiceMock.Object);
         var message = "{\"EventType\":\"RegistryAccountCreatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\": \"" + Guid.NewGuid().ToString() + "\",\"LegalName\":\"John Doe\"}}";
 
         // Act
@@ -64,7 +66,7 @@ public class RegistryAccountCreatedEventHandlerTests
         repositoryMock.Setup(r => r.CreateAccountAsync(It.IsAny<RegistryAccountCreatedEventData>())) !
         .ReturnsAsync(_accountEntity.MapToAccountDetail());
         var publisherMock = new Mock<IAccountEventPublisher>();
-        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, _prospectConversionServiceMock.Object);
 
         // Act
         await handler.HandleAsync(null!);
@@ -83,7 +85,7 @@ public class RegistryAccountCreatedEventHandlerTests
         repositoryMock.Setup(r => r.CreateAccountAsync(It.IsAny<RegistryAccountCreatedEventData>())) !
         .ReturnsAsync(_accountEntity.MapToAccountDetail());
         var publisherMock = new Mock<IAccountEventPublisher>();
-        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, _prospectConversionServiceMock.Object);
         var message = "{\"EventType\":\"RegistryAccountCreatedEvent\",\"Data\":{\"LegalName\":\"John Doe\"}}";
 
         // Act
@@ -103,7 +105,7 @@ public class RegistryAccountCreatedEventHandlerTests
         repositoryMock.Setup(r => r.CreateAccountAsync(It.IsAny<RegistryAccountCreatedEventData>())) !
         .ReturnsAsync(_accountEntity.MapToAccountDetail());
         var publisherMock = new Mock<IAccountEventPublisher>();
-        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, _prospectConversionServiceMock.Object);
         var message = "{\"EventType\":\"RegistryAccountCreatedEvent\"}";
 
         // Act
@@ -133,7 +135,7 @@ public class RegistryAccountCreatedEventHandlerTests
             .Setup(p => p.PublishAccountCreatedEventAsync(It.IsAny<AccountDetail>()))
             .Returns(Task.CompletedTask);
 
-        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, _prospectConversionServiceMock.Object);
         var message = "{\"EventType\":\"RegistryAccountCreatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\":\"" + accountGuid + "\",\"AccountType\":\"" + GlobalConstants.ProspectAccountType + "\"}}";
 
         // Act
@@ -158,7 +160,7 @@ public class RegistryAccountCreatedEventHandlerTests
             .Setup(r => r.DoesAccountExistAsync(accountGuid))
             .ReturnsAsync(true);
 
-        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object);
+        var handler = new RegistryAccountCreatedEventHandler(loggerMock.Object, repositoryMock.Object, publisherMock.Object, _prospectConversionServiceMock.Object);
         var message = "{\"EventType\":\"RegistryAccountCreatedEvent\",\"Data\":{\"AccountGlobalUniqueIdentifier\":\"" + accountGuid + "\",\"AccountType\":\"" + GlobalConstants.ProspectAccountType + "\"}}";
 
         // Act
