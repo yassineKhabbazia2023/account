@@ -8,6 +8,7 @@
 	[IsCustomerRelation]    BIT     NULL , 
     [ContactFlagPortailFactures] BIT NULL,
     [ActionLevel]           INT     NOT NULL DEFAULT 0, 
+    [LastActivityDate] DATETIME2 NULL, 
     CONSTRAINT [C_Role_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC, [AccountId] ASC),
 	CONSTRAINT [C_Account_Role_FK] FOREIGN KEY ([AccountId]) REFERENCES [account].[Account] ([AccountId]),
 	CONSTRAINT [C_Account_Contact_FK] FOREIGN KEY ([ContactId]) REFERENCES [actor].[Contact] ([ContactId]), 
@@ -27,6 +28,8 @@ CREATE NONCLUSTERED INDEX [IX_Role_IsCustomerRelation]
     ON [account].[Role]([IsCustomerRelation] ASC);
 
 GO
+CREATE NONCLUSTERED INDEX [IX_Role_LastActivityDate]
+    ON [account].[Role]([LastActivityDate] ASC);
 
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
