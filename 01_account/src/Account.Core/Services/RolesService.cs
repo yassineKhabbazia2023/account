@@ -202,7 +202,7 @@ public class RolesService : IRolesService
         var roles = await _rolesRepository.GetRolesByContactAndAccountIdsAsync(currentUserId, requestedAccountIds);
         var accountIdsWithRoleLabel = await _rolesRepository.GetAccountIdsWithRoleLabelAsync(currentUserId, requestedAccountIds);
 
-        var expectedActionLevel = request.IsCustomerRelation
+        var expectedActionLevel = request.IsCustomerRelation!.Value
             ? (int)ActionLevelType.DirectClientRelation
             : (int)ActionLevelType.Observator;
 
@@ -222,13 +222,13 @@ public class RolesService : IRolesService
         foreach (var role in roles)
         {
             var hasRoleLabel = accountIdsWithRoleLabel.Contains(role.AccountId);
-            var actionLevel = ActionLevelHelper.SetupActionLevel(expectedActionLevel, request.IsCustomerRelation, hasRoleLabel);
+            var actionLevel = ActionLevelHelper.SetupActionLevel(expectedActionLevel, request.IsCustomerRelation!.Value, hasRoleLabel);
             accountActionLevels.Add(role.AccountId, actionLevel);
         }
 
         if (accountActionLevels.Count > 0)
         {
-            var repositoryResult = await _rolesRepository.UpdateRoleCustomerRelationAsync(currentUserId, request.IsCustomerRelation, accountActionLevels);
+            var repositoryResult = await _rolesRepository.UpdateRoleCustomerRelationAsync(currentUserId, request.IsCustomerRelation!.Value, accountActionLevels);
             result.Succeeded.AddRange(repositoryResult.Succeeded);
             result.Failed.AddRange(repositoryResult.Failed);
         }

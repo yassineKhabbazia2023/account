@@ -8,7 +8,8 @@ namespace Pulse.Account.Core.Requests;
 
 public class UpdateRoleCustomerRelationRequest
 {
-    public bool IsCustomerRelation { get; set; }
+    [Required]
+    public bool? IsCustomerRelation { get; set; }
 
     [Required]
     [MinLength(1)]
