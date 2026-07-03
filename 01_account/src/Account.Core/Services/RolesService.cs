@@ -111,45 +111,61 @@ public class RolesService : IRolesService
             return result;
         }
 
-        foreach (var item in request.Contacts)
+        foreach (var contactItems in request.Contacts.GroupBy(contact => contact.ContactId))
         {
+            var firstItem = contactItems.First();
+
             try
             {
-                var contact = await _contactRepository.GetContactByIdAsync(item.ContactId);
+                var contact = await _contactRepository.GetContactByIdAsync(firstItem.ContactId);
+
                 var role = new CreateRoleRequest
                 {
                     AccountId = accountId,
-                    ContactId = item.ContactId,
-                    IsSignatory = item.IsSignatory,
-                    IsFavorite = item.IsFavorite,
-                    IsDelegation = item.IsDelegation,
-                    IncludePennylaneAccess = item.IncludePennylaneAccess,
-                    ContactFlagPortailFactures = item.ContactFlagPortailFactures,
+                    ContactId = firstItem.ContactId,
+                    IsSignatory = firstItem.IsSignatory,
+                    IsFavorite = firstItem.IsFavorite,
+                    IsDelegation = firstItem.IsDelegation,
+                    IncludePennylaneAccess = firstItem.IncludePennylaneAccess,
+                    ContactFlagPortailFactures = firstItem.ContactFlagPortailFactures,
                     IsCustomerRelation = ContactType.Collaborator.ToString().Equals(contact.Type) ? true : null,
                 };
 
-                await CreateRoleForProspectAsync(role, currentUserId);
-
                 try
                 {
-                    await _roleLabelService.AssignRoleLabelFromCodeAsync(item.RoleCode, accountId, item.ContactId);
+                    await CreateRoleForProspectAsync(role, currentUserId);
                 }
-                catch (Exception ex)
+                catch (BusinessException ex) when (ex.Code == Errors.BadRequestExistingRoleCode && contactItems.Any(item => !string.IsNullOrWhiteSpace(item.RoleCode)))
                 {
-                    _logger.LogError(ex, "Bulk: échec de l'ajout du label {RoleCode} pour AccountId: {AccountId} - ContactId: {ContactId}", item.RoleCode, accountId, item.ContactId);
+                    _logger.LogInformation(ex, "Bulk: role already exists for AccountId: {AccountId} - ContactId: {ContactId}; assigning requested labels", accountId, firstItem.ContactId);
                 }
 
-                result.Succeeded.Add(new CreateRolesBulkItemResult { ContactId = item.ContactId });
+                foreach (var item in contactItems)
+                {
+                    try
+                    {
+                        await _roleLabelService.AssignRoleLabelFromCodeAsync(item.RoleCode, accountId, item.ContactId);
+                    }
+                    catch (Exception labelException)
+                    {
+                        _logger.LogError(labelException, "Bulk: échec de l'ajout du label {RoleCode} pour AccountId: {AccountId} - ContactId: {ContactId}", item.RoleCode, accountId, item.ContactId);
+                    }
+
+                    result.Succeeded.Add(new CreateRolesBulkItemResult { ContactId = item.ContactId });
+                }
             }
             catch (BusinessException ex)
             {
-                _logger.LogWarning(ex, "RoleService: Bulk create failed for contact {contactId} on account {accountId}", item.ContactId, accountId);
-                result.Failed.Add(new CreateRolesBulkItemResult
+                _logger.LogWarning(ex, "RoleService: Bulk create failed for contact {contactId} on account {accountId}", firstItem.ContactId, accountId);
+                foreach (var item in contactItems)
                 {
-                    ContactId = item.ContactId,
-                    ErrorCode = ex.Code,
-                    ErrorMessage = ex.Message,
-                });
+                    result.Failed.Add(new CreateRolesBulkItemResult
+                    {
+                        ContactId = item.ContactId,
+                        ErrorCode = ex.Code,
+                        ErrorMessage = ex.Message,
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -160,7 +176,7 @@ public class RolesService : IRolesService
                     "Pulse.Back.Account",
                     nameof(CreateRolesBulkAsync),
                     accountId,
-                    item.ContactId);
+                    firstItem.ContactId);
                 throw;
             }
         }

@@ -443,6 +443,110 @@ public class RolesServiceTests
         _roleLabelService.Verify(r => r.AssignRoleLabelFromCodeAsync("CLP", 10, 8), Times.Once);
     }
 
+    /// <summary>
+    /// Verifies that one collaborator can receive both prospect role labels from the same bulk request.
+    /// </summary>
+    [Fact]
+    public async Task CreateRolesBulkAsync_WithSameContactAndBothRoleCodes_ShouldCreateRoleOnceAndAssignBothLabels()
+    {
+        // Arrange
+        var request = new CreateRolesBulkRequest
+        {
+            Contacts = new List<CreateRolesBulkItem>
+            {
+                new() { ContactId = 7, RoleCode = "AM" },
+                new() { ContactId = 7, RoleCode = "CLP" }
+            }
+        };
+
+        _contactRepository.Setup(repo => repo.GetContactByIdAsync(7))
+            .ReturnsAsync(new Contact { ContactId = 7, FirstName = "F", LastName = "L", Email = "e@e.fr", Type = "Collaborator" });
+        _roleRepository.Setup(repo => repo.CreateRoleWithoutAccountValidationAsync(It.IsAny<CreateRoleRequest>()))
+            .ReturnsAsync(new Role { AccountId = 10, ContactId = 7 });
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        var result = await roleService.CreateRolesBulkAsync(10, request, 25);
+
+        // Assert
+        result.Succeeded.Should().HaveCount(2);
+        result.Succeeded.Should().OnlyContain(s => s.ContactId == 7);
+        result.Failed.Should().BeEmpty();
+        _roleRepository.Verify(r => r.CreateRoleWithoutAccountValidationAsync(It.IsAny<CreateRoleRequest>()), Times.Once);
+        _roleLabelService.Verify(r => r.AssignRoleLabelFromCodeAsync("AM", 10, 7), Times.Once);
+        _roleLabelService.Verify(r => r.AssignRoleLabelFromCodeAsync("CLP", 10, 7), Times.Once);
+    }
+
+    /// <summary>
+    /// Verifies that repeated labels for the same collaborator reuse the same base role.
+    /// </summary>
+    [Fact]
+    public async Task CreateRolesBulkAsync_WithSameContactAndSameRoleCode_ShouldReuseBaseRole()
+    {
+        // Arrange
+        var request = new CreateRolesBulkRequest
+        {
+            Contacts = new List<CreateRolesBulkItem>
+            {
+                new() { ContactId = 7, RoleCode = "AM" },
+                new() { ContactId = 7, RoleCode = "AM" }
+            }
+        };
+
+        _contactRepository.Setup(repo => repo.GetContactByIdAsync(7))
+            .ReturnsAsync(new Contact { ContactId = 7, FirstName = "F", LastName = "L", Email = "e@e.fr", Type = "Collaborator" });
+        _roleRepository.Setup(repo => repo.CreateRoleWithoutAccountValidationAsync(It.IsAny<CreateRoleRequest>()))
+            .ReturnsAsync(new Role { AccountId = 10, ContactId = 7 });
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        var result = await roleService.CreateRolesBulkAsync(10, request, 25);
+
+        // Assert
+        result.Succeeded.Should().HaveCount(2);
+        result.Succeeded.Should().OnlyContain(s => s.ContactId == 7);
+        result.Failed.Should().BeEmpty();
+        _roleRepository.Verify(r => r.CreateRoleWithoutAccountValidationAsync(It.IsAny<CreateRoleRequest>()), Times.Once);
+        _roleLabelService.Verify(r => r.AssignRoleLabelFromCodeAsync("AM", 10, 7), Times.Exactly(2));
+    }
+
+    /// <summary>
+    /// Verifies that retrying a bulk request still assigns labels when the base role already exists.
+    /// </summary>
+    [Fact]
+    public async Task CreateRolesBulkAsync_WhenSameContactRoleAlreadyExists_ShouldAssignBothLabels()
+    {
+        // Arrange
+        var request = new CreateRolesBulkRequest
+        {
+            Contacts = new List<CreateRolesBulkItem>
+            {
+                new() { ContactId = 7, RoleCode = "AM" },
+                new() { ContactId = 7, RoleCode = "CLP" }
+            }
+        };
+
+        _contactRepository.Setup(repo => repo.GetContactByIdAsync(7))
+            .ReturnsAsync(new Contact { ContactId = 7, FirstName = "F", LastName = "L", Email = "e@e.fr", Type = "Collaborator" });
+        _roleRepository.Setup(repo => repo.CreateRoleWithoutAccountValidationAsync(It.IsAny<CreateRoleRequest>()))
+            .ThrowsAsync(new ConflictException(Errors.BadRequestExistingRoleCode, string.Format(Errors.BadRequestExistingRoleMessage, 7, 10)));
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        // Act
+        var result = await roleService.CreateRolesBulkAsync(10, request, 25);
+
+        // Assert
+        result.Succeeded.Should().HaveCount(2);
+        result.Succeeded.Should().OnlyContain(s => s.ContactId == 7);
+        result.Failed.Should().BeEmpty();
+        _roleRepository.Verify(r => r.CreateRoleWithoutAccountValidationAsync(It.IsAny<CreateRoleRequest>()), Times.Once);
+        _roleLabelService.Verify(r => r.AssignRoleLabelFromCodeAsync("AM", 10, 7), Times.Once);
+        _roleLabelService.Verify(r => r.AssignRoleLabelFromCodeAsync("CLP", 10, 7), Times.Once);
+    }
+
     [Fact]
     public async Task CreateRolesBulkAsync_WithNullRoleCode_ShouldStillCallServiceWithNull()
     {
@@ -487,7 +591,7 @@ public class RolesServiceTests
         _roleRepository.Setup(repo => repo.CreateRoleWithoutAccountValidationAsync(It.IsAny<CreateRoleRequest>()))
             .ReturnsAsync(new Role { AccountId = 10, ContactId = 11 });
         _roleLabelService.Setup(r => r.AssignRoleLabelFromCodeAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()))
-            .ThrowsAsync(new Exception("boom"));
+            .ThrowsAsync(new ConflictException(Errors.RoleLabelAlreadyExistsCode, Errors.RoleLabelAlreadyExistsMessage));
 
         var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
 
