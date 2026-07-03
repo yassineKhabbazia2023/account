@@ -8,7 +8,7 @@ namespace Pulse.Account.Infrastructure.Entities;
 public partial class DelegationEntity
 {
     /// <summary>
-    /// L&apos;&apos;identifiant technique
+    /// L&apos;identifiant technique
     /// </summary>
     public int DelegationId { get; set; }
 
@@ -18,7 +18,7 @@ public partial class DelegationEntity
     public int DelegatorId { get; set; }
 
     /// <summary>
-    /// L&apos;&apos;identifiant du délégataire
+    /// L&apos;identifiant du délégataire
     /// </summary>
     public int DelegateeId { get; set; }
 
@@ -48,17 +48,17 @@ public partial class DelegationEntity
     public DateTime CreationDate { get; set; }
 
     /// <summary>
-    /// Indique si la délégation concerne l&apos;&apos;intégralité du portefeuille ou non
+    /// Indique si la délégation concerne l&apos;intégralité du portefeuille ou non
     /// </summary>
     public bool IsFullDelegation { get; set; }
 
     /// <summary>
-    /// Indique s&apos;&apos;il s&apos;&apos;agit d&apos;&apos;une délégation automatique
+    /// Indique s&apos;il s&apos;agit d&apos;une délégation automatique
     /// </summary>
     public bool IsAutomaticDelegation { get; set; }
 
     /// <summary>
-    /// Indique si l&apos;&apos;accès à Pennylane doit être inclus.
+    /// Indique si l&apos;accès à Pennylane doit être inclus.
     /// </summary>
     public bool IncludePennylaneAccess { get; set; }
 

@@ -54,6 +54,8 @@ public partial class AccountContext : DbContext
 
             entity.HasIndex(e => e.LegalName, "IX_Account_LegalName");
 
+            entity.HasIndex(e => e.MissionType, "IX_Account_MissionType");
+
             entity.HasIndex(e => e.HubId, "IX_Hub_HubId");
 
             entity.HasIndex(e => e.NafId, "IX_Naf_NafId");
@@ -62,8 +64,8 @@ public partial class AccountContext : DbContext
 
             entity.HasIndex(e => e.AccountGlobalUniqueId, "UQ_Account_AccountGlobalUniqueId").IsUnique();
 
-            entity.Property(e => e.AccountId).HasComment("L''identifiant technique");
-            entity.Property(e => e.AccountGlobalUniqueId).HasComment("L''identifiant global de l''entité");
+            entity.Property(e => e.AccountId).HasComment("L'identifiant technique");
+            entity.Property(e => e.AccountGlobalUniqueId).HasComment("L'identifiant global de l'entité");
             entity.Property(e => e.AccountNumber)
                 .IsRequired()
                 .HasMaxLength(20)
@@ -71,7 +73,7 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.AccountType)
                 .HasMaxLength(50)
                 .IsUnicode(false)
-                .HasComment("Le type de l''entité");
+                .HasComment("Le type de l'entité");
             entity.Property(e => e.AccountingMethod)
                 .HasMaxLength(150)
                 .IsUnicode(false)
@@ -79,38 +81,38 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.ActivityDescription)
                 .HasMaxLength(150)
                 .IsUnicode(false)
-                .HasComment("Description de l''activité");
+                .HasComment("Description de l'activité");
             entity.Property(e => e.ActivityType)
                 .HasMaxLength(150)
                 .IsUnicode(false)
-                .HasComment("Type d''activité");
+                .HasComment("Type d'activité");
             entity.Property(e => e.BillingEmail).HasMaxLength(255);
             entity.Property(e => e.BillingFax).HasMaxLength(50);
             entity.Property(e => e.CommercialName)
                 .HasMaxLength(255)
-                .HasComment("Le  nom commercial de l''entité");
+                .HasComment("Le  nom commercial de l'entité");
             entity.Property(e => e.CreatedBy)
                 .IsRequired()
                 .HasMaxLength(50)
                 .IsUnicode(false)
-                .HasComment("L''identifiant de l''utilisateur ou du système qui a crée l''entité");
+                .HasComment("L'identifiant de l'utilisateur ou du système qui a crée l'entité");
             entity.Property(e => e.CreationDate).HasComment("La date de création");
             entity.Property(e => e.DeliveryEmail).HasMaxLength(255);
             entity.Property(e => e.DeliveryFax).HasMaxLength(50);
             entity.Property(e => e.Email)
                 .HasMaxLength(255)
-                .HasComment("L''adresse mail de l''entité");
-            entity.Property(e => e.FiscalExerciseDuration).HasComment("La durée de l''exercice fiscale");
+                .HasComment("L'adresse mail de l'entité");
+            entity.Property(e => e.FiscalExerciseDuration).HasComment("La durée de l'exercice fiscale");
             entity.Property(e => e.FiscalExerciseStartDate).HasComment("Début Exercice fiscale");
             entity.Property(e => e.FiscalSystem)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasComment("Le régime fiscale");
-            entity.Property(e => e.HubId).HasComment("L''identifiant technique du Hub");
+            entity.Property(e => e.HubId).HasComment("L'identifiant technique du Hub");
             entity.Property(e => e.IconName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.IsActive).HasComment("L''entité est-elle activé");
+            entity.Property(e => e.IsActive).HasComment("L'entité est-elle activé");
             entity.Property(e => e.Isin)
                 .HasMaxLength(150)
                 .IsUnicode(false)
@@ -119,7 +121,7 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.LegalForm)
                 .HasMaxLength(150)
                 .IsUnicode(false)
-                .HasComment("La forme juridique de l''entité");
+                .HasComment("La forme juridique de l'entité");
             entity.Property(e => e.LegalFormCode)
                 .HasMaxLength(150)
                 .IsUnicode(false)
@@ -127,15 +129,15 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.LegalName)
                 .IsRequired()
                 .HasMaxLength(255)
-                .HasComment("La raison social de l''entité");
+                .HasComment("La raison social de l'entité");
             entity.Property(e => e.MissionType)
                 .HasMaxLength(150)
                 .IsUnicode(false);
             entity.Property(e => e.ModifiedBy)
                 .HasMaxLength(50)
                 .IsUnicode(false)
-                .HasComment("L''identifiant de l''utilisateur ou du système qui a effectué la dernière modification");
-            entity.Property(e => e.NafId).HasComment("L''identifiant technique du code Naf");
+                .HasComment("L'identifiant de l'utilisateur ou du système qui a effectué la dernière modification");
+            entity.Property(e => e.NafId).HasComment("L'identifiant technique du code Naf");
             entity.Property(e => e.Sector)
                 .HasMaxLength(150)
                 .IsUnicode(false)
@@ -151,7 +153,7 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.SourceName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.StaffSize).HasComment("Le nombre d''employés de l''entité");
+            entity.Property(e => e.StaffSize).HasComment("Le nombre d'employés de l'entité");
             entity.Property(e => e.StaffSizeRange)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -159,9 +161,9 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.TaxationSystem)
                 .HasMaxLength(150)
                 .IsUnicode(false)
-                .HasComment("Le Régime d''imposition");
+                .HasComment("Le Régime d'imposition");
             entity.Property(e => e.Turnover)
-                .HasComment("Le chiffre d''affaires")
+                .HasComment("Le chiffre d'affaires")
                 .HasColumnType("decimal(18, 2)");
             entity.Property(e => e.UpdatedDate).HasComment("La date de la dernière modification");
             entity.Property(e => e.Vat)
@@ -201,15 +203,15 @@ public partial class AccountContext : DbContext
 
             entity.HasIndex(e => e.AccountId, "IDX_Address_AccountId");
 
-            entity.Property(e => e.AddressId).HasComment("L''identifiant technique");
-            entity.Property(e => e.AccountId).HasComment("L''identifiant de l''entité");
+            entity.Property(e => e.AddressId).HasComment("L'identifiant technique");
+            entity.Property(e => e.AccountId).HasComment("L'identifiant de l'entité");
             entity.Property(e => e.AddressLine1).HasMaxLength(255);
             entity.Property(e => e.AddressLine2).HasMaxLength(255);
             entity.Property(e => e.AddressLine3).HasMaxLength(255);
             entity.Property(e => e.AddressType)
                 .HasMaxLength(25)
                 .IsUnicode(false)
-                .HasComment("Le type d''adresse");
+                .HasComment("Le type d'adresse");
             entity.Property(e => e.City)
                 .IsRequired()
                 .HasMaxLength(255)
@@ -250,8 +252,8 @@ public partial class AccountContext : DbContext
 
             entity.Property(e => e.ContactId)
                 .ValueGeneratedNever()
-                .HasComment("L''identifiant technique");
-            entity.Property(e => e.ContactGlobalUniqueId).HasComment("L''identifiant global du contact");
+                .HasComment("L'identifiant technique");
+            entity.Property(e => e.ContactGlobalUniqueId).HasComment("L'identifiant global du contact");
             entity.Property(e => e.CreationDate)
                 .HasDefaultValueSql("GETDATE()")
                 .HasComment("La date de création du contact");
@@ -259,7 +261,7 @@ public partial class AccountContext : DbContext
                 .IsRequired()
                 .HasMaxLength(255)
                 .IsUnicode(false)
-                .HasComment("L''adresse mail du contact");
+                .HasComment("L'adresse mail du contact");
             entity.Property(e => e.FirstName)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -310,14 +312,16 @@ public partial class AccountContext : DbContext
 
             entity.HasIndex(e => e.DelegatorId, "IDX_Delegation_DelegatorId");
 
-            entity.Property(e => e.DelegationId).HasComment("L''identifiant technique");
+            entity.HasIndex(e => new { e.DelegatorId, e.Status, e.IsAutomaticDelegation }, "IDX_Delegation_DelegatorId_Status_IsAutomatic");
+
+            entity.Property(e => e.DelegationId).HasComment("L'identifiant technique");
             entity.Property(e => e.CreationDate).HasComment("La date de création de la délégation");
-            entity.Property(e => e.DelegateeId).HasComment("L''identifiant du délégataire");
+            entity.Property(e => e.DelegateeId).HasComment("L'identifiant du délégataire");
             entity.Property(e => e.DelegatorId).HasComment("Le délégateur ");
             entity.Property(e => e.EndDate).HasComment("La date effective de la fin de la délégation");
-            entity.Property(e => e.IncludePennylaneAccess).HasComment("Indique si l''accès à Pennylane doit être inclus.");
-            entity.Property(e => e.IsAutomaticDelegation).HasComment("Indique s''il s''agit d''une délégation automatique");
-            entity.Property(e => e.IsFullDelegation).HasComment("Indique si la délégation concerne l''intégralité du portefeuille ou non");
+            entity.Property(e => e.IncludePennylaneAccess).HasComment("Indique si l'accès à Pennylane doit être inclus.");
+            entity.Property(e => e.IsAutomaticDelegation).HasComment("Indique s'il s'agit d'une délégation automatique");
+            entity.Property(e => e.IsFullDelegation).HasComment("Indique si la délégation concerne l'intégralité du portefeuille ou non");
             entity.Property(e => e.Note)
                 .HasMaxLength(255)
                 .IsUnicode(false)
@@ -355,9 +359,51 @@ public partial class AccountContext : DbContext
                         j.HasKey("DelegationId", "AccountId").HasName("C_DelegationDetail_PK");
                         j.ToTable("DelegationDetail", "account");
                         j.HasIndex(new[] { "AccountId" }, "IDX_DelegationDetail_AccountId");
-                        j.IndexerProperty<int>("DelegationId").HasComment("L''identifiant technique de la délégation");
-                        j.IndexerProperty<int>("AccountId").HasComment("L''identifiant technique de l''entité");
+                        j.IndexerProperty<int>("DelegationId").HasComment("L'identifiant technique de la délégation");
+                        j.IndexerProperty<int>("AccountId").HasComment("L'identifiant technique de l'entité");
                     });
+        });
+
+        modelBuilder.Entity<DelegationRequestEntity>(entity =>
+        {
+            entity.HasKey(e => e.DelegationRequestId).HasName("C_DelegationRequest_PK");
+
+            entity.ToTable("DelegationRequest", "account");
+
+            entity.HasIndex(e => new { e.RecipientId, e.Status }, "IX_DelegationRequest_RecipientId_Status");
+
+            entity.HasIndex(e => new { e.RequesterId, e.Status }, "IX_DelegationRequest_RequesterId_Status");
+
+            entity.HasIndex(e => new { e.RequesterId, e.RecipientId, e.AccountId }, "IX_DelegationRequest_Unique_Pending")
+                .IsUnique()
+                .HasFilter("[Status] = 'pending'");
+
+            entity.Property(e => e.DelegationRequestId).HasComment("L'identifiant technique de la demande de délégation");
+            entity.Property(e => e.AccountId).HasComment("L'identifiant du dossier concerné par la demande");
+            entity.Property(e => e.CreatedAt).HasComment("La date de création de la demande");
+            entity.Property(e => e.RecipientId).HasComment("L'identifiant du contact destinataire");
+            entity.Property(e => e.RequesterId).HasComment("L'identifiant du contact demandeur");
+            entity.Property(e => e.RespondedAt).HasComment("La date de réponse à la demande (acceptation ou refus)");
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasComment("Le statut de la demande (pending, accepted, refused)");
+
+            entity.HasOne(d => d.Account).WithMany(p => p.DelegationRequestEntity)
+                .HasForeignKey(d => d.AccountId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_DelegationRequest_Account_FK");
+
+            entity.HasOne(d => d.Recipient).WithMany(p => p.DelegationRequestEntityRecipient)
+                .HasForeignKey(d => d.RecipientId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_DelegationRequest_Recipient_FK");
+
+            entity.HasOne(d => d.Requester).WithMany(p => p.DelegationRequestEntityRequester)
+                .HasForeignKey(d => d.RequesterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_DelegationRequest_Requester_FK");
         });
 
         modelBuilder.Entity<DeploymentEntity>(entity =>
@@ -376,8 +422,8 @@ public partial class AccountContext : DbContext
 
             entity.HasIndex(e => e.AccountId, "UQ_AccountId").IsUnique();
 
-            entity.Property(e => e.DeploymentId).HasComment("L''identifiant technique");
-            entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
+            entity.Property(e => e.DeploymentId).HasComment("L'identifiant technique");
+            entity.Property(e => e.AccountId).HasComment("L'identifiant technique de l'entité");
             entity.Property(e => e.DeploymentDate).HasComment("La date à laquelle le déploiement a eu lieu ");
             entity.Property(e => e.Status).HasComment("Le statut du déploiement");
 
@@ -393,7 +439,7 @@ public partial class AccountContext : DbContext
 
             entity.ToTable("Hub", "account");
 
-            entity.Property(e => e.HubId).HasComment("L''identifiant technique");
+            entity.Property(e => e.HubId).HasComment("L'identifiant technique");
             entity.Property(e => e.HubName)
                 .IsRequired()
                 .HasMaxLength(150)
@@ -431,12 +477,12 @@ public partial class AccountContext : DbContext
 
             entity.ToTable("Naf", "account");
 
-            entity.Property(e => e.NafId).HasComment("L''identifiant technique");
+            entity.Property(e => e.NafId).HasComment("L'identifiant technique");
             entity.Property(e => e.NafCode)
                 .IsRequired()
                 .HasMaxLength(10)
                 .IsUnicode(false)
-                .HasComment("Le code Naf de l''entité");
+                .HasComment("Le code Naf de l'entité");
             entity.Property(e => e.NafLabel)
                 .HasMaxLength(255)
                 .IsUnicode(false);
@@ -454,14 +500,14 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.ApprovedBy)
                 .HasMaxLength(255)
                 .IsUnicode(false)
-                .HasComment("Utilisateur ou processus ayant validé l''offre");
-            entity.Property(e => e.ApprovedDate).HasComment("Date de validation de l''offre");
-            entity.Property(e => e.IsEligible).HasComment("Indique si le compte est éligible à l''offre (1 = Oui, 0 = Non)");
+                .HasComment("Utilisateur ou processus ayant validé l'offre");
+            entity.Property(e => e.ApprovedDate).HasComment("Date de validation de l'offre");
+            entity.Property(e => e.IsEligible).HasComment("Indique si le compte est éligible à l'offre (1 = Oui, 0 = Non)");
             entity.Property(e => e.OfferName)
                 .IsRequired()
                 .HasMaxLength(100)
                 .IsUnicode(false)
-                .HasComment("Nom de l''offre associée à ce compte");
+                .HasComment("Nom de l'offre associée à ce compte");
             entity.Property(e => e.ReportLabel)
                 .HasMaxLength(200)
                 .IsUnicode(false);
@@ -501,8 +547,8 @@ public partial class AccountContext : DbContext
 
             entity.HasIndex(e => e.AccountId, "IDX_Phone_AccountId");
 
-            entity.Property(e => e.PhoneId).HasComment("L''identifiant technique");
-            entity.Property(e => e.AccountId).HasComment("L''identifiant techique de l''entité");
+            entity.Property(e => e.PhoneId).HasComment("L'identifiant technique");
+            entity.Property(e => e.AccountId).HasComment("L'identifiant techique de l'entité");
             entity.Property(e => e.PhoneNumber)
                 .IsRequired()
                 .HasMaxLength(50)
@@ -533,12 +579,14 @@ public partial class AccountContext : DbContext
 
             entity.HasIndex(e => e.IsSignatory, "IX_Role_IsSignatory");
 
-            entity.Property(e => e.ContactId).HasComment("L''identifiant technique du contact");
-            entity.Property(e => e.AccountId).HasComment("L''identifiant technique de l''entité");
-            entity.Property(e => e.IsDelegation).HasComment("Indique, dans les cas où c''est possible, si le role est lié à une délégation");
+            entity.HasIndex(e => e.LastActivityDate, "IX_Role_LastActivityDate");
+
+            entity.Property(e => e.ContactId).HasComment("L'identifiant technique du contact");
+            entity.Property(e => e.AccountId).HasComment("L'identifiant technique de l'entité");
+            entity.Property(e => e.ContactFlagPortailFactures).HasComment("Indique si le contact est flaggé pour le portail factures");
+            entity.Property(e => e.IsDelegation).HasComment("Indique, dans les cas où c'est possible, si le role est lié à une délégation");
             entity.Property(e => e.IsFavorite).HasComment("Le rôle est-il considéré comme un favori ou mis en avant comme tel");
             entity.Property(e => e.IsSignatory).HasComment("Le signataire");
-            entity.Property(e => e.ContactFlagPortailFactures).HasComment("Indique si le contact est flaggé pour le portail factures");
 
             entity.HasOne(d => d.Account).WithMany(p => p.RoleEntity)
                 .HasForeignKey(d => d.AccountId)
@@ -576,48 +624,6 @@ public partial class AccountContext : DbContext
             entity.HasOne(d => d.Label).WithMany(p => p.RoleLabelEntity)
                 .HasForeignKey(d => d.LabelId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
-        });
-
-        modelBuilder.Entity<DelegationRequestEntity>(entity =>
-        {
-            entity.HasKey(e => e.DelegationRequestId).HasName("C_DelegationRequest_PK");
-
-            entity.ToTable("DelegationRequest", "account");
-
-            entity.HasIndex(e => new { e.RecipientId, e.Status }, "IX_DelegationRequest_RecipientId_Status");
-
-            entity.HasIndex(e => new { e.RequesterId, e.Status }, "IX_DelegationRequest_RequesterId_Status");
-
-            entity.HasIndex(e => new { e.RequesterId, e.RecipientId, e.AccountId }, "IX_DelegationRequest_Unique_Pending")
-                .IsUnique()
-                .HasFilter("[Status] = 'pending'");
-
-            entity.Property(e => e.DelegationRequestId).HasComment("L''identifiant technique de la demande de délégation");
-            entity.Property(e => e.RequesterId).HasComment("L''identifiant du contact demandeur");
-            entity.Property(e => e.RecipientId).HasComment("L''identifiant du contact destinataire");
-            entity.Property(e => e.AccountId).HasComment("L''identifiant du dossier concerné par la demande");
-            entity.Property(e => e.CreatedAt).HasComment("La date de création de la demande");
-            entity.Property(e => e.Status)
-                .IsRequired()
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasComment("Le statut de la demande (pending, accepted, refused)");
-            entity.Property(e => e.RespondedAt).HasComment("La date de réponse à la demande (acceptation ou refus)");
-
-            entity.HasOne(d => d.Requester).WithMany()
-                .HasForeignKey(d => d.RequesterId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_DelegationRequest_Requester_FK");
-
-            entity.HasOne(d => d.Recipient).WithMany()
-                .HasForeignKey(d => d.RecipientId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_DelegationRequest_Recipient_FK");
-
-            entity.HasOne(d => d.Account).WithMany()
-                .HasForeignKey(d => d.AccountId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("C_DelegationRequest_Account_FK");
         });
 
         OnModelCreatingPartial(modelBuilder);

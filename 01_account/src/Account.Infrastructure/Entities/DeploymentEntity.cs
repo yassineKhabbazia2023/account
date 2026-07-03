@@ -8,12 +8,12 @@ namespace Pulse.Account.Infrastructure.Entities;
 public partial class DeploymentEntity
 {
     /// <summary>
-    /// L&apos;&apos;identifiant technique
+    /// L&apos;identifiant technique
     /// </summary>
     public int DeploymentId { get; set; }
 
     /// <summary>
-    /// L&apos;&apos;identifiant technique de l&apos;&apos;entité
+    /// L&apos;identifiant technique de l&apos;entité
     /// </summary>
     public int AccountId { get; set; }
 

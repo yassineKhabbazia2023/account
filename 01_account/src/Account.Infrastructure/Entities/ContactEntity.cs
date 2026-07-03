@@ -8,12 +8,12 @@ namespace Pulse.Account.Infrastructure.Entities;
 public partial class ContactEntity
 {
     /// <summary>
-    /// L&apos;&apos;identifiant technique
+    /// L&apos;identifiant technique
     /// </summary>
     public int ContactId { get; set; }
 
     /// <summary>
-    /// L&apos;&apos;identifiant global du contact
+    /// L&apos;identifiant global du contact
     /// </summary>
     public Guid? ContactGlobalUniqueId { get; set; }
 
@@ -28,7 +28,7 @@ public partial class ContactEntity
     public string LastName { get; set; }
 
     /// <summary>
-    /// L&apos;&apos;adresse mail du contact
+    /// L&apos;adresse mail du contact
     /// </summary>
     public string Email { get; set; }
 
@@ -77,6 +77,10 @@ public partial class ContactEntity
     public virtual ICollection<DelegationEntity> DelegationEntityDelegatee { get; set; } = new List<DelegationEntity>();
 
     public virtual ICollection<DelegationEntity> DelegationEntityDelegator { get; set; } = new List<DelegationEntity>();
+
+    public virtual ICollection<DelegationRequestEntity> DelegationRequestEntityRecipient { get; set; } = new List<DelegationRequestEntity>();
+
+    public virtual ICollection<DelegationRequestEntity> DelegationRequestEntityRequester { get; set; } = new List<DelegationRequestEntity>();
 
     public virtual ICollection<RoleEntity> RoleEntity { get; set; } = new List<RoleEntity>();
 

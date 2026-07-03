@@ -8,7 +8,7 @@ namespace Pulse.Account.Infrastructure.Entities;
 public partial class HubEntity
 {
     /// <summary>
-    /// L&apos;&apos;identifiant technique
+    /// L&apos;identifiant technique
     /// </summary>
     public int HubId { get; set; }
 

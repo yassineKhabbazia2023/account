@@ -8,12 +8,12 @@ namespace Pulse.Account.Infrastructure.Entities;
 public partial class NafEntity
 {
     /// <summary>
-    /// L&apos;&apos;identifiant technique
+    /// L&apos;identifiant technique
     /// </summary>
     public int NafId { get; set; }
 
     /// <summary>
-    /// Le code Naf de l&apos;&apos;entité
+    /// Le code Naf de l&apos;entité
     /// </summary>
     public string NafCode { get; set; }
 

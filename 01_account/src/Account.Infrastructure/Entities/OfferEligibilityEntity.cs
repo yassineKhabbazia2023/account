@@ -13,22 +13,22 @@ public partial class OfferEligibilityEntity
     public int AccountId { get; set; }
 
     /// <summary>
-    /// Nom de l&apos;&apos;offre associée à ce compte
+    /// Nom de l&apos;offre associée à ce compte
     /// </summary>
     public string OfferName { get; set; }
 
     /// <summary>
-    /// Indique si le compte est éligible à l&apos;&apos;offre (1 = Oui, 0 = Non)
+    /// Indique si le compte est éligible à l&apos;offre (1 = Oui, 0 = Non)
     /// </summary>
     public bool IsEligible { get; set; }
 
     /// <summary>
-    /// Date de validation de l&apos;&apos;offre
+    /// Date de validation de l&apos;offre
     /// </summary>
     public DateTime? ApprovedDate { get; set; }
 
     /// <summary>
-    /// Utilisateur ou processus ayant validé l&apos;&apos;offre
+    /// Utilisateur ou processus ayant validé l&apos;offre
     /// </summary>
     public string ApprovedBy { get; set; }
 

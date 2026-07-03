@@ -4,14 +4,18 @@
    "ContextNamespace": null,
    "FilterSchemas": false,
    "IncludeConnectionString": false,
+   "IrregularWords": null,
+   "MinimumProductVersion": "2.6.1604",
    "ModelNamespace": null,
    "OutputContextPath": "Context",
    "OutputPath": "Entities",
+   "PluralRules": null,
    "PreserveCasingWithRegex": true,
    "ProjectRootNamespace": "Pulse.Account.Infrastructure",
    "Schemas": null,
    "SelectedHandlebarsLanguage": 0,
    "SelectedToBeGenerated": 0,
+   "SingularRules": null,
    "T4TemplatePath": null,
    "Tables": [
       {
@@ -28,6 +32,10 @@
       },
       {
          "Name": "[account].[DelegationDetail]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[account].[DelegationRequest]",
          "ObjectType": 0
       },
       {
@@ -97,5 +105,6 @@
    "UseSchemaNamespaces": false,
    "UseSpatial": false,
    "UseT4": false,
-   "UseT4Split": false
+   "UseT4Split": false,
+   "UseTypedTvpParameters": true
 }

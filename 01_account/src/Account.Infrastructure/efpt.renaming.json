@@ -24,6 +24,11 @@
          },
          {
             "Columns": [ ],
+            "Name": "DelegationRequest",
+            "NewName": "DelegationRequestEntity"
+         },
+         {
+            "Columns": [ ],
             "Name": "Deployment",
             "NewName": "DeploymentEntity"
          },
