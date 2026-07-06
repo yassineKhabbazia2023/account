@@ -16,33 +16,25 @@ using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
 using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
-public class RoleRepository : IRoleRepository
+public class RoleRepository(AccountContext accountContext) : IRoleRepository
 {
-    private readonly AccountContext _accountContext;
-    private readonly AsyncRetryPolicy _retryPolicy;
-
-    public RoleRepository(AccountContext accountContext)
-    {
-        _accountContext = accountContext;
-
-        _retryPolicy = Policy
+    private readonly AccountContext _accountContext = accountContext;
+    private static readonly AsyncRetryPolicy _retryPolicy = Policy
                 .Handle<SqlException>()
                 .WaitAndRetryAsync(
                     retryCount: 1,
                     sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN));
-    }
 
     public async Task<Paging<Core.Models.Account>> GetContactRolesAsync(int contactId, Pagination pagination)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            if (!_accountContext.ContactEntity.Any(x => x.ContactId == contactId))
+            if (!_accountContext.ContactEntity.AsNoTracking().Any(x => x.ContactId == contactId))
             {
                 throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
             }
@@ -64,7 +56,7 @@ public class RoleRepository : IRoleRepository
             var totalPages = Paginator.GetTotalPages(totalRows, pagination.PageSize);
             var entities = await query.ToListAsync();
 
-            return MapAccountDbToAccountModel.MapToPaginAccounts(
+            return MapAccountDatabaseToAccountModel.MapToPaginAccounts(
                   entities,
                   contactId,
                   pagination.PageNumber,

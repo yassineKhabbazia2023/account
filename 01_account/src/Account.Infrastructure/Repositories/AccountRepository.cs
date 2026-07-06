@@ -25,7 +25,7 @@ using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 
-public class AccountRepository : IAccountRepository
+public class AccountRepository(AccountContext accountContext) : IAccountRepository
 {
     private static readonly string[] ContactWidgetRoleLabelCodes =
     [
@@ -33,19 +33,12 @@ public class AccountRepository : IAccountRepository
         RoleLabelCodes.CustomerLeadPartner
     ];
 
-    private readonly AccountContext _accountContext;
-    private readonly AsyncRetryPolicy _retryPolicy;
-
-    public AccountRepository(AccountContext accountContext)
-    {
-        _accountContext = accountContext;
-
-        _retryPolicy = Policy
+    private readonly AccountContext _accountContext = accountContext;
+    private static readonly AsyncRetryPolicy _retryPolicy = Policy
                 .Handle<SqlException>()
                 .WaitAndRetryAsync(
                     retryCount: 1,
                     sleepDurationProvider: attempt => TimeSpan.FromMilliseconds(GlobalConstants.RETRYTIMESPAN));
-    }
 
     public async Task<AccountDetail> CreateAccountAsync(string currentUser, CreateAccountRequest request)
     {
@@ -98,38 +91,46 @@ public class AccountRepository : IAccountRepository
         var totalItems = await baseQuery.CountAsync();
         var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
-        // Sort result
-        var query = GetAccountEntitiesSorted(baseQuery, criteria.Sorting);
+        var query = GetAccountEntitiesSorted(baseQuery, criteria.Sorting, criteria.ContactId);
 
         // Appliquer le Skip et le Take avant les Includes
         query = query
             .Skip((pagination.PageNumber - 1) * pagination.PageSize)
             .Take(pagination.PageSize);
 
-        // Ajouter les Includes nécessaires pour de meilleures performances
         query = query
             .Include(a => a.RoleEntity)
                 .ThenInclude(r => r.Contact)
             .Include(a => a.AddressEntity)
             .Include(a => a.DeploymentEntity);
 
-        // Exécuter la requête et mapper les entités
         var entities = await query.ToListAsync();
 
-        return MapAccountDbToAccountModel.MapToPaginAccounts(
-            entities,
-            criteria.ContactId,
-            pagination.PageNumber,
-            totalItems,
-            totalPages
-        );
+        return MapAccountDatabaseToAccountModel.MapToPaginAccounts(
+        entities,
+        criteria.ContactId,
+        pagination.PageNumber,
+        totalItems,
+        totalPages
+    );
     }
 
-    private static IQueryable<AccountEntity> GetAccountEntitiesSorted(IQueryable<AccountEntity> query, Sorting? sorting)
+    private static IQueryable<AccountEntity> GetAccountEntitiesSorted(IQueryable<AccountEntity> query, Sorting? sorting, int? contactId = null)
     {
         if (sorting == null || string.IsNullOrEmpty(sorting.Field))
         {
-            return query.OrderBy(x => x.LegalName);
+            if (contactId != null)
+            {
+                return query.OrderByDescending(x => x.RoleEntity
+                        .Where(r => r.ContactId == contactId)
+                        .Select(r => r.LastActivityDate)
+                        .FirstOrDefault())
+                    .ThenBy(x => x.LegalName);
+            }
+            else
+            {
+                return query.OrderBy(x => x.LegalName);
+            }
         }
 
         switch (sorting.Field)
@@ -186,6 +187,20 @@ public class AccountRepository : IAccountRepository
                     : query.OrderBy(x => x.DeploymentEntity.Status);
                 break;
 
+            case SortingConstants.LASTACTIVITYDATE:
+                query = sorting.Descending
+                    ? query.OrderByDescending(x => x.RoleEntity
+                            .Where(r => contactId == null || r.ContactId == contactId)
+                            .Select(r => r.LastActivityDate)
+                            .FirstOrDefault())
+                        .ThenBy(x => x.LegalName)
+                    : query.OrderBy(x => x.RoleEntity
+                            .Where(r => contactId == null || r.ContactId == contactId)
+                            .Select(r => r.LastActivityDate)
+                            .FirstOrDefault())
+                        .ThenBy(x => x.LegalName);
+                break;
+
             default:
                 throw new BadRequestException(
                     Errors.BadRequestContactsAccountCode,
@@ -216,7 +231,7 @@ public class AccountRepository : IAccountRepository
             query = query.Skip((pagination!.PageNumber - 1) * pagination!.PageSize);
             query = query.Take(pagination!.PageSize);
 
-            return MapAccountDbToAccountModel.MapToPaginAccounts(
+            return MapAccountDatabaseToAccountModel.MapToPaginAccounts(
                 await query.ToListAsync(),
                 null,
                 pagination!.PageNumber,
@@ -453,7 +468,7 @@ public class AccountRepository : IAccountRepository
                 .ThenBy(contact => contact.FirstName)
                 .ToListAsync();
 
-            return contacts.Select(contact => contact.MapToContact(accountId) !);
+            return contacts.Select(contact => contact.MapToContact(accountId)!);
         });
     }
 

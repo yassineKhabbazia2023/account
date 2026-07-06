@@ -40,4 +40,6 @@ public class Account
     public bool IsClarityVisible { get; set; }
 
     public bool IsSignatory { get; set; }
+
+    public DateTime? LastActivityDate { get; set; }
 }

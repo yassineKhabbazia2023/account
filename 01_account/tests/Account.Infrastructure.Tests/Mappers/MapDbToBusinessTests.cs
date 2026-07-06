@@ -62,7 +62,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             }).First();
 
             // Act
-            var accountModel = MapAccountDbToAccountModel.MapToAccount(tAccountFixture, 0);
+            var accountModel = MapAccountDatabaseToAccountModel.MapToAccount(tAccountFixture, 0);
 
             // Assert
             var accountAddressExpect = JsonConvert.SerializeObject(expectedAccount.Address);
@@ -80,7 +80,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [Fact]
         public void MapToAccount_WithNullSource_ShouldReturnNull()
         {
-            var result = MapAccountDbToAccountModel.MapToAccount(null!, 0);
+            var result = MapAccountDatabaseToAccountModel.MapToAccount(null!, 0);
 
             Assert.Null(result);
         }
@@ -118,7 +118,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
             expectedAccount.ModifiedBy = tAccountFixture.ModifiedBy;
 
             // Act
-            var accountModel = MapAccountDbToAccountModel.MapToAccountDetail(tAccountFixture);
+            var accountModel = MapAccountDatabaseToAccountModel.MapToAccountDetail(tAccountFixture);
 
             // Assert
             var accountAddressExpect = JsonConvert.SerializeObject(expectedAccount.Address);
@@ -152,7 +152,7 @@ namespace Pulse.Account.Infrastructure.Tests.Mappers
         [Fact]
         public void MapToAccountDetail_WithNullSource_ShouldReturnNull()
         {
-            var result = MapAccountDbToAccountModel.MapToAccountDetail(null!);
+            var result = MapAccountDatabaseToAccountModel.MapToAccountDetail(null!);
 
             Assert.Null(result);
         }

@@ -228,7 +228,7 @@ public class MapAccountDbToAccountModelTests
     [Fact]
     public void MapToContact_WithNullSource_ShouldReturnNull()
     {
-        var result = MapAccountDbToAccountModel.MapToContact(null!, null);
+        var result = MapAccountDatabaseToAccountModel.MapToContact(null!, null);
 
         Assert.Null(result);
     }
@@ -424,7 +424,7 @@ public class MapAccountDbToAccountModelTests
         };
 
         // Act
-        var result = MapAccountDbToAccountModel.InitStatistic(countByAccountStatus, countByContactStatus);
+        var result = MapAccountDatabaseToAccountModel.InitStatistic(countByAccountStatus, countByContactStatus);
 
         // Assert
         result.Should().NotBeNull();
@@ -454,7 +454,7 @@ public class MapAccountDbToAccountModelTests
         };
 
         // Act
-        var result = MapAccountDbToAccountModel.InitStatistic(countByAccountStatus, countByContactStatus);
+        var result = MapAccountDatabaseToAccountModel.InitStatistic(countByAccountStatus, countByContactStatus);
 
         // Assert
         result.Should().NotBeNull();
@@ -471,7 +471,7 @@ public class MapAccountDbToAccountModelTests
     public void InitStatistic_WithNullDictionaries_ShouldReturnZeroForAllValues()
     {
         // Act
-        var result = MapAccountDbToAccountModel.InitStatistic(null, null);
+        var result = MapAccountDatabaseToAccountModel.InitStatistic(null, null);
 
         // Assert
         result.Should().NotBeNull();
@@ -492,7 +492,7 @@ public class MapAccountDbToAccountModelTests
         var countByContactStatus = new Dictionary<string, int>();
 
         // Act
-        var result = MapAccountDbToAccountModel.InitStatistic(countByAccountStatus, countByContactStatus);
+        var result = MapAccountDatabaseToAccountModel.InitStatistic(countByAccountStatus, countByContactStatus);
 
         // Assert
         result.Should().NotBeNull();
@@ -553,7 +553,7 @@ public class MapAccountDbToAccountModelTests
         int? contactId = 1;
 
         // Act
-        var result = MapAccountDbToAccountModel.MapToAccounts(source, contactId);
+        var result = MapAccountDatabaseToAccountModel.MapToAccounts(source, contactId);
 
         // Assert
         result.Should().NotBeNull();
@@ -572,7 +572,7 @@ public class MapAccountDbToAccountModelTests
         int? contactId = 1;
 
         // Act
-        var result = MapAccountDbToAccountModel.MapToAccounts(source, contactId);
+        var result = MapAccountDatabaseToAccountModel.MapToAccounts(source, contactId);
 
         // Assert
         result.Should().NotBeNull();
@@ -589,7 +589,7 @@ public class MapAccountDbToAccountModelTests
         int? contactId = 1;
 
         // Act
-        var result = MapAccountDbToAccountModel.MapToAccount(source, contactId);
+        var result = MapAccountDatabaseToAccountModel.MapToAccount(source, contactId);
 
         // Assert
         result.Should().BeNull();
@@ -599,6 +599,7 @@ public class MapAccountDbToAccountModelTests
     public void MapToAccount_WithValidSource_ShouldMapCorrectly()
     {
         // Arrange
+        var date = DateTime.Now;
         var source = new AccountEntity
         {
             AccountId = 1,
@@ -617,6 +618,7 @@ public class MapAccountDbToAccountModelTests
                     ContactId = 1,
                     IsFavorite = true,
                     IsCustomerRelation = true,
+                    LastActivityDate = date,
                 }
             },
             AddressEntity = new List<AddressEntity>
@@ -630,7 +632,7 @@ public class MapAccountDbToAccountModelTests
         int? contactId = 1;
 
         // Act
-        var result = MapAccountDbToAccountModel.MapToAccount(source, contactId);
+        var result = MapAccountDatabaseToAccountModel.MapToAccount(source, contactId);
 
         // Assert
         result.Should().NotBeNull();
@@ -646,6 +648,7 @@ public class MapAccountDbToAccountModelTests
         result.Hub.HubName.Should().Be("Test Hub");
         Assert.True(result.IsFavorite);
         Assert.True(result.IsCustomerRelation);
+        result.LastActivityDate.Should().Be(date);
     }
 
     [Fact]
@@ -677,7 +680,7 @@ public class MapAccountDbToAccountModelTests
         };
 
         // Act
-        var result = MapAccountDbToAccountModel.MapToAccountSummary(source, contactId);
+        var result = MapAccountDatabaseToAccountModel.MapToAccountSummary(source, contactId);
 
         // Assert
         result.Should().NotBeNull();
@@ -699,7 +702,7 @@ public class MapAccountDbToAccountModelTests
         AccountEntity source = null!;
 
         // Act
-        var result = MapAccountDbToAccountModel.MapToAccountDetail(source);
+        var result = MapAccountDatabaseToAccountModel.MapToAccountDetail(source);
 
         // Assert
         result.Should().BeNull();
@@ -730,7 +733,7 @@ public class MapAccountDbToAccountModelTests
         };
 
         // Act
-        var result = MapAccountDbToAccountModel.MapToAccountDetail(source);
+        var result = MapAccountDatabaseToAccountModel.MapToAccountDetail(source);
 
         // Assert
         result.Should().NotBeNull();
@@ -761,7 +764,7 @@ public class MapAccountDbToAccountModelTests
         Dictionary<string, int> countByContactStatus = null!;
 
         // Act
-        var result = MapAccountDbToAccountModel.MapToStatistics(countByAccountStatus, countByContactStatus);
+        var result = MapAccountDatabaseToAccountModel.MapToStatistics(countByAccountStatus, countByContactStatus);
 
         // Assert
         result.Should().NotBeNull();
@@ -786,7 +789,7 @@ public class MapAccountDbToAccountModelTests
         };
 
         // Act
-        var result = MapAccountDbToAccountModel.MapToNaf(nafEntity);
+        var result = MapAccountDatabaseToAccountModel.MapToNaf(nafEntity);
 
         // Assert
         result.Should().NotBeNull();
@@ -814,7 +817,7 @@ public class MapAccountDbToAccountModelTests
         };
 
         // Act
-        var result = MapAccountDbToAccountModel.MapToStatistics(countByAccountStatus, countByContactStatus);
+        var result = MapAccountDatabaseToAccountModel.MapToStatistics(countByAccountStatus, countByContactStatus);
 
         // Assert
         result.Should().NotBeNull();

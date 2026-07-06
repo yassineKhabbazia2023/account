@@ -1,4 +1,4 @@
-﻿// <copyright file="MapAccountDbToAccountModel.cs" company="Pulse">
+﻿// <copyright file="MapAccountDatabaseToAccountModel.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -10,7 +10,7 @@ using AccountModel = Pulse.Account.Core.Models.Account;
 
 namespace Pulse.Account.Infrastructure.Mappers;
 
-public static class MapAccountDbToAccountModel
+public static class MapAccountDatabaseToAccountModel
 {
     public static Paging<AccountModel> MapToPaginAccounts(
         this ICollection<AccountEntity> source,
@@ -75,13 +75,14 @@ public static class MapAccountDbToAccountModel
                 Address = source.MapToAddressDelivery(),
                 Signatory = signatory?.Contact.MapToContact(null!),
                 Deployment = source.MapToDeployment(),
-                Hub = source.MapToHub()
+                Hub = source.MapToHub(),
+                LastActivityDate = currentContact?.LastActivityDate,
             };
     }
 
-    public static AccountModel? MapToAccountSummary(this AccountEntity source, int contactId)
+    public static AccountModel? MapToAccountSummary(this AccountEntity? source, int contactId)
     {
-        var isSignatory = source.RoleEntity.Any(role => role.ContactId == contactId && role.IsSignatory == true);
+        var isSignatory = source?.RoleEntity.Any(role => role.ContactId == contactId && role.IsSignatory == true) ?? false;
 
         return source == null ? null : new AccountModel
         {
@@ -107,6 +108,18 @@ public static class MapAccountDbToAccountModel
             OfficeId = source.OfficeId,
             Name = source.Name,
             Address = source.Address.MapToAddress(),
+            PhoneNumber = source.PhoneNumber,
+            AddressId = source.AddressId,
+        };
+    }
+
+    public static OfficeEntity? MapToOffice(this Office source)
+    {
+        return source == null ? null : new OfficeEntity
+        {
+            OfficeId = source.OfficeId,
+            Name = source.Name,
+            Address = source!.Address!.MapToAddressEntity(),
             PhoneNumber = source.PhoneNumber,
             AddressId = source.AddressId,
         };
@@ -148,18 +161,6 @@ public static class MapAccountDbToAccountModel
                 ReportId = offerEligibility.ReportId,
                 ReportLabel = offerEligibility.ReportLabel
             }
-        };
-    }
-
-    public static OfficeEntity? MapToOffice(this Office source)
-    {
-        return source == null ? null : new OfficeEntity
-        {
-            OfficeId = source.OfficeId,
-            Name = source.Name,
-            Address = source!.Address!.MapToAddressEntity(),
-            PhoneNumber = source.PhoneNumber,
-            AddressId = source.AddressId,
         };
     }
 
@@ -293,21 +294,6 @@ public static class MapAccountDbToAccountModel
         Latitude = address.Latitude
     };
 
-    private static AddressEntity MapToAddressEntity(this Address? address) => address == null ? new AddressEntity() : new AddressEntity
-    {
-        AddressId = address!.AddressId,
-        Country = address.Country,
-        City = address.City,
-        State = address.State,
-        AddressLine1 = address.AddressLine1,
-        AddressLine2 = address.AddressLine2,
-        AddressLine3 = address.AddressLine3,
-        ZipCode = address.ZipCode,
-        AddressType = address.AddressType,
-        Longitude = address.Longitude,
-        Latitude = address.Latitude
-    };
-
     private static IEnumerable<Address>? MapToAddress(this AccountEntity tAccount)
     {
         return tAccount.AddressEntity == null ? Array.Empty<Address>() :
@@ -326,6 +312,21 @@ public static class MapAccountDbToAccountModel
                 Latitude = address.Latitude
             });
     }
+
+    private static AddressEntity MapToAddressEntity(this Address? address) => address == null ? new AddressEntity() : new AddressEntity
+    {
+        AddressId = address!.AddressId,
+        Country = address.Country,
+        City = address.City,
+        State = address.State,
+        AddressLine1 = address.AddressLine1,
+        AddressLine2 = address.AddressLine2,
+        AddressLine3 = address.AddressLine3,
+        ZipCode = address.ZipCode,
+        AddressType = address.AddressType,
+        Longitude = address.Longitude,
+        Latitude = address.Latitude
+    };
 
     private static Hub MapToHub(this AccountEntity tAccount)
     {
@@ -362,7 +363,7 @@ public static class MapAccountDbToAccountModel
 
     private static Legal MapToLegal(this AccountEntity tAccount)
     {
-        var siren = !string.IsNullOrWhiteSpace(tAccount?.Siret) && tAccount.Siret.Length >= 9
+        var siren = !string.IsNullOrWhiteSpace(tAccount.Siret) && tAccount.Siret.Length >= 9
             ? tAccount.Siret.Substring(0, 9)
             : null;
 

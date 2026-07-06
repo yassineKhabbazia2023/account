@@ -298,6 +298,7 @@ public class AccountRepositoryTests
     [InlineData(SortingConstants.LEADER, false, "test sca 3")]
     [InlineData(SortingConstants.CITY, false, "test sca 1")]
     [InlineData(SortingConstants.EMAIL, false, "test sca 3")]
+    [InlineData(SortingConstants.LASTACTIVITYDATE, false, "test sca 1")]
     public async Task GetAccountsAsync_SortsCorrectly(string field, bool descending, string expectedFirst)
     {
         using (var context = new TestAccountContext(_dbContextOptions))
@@ -376,19 +377,22 @@ public class AccountRepositoryTests
                 {
                     IsSignatory = true,
                     Contact = contactEntity,
-                    Account = accountEntity
+                    Account = accountEntity,
+                    LastActivityDate = DateTime.Now.AddMonths(-1),
                 },
                 new()
                 {
                     IsSignatory = false,
                     Contact = contactEntity,
-                    Account = accountEntity2
+                    Account = accountEntity2,
+                    LastActivityDate = DateTime.Now.AddDays(-1),
                 },
                 new()
                 {
                     IsSignatory = true,
                     Contact = contactEntity2,
-                    Account = accountEntity2
+                    Account = accountEntity2,
+                    LastActivityDate = DateTime.Now,
                 }
             };
 
