@@ -13,7 +13,6 @@ using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
-using Pulse.Account.Infrastructure.Mappers;
 using Pulse.Account.Infrastructure.Repositories;
 using Pulse.Account.Infrastructure.Tests.Helpers;
 using Pulse.ExceptionMiddleware.Exceptions;
@@ -213,7 +212,9 @@ public class DelegationRepositoryTests
                 }
             };
 
+            var before = DateTime.UtcNow;
             var result = await repository.CreateDelegationAsync(tDelegator.ContactId, createDelegation, roles);
+            var after = DateTime.UtcNow;
 
             Assert.NotNull(result);
             Assert.Single(result);
@@ -230,6 +231,11 @@ public class DelegationRepositoryTests
             Assert.NotNull(createdDelegation);
             Assert.True(createdDelegation.IsFullDelegation);
             Assert.False(createdDelegation.IsAutomaticDelegation);
+
+            var createdRole = await context.RoleEntity
+                .FirstAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == tDelegatee.ContactId);
+            Assert.NotNull(createdRole.LastActivityDate);
+            Assert.InRange(createdRole.LastActivityDate!.Value, before, after);
         }
     }
 
@@ -1678,5 +1684,156 @@ public class DelegationRepositoryTests
         result.TotalItems.Should().Be(1);
         result.Items!.Should().ContainSingle()
             .Which.Delegatee!.ContactId.Should().Be(delegateeId);
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_WhenRolesAreCreated_ShouldSetLastActivityDateOnEachRole()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Create two accounts
+            var tAccount1 = _fixture.Build<AccountEntity>()
+                .Without(x => x.Delegation)
+                .Create();
+            var tAccount2 = _fixture.Build<AccountEntity>()
+                .Without(x => x.Delegation)
+                .Create();
+
+            // Create delegator and delegatee (ContactId is ValueGeneratedNever)
+            var tDelegator = _fixture.Build<ContactEntity>()
+                .With(c => c.ContactId, 5003)
+                .With(c => c.IsActive, true)
+                .Create();
+            var tDelegatee = _fixture.Build<ContactEntity>()
+                .With(c => c.ContactId, 5004)
+                .With(c => c.IsActive, true)
+                .Create();
+
+            context.AccountEntity.AddRange(tAccount1, tAccount2);
+            context.ContactEntity.AddRange(tDelegator, tDelegatee);
+
+            // Use navigation properties so EF resolves AccountId FKs correctly in a single save
+            var roleDelegator1 = _fixture.Build<RoleEntity>()
+                .With(r => r.Account, tAccount1)
+                .With(r => r.AccountId, tAccount1.AccountId)
+                .With(r => r.Contact, tDelegator)
+                .With(r => r.ContactId, tDelegator.ContactId)
+                .Create();
+            var roleDelegator2 = _fixture.Build<RoleEntity>()
+                .With(r => r.Account, tAccount2)
+                .With(r => r.AccountId, tAccount2.AccountId)
+                .With(r => r.Contact, tDelegator)
+                .With(r => r.ContactId, tDelegator.ContactId)
+                .Create();
+            context.RoleEntity.AddRange(roleDelegator1, roleDelegator2);
+
+            await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
+
+            var repository = new DelegationRepository(context);
+            var createDelegation = new CreateDelegationRequest
+            {
+                DelegationDetails = new List<DelegationDetails>
+                {
+                    new()
+                    {
+                        DelegateeId = tDelegatee.ContactId,
+                        StartDate = DateTime.UtcNow,
+                        Status = "enabled",
+                        IsRoleToCreate = true,
+                        IsAutomaticDelegation = false
+                    }
+                },
+                AccountIds = new List<int> { roleDelegator1.AccountId, roleDelegator2.AccountId },
+                IsFullDelegation = false
+            };
+            var roles = new List<CreateRoleRequest>
+            {
+                new() { AccountId = roleDelegator1.AccountId, ContactId = tDelegatee.ContactId, IsDelegation = true },
+                new() { AccountId = roleDelegator2.AccountId, ContactId = tDelegatee.ContactId, IsDelegation = true }
+            };
+
+            var before = DateTime.UtcNow;
+            await repository.CreateDelegationAsync(tDelegator.ContactId, createDelegation, roles);
+            var after = DateTime.UtcNow;
+
+            var createdRoles = await context.RoleEntity
+                .Where(r => r.ContactId == tDelegatee.ContactId && r.IsDelegation == true)
+                .ToListAsync();
+
+            Assert.Equal(2, createdRoles.Count);
+            Assert.All(createdRoles, r =>
+            {
+                Assert.NotNull(r.LastActivityDate);
+                Assert.InRange(r.LastActivityDate!.Value, before, after);
+            });
+        }
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_WhenRoleAlreadyExists_ShouldNotSetLastActivityDateOnExistingRole()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+
+        var tAccount = _fixture.Build<AccountEntity>()
+            .Create();
+        context.AccountEntity.Add(tAccount);
+
+        var tDelegator = _fixture.Build<ContactEntity>()
+            .With(c => c.IsActive, true)
+            .Create();
+        var tDelegatee = _fixture.Build<ContactEntity>()
+            .With(c => c.IsActive, true)
+            .Create();
+        context.ContactEntity.AddRange(tDelegator, tDelegatee);
+
+        // Delegator role on the account
+        context.RoleEntity.Add(new RoleEntity { AccountId = tAccount.AccountId, ContactId = tDelegator.ContactId });
+
+        // Delegatee already has a role on the account (duplicate → skipped by RemoveDuplicateRoles)
+        var preExistingLastActivityDate = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        context.RoleEntity.Add(new RoleEntity
+        {
+            AccountId = tAccount.AccountId,
+            ContactId = tDelegatee.ContactId,
+            IsDelegation = true,
+            LastActivityDate = preExistingLastActivityDate
+        });
+
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        using var writeContext = new AccountContext(_dbContextOptions);
+        var repository = new DelegationRepository(writeContext);
+        var createDelegation = new CreateDelegationRequest
+        {
+            DelegationDetails = new List<DelegationDetails>
+            {
+                new()
+                {
+                    DelegateeId = tDelegatee.ContactId,
+                    StartDate = DateTime.UtcNow,
+                    Status = "enabled",
+                    IsRoleToCreate = true,
+                    IsAutomaticDelegation = false
+                }
+            },
+            AccountIds = new List<int> { tAccount.AccountId },
+            IsFullDelegation = false
+        };
+        var roles = new List<CreateRoleRequest>
+        {
+            new() { AccountId = tAccount.AccountId, ContactId = tDelegatee.ContactId, IsDelegation = true }
+        };
+
+        var returnedRoles = await repository.CreateDelegationAsync(tDelegator.ContactId, createDelegation, roles);
+
+        // No new role was inserted (duplicate filtered out) → nothing returned
+        Assert.Empty(returnedRoles);
+
+        // The pre-existing role must not have been touched
+        var existingRole = await context.RoleEntity
+            .FirstAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == tDelegatee.ContactId);
+        Assert.Equal(preExistingLastActivityDate, existingRole.LastActivityDate);
     }
 }

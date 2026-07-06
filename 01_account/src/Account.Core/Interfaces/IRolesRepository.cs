@@ -39,4 +39,6 @@ public interface IRoleRepository
     Task<bool> IsProspectAccountAsync(int accountId);
 
     Task<IReadOnlyList<int>> GetAccountsWhereContactIsLastCollaboratorAsync(int contactId, IReadOnlyCollection<int> accountIds);
+
+    Task UpdateLastActivityDateAsync(int accountId, int contactId, string contactType, DateTime lastActivityDate);
 }

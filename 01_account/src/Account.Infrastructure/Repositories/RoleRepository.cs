@@ -356,4 +356,18 @@ public class RoleRepository : IRoleRepository
     {
         return await _accountContext.RoleLabelEntity.AnyAsync(rl => rl.ContactId == contactId && rl.AccountId == accountId);
     }
+
+    public async Task UpdateLastActivityDateAsync(int accountId, int contactId, string contactType, DateTime lastActivityDate)
+    {
+        if (!ContactType.Collaborator.ToString().Equals(contactType))
+        {
+            return;
+        }
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            await _accountContext.RoleEntity.Where(r => r.AccountId == accountId && r.ContactId == contactId)
+                .ExecuteUpdateAsync(r => r.SetProperty(role => role.LastActivityDate, lastActivityDate));
+        });
+    }
 }

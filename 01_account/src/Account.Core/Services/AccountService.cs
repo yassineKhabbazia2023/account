@@ -19,12 +19,14 @@ public class AccountService(
     IContactRepository contactRepository,
     IAccountEventPublisher accountEventPublisher,
     ILogger<AccountService> logger,
-    IFeatureFlagService featureFlagService) : IAccountService
+    IFeatureFlagService featureFlagService,
+    IRoleRepository roleRepository) : IAccountService
 {
     private readonly IAccountRepository _accountRepository = accountRepository;
     private readonly IAccountEventPublisher _accountEventPublisher = accountEventPublisher;
     private readonly ILogger<AccountService> _logger = logger;
     private readonly IFeatureFlagService _featureFlagService = featureFlagService;
+    private readonly IRoleRepository _roleRepository = roleRepository;
 
     public async Task<AccountDetail> CreateAccountAsync(int currentUserId, CreateAccountRequest request)
     {
@@ -88,9 +90,12 @@ public class AccountService(
         return await _accountRepository.SearchAccountsAsync(keyword, pagination);
     }
 
-    public async Task<Models.Account?> GetAccountSummaryAsync(int contactId, int accountId)
+    public async Task<Models.Account?> GetAccountSummaryAsync(int contactId, int accountId, string contactType)
     {
-        return await _accountRepository.GetAccountSummaryAsync(contactId, accountId);
+        var summary = await _accountRepository.GetAccountSummaryAsync(contactId, accountId);
+        await _roleRepository.UpdateLastActivityDateAsync(accountId, contactId, contactType, DateTime.UtcNow);
+
+        return summary;
     }
 
     public async Task<AccountDetail?> GetAccountAsync(int accountId)

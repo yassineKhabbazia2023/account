@@ -3,6 +3,7 @@
 // </copyright>
 
 using AutoFixture;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json;
@@ -42,141 +43,136 @@ public class RolesRepositoryTests
     public async Task GetContactRolesAsync_Should_ReturnsCorrectPaging()
     {
         // Arrange
-        using (var context = new AccountContext(_dbContextOptions))
+        var context = CreateSqliteContext();
+        var pagination = new Pagination
         {
-            var pagination = new Pagination
-            {
-                PageNumber = 1,
-                PageSize = 4
-            };
+            PageNumber = 1,
+            PageSize = 4
+        };
 
-            var contactEntity = _fixture.Build<ContactEntity>()
-                                            .With(c => c.Type, "1")
-                                            .With(c => c.FirstName, "firstUser")
-                                            .With(c => c.LastName, "lastUser")
-                                            .With(c => c.Email, "firstLastUser@test.fr")
-                                            .Create();
-            var roleEntity = _fixture.Build<RoleEntity>()
-                                            .With(r => r.Contact, contactEntity)
-                                            .With(r => r.IsSignatory, true)
-                                            .CreateMany(1);
-            var accountsEntity = _fixture.Build<AccountEntity>()
-                .With(a => a.RoleEntity, roleEntity.ToList())
-                .CreateMany(1);
-            var accountId = accountsEntity.First().AccountId;
-            context.AccountEntity.AddRange(accountsEntity);
-            context.SaveChanges();
+        var contactEntity = _fixture.Build<ContactEntity>()
+                                        .With(c => c.Type, "1")
+                                        .With(c => c.FirstName, "firstUser")
+                                        .With(c => c.LastName, "lastUser")
+                                        .With(c => c.Email, "firstLastUser@test.fr")
+                                        .Create();
+        var roleEntity = _fixture.Build<RoleEntity>()
+                                        .With(r => r.Contact, contactEntity)
+                                        .With(r => r.IsSignatory, true)
+                                        .CreateMany(1);
+        var accountsEntity = _fixture.Build<AccountEntity>()
+            .With(a => a.RoleEntity, roleEntity.ToList())
+            .CreateMany(1);
+        var accountId = accountsEntity.First().AccountId;
+        context.AccountEntity.AddRange(accountsEntity);
+        context.SaveChanges();
 
-            var rolesRepository = new RoleRepository(context);
-            var contactId = accountsEntity.First(a => a.AccountId == accountId).RoleEntity.First().ContactId;
+        var rolesRepository = new RoleRepository(context);
+        var contactId = accountsEntity.First(a => a.AccountId == accountId).RoleEntity.First().ContactId;
 
-            var accountObjects = context.AccountEntity
-                                                        .AsNoTracking()
-                                                        .Include(x => x.RoleEntity)
-                                                        .ThenInclude(r => r.Contact)
-                                                        .Include(a => a.AddressEntity)
-                                                        .Include(x => x.DeploymentEntity)
-                                                        .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
-                                                        .OrderBy(x => x.LegalName)
-                                                        .Select(x => x.MapToAccount(contactId));
+        var accountObjects = context.AccountEntity
+                                                    .AsNoTracking()
+                                                    .Include(x => x.RoleEntity)
+                                                    .ThenInclude(r => r.Contact)
+                                                    .Include(a => a.AddressEntity)
+                                                    .Include(x => x.DeploymentEntity)
+                                                    .Where(a => a.RoleEntity.Any(r => r.ContactId == contactId))
+                                                    .OrderBy(x => x.LegalName)
+                                                    .Select(x => x.MapToAccount(contactId));
 
-            Paging<AccountModel> accountPaging = new Paging<AccountModel>()
-            {
-                CurrentPage = 1,
-                Items = accountObjects!,
-                TotalItems = accountObjects.Count(),
-                TotalPage = 1
-            };
+        Paging<AccountModel> accountPaging = new Paging<AccountModel>()
+        {
+            CurrentPage = 1,
+            Items = accountObjects!,
+            TotalItems = accountObjects.Count(),
+            TotalPage = 1
+        };
 
-            // Act
-            var accounts = await rolesRepository.GetContactRolesAsync(contactId, pagination);
+        // Act
+        var accounts = await rolesRepository.GetContactRolesAsync(contactId, pagination);
 
-            // Assert
-            var accountExpect = JsonConvert.SerializeObject(accountPaging);
-            var accountReceived = JsonConvert.SerializeObject(accounts);
-            Assert.Equal(accountExpect, accountReceived);
-        }
+        // Assert
+        var accountExpect = JsonConvert.SerializeObject(accountPaging);
+        var accountReceived = JsonConvert.SerializeObject(accounts);
+        Assert.Equal(accountExpect, accountReceived);
     }
 
     [Fact]
     public async Task GetContactRolesAsync_WithNotExistingContactId_ShouldThrowNotFoundException()
     {
-        using (var accountContext = new AccountContext(_dbContextOptions))
+        var context = CreateSqliteContext();
+        var contactId = 999;
+        var pagination = new Pagination
         {
-            var contactId = 999;
-            var pagination = new Pagination
-            {
-                PageNumber = 1,
-                PageSize = 15
-            };
+            PageNumber = 1,
+            PageSize = 15
+        };
 
-            var repository = new RoleRepository(accountContext);
+        var repository = new RoleRepository(context);
 
-            var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.GetContactRolesAsync(contactId, pagination));
+        var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.GetContactRolesAsync(contactId, pagination));
 
-            Assert.Equal(Errors.NotFoundContactCode, result.Code);
-            Assert.Equal(string.Format(Errors.NotFoundContactMessage, contactId), result.Message);
-        }
+        Assert.Equal(Errors.NotFoundContactCode, result.Code);
+        Assert.Equal(string.Format(Errors.NotFoundContactMessage, contactId), result.Message);
     }
 
     [Fact]
     public async Task GetSignatoryAsync_ShouldReturnCorrect()
     {
         // Arrange
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            var accountMock = _fixture.Build<AccountEntity>()
+        var context = CreateSqliteContext();
+        var accountMock = _fixture.Build<AccountEntity>()
                 .With(a => a.IsActive, true)
                 .Without(a => a.RoleEntity)
                 .Without(a => a.RoleLabelEntity)
                 .Without(a => a.Delegation)
                 .Create();
-            var contact = _fixture.Build<ContactEntity>()
-                .With(c => c.IsActive, true)
-                .Without(c => c.RoleEntity)
-                .Without(c => c.RoleLabelEntityContact)
-                .Without(c => c.DelegationEntityDelegatee)
-                .Without(c => c.DelegationEntityDelegator)
-                .CreateMany(2);
-            var signatory = new RoleEntity
-            {
-                AccountId = accountMock.AccountId,
-                Account = accountMock,
-                ContactId = contact.First().ContactId,
-                IsSignatory = true,
-                Contact = contact.First()
-            };
-            var nonSignatory = new RoleEntity
-            {
-                AccountId = accountMock.AccountId,
-                Account = accountMock,
-                ContactId = contact.ElementAt(1).ContactId,
-                IsSignatory = false,
-                Contact = contact.ElementAt(1)
-            };
-            var rolesMock = new List<RoleEntity> { signatory, nonSignatory };
-            context.AccountEntity.Add(accountMock);
-            context.ContactEntity.AddRange(contact);
-            context.RoleEntity.AddRange(rolesMock);
-            await context.SaveChangesAsync();
-            context.ChangeTracker.Clear();
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.IsActive, true)
+            .Without(c => c.RoleEntity)
+            .Without(c => c.RoleLabelEntityContact)
+            .Without(c => c.DelegationEntityDelegatee)
+            .Without(c => c.DelegationEntityDelegator)
+            .CreateMany(2);
+        var signatory = new RoleEntity
+        {
+            AccountId = accountMock.AccountId,
+            Account = accountMock,
+            ContactId = contact.First().ContactId,
+            IsSignatory = true,
+            Contact = contact.First()
+        };
+        var nonSignatory = new RoleEntity
+        {
+            AccountId = accountMock.AccountId,
+            Account = accountMock,
+            ContactId = contact.ElementAt(1).ContactId,
+            IsSignatory = false,
+            Contact = contact.ElementAt(1)
+        };
+        var rolesMock = new List<RoleEntity> { signatory, nonSignatory };
+        context.AccountEntity.Add(accountMock);
+        context.ContactEntity.AddRange(contact);
+        context.RoleEntity.AddRange(rolesMock);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
-            var rolesRepository = new RoleRepository(context);
-            var data = rolesMock.Where(r => r.IsSignatory!.Value).ToList();
-            var resultExpected = new List<Contact> { signatory.MapToContact()! };
+        var rolesRepository = new RoleRepository(context);
+        var data = rolesMock.Where(r => r.IsSignatory!.Value).ToList();
+        var resultExpected = new List<Contact> { signatory.MapToContact()! };
 
-            // Act
-            var roles = await rolesRepository.GetSignatoryAsync(data.First().AccountId);
+        // Act
+        var roles = await rolesRepository.GetSignatoryAsync(data.First().AccountId);
 
-            // Assert
-            Assert.Equivalent(resultExpected, roles);
-        }
+        // Assert
+        Assert.Equivalent(resultExpected, roles);
     }
 
     [Fact]
     public async Task GetSignatoryAsync_WithNotExistingAccountId_ShouldThrowNotFoundException()
     {
-        var repository = new RoleRepository(new AccountContext(_dbContextOptions));
+        var context = CreateSqliteContext();
+        var repository = new RoleRepository(context);
 
         var result = await Assert.ThrowsAsync<NotFoundException>(async () => await repository.GetSignatoryAsync(999));
 
@@ -205,9 +201,9 @@ public class RolesRepositoryTests
             Status = 1
         };
 
-        using var accountContext = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
-        accountContext.AccountEntity.Add(new AccountEntity
+        context.AccountEntity.Add(new AccountEntity
         {
             AccountId = accountId,
             AccountNumber = "00001114455",
@@ -218,7 +214,7 @@ public class RolesRepositoryTests
             IsActive = true,
             AccountType = AccountType.CLIENT.ToString()
         });
-        accountContext.ContactEntity.Add(new ContactEntity
+        context.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
             Email = "Contact-mail@kpmg.fr",
@@ -232,14 +228,14 @@ public class RolesRepositoryTests
             IsActive = true
         });
 
-        await accountContext.SaveChangesAsync();
-        accountContext.ChangeTracker.Clear();
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(context);
 
         // Act
         await rolesRepository.CreateRoleAsync(roleRequest);
-        var result = await accountContext.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
+        var result = await context.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
 
         // Assert
         Assert.NotNull(result);
@@ -266,9 +262,9 @@ public class RolesRepositoryTests
             Status = 1
         };
 
-        using var accountContext = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
-        accountContext.AccountEntity.Add(new AccountEntity
+        context.AccountEntity.Add(new AccountEntity
         {
             AccountId = accountId,
             AccountNumber = "00001114455",
@@ -279,7 +275,7 @@ public class RolesRepositoryTests
             IsActive = true,
             AccountType = AccountType.CLIENT.ToString()
         });
-        accountContext.ContactEntity.Add(new ContactEntity
+        context.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
             Email = "Contact-mail@kpmg.fr",
@@ -293,14 +289,14 @@ public class RolesRepositoryTests
             IsActive = true
         });
 
-        await accountContext.SaveChangesAsync();
-        accountContext.ChangeTracker.Clear();
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(context);
 
         // Act
         await rolesRepository.CreateRoleAsync(roleRequest);
-        var result = await accountContext.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
+        var result = await context.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
 
         // Assert
         Assert.NotNull(result);
@@ -329,9 +325,9 @@ public class RolesRepositoryTests
             Status = 1
         };
 
-        using var accountContext = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
-        accountContext.AccountEntity.Add(new AccountEntity
+        context.AccountEntity.Add(new AccountEntity
         {
             AccountId = accountId,
             AccountNumber = "00001114455",
@@ -342,7 +338,7 @@ public class RolesRepositoryTests
             IsActive = true,
             AccountType = AccountType.CLIENT.ToString()
         });
-        accountContext.ContactEntity.Add(new ContactEntity
+        context.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
             Email = "Contact-mail@kpmg.fr",
@@ -356,14 +352,14 @@ public class RolesRepositoryTests
             IsActive = true
         });
 
-        await accountContext.SaveChangesAsync();
-        accountContext.ChangeTracker.Clear();
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(context);
 
         // Act
         await rolesRepository.CreateRoleAsync(roleRequest);
-        var result = await accountContext.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
+        var result = await context.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
 
         // Assert
         Assert.NotNull(result);
@@ -391,9 +387,9 @@ public class RolesRepositoryTests
             Status = 1
         };
 
-        using var accountContext = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
-        accountContext.AccountEntity.Add(new AccountEntity
+        context.AccountEntity.Add(new AccountEntity
         {
             AccountId = accountId,
             AccountNumber = "00001114455",
@@ -404,7 +400,7 @@ public class RolesRepositoryTests
             IsActive = true,
             AccountType = AccountType.CLIENT.ToString()
         });
-        accountContext.ContactEntity.Add(new ContactEntity
+        context.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
             Email = "Contact-mail@kpmg.fr",
@@ -418,10 +414,10 @@ public class RolesRepositoryTests
             IsActive = true
         });
 
-        await accountContext.SaveChangesAsync();
-        accountContext.ChangeTracker.Clear();
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(context);
 
         // Act
         var result = await rolesRepository.CreateRoleAsync(roleRequest);
@@ -445,8 +441,8 @@ public class RolesRepositoryTests
             IsSignatory = false,
         };
 
-        using var accountContext = new AccountContext(_dbContextOptions);
-        accountContext.ContactEntity.Add(new ContactEntity
+        var context = CreateSqliteContext();
+        context.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
             Email = "Contact-mail@kpmg.fr",
@@ -459,10 +455,10 @@ public class RolesRepositoryTests
             CreationDate = DateTime.UtcNow,
         });
 
-        await accountContext.SaveChangesAsync();
-        accountContext.ChangeTracker.Clear();
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(context);
 
         // Act
         Func<Task> action = async () => await rolesRepository.CreateRoleAsync(roleRequest);
@@ -491,9 +487,9 @@ public class RolesRepositoryTests
             Status = 1
         };
 
-        using var accountContext = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
-        accountContext.AccountEntity.Add(new AccountEntity
+        context.AccountEntity.Add(new AccountEntity
         {
             AccountId = accountId,
             AccountNumber = "00001114455",
@@ -505,10 +501,10 @@ public class RolesRepositoryTests
             AccountType = AccountType.CLIENT.ToString()
         });
 
-        await accountContext.SaveChangesAsync();
-        accountContext.ChangeTracker.Clear();
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(context);
 
         // Act
         Func<Task> action = async () => await rolesRepository.CreateRoleAsync(roleRequest);
@@ -534,9 +530,9 @@ public class RolesRepositoryTests
             IncludePennylaneAccess = true,
         };
 
-        using var accountContext = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
-        accountContext.ContactEntity.Add(new ContactEntity
+        context.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
             Email = "prospect-contact@kpmg.fr",
@@ -550,10 +546,10 @@ public class RolesRepositoryTests
             IsActive = true
         });
 
-        await accountContext.SaveChangesAsync();
-        accountContext.ChangeTracker.Clear();
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(context);
 
         // Act
         var result = await rolesRepository.CreateRoleWithoutAccountValidationAsync(roleRequest);
@@ -577,9 +573,9 @@ public class RolesRepositoryTests
             IsSignatory = false,
         };
 
-        using var accountContext = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
-        accountContext.ContactEntity.Add(new ContactEntity
+        context.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
             Email = "collab-contact@kpmg.fr",
@@ -593,10 +589,10 @@ public class RolesRepositoryTests
             IsActive = true
         });
 
-        await accountContext.SaveChangesAsync();
-        accountContext.ChangeTracker.Clear();
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(context);
 
         // Act
         var result = await rolesRepository.CreateRoleWithoutAccountValidationAsync(roleRequest);
@@ -620,8 +616,8 @@ public class RolesRepositoryTests
             IsSignatory = false,
         };
 
-        using var accountContext = new AccountContext(_dbContextOptions);
-        var rolesRepository = new RoleRepository(accountContext);
+        var context = CreateSqliteContext();
+        var rolesRepository = new RoleRepository(context);
 
         // Act
         Func<Task> action = async () => await rolesRepository.CreateRoleWithoutAccountValidationAsync(roleRequest);
@@ -644,9 +640,9 @@ public class RolesRepositoryTests
             IsSignatory = false,
         };
 
-        using var accountContext = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
-        accountContext.ContactEntity.Add(new ContactEntity
+        context.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
             Email = "inactive-contact@kpmg.fr",
@@ -660,10 +656,10 @@ public class RolesRepositoryTests
             IsActive = false
         });
 
-        await accountContext.SaveChangesAsync();
-        accountContext.ChangeTracker.Clear();
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(context);
 
         // Act
         Func<Task> action = async () => await rolesRepository.CreateRoleWithoutAccountValidationAsync(roleRequest);
@@ -686,9 +682,9 @@ public class RolesRepositoryTests
             IsSignatory = false,
         };
 
-        using var accountContext = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
-        accountContext.ContactEntity.Add(new ContactEntity
+        context.ContactEntity.Add(new ContactEntity
         {
             ContactId = contactId,
             Email = "existing-contact@kpmg.fr",
@@ -702,7 +698,7 @@ public class RolesRepositoryTests
             IsActive = true
         });
 
-        accountContext.RoleEntity.Add(new RoleEntity
+        context.RoleEntity.Add(new RoleEntity
         {
             AccountId = accountId,
             ContactId = contactId,
@@ -710,10 +706,10 @@ public class RolesRepositoryTests
             IsSignatory = false,
         });
 
-        await accountContext.SaveChangesAsync();
-        accountContext.ChangeTracker.Clear();
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
 
-        var rolesRepository = new RoleRepository(accountContext);
+        var rolesRepository = new RoleRepository(context);
 
         // Act
         Func<Task> action = async () => await rolesRepository.CreateRoleWithoutAccountValidationAsync(roleRequest);
@@ -727,26 +723,24 @@ public class RolesRepositoryTests
     public async Task UpdateRoleAsync_ShouldReturnOk()
     {
         // Arrange
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            var roleMock = _fixture.Create<RoleEntity>();
-            roleMock.IsSignatory = true;
-            context.RoleEntity.Add(roleMock);
-            context.SaveChanges();
-            context.ChangeTracker.Clear();
+        var context = CreateSqliteContext();
+        var roleMock = _fixture.Create<RoleEntity>();
+        roleMock.IsSignatory = true;
+        context.RoleEntity.Add(roleMock);
+        context.SaveChanges();
+        context.ChangeTracker.Clear();
 
-            var rolesRepository = new RoleRepository(context);
+        var rolesRepository = new RoleRepository(context);
 
-            // Act
-            await rolesRepository.UpdateRoleSignatoryAsync(roleMock.AccountId, roleMock.ContactId, false);
-            var roleObjects = context.RoleEntity
-                                    .Where(x => x.ContactId == roleMock.ContactId && x.AccountId == roleMock.AccountId)
-                                    .Select(x => x);
-            var role = await roleObjects.FirstOrDefaultAsync();
+        // Act
+        await rolesRepository.UpdateRoleSignatoryAsync(roleMock.AccountId, roleMock.ContactId, false);
+        var roleObjects = context.RoleEntity
+                                .Where(x => x.ContactId == roleMock.ContactId && x.AccountId == roleMock.AccountId)
+                                .Select(x => x);
+        var role = await roleObjects.FirstOrDefaultAsync();
 
-            // Assert
-            Assert.Equal(false, role!.IsSignatory);
-        }
+        // Assert
+        Assert.Equal(false, role!.IsSignatory);
     }
 
     [Fact]
@@ -757,7 +751,7 @@ public class RolesRepositoryTests
         const int contactId = 456;
         const bool newIsCustomerRelation = true;
 
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
         var roleEntity = new RoleEntity
         {
             AccountId = accountId,
@@ -789,7 +783,7 @@ public class RolesRepositoryTests
         const int contactId = 456;
         const bool newIsCustomerRelation = false;
 
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
         var roleEntity = new RoleEntity
         {
             AccountId = accountId,
@@ -821,7 +815,7 @@ public class RolesRepositoryTests
         const int contactId = 456;
         const bool newIsCustomerRelation = true;
 
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
         var rolesRepository = new RoleRepository(context);
 
         // Act
@@ -840,7 +834,7 @@ public class RolesRepositoryTests
         const int contactId = 456;
         const bool isCustomerRelation = true;
 
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
         var roleEntity = new RoleEntity
         {
             AccountId = accountId,
@@ -873,7 +867,7 @@ public class RolesRepositoryTests
         const bool newIsCustomerRelation = true;
         var accountActionLevels = accountIds.ToDictionary(id => id, _ => (int)ActionLevelType.DirectClientRelation);
 
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
         var roles = accountIds.Select(accountId => new RoleEntity
         {
             AccountId = accountId,
@@ -919,7 +913,7 @@ public class RolesRepositoryTests
         };
         const bool newIsCustomerRelation = true;
 
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
         var roleEntity = new RoleEntity
         {
             AccountId = existingAccountId,
@@ -957,7 +951,7 @@ public class RolesRepositoryTests
         const bool newIsCustomerRelation = true;
         var accountActionLevels = accountIds.ToDictionary(id => id, _ => (int)ActionLevelType.DirectClientRelation);
 
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
         var rolesRepository = new RoleRepository(context);
 
         // Act
@@ -978,7 +972,7 @@ public class RolesRepositoryTests
         const bool newIsCustomerRelation = false;
         var accountActionLevels = new Dictionary<int, int> { { accountId, (int)ActionLevelType.Observator } };
 
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
         var roleEntity = new RoleEntity
         {
             AccountId = accountId,
@@ -1012,7 +1006,7 @@ public class RolesRepositoryTests
         const int contactId = 456;
         var accountIds = new List<int> { 10, 11 };
 
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
         context.RoleEntity.AddRange(
             new RoleEntity { AccountId = 10, ContactId = contactId, ActionLevel = 1 },
             new RoleEntity { AccountId = 11, ContactId = contactId, ActionLevel = 4 },
@@ -1039,7 +1033,7 @@ public class RolesRepositoryTests
         const int contactId = 456;
         var accountIds = new List<int> { 99 };
 
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
         var rolesRepository = new RoleRepository(context);
 
         // Act
@@ -1085,7 +1079,7 @@ public class RolesRepositoryTests
         const int contactId = 456;
         var accountIds = new List<int> { 10, 11 };
 
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
         var rolesRepository = new RoleRepository(context);
 
         // Act
@@ -1099,71 +1093,67 @@ public class RolesRepositoryTests
     public async Task UpdateRoleAsync_ShouldReturnNotFound()
     {
         // Arrange
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            var rolesRepository = new RoleRepository(context);
+        var context = CreateSqliteContext();
+        var rolesRepository = new RoleRepository(context);
 
-            // Act
-            Task RoleUpdate() => rolesRepository.UpdateRoleSignatoryAsync(1, 1, false);
+        // Act
+        Task RoleUpdate() => rolesRepository.UpdateRoleSignatoryAsync(1, 1, false);
 
-            // Assert
-            await Assert.ThrowsAsync<NotFoundException>(RoleUpdate);
-        }
+        // Assert
+        await Assert.ThrowsAsync<NotFoundException>(RoleUpdate);
     }
 
     [Fact]
     public async Task DeleteRoleAsync_ShouldDeleteRole()
     {
         // Arrange
-        using (var context = new AccountContext(_dbContextOptions))
+        var context = CreateSqliteContext();
+        var accountMock = _fixture.Create<AccountEntity>();
+        var contactMock = _fixture.Build<ContactEntity>()
+            .With(x => x.IsActive, true)
+            .CreateMany();
+        context.AccountEntity.Add(accountMock);
+        context.ContactEntity.AddRange(contactMock);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var roleRepository = new RoleRepository(context);
+        await roleRepository.CreateRoleAsync(new CreateRoleRequest
         {
-            var accountMock = _fixture.Create<AccountEntity>();
-            var contactMock = _fixture.Build<ContactEntity>()
-                .With(x => x.IsActive, true)
-                .CreateMany();
-            context.AccountEntity.Add(accountMock);
-            context.ContactEntity.AddRange(contactMock);
-            await context.SaveChangesAsync();
-            context.ChangeTracker.Clear();
+            AccountId = accountMock.AccountId,
+            ContactId = contactMock.First().ContactId,
+            IsFavorite = true,
+            IsSignatory = false
+        });
 
-            var roleRepository = new RoleRepository(context);
-            await roleRepository.CreateRoleAsync(new CreateRoleRequest
-            {
-                AccountId = accountMock.AccountId,
-                ContactId = contactMock.First().ContactId,
-                IsFavorite = true,
-                IsSignatory = false
-            });
+        await roleRepository.CreateRoleAsync(new CreateRoleRequest
+        {
+            AccountId = accountMock.AccountId,
+            ContactId = contactMock.Last().ContactId,
+            IsFavorite = true,
+            IsSignatory = true
+        });
+        var accountRepository = new AccountRepository(context);
 
-            await roleRepository.CreateRoleAsync(new CreateRoleRequest
-            {
-                AccountId = accountMock.AccountId,
-                ContactId = contactMock.Last().ContactId,
-                IsFavorite = true,
-                IsSignatory = true
-            });
-            var accountRepository = new AccountRepository(context);
+        var criteria = new SearchContactsAccountCriteria
+        {
+            Type = It.IsAny<ContactType>(),
+        };
 
-            var criteria = new SearchContactsAccountCriteria
-            {
-                Type = It.IsAny<ContactType>(),
-            };
+        var pagination = new Pagination
+        {
+            PageNumber = 1,
+            PageSize = 4
+        };
 
-            var pagination = new Pagination
-            {
-                PageNumber = 1,
-                PageSize = 4
-            };
+        var rolesBefore = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, pagination);
 
-            var rolesBefore = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, pagination);
+        // Act
+        await roleRepository.DeleteRoleAsync(accountMock.AccountId, contactMock.First().ContactId);
 
-            // Act
-            await roleRepository.DeleteRoleAsync(accountMock.AccountId, contactMock.First().ContactId);
-
-            // Assert
-            var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, pagination);
-            Assert.Equal(rolesBefore.TotalItems - 1, roles.TotalItems);
-        }
+        // Assert
+        var roles = await accountRepository.GetContactsAccountAsync(accountMock.AccountId, criteria, pagination);
+        Assert.Equal(rolesBefore.TotalItems - 1, roles.TotalItems);
     }
 
     [Theory]
@@ -1172,262 +1162,249 @@ public class RolesRepositoryTests
     public async Task CheckRoleExistsAsync_ShouldReturnFalse_IfContactDoesNotExist(int? contactId, string? email)
     {
         // Arrange: Initialize the context
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            var contactEntity = _fixture.Build<ContactEntity>()
+        var context = CreateSqliteContext();
+        var contactEntity = _fixture.Build<ContactEntity>()
                 .With(c => c.ContactId, 2)
                 .With(c => c.Type, "2")
                 .With(c => c.FirstName, "firstUser")
                 .With(c => c.LastName, "lastUser")
                 .With(c => c.Email, "firstLastUser@test.fr")
                 .Create();
-            var roleEntity = _fixture.Build<RoleEntity>()
-                .With(r => r.Contact, contactEntity)
-                .With(r => r.IsSignatory, true)
-                .CreateMany(1);
-            var accountsEntity = _fixture.Build<AccountEntity>()
-                .With(a => a.RoleEntity, roleEntity.ToList())
-                .CreateMany(1);
+        var roleEntity = _fixture.Build<RoleEntity>()
+            .With(r => r.Contact, contactEntity)
+            .With(r => r.IsSignatory, true)
+            .CreateMany(1);
+        var accountsEntity = _fixture.Build<AccountEntity>()
+            .With(a => a.RoleEntity, roleEntity.ToList())
+            .CreateMany(1);
 
-            context.AccountEntity.AddRange(accountsEntity);
-            context.SaveChanges();
-            context.ChangeTracker.Clear();
+        context.AccountEntity.AddRange(accountsEntity);
+        context.SaveChanges();
+        context.ChangeTracker.Clear();
 
-            var rolesRepository = new RoleRepository(context);
+        var rolesRepository = new RoleRepository(context);
 
-            // Act: Call the CheckRoleExistsAsync method with the defined inputs
-            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(2, contactId, null, email);
+        // Act: Call the CheckRoleExistsAsync method with the defined inputs
+        var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(2, contactId, null, email);
 
-            // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
-            Assert.False(contactHasRoleOnAccount);
-        }
+        // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
+        Assert.False(contactHasRoleOnAccount);
     }
 
     [Fact]
     public async Task CheckRoleExistsAsync_ShouldReturnTrue_IfContactHasRoleOnSpecifiedAccount()
     {
         // Arrange: Initialize the context
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            var firstCustomer = _fixture.Build<ContactEntity>()
+        var context = CreateSqliteContext();
+        var firstCustomer = _fixture.Build<ContactEntity>()
                                             .With(c => c.Type, "2")
                                             .With(c => c.FirstName, "Test1")
                                             .With(c => c.LastName, "Test1")
                                             .With(c => c.Email, "test1@test.fr")
                                             .With(c => c.IsActive, true)
                                             .Create();
-            var secondCustomer = _fixture.Build<ContactEntity>()
-                                            .With(c => c.Type, "2")
-                                            .With(c => c.FirstName, "Test2")
-                                            .With(c => c.LastName, "Test2")
-                                            .With(c => c.Email, "test2@test.fr")
-                                            .With(c => c.IsActive, true)
-                                            .Create();
-            var firstRoleEntity = _fixture.Build<RoleEntity>()
-                                            .With(r => r.Contact, firstCustomer)
-                                            .With(r => r.IsSignatory, true)
-                                            .CreateMany(1);
-            var secondRoleEntity = _fixture.Build<RoleEntity>()
-                                            .With(r => r.Contact, secondCustomer)
-                                            .CreateMany(1);
+        var secondCustomer = _fixture.Build<ContactEntity>()
+                                        .With(c => c.Type, "2")
+                                        .With(c => c.FirstName, "Test2")
+                                        .With(c => c.LastName, "Test2")
+                                        .With(c => c.Email, "test2@test.fr")
+                                        .With(c => c.IsActive, true)
+                                        .Create();
+        var firstRoleEntity = _fixture.Build<RoleEntity>()
+                                        .With(r => r.Contact, firstCustomer)
+                                        .With(r => r.IsSignatory, true)
+                                        .CreateMany(1);
+        var secondRoleEntity = _fixture.Build<RoleEntity>()
+                                        .With(r => r.Contact, secondCustomer)
+                                        .CreateMany(1);
 
-            var accountsEntity = _fixture.Build<AccountEntity>()
-                .With(a => a.RoleEntity, firstRoleEntity.Concat(secondRoleEntity).ToList())
-                .With(a => a.IsActive, true)
-                .CreateMany(1);
-            var accountId = accountsEntity.First().AccountId;
+        var accountsEntity = _fixture.Build<AccountEntity>()
+            .With(a => a.RoleEntity, firstRoleEntity.Concat(secondRoleEntity).ToList())
+            .With(a => a.IsActive, true)
+            .CreateMany(1);
+        var accountId = accountsEntity.First().AccountId;
 
-            context.AccountEntity.AddRange(accountsEntity);
-            context.SaveChanges();
-            context.ChangeTracker.Clear();
+        context.AccountEntity.AddRange(accountsEntity);
+        context.SaveChanges();
+        context.ChangeTracker.Clear();
 
-            var rolesRepository = new RoleRepository(context);
+        var rolesRepository = new RoleRepository(context);
 
-            // Act: Call the CheckRoleExistsAsync method with the defined inputs
-            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, secondCustomer.ContactId, accountId, secondCustomer.Email);
+        // Act: Call the CheckRoleExistsAsync method with the defined inputs
+        var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, secondCustomer.ContactId, accountId, secondCustomer.Email);
 
-            // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
-            Assert.True(contactHasRoleOnAccount);
-        }
+        // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
+        Assert.True(contactHasRoleOnAccount);
     }
 
     [Fact]
     public async Task CheckRoleExistsAsync_ShouldReturnTrue_IfContactHasRoleOnAccountOfPrimaryContact()
     {
         // Arrange: Initialize the context
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            var firstCustomer = _fixture.Build<ContactEntity>()
+        var context = CreateSqliteContext();
+        var firstCustomer = _fixture.Build<ContactEntity>()
                                             .With(c => c.IsActive, true)
                                             .With(c => c.Type, "2")
                                             .With(c => c.FirstName, "Test1")
                                             .With(c => c.LastName, "Test1")
                                             .With(c => c.Email, "test1@test.fr")
                                             .Create();
-            var secondCustomer = _fixture.Build<ContactEntity>()
-                                            .With(c => c.IsActive, true)
-                                            .With(c => c.Type, "2")
-                                            .With(c => c.FirstName, "Test2")
-                                            .With(c => c.LastName, "Test2")
-                                            .With(c => c.Email, "test2@test.fr")
-                                            .Create();
-            var firstRoleEntity = _fixture.Build<RoleEntity>()
-                                            .With(r => r.Contact, firstCustomer)
-                                            .With(r => r.IsSignatory, true)
-                                            .CreateMany(1);
-            var secondRoleEntity = _fixture.Build<RoleEntity>()
-                                            .With(r => r.Contact, secondCustomer)
-                                            .CreateMany(1);
+        var secondCustomer = _fixture.Build<ContactEntity>()
+                                        .With(c => c.IsActive, true)
+                                        .With(c => c.Type, "2")
+                                        .With(c => c.FirstName, "Test2")
+                                        .With(c => c.LastName, "Test2")
+                                        .With(c => c.Email, "test2@test.fr")
+                                        .Create();
+        var firstRoleEntity = _fixture.Build<RoleEntity>()
+                                        .With(r => r.Contact, firstCustomer)
+                                        .With(r => r.IsSignatory, true)
+                                        .CreateMany(1);
+        var secondRoleEntity = _fixture.Build<RoleEntity>()
+                                        .With(r => r.Contact, secondCustomer)
+                                        .CreateMany(1);
 
-            var firstAccount = _fixture.Build<AccountEntity>()
-                .With(a => a.IsActive, true)
-                .With(a => a.RoleEntity, firstRoleEntity.Concat(secondRoleEntity).ToList())
-                .CreateMany(1);
+        var firstAccount = _fixture.Build<AccountEntity>()
+            .With(a => a.IsActive, true)
+            .With(a => a.RoleEntity, firstRoleEntity.Concat(secondRoleEntity).ToList())
+            .CreateMany(1);
 
-            context.AccountEntity.AddRange(firstAccount);
-            context.SaveChanges();
-            context.ChangeTracker.Clear();
+        context.AccountEntity.AddRange(firstAccount);
+        context.SaveChanges();
+        context.ChangeTracker.Clear();
 
-            var rolesRepository = new RoleRepository(context);
+        var rolesRepository = new RoleRepository(context);
 
-            // Act: Call the CheckRoleExistsAsync method with the defined inputs
-            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, secondCustomer.ContactId, null, secondCustomer.Email);
+        // Act: Call the CheckRoleExistsAsync method with the defined inputs
+        var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, secondCustomer.ContactId, null, secondCustomer.Email);
 
-            // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
-            Assert.True(contactHasRoleOnAccount);
-        }
+        // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
+        Assert.True(contactHasRoleOnAccount);
     }
 
     [Fact]
     public async Task CheckRoleExistsAsync_ShouldReturnFalse_IfContactHasRoleOnDifferentAccount()
     {
         // Arrange: Initialize the context
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            var firstCustomer = _fixture.Build<ContactEntity>()
+        var context = CreateSqliteContext();
+        var firstCustomer = _fixture.Build<ContactEntity>()
                                             .With(c => c.Type, "2")
                                             .With(c => c.FirstName, "Test1")
                                             .With(c => c.LastName, "Test1")
                                             .With(c => c.Email, "test1@test.fr")
                                             .Create();
-            var secondCustomer = _fixture.Build<ContactEntity>()
-                                            .With(c => c.Type, "2")
-                                            .With(c => c.FirstName, "Test2")
-                                            .With(c => c.LastName, "Test2")
-                                            .With(c => c.Email, "test2@test.fr")
-                                            .Create();
-            var firstRoleEntity = _fixture.Build<RoleEntity>()
-                                            .With(r => r.Contact, firstCustomer)
-                                            .With(r => r.IsSignatory, true)
-                                            .CreateMany(1);
-            var secondRoleEntity = _fixture.Build<RoleEntity>()
-                                            .With(r => r.Contact, secondCustomer)
-                                            .CreateMany(1);
+        var secondCustomer = _fixture.Build<ContactEntity>()
+                                        .With(c => c.Type, "2")
+                                        .With(c => c.FirstName, "Test2")
+                                        .With(c => c.LastName, "Test2")
+                                        .With(c => c.Email, "test2@test.fr")
+                                        .Create();
+        var firstRoleEntity = _fixture.Build<RoleEntity>()
+                                        .With(r => r.Contact, firstCustomer)
+                                        .With(r => r.IsSignatory, true)
+                                        .CreateMany(1);
+        var secondRoleEntity = _fixture.Build<RoleEntity>()
+                                        .With(r => r.Contact, secondCustomer)
+                                        .CreateMany(1);
 
-            var firstAccount = _fixture.Build<AccountEntity>()
-                .With(a => a.RoleEntity, firstRoleEntity.Concat(secondRoleEntity).ToList())
-                .CreateMany(1);
-            var secondAccount = _fixture.Build<AccountEntity>()
-                .With(a => a.RoleEntity, firstRoleEntity.ToList())
-                .CreateMany(1);
-            var accountId = secondAccount.First().AccountId;
+        var firstAccount = _fixture.Build<AccountEntity>()
+            .With(a => a.RoleEntity, firstRoleEntity.Concat(secondRoleEntity).ToList())
+            .CreateMany(1);
+        var secondAccount = _fixture.Build<AccountEntity>()
+            .With(a => a.RoleEntity, firstRoleEntity.ToList())
+            .CreateMany(1);
+        var accountId = secondAccount.First().AccountId;
 
-            context.AccountEntity.AddRange(firstAccount);
-            context.AccountEntity.AddRange(secondAccount);
-            context.SaveChanges();
-            context.ChangeTracker.Clear();
+        context.AccountEntity.AddRange(firstAccount);
+        context.AccountEntity.AddRange(secondAccount);
+        context.SaveChanges();
+        context.ChangeTracker.Clear();
 
-            var rolesRepository = new RoleRepository(context);
+        var rolesRepository = new RoleRepository(context);
 
-            // Act: Call the CheckRoleExistsAsync method with the defined inputs
-            var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, secondCustomer.ContactId, accountId, secondCustomer.Email);
+        // Act: Call the CheckRoleExistsAsync method with the defined inputs
+        var contactHasRoleOnAccount = await rolesRepository.CheckRoleExistsAsync(firstCustomer.ContactId, secondCustomer.ContactId, accountId, secondCustomer.Email);
 
-            // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
-            Assert.False(contactHasRoleOnAccount);
-        }
+        // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
+        Assert.False(contactHasRoleOnAccount);
     }
 
     [Fact]
     public async Task IsContactHasRoleInAccount_ShouldReturnTrue_IfContactHaveRole()
     {
         // Arrange: Initialize the context
-        using (var context = new AccountContext(_dbContextOptions))
+        using var context = new AccountContext(_dbContextOptions);
+        var accountEntity = new AccountEntity
         {
+            AccountId = 1,
+            AccountNumber = "1234",
+            CreatedBy = "Akuiteo",
+            LegalName = "Legal Name"
+        };
 
-            var accountEntity = new AccountEntity
-            {
-                AccountId = 1,
-                AccountNumber = "1234",
-                CreatedBy = "Akuiteo",
-                LegalName = "Legal Name"
-            };
+        var contactEntity = new ContactEntity
+        {
+            ContactId = 1,
+            FirstName = "Marc",
+            LastName = "Dibeh",
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            Email = "mdibe@rydge.fr",
+            PersonaName = "Marc DIBEH",
+            Type = "Collaborateur"
+        };
 
-            var contactEntity = new ContactEntity
-            {
-                ContactId = 1,
-                FirstName = "Marc",
-                LastName = "Dibeh",
-                ContactGlobalUniqueId = Guid.NewGuid(),
-                Email = "mdibe@rydge.fr",
-                PersonaName = "Marc DIBEH",
-                Type = "Collaborateur"
-            };
+        var roleEntity = new RoleEntity
+        {
+            AccountId = 1,
+            ContactId = 1,
+            IsSignatory = true
+        };
 
-            var roleEntity = new RoleEntity
-            {
-                AccountId = 1,
-                ContactId = 1,
-                IsSignatory = true
-            };
+        context.AccountEntity.Add(accountEntity);
+        context.ContactEntity.Add(contactEntity);
+        context.RoleEntity.Add(roleEntity);
+        context.SaveChanges();
+        context.ChangeTracker.Clear();
 
-            context.AccountEntity.Add(accountEntity);
-            context.ContactEntity.Add(contactEntity);
-            context.RoleEntity.Add(roleEntity);
-            context.SaveChanges();
-            context.ChangeTracker.Clear();
+        var rolesRepository = new RoleRepository(context);
 
-            var rolesRepository = new RoleRepository(context);
+        // Act: Call the CheckRoleExistsAsync method with the defined inputs
+        var contactHasRoleOnAccount = await rolesRepository.IsContactHasRoleOnAccount(contactEntity.ContactId, 1, accountEntity.AccountNumber);
 
-            // Act: Call the CheckRoleExistsAsync method with the defined inputs
-            var contactHasRoleOnAccount = await rolesRepository.IsContactHasRoleOnAccount(contactEntity.ContactId, 1, accountEntity.AccountNumber);
-
-            // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
-            Assert.True(contactHasRoleOnAccount);
-        }
+        // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
+        Assert.True(contactHasRoleOnAccount);
     }
 
     [Fact]
     public async Task IsContactHasRoleInAccount_ShouldReturnFalse_IfContactHaventRole()
     {
         // Arrange: Initialize the context
-        using (var context = new AccountContext(_dbContextOptions))
-        {
-            var contactEntity = _fixture.Build<ContactEntity>()
+        var context = CreateSqliteContext();
+        var contactEntity = _fixture.Build<ContactEntity>()
                                             .With(c => c.Type, "2")
                                             .With(c => c.FirstName, "firstUser")
                                             .With(c => c.LastName, "lastUser")
                                             .With(c => c.Email, "firstLastUser@test.fr")
                                             .Create();
-            var roleEntity = _fixture.Build<RoleEntity>()
-                                            .With(r => r.Contact, contactEntity)
-                                            .With(r => r.IsSignatory, true)
-                                            .CreateMany(1);
-            var accountsEntity = _fixture.Build<AccountEntity>()
-                .With(a => a.RoleEntity, roleEntity.ToList())
-                .CreateMany(1);
+        var roleEntity = _fixture.Build<RoleEntity>()
+                                        .With(r => r.Contact, contactEntity)
+                                        .With(r => r.IsSignatory, true)
+                                        .CreateMany(1);
+        var accountsEntity = _fixture.Build<AccountEntity>()
+            .With(a => a.RoleEntity, roleEntity.ToList())
+            .CreateMany(1);
 
-            context.AccountEntity.AddRange(accountsEntity);
-            context.SaveChanges();
-            context.ChangeTracker.Clear();
+        context.AccountEntity.AddRange(accountsEntity);
+        context.SaveChanges();
+        context.ChangeTracker.Clear();
 
-            var rolesRepository = new RoleRepository(context);
+        var rolesRepository = new RoleRepository(context);
 
-            // Act: Call the CheckRoleExistsAsync method with the defined inputs
-            var contactHasRoleOnAccount = await rolesRepository.IsContactHasRoleOnAccount(contactEntity.ContactId, null, "wrongAccountNumber");
+        // Act: Call the CheckRoleExistsAsync method with the defined inputs
+        var contactHasRoleOnAccount = await rolesRepository.IsContactHasRoleOnAccount(contactEntity.ContactId, null, "wrongAccountNumber");
 
-            // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
-            Assert.False(contactHasRoleOnAccount);
-        }
+        // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
+        Assert.False(contactHasRoleOnAccount);
     }
 
     [Fact]
@@ -1485,7 +1462,7 @@ public class RolesRepositoryTests
     [Fact]
     public async Task GetSignatoryAsync_WithProspectAccount_ShouldThrowNotFoundException()
     {
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
         var contact = new ContactEntity
         {
@@ -1527,7 +1504,7 @@ public class RolesRepositoryTests
     [Fact]
     public async Task CheckRoleExistsAsync_WithOnlyProspectSharedAccount_ShouldReturnFalse()
     {
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
         var currentUser = new ContactEntity
         {
@@ -1578,7 +1555,7 @@ public class RolesRepositoryTests
     [Fact]
     public async Task IsProspectAccountAsync_WhenAccountIsProspectAndActive_ShouldReturnTrue()
     {
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
         var prospectAccount = new AccountEntity
         {
@@ -1603,7 +1580,7 @@ public class RolesRepositoryTests
     [Fact]
     public async Task IsProspectAccountAsync_WhenAccountIsNotProspect_ShouldReturnFalse()
     {
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
         var clientAccount = new AccountEntity
         {
@@ -1628,7 +1605,7 @@ public class RolesRepositoryTests
     [Fact]
     public async Task IsProspectAccountAsync_WhenAccountDoesNotExist_ShouldReturnFalse()
     {
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
         var repository = new RoleRepository(context);
 
@@ -1716,7 +1693,7 @@ public class RolesRepositoryTests
     {
         // Arrange
         var contactId = 25;
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
         SeedContact(context, contactId, ContactType.Collaborator);
         SeedContact(context, 26, ContactType.Collaborator);
@@ -1746,7 +1723,7 @@ public class RolesRepositoryTests
     {
         // Arrange
         var contactId = 25;
-        using var context = new AccountContext(_dbContextOptions);
+        var context = CreateSqliteContext();
 
         SeedContact(context, contactId, ContactType.Collaborator);
         SeedContact(context, 26, ContactType.Collaborator);
@@ -1784,5 +1761,93 @@ public class RolesRepositoryTests
     private static void SeedRole(AccountContext context, int accountId, int contactId)
     {
         context.RoleEntity.Add(new RoleEntity { AccountId = accountId, ContactId = contactId });
+    }
+
+    [Fact]
+    public async Task UpdateLastActivityDateAsync_WhenContactIsCollaboratorAndRoleExists_ShouldUpdateLastActivityDate()
+    {
+        // Arrange
+        const int accountId = 300;
+        const int contactId = 400;
+        var expectedDate = new DateTime(2024, 6, 15, 10, 30, 0, DateTimeKind.Utc);
+
+        var context = CreateSqliteContext();
+        context.RoleEntity.Add(new RoleEntity { AccountId = accountId, ContactId = contactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        // Act
+        await repository.UpdateLastActivityDateAsync(accountId, contactId, ContactType.Collaborator.ToString(), expectedDate);
+
+        // Assert
+        var updatedRole = await context.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
+        Assert.Equal(expectedDate, updatedRole.LastActivityDate);
+    }
+
+    [Theory]
+    [InlineData("Customer")]
+    [InlineData("Prospect")]
+    [InlineData("")]
+    public async Task UpdateLastActivityDateAsync_WhenContactTypeIsNotCollaborator_ShouldNotUpdateRole(string contactType)
+    {
+        // Arrange
+        const int accountId = 301;
+        const int contactId = 401;
+        var originalDate = new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var context = CreateSqliteContext();
+        context.RoleEntity.Add(new RoleEntity { AccountId = accountId, ContactId = contactId, LastActivityDate = originalDate });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        // Act
+        await repository.UpdateLastActivityDateAsync(accountId, contactId, contactType, DateTime.UtcNow);
+
+        // Assert
+        var role = await context.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
+        Assert.Equal(originalDate, role.LastActivityDate);
+    }
+
+    [Fact]
+    public async Task UpdateLastActivityDateAsync_WhenCalledMultipleTimes_ShouldOverwriteWithLatestDate()
+    {
+        // Arrange
+        const int accountId = 303;
+        const int contactId = 403;
+        var firstDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var secondDate = new DateTime(2024, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var context = CreateSqliteContext();
+        context.RoleEntity.Add(new RoleEntity { AccountId = accountId, ContactId = contactId });
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new RoleRepository(context);
+
+        // Act
+        await repository.UpdateLastActivityDateAsync(accountId, contactId, ContactType.Collaborator.ToString(), firstDate);
+        await repository.UpdateLastActivityDateAsync(accountId, contactId, ContactType.Collaborator.ToString(), secondDate);
+
+        // Assert
+        var updatedRole = await context.RoleEntity.FirstAsync(r => r.AccountId == accountId && r.ContactId == contactId);
+        Assert.Equal(secondDate, updatedRole.LastActivityDate);
+    }
+
+    private static AccountContext CreateSqliteContext()
+    {
+        var connection = new SqliteConnection("DataSource=:memory:");
+        connection.Open();
+        connection.CreateFunction("newid", () => Guid.NewGuid().ToString());
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseSqlite(connection)
+            .Options;
+        var context = new AccountContext(options);
+        context.Database.EnsureCreated();
+        context.Database.ExecuteSqlRaw("PRAGMA foreign_keys = OFF;");
+        return context;
     }
 }

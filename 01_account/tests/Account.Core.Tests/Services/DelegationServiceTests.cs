@@ -1,8 +1,7 @@
-﻿// <copyright file="DelegationServiceTests.cs" company="Pulse">
+// <copyright file="DelegationServiceTests.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System;
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -24,6 +23,7 @@ public class DelegationServiceTest
     private readonly Mock<IRoleEventPublisher> _publisher;
     private readonly Mock<IHistoryEventPublisher> _historyPublisher;
     private readonly Mock<ILogger<DelegationService>> _logger;
+    private readonly Mock<IRoleRepository> _roleRepository;
     private readonly Fixture _fixture;
 
     public DelegationServiceTest()
@@ -33,6 +33,7 @@ public class DelegationServiceTest
         _publisher = new Mock<IRoleEventPublisher>();
         _historyPublisher = new Mock<IHistoryEventPublisher>();
         _logger = new Mock<ILogger<DelegationService>>();
+        _roleRepository = new Mock<IRoleRepository>();
     }
 
     [Fact]
@@ -55,7 +56,7 @@ public class DelegationServiceTest
                 request.DelegationDetails.FirstOrDefault() !.EndDate.Should().Be(createDelegation.DelegationDetails.FirstOrDefault() !.EndDate);
             });
 
-        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object);
+        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object, _roleRepository.Object);
         await service.CreateDelegationAsync(contactId, createDelegation);
 
         _repository.VerifyAll();
@@ -67,7 +68,7 @@ public class DelegationServiceTest
     public void CreateDelegationAsync_WithInvalidParameters_ShouldThrowBadRequestException(CreateDelegationRequest delegation)
     {
         var contactId = 25;
-        var service = new DelegationService(null!, null!, null!, null!);
+        var service = new DelegationService(null!, null!, null!, null!, null!);
 
         // Act
         var act = async () => await service.CreateDelegationAsync(contactId, delegation);
@@ -93,7 +94,7 @@ public class DelegationServiceTest
 
         _repository.Setup(x => x.IsClient(It.IsAny<IEnumerable<int>>())).ReturnsAsync(false);
 
-        var service = new DelegationService(_repository.Object, null!, null!, null!);
+        var service = new DelegationService(_repository.Object, null!, null!, null!, null!);
 
         // Act
         var act = async () => await service.CreateDelegationAsync(contactId, createDelegation);
@@ -111,7 +112,7 @@ public class DelegationServiceTest
         var createDelegation = _fixture.Create<CreateDelegationRequest>();
         _repository.Setup(x => x.IsClient(It.IsAny<IEnumerable<int>>())).ReturnsAsync(true);
 
-        var service = new DelegationService(_repository.Object, null!, null!, null!);
+        var service = new DelegationService(_repository.Object, null!, null!, null!, null!);
 
         var act = async () => await service.CreateDelegationAsync(contactId, createDelegation);
 
@@ -147,7 +148,7 @@ public class DelegationServiceTest
         _repository.Setup(x => x.CreateDelegationAsync(contactId, createDelegation, It.IsAny<IEnumerable<CreateRoleRequest>>()))
             .ReturnsAsync(rolesCreated);
 
-        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object);
+        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object, _roleRepository.Object);
         await service.CreateDelegationAsync(contactId, createDelegation);
 
         _historyPublisher.Verify(
@@ -179,7 +180,7 @@ public class DelegationServiceTest
         _repository.Setup(x => x.CreateDelegationAsync(contactId, createDelegation, It.IsAny<IEnumerable<CreateRoleRequest>>()))
             .ReturnsAsync(rolesCreated);
 
-        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object);
+        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object, _roleRepository.Object);
         await service.CreateDelegationAsync(contactId, createDelegation);
 
         _historyPublisher.Verify(
@@ -214,7 +215,7 @@ public class DelegationServiceTest
         _repository.Setup(x => x.CreateDelegationAsync(contactId, createDelegation, It.IsAny<IEnumerable<CreateRoleRequest>>()))
             .ReturnsAsync(rolesCreated);
 
-        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object);
+        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object, _roleRepository.Object);
         await service.CreateDelegationAsync(contactId, createDelegation);
 
         _historyPublisher.Verify(
@@ -244,7 +245,7 @@ public class DelegationServiceTest
         _repository.Setup(x => x.CreateDelegationAsync(contactId, createDelegation, It.IsAny<IEnumerable<CreateRoleRequest>>()))
             .ReturnsAsync(new List<CreateRoleRequest>());
 
-        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object);
+        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object, _roleRepository.Object);
         await service.CreateDelegationAsync(contactId, createDelegation);
 
         _historyPublisher.Verify(
@@ -263,7 +264,7 @@ public class DelegationServiceTest
             .ReturnsAsync(delegations)
             .Verifiable();
 
-        var service = new DelegationService(_repository.Object, null!, null!, null!);
+        var service = new DelegationService(_repository.Object, null!, null!, null!, null!);
         var contactDelegations = await service.GetContactDelegationsAsync(contactId);
 
         contactDelegations.Should().NotBeNull();
@@ -284,7 +285,7 @@ public class DelegationServiceTest
             .ReturnsAsync(expected)
             .Verifiable();
 
-        var service = new DelegationService(_repository.Object, null!, null!, null!);
+        var service = new DelegationService(_repository.Object, null!, null!, null!, null!);
         var result = await service.GetDelegatorDelegationsAsync(delegatorId, filter, pagination);
 
         result.Should().BeEquivalentTo(expected);
@@ -306,7 +307,7 @@ public class DelegationServiceTest
             .ReturnsAsync(expected)
             .Verifiable();
 
-        var service = new DelegationService(_repository.Object, null!, null!, null!);
+        var service = new DelegationService(_repository.Object, null!, null!, null!, null!);
         var result = await service.GetDelegatorDelegationsAsync(delegatorId, filter, pagination);
 
         result.Should().BeEquivalentTo(expected);
@@ -321,7 +322,7 @@ public class DelegationServiceTest
 
         _repository.Setup(x => x.DoesContactExistAsync(delegatorId)).ReturnsAsync(false);
 
-        var service = new DelegationService(_repository.Object, null!, null!, null!);
+        var service = new DelegationService(_repository.Object, null!, null!, null!, null!);
 
         var act = async () => await service.GetDelegatorDelegationsAsync(delegatorId, filter, null);
 
@@ -344,7 +345,7 @@ public class DelegationServiceTest
             .ReturnsAsync(expected)
             .Verifiable();
 
-        var service = new DelegationService(_repository.Object, null!, null!, null!);
+        var service = new DelegationService(_repository.Object, null!, null!, null!, null!);
         var result = await service.GetDelegatorDelegationsAsync(delegatorId, filter, null);
 
         result.Should().BeEquivalentTo(expected);
@@ -367,7 +368,7 @@ public class DelegationServiceTest
             .ReturnsAsync(delegationlist)
             .Verifiable();
 
-        var service = new DelegationService(_repository.Object, null!, null!, null!);
+        var service = new DelegationService(_repository.Object, null!, null!, null!, null!);
         var contactDelegations = await service.GetDelegationsAsync(delegatorId, delegateeId);
 
         contactDelegations.Should().NotBeNull();
@@ -386,7 +387,7 @@ public class DelegationServiceTest
 
         _repository.Setup(x => x.DeleteDelegationAsync(It.IsAny<int>())).ReturnsAsync(new List<Role> { roleToDelete });
 
-        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object);
+        var service = new DelegationService(_repository.Object, _publisher.Object, _historyPublisher.Object, _logger.Object, _roleRepository.Object);
         await service.DeleteDelegationAsync(1);
 
         _repository.Verify(x => x.DeleteDelegationAsync(It.IsAny<int>()), Times.Once);
@@ -398,7 +399,7 @@ public class DelegationServiceTest
     [InlineData(0)]
     public async Task DeleteDelegationAsync_WhenDelegationIdIsNegativeOrNull_ShouldThrowBadRequestException(int delegationId)
     {
-        var service = new DelegationService(null!, _publisher.Object, null!, null!);
+        var service = new DelegationService(null!, _publisher.Object, null!, null!, null!);
 
         var result = await Assert.ThrowsAsync<BadRequestException>(async () => await service.DeleteDelegationAsync(delegationId));
 

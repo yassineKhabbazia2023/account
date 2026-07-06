@@ -66,10 +66,11 @@ public class DelegationRepository : IDelegationRepository
 
             var accounts = await GetAccounts(delegation.AccountIds!);
             var delegationEntities = delegation.MapDelegationRequestToDelegationsDb(contactId, accounts.ToList());
-            var roleEntities = await RemoveDuplicateRoles(roles.MapRolesToRoleDb());
+            var roleEntities = (await RemoveDuplicateRoles(roles.MapRolesToRoleDb())).ToList();
 
             if (roleEntities.Any())
             {
+                roleEntities.ForEach(r => r.LastActivityDate = DateTime.UtcNow);
                 await _accountContext.RoleEntity.AddRangeAsync(roleEntities);
             }
 
@@ -86,7 +87,7 @@ public class DelegationRepository : IDelegationRepository
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            delegationList = await _accountContext.DelegationEntity
+            delegationList = await _accountContext.DelegationEntity.AsNoTracking()
                                         .Include(d => d.Account)
                                         .Include(d => d.Delegator)
                                         .Include(d => d.Delegatee)

@@ -222,7 +222,6 @@ public class DelegationRequestService : IDelegationRequestService
             IsFullDelegation = false
         };
 
-
         await _delegationService.CreateDelegationAsync(delegatorId, delegationRequest);
     }
 

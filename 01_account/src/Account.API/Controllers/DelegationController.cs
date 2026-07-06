@@ -16,23 +16,17 @@ namespace Pulse.Account.API.Controllers;
 /// <summary>
 /// Les différents endpoints pour la gestion des délégations et leurs demandes.
 /// </summary>
+/// <remarks>
+/// Initializes a new instance of the <see cref="DelegationController"/> class.
+/// </remarks>
+/// <param name="delegationService">Une instance of delegation service.</param>
+/// <param name="delegationRequestService">Une instance du service de demandes de délégation.</param>
 [ApiController]
 [Route("api/delegations")]
-public class DelegationController : ControllerBase
+public class DelegationController(IDelegationService delegationService, IDelegationRequestService delegationRequestService) : ControllerBase
 {
-    private readonly IDelegationService _delegationService;
-    private readonly IDelegationRequestService _delegationRequestService;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DelegationController"/> class.
-    /// </summary>
-    /// <param name="delegationService">Une instance of delegation service.</param>
-    /// <param name="delegationRequestService">Une instance du service de demandes de délégation.</param>
-    public DelegationController(IDelegationService delegationService, IDelegationRequestService delegationRequestService)
-    {
-        _delegationService = delegationService;
-        _delegationRequestService = delegationRequestService;
-    }
+    private readonly IDelegationService _delegationService = delegationService;
+    private readonly IDelegationRequestService _delegationRequestService = delegationRequestService;
 
     /// <summary>
     /// Récupérer les délégations d'un contact donné.
@@ -52,7 +46,7 @@ public class DelegationController : ControllerBase
     /// <summary>
     /// Récupérer les délégations accordées par le délégateur connecté.
     /// </summary>
-    /// <param name="contactId">L'identifiant du contact délégateur (injecté par la gateway).</param>
+    /// <param name="currentUserId">L'identifiant du contact délégateur.</param>
     /// <param name="filter">Filtres optionnels sur les délégations.</param>
     /// <param name="pagination">Paramètres de pagination.</param>
     /// <returns>Liste paginée de délégations.</returns>
@@ -61,11 +55,11 @@ public class DelegationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     public async Task<ActionResult<Paging<Delegation>>> GetDelegatorDelegationsAsync(
-        [FromQuery] int contactId,
+        [FromHeader(Name = "CurrentUser")] int currentUserId,
         [FromQuery] DelegationFilter filter,
         [FromQuery] Pagination? pagination)
     {
-        var delegations = await _delegationService.GetDelegatorDelegationsAsync(contactId, filter, pagination);
+        var delegations = await _delegationService.GetDelegatorDelegationsAsync(currentUserId, filter, pagination);
         return Ok(delegations);
     }
 
@@ -115,7 +109,7 @@ public class DelegationController : ControllerBase
     {
         await _delegationService.DeleteDelegationAsync(delegationId);
 
-        return Ok();
+        return NoContent();
     }
 
     // ========== Endpoints pour les demandes de délégation (workflow d'approbation) ==========

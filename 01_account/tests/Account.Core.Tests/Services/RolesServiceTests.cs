@@ -1002,7 +1002,7 @@ public class RolesServiceTests
         var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
 
         // Act
-        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, request);
+        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, ContactType.Collaborator.ToString(), request);
 
         // Assert
         result.Succeeded.Should().ContainSingle(x => x.AccountId == accountId);
@@ -1043,7 +1043,7 @@ public class RolesServiceTests
         var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
 
         // Act
-        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, request);
+        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, ContactType.Collaborator.ToString(), request);
 
         // Assert
         result.Succeeded.Should().HaveCount(3);
@@ -1087,7 +1087,7 @@ public class RolesServiceTests
         var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
 
         // Act
-        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, request);
+        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, ContactType.Collaborator.ToString(), request);
 
         // Assert
         result.Succeeded.Should().ContainSingle(x => x.AccountId == 10);
@@ -1116,136 +1116,11 @@ public class RolesServiceTests
         var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
 
         // Act
-        Func<Task> act = async () => await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, request);
+        Func<Task> act = async () => await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, ContactType.Customer.ToString(), request);
 
         // Assert
         await act.Should().ThrowAsync<PulseInvalidOperationException>()
             .WithMessage(Errors.NoClientLabelMessage);
-    }
-
-    [Fact]
-    public async Task UpdateRoleCustomerRelationAsync_WithIsCustomerRelationTrue_Should_CallRepositoryWithDirectClientRelationAndPublishEvent()
-    {
-        // Arrange
-        int accountId = 10;
-        int contactId = 25;
-        bool isCustomerRelation = true;
-
-        _contactRepository.Setup(repo => repo.GetContactByIdAsync(contactId))
-            .ReturnsAsync(new Contact { ContactId = contactId, Type = ContactType.Collaborator.ToString(), FirstName = "Test", LastName = "User", Email = "test.user@test.fr" });
-
-        _roleRepository.Setup(repo => repo.GetAccountIdsWithRoleLabelAsync(contactId, new List<int> { accountId }))
-            .ReturnsAsync(new HashSet<int>());
-
-        _roleRepository.Setup(repo => repo.UpdateRoleCollaboratorInformationAsync(
-                accountId,
-                contactId,
-                isCustomerRelation,
-                (int)ActionLevelType.DirectClientRelation))
-            .Returns(Task.CompletedTask)
-            .Verifiable();
-
-        _rolePublisher!.Setup(x => x.PublishRoleUpdatedEventAsync(accountId, contactId))
-            .Returns(Task.CompletedTask);
-
-        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
-
-        // Act
-        await roleService.UpdateRoleCustomerRelationAsync(accountId, contactId, isCustomerRelation);
-
-        // Assert
-        _roleRepository.VerifyAll();
-        _rolePublisher.Verify(x => x.PublishRoleUpdatedEventAsync(accountId, contactId), Times.Once);
-    }
-
-    [Fact]
-    public async Task UpdateRoleCustomerRelationAsync_WithIsCustomerRelationFalse_Should_CallRepositoryWithObservatorAndPublishEvent()
-    {
-        // Arrange
-        int accountId = 10;
-        int contactId = 25;
-        bool isCustomerRelation = false;
-
-        _contactRepository.Setup(repo => repo.GetContactByIdAsync(contactId))
-            .ReturnsAsync(new Contact { ContactId = contactId, Type = ContactType.Collaborator.ToString(), FirstName = "Test", LastName = "User", Email = "test.user@test.fr" });
-
-        _roleRepository.Setup(repo => repo.GetAccountIdsWithRoleLabelAsync(contactId, new List<int> { accountId }))
-            .ReturnsAsync(new HashSet<int>());
-
-        _roleRepository.Setup(repo => repo.UpdateRoleCollaboratorInformationAsync(
-                accountId,
-                contactId,
-                isCustomerRelation,
-                (int)ActionLevelType.Observator))
-            .Returns(Task.CompletedTask)
-            .Verifiable();
-
-        _rolePublisher!.Setup(x => x.PublishRoleUpdatedEventAsync(accountId, contactId))
-            .Returns(Task.CompletedTask);
-
-        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
-
-        // Act
-        await roleService.UpdateRoleCustomerRelationAsync(accountId, contactId, isCustomerRelation);
-
-        // Assert
-        _roleRepository.VerifyAll();
-        _rolePublisher.Verify(x => x.PublishRoleUpdatedEventAsync(accountId, contactId), Times.Once);
-    }
-
-    [Fact]
-    public async Task UpdateRoleCustomerRelationAsync_WithRoleLabel_Should_CallRepositoryWithContributor()
-    {
-        // Arrange
-        int accountId = 10;
-        int contactId = 25;
-        bool isCustomerRelation = false;
-
-        _contactRepository.Setup(repo => repo.GetContactByIdAsync(contactId))
-            .ReturnsAsync(new Contact { ContactId = contactId, Type = ContactType.Collaborator.ToString(), FirstName = "Test", LastName = "User", Email = "test.user@test.fr" });
-
-        _roleRepository.Setup(repo => repo.GetAccountIdsWithRoleLabelAsync(contactId, new List<int> { accountId }))
-            .ReturnsAsync(new HashSet<int> { accountId });
-
-        _roleRepository.Setup(repo => repo.UpdateRoleCollaboratorInformationAsync(
-                accountId,
-                contactId,
-                isCustomerRelation,
-                (int)ActionLevelType.Contributor))
-            .Returns(Task.CompletedTask)
-            .Verifiable();
-
-        _rolePublisher!.Setup(x => x.PublishRoleUpdatedEventAsync(accountId, contactId))
-            .Returns(Task.CompletedTask);
-
-        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
-
-        // Act
-        await roleService.UpdateRoleCustomerRelationAsync(accountId, contactId, isCustomerRelation);
-
-        // Assert
-        _roleRepository.VerifyAll();
-        _rolePublisher.Verify(x => x.PublishRoleUpdatedEventAsync(accountId, contactId), Times.Once);
-    }
-
-    [Fact]
-    public async Task UpdateRoleCustomerRelationAsync_WhenContactNotFound_ShouldThrowNotFoundException()
-    {
-        // Arrange
-        int accountId = 10;
-        int contactId = 25;
-        bool isCustomerRelation = false;
-
-        _contactRepository.Setup(repo => repo.GetContactByIdAsync(contactId))
-            .ReturnsAsync((Contact?)null);
-
-        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
-
-        // Act
-        Func<Task> act = async () => await roleService.UpdateRoleCustomerRelationAsync(accountId, contactId, isCustomerRelation);
-
-        // Assert
-        await act.Should().ThrowAsync<NotFoundException>();
     }
 
     [Fact]
@@ -1292,7 +1167,7 @@ public class RolesServiceTests
         var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
 
         // Act
-        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, request);
+        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, ContactType.Collaborator.ToString(), request);
 
         // Assert
         result.Succeeded.Should().HaveCount(2);
@@ -1336,7 +1211,7 @@ public class RolesServiceTests
         var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
 
         // Act
-        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, request);
+        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, ContactType.Collaborator.ToString(), request);
 
         // Assert
         result.Succeeded.Should().ContainSingle(x => x.AccountId == accountId);
@@ -1390,7 +1265,7 @@ public class RolesServiceTests
         var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
 
         // Act
-        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, request);
+        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, ContactType.Collaborator.ToString(), request);
 
         // Assert
         result.Succeeded.Should().ContainSingle(x => x.AccountId == 10);
@@ -1400,7 +1275,7 @@ public class RolesServiceTests
     }
 
     [Fact]
-    public async Task BulkUpdateRoleCustomerRelationAsync_WhenContactNotFound_ShouldThrowNotFoundException()
+    public async Task BulkUpdateRoleCustomerRelationAsync_WhenNoMatchingRoles_ShouldReturnEmptySucceeded()
     {
         // Arrange
         int accountId = 10;
@@ -1413,16 +1288,19 @@ public class RolesServiceTests
             AccountIds = new List<int> { accountId }
         };
 
-        _contactRepository.Setup(repo => repo.GetContactByIdAsync(contactId))
-            .ReturnsAsync((Contact?)null);
+        _roleRepository.Setup(repo => repo.GetRolesByContactAndAccountIdsAsync(contactId, It.IsAny<List<int>>()))
+            .ReturnsAsync(new List<Role>());
+        _roleRepository.Setup(repo => repo.GetAccountIdsWithRoleLabelAsync(contactId, It.IsAny<List<int>>()))
+            .ReturnsAsync(new HashSet<int>());
 
         var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
 
         // Act
-        Func<Task> act = async () => await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, request);
+        var result = await roleService.BulkUpdateRoleCustomerRelationAsync(contactId, ContactType.Collaborator.ToString(), request);
 
         // Assert
-        await act.Should().ThrowAsync<NotFoundException>();
+        result.Succeeded.Should().BeEmpty();
+        result.Failed.Should().ContainSingle(x => x.AccountId == accountId);
     }
 
     [Fact]

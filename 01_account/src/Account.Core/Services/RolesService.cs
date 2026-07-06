@@ -194,25 +194,12 @@ public class RolesService : IRolesService
         await PublishHistoryCreatedEvent(currentUserId, contactId, accountId, actionCode);
     }
 
-    public async Task UpdateRoleCustomerRelationAsync(int accountId, int contactId, bool isCustomerRelation)
+    public async Task<UpdateRoleCustomerRelationResponse> BulkUpdateRoleCustomerRelationAsync(int currentUserId, string contactType, UpdateRoleCustomerRelationRequest request)
     {
-        await ValidateContactIsCollaboratorAsync(contactId);
-
-        var expectedActionLevel = isCustomerRelation
-            ? (int)ActionLevelType.DirectClientRelation
-            : (int)ActionLevelType.Observator;
-
-        var accountIdsWithRoleLabel = await _rolesRepository.GetAccountIdsWithRoleLabelAsync(contactId, new List<int> { accountId });
-        var actionLevel = ActionLevelHelper.SetupActionLevel(expectedActionLevel, isCustomerRelation, accountIdsWithRoleLabel.Contains(accountId));
-
-        await _rolesRepository.UpdateRoleCollaboratorInformationAsync(accountId, contactId, isCustomerRelation, actionLevel);
-
-        await PublishRoleUpdatedEvent(accountId, contactId);
-    }
-
-    public async Task<UpdateRoleCustomerRelationResponse> BulkUpdateRoleCustomerRelationAsync(int currentUserId, UpdateRoleCustomerRelationRequest request)
-    {
-        await ValidateContactIsCollaboratorAsync(currentUserId);
+        if (!ContactType.Collaborator.ToString().Equals(contactType))
+        {
+            throw new PulseInvalidOperationException(Errors.NoClientLabelCode, Errors.NoClientLabelMessage);
+        }
 
         var requestedAccountIds = request.AccountIds.Distinct().ToList();
         var roles = await _rolesRepository.GetRolesByContactAndAccountIdsAsync(currentUserId, requestedAccountIds);
@@ -251,21 +238,11 @@ public class RolesService : IRolesService
 
         foreach (var item in result.Succeeded)
         {
+            await _rolesRepository.UpdateLastActivityDateAsync(item.AccountId, currentUserId, contactType, DateTime.UtcNow);
             await PublishRoleUpdatedEvent(item.AccountId, currentUserId);
         }
 
         return result;
-    }
-
-    private async Task ValidateContactIsCollaboratorAsync(int contactId)
-    {
-        var contact = await _contactRepository.GetContactByIdAsync(contactId)
-            ?? throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, contactId));
-
-        if (!ContactType.Collaborator.ToString().Equals(contact.Type))
-        {
-            throw new PulseInvalidOperationException(Errors.NoClientLabelCode, Errors.NoClientLabelMessage);
-        }
     }
 
     public async Task DeleteRoleAsync(int currentUserId, int accountId, int contactId)

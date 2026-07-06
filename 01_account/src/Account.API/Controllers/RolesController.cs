@@ -184,16 +184,17 @@ public class RolesController : ControllerBase
     /// <summary>
     /// Modifier la relation client d'un contact sur une liste d'entités morales.
     /// </summary>
-    /// <param name="currentUserId">L'identifiant de l'utilisateur courant (injecté par la gateway).</param>
+    /// <param name="currentUserId">L'identifiant de l'utilisateur courant.</param>
+    /// <param name="contactType">Le type de l'utilisateur courant.</param>
     /// <param name="request">Les informations de mise à jour.</param>
     /// <returns>Le résultat de la mise à jour.</returns>
     [HttpPatch("customer-relation")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UpdateRoleCustomerRelationResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult<UpdateRoleCustomerRelationResponse>> BulkUpdateRoleCustomerRelationAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [Required][FromBody] UpdateRoleCustomerRelationRequest request)
+    public async Task<ActionResult<UpdateRoleCustomerRelationResponse>> BulkUpdateRoleCustomerRelationAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromHeader(Name = "ContactType")] string contactType, [Required][FromBody] UpdateRoleCustomerRelationRequest request)
     {
-        var result = await _rolesService.BulkUpdateRoleCustomerRelationAsync(currentUserId, request);
+        var result = await _rolesService.BulkUpdateRoleCustomerRelationAsync(currentUserId, contactType, request);
         return Ok(result);
     }
 

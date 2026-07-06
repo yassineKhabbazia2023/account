@@ -2,8 +2,6 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.AspNetCore.JsonPatch;
@@ -13,12 +11,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Pulse.Account.API;
-using Pulse.Account.Core;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.API.Controllers;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
-using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
@@ -53,7 +49,9 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         var accountEventPublisher = new Mock<IAccountEventPublisher>();
         var featureFlagService = new Mock<IFeatureFlagService>();
         featureFlagService.Setup(f => f.IsEnabledAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
-        var accountService = new AccountService(accountRepository, contactRepository.Object, accountEventPublisher.Object, NullLogger<AccountService>.Instance, featureFlagService.Object);
+        var roleRepository = new Mock<IRoleRepository>();
+        roleRepository.Setup(r => r.UpdateLastActivityDateAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        var accountService = new AccountService(accountRepository, contactRepository.Object, accountEventPublisher.Object, NullLogger<AccountService>.Instance, featureFlagService.Object, roleRepository.Object);
         _accountController = new AccountController(accountService);
     }
 
@@ -152,7 +150,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         var result = await controller.CreateAccountAsync(currentUserId, request);
 
         // Assert
-        var createdResult = result.Result as CreatedResult;
+        var createdResult = result.Result as CreatedAtActionResult;
         Assert.NotNull(createdResult);
         Assert.Equal(201, createdResult!.StatusCode);
         var response = createdResult.Value.As<CreateAccountResponse>();
@@ -251,7 +249,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         var expected = accountMocked.MapToAccountSummary(contactId);
 
         // Act
-        var account = await _accountController.GetAccountSummaryAsync(contactId, accountMocked.AccountId);
+        var account = await _accountController.GetAccountSummaryAsync(contactId, "Collaborator", accountMocked.AccountId);
         var resultAccounts = account?.Result as OkObjectResult;
         var accountSummaryResult = resultAccounts!.Value.As<AccountModel>();
 

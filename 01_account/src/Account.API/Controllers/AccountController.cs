@@ -46,7 +46,7 @@ public class AccountController(IAccountService accountService) : ControllerBase
             AccountId = createdAccount.AccountId
         };
 
-        return Created(string.Empty, response);
+        return CreatedAtAction(nameof(GetAccountsAsync), new { accountId = createdAccount.AccountId }, response);
     }
 
     /// <summary>
@@ -175,14 +175,15 @@ public class AccountController(IAccountService accountService) : ControllerBase
     /// Récupère un résumé des informations d'une entité morale à partir de son identifiant.
     /// </summary>
     /// <param name="currentUserId">Identifiant de l'utilisateur connecté.</param>
+    /// <param name="contactType">Type de contact de l'utilisateur connecté.</param>
     /// <param name="accountId">Identifiant unique de l'entité morale.</param>
     /// <returns>Un résumé des informations de l'entité morale.</returns>
     [HttpGet("{accountId}/summary")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountModel))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult<AccountModel>> GetAccountSummaryAsync([FromHeader(Name = "CurrentUser")] int currentUserId, int accountId)
+    public async Task<ActionResult<AccountModel>> GetAccountSummaryAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromHeader(Name = "ContactType")] string contactType, int accountId)
     {
-        var result = await accountService.GetAccountSummaryAsync(currentUserId, accountId);
+        var result = await accountService.GetAccountSummaryAsync(currentUserId, accountId, contactType);
         return Ok(result);
     }
 

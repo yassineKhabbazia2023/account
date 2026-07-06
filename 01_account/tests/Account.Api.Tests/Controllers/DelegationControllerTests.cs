@@ -103,7 +103,7 @@ public class DelegationControllerTests
             .Create();
         var repository = new Mock<IDelegationRepository>(MockBehavior.Strict);
         repository.Setup(x => x.IsClient(It.IsAny<IEnumerable<int>>())).ReturnsAsync(false);
-        var service = new DelegationService(repository.Object, null!, null!, null!);
+        var service = new DelegationService(repository.Object, null!, null!, null!, null!);
 
         var mockDelegationRequestService2 = new Mock<IDelegationRequestService>();
         var controller = new DelegationController(service, mockDelegationRequestService2.Object);
@@ -169,7 +169,7 @@ public class DelegationControllerTests
 
         var result = await controller.DeleteDelegationAsync(It.IsAny<int>());
 
-        result.As<OkResult>().StatusCode.Should().Be(StatusCodes.Status200OK);
+        result.As<NoContentResult>().StatusCode.Should().Be(StatusCodes.Status204NoContent);
     }
 
     [Fact]

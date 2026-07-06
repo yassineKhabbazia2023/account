@@ -8,51 +8,51 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.ExceptionMiddleware.Model;
 
-namespace Pulse.Account.API.Controllers
+namespace Pulse.Account.API.Controllers;
+
+[Route("api")]
+[ApiController]
+public class FavoriteController : ControllerBase
 {
-    [Route("api")]
-    [ApiController]
-    public class FavoriteController : ControllerBase
+    private readonly IFavoriteService _favoriteService;
+
+    public FavoriteController(IFavoriteService favoriteService)
     {
-        private readonly IFavoriteService _favoriteService;
+        _favoriteService = favoriteService;
+    }
 
-        public FavoriteController(IFavoriteService favoriteService)
-        {
-            _favoriteService = favoriteService;
-        }
+    /// <summary>
+    /// Lister les entités morales favorites d'un contact.
+    /// </summary>
+    /// <param name="currentUserId">ID du contact.</param>
+    /// <returns>Liste des entités morales favorites.</returns>
+    [HttpGet("favorites")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountFavorite>))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult<IReadOnlyCollection<AccountFavorite>>> GetAccountFavoritesByContactIdAsync([FromHeader(Name = "CurrentUser")] int currentUserId)
+    {
+        var result = await _favoriteService.GetAccountFavoritesByContactIdAsync(currentUserId);
 
-        /// <summary>
-        /// Lister les entités morales favorites d'un contact.
-        /// </summary>
-        /// <param name="contactId">ID du contact.</param>
-        /// <returns>Liste des entités morales favorites.</returns>
-        [HttpGet("favorites")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IReadOnlyCollection<AccountFavorite>))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-        public async Task<ActionResult<IReadOnlyCollection<AccountFavorite>>> GetAccountFavoritesByContactIdAsync([Required] int contactId)
-        {
-            var result = await _favoriteService.GetAccountFavoritesByContactIdAsync(contactId);
+        return Ok(result);
+    }
 
-            return Ok(result);
-        }
+    /// <summary>
+    /// Modifier le statut de favori d'une entité morale pour un contact donné.
+    /// </summary>
+    /// <param name="currentUserId">ID du contact connecté.</param>
+    /// <param name="contactType">Type de contact connecté.</param>
+    /// <param name="accountId">ID de l'entité morale.</param>
+    /// <param name="isFavorite">True si le l'entité morale fait parti des favoris, false sinon.</param>
+    /// <returns>OK si la mise à jour s'est bien déroulée.</returns>
+    [HttpPatch("favorites")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
+    public async Task<ActionResult> SetFavoriteAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromHeader(Name = "ContactType")] string contactType, [Required] int accountId, [Required] bool isFavorite)
+    {
+        await _favoriteService.SetFavoriteAsync(accountId, currentUserId, contactType, isFavorite);
 
-        /// <summary>
-        /// Modifier le statut de favori d'une entité morale pour un contact donné.
-        /// </summary>
-        /// <param name="accountId">ID de l'entité morale.</param>
-        /// <param name="contactId">ID du contact.</param>
-        /// <param name="isFavorite">True si le l'entité morale fait parti des favoris, false sinon.</param>
-        /// <returns>OK si la mise à jour s'est bien déroulée.</returns>
-        [HttpPatch("favorites")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
-        public async Task<ActionResult> SetFavoriteAsync([Required] int accountId, [Required] int contactId, [Required] bool isFavorite)
-        {
-            await _favoriteService.SetFavoriteAsync(accountId, contactId, isFavorite);
-
-            return Ok();
-        }
+        return Ok();
     }
 }

@@ -42,7 +42,7 @@ namespace Account.Api.Tests.Controllers
             var favoriteController = new FavoriteController(_favoriteService.Object);
 
             // Act
-            var accounts = await favoriteController.GetAccountFavoritesByContactIdAsync(contactId: 1);
+            var accounts = await favoriteController.GetAccountFavoritesByContactIdAsync(currentUserId: 1);
             var resultAccounts = accounts?.Result as OkObjectResult;
 
             // Assert
@@ -53,12 +53,12 @@ namespace Account.Api.Tests.Controllers
         public async Task SetFavorite_Should_ReturnsOkResultAsync()
         {
             // Arrange
-            _favoriteService.Setup(service => service.SetFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
+            _favoriteService.Setup(service => service.SetFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
 
             var favoriteController = new FavoriteController(_favoriteService.Object);
 
             // Act
-            var result = await favoriteController.SetFavoriteAsync(accountId: 5, contactId: 1, true);
+            var result = await favoriteController.SetFavoriteAsync(1, "Collaborator", 5, true);
             var resultAccounts = result as OkResult;
 
             // Assert
@@ -70,13 +70,13 @@ namespace Account.Api.Tests.Controllers
         {
             // Arrange
             _favoriteService
-                .Setup(service => service.SetFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
+                .Setup(service => service.SetFavoriteAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .Throws(new NotFoundException(Errors.NotFoundRoleContactCode, Errors.NotFoundRoleContactMessage));
 
             var favoriteController = new FavoriteController(_favoriteService.Object);
 
             // Act
-            var result = async () => await favoriteController.SetFavoriteAsync(accountId: 5, contactId: 1, true);
+            var result = async () => await favoriteController.SetFavoriteAsync(1, "Collaborator", 5, true);
 
             // Assert
             var exception = await Assert.ThrowsAsync<NotFoundException>(result);

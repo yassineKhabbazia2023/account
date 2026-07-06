@@ -10,6 +10,6 @@ namespace Pulse.Account.Core.Interfaces
     {
         public Task<IEnumerable<AccountFavorite>> GetAccountFavoritesByContactIdAsync(int contactId);
 
-        public Task SetFavoriteAsync(int accountId, int contactId, bool isFavorite);
+        public Task SetFavoriteAsync(int accountId, int contactId, string contactType, bool isFavorite);
     }
 }

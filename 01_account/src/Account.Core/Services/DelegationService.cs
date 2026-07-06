@@ -14,24 +14,18 @@ using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Core.Services;
 
-public class DelegationService : IDelegationService
+public class DelegationService(
+    IDelegationRepository delegationRepository,
+    IRoleEventPublisher roleEventPublisher,
+    IHistoryEventPublisher historyEventPublisher,
+    ILogger<DelegationService> logger,
+    IRoleRepository roleRepository) : IDelegationService
 {
-    private readonly IDelegationRepository _delegationRepository;
-    private readonly IRoleEventPublisher _roleEventPublisher;
-    private readonly IHistoryEventPublisher _historyEventPublisher;
-    private readonly ILogger<DelegationService> _logger;
-
-    public DelegationService(
-        IDelegationRepository delegationRepository,
-        IRoleEventPublisher roleEventPublisher,
-        IHistoryEventPublisher historyEventPublisher,
-        ILogger<DelegationService> logger)
-    {
-        _delegationRepository = delegationRepository;
-        _roleEventPublisher = roleEventPublisher;
-        _historyEventPublisher = historyEventPublisher;
-        _logger = logger;
-    }
+    private readonly IDelegationRepository _delegationRepository = delegationRepository;
+    private readonly IRoleEventPublisher _roleEventPublisher = roleEventPublisher;
+    private readonly IHistoryEventPublisher _historyEventPublisher = historyEventPublisher;
+    private readonly ILogger<DelegationService> _logger = logger;
+    private readonly IRoleRepository _roleRepository = roleRepository;
 
     public async Task CreateDelegationAsync(int contactId, CreateDelegationRequest delegation)
     {
@@ -67,6 +61,7 @@ public class DelegationService : IDelegationService
         {
             foreach (var role in rolesCreated)
             {
+                await _roleRepository.UpdateLastActivityDateAsync(role.AccountId, contactId, ContactType.Collaborator.ToString(), DateTime.UtcNow);
                 await PublishRoleCreatedEvent(role);
                 await PublishHistoryCreatedEvent(contactId, role.ContactId!.Value, role.AccountId, ActionCode.ADDKDELM.ToString());
             }
