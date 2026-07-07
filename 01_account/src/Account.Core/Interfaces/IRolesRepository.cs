@@ -24,7 +24,7 @@ public interface IRoleRepository
 
     Task<Role?> GetContactRoleAsync(int accountId, int contactId);
 
-    Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber);
+    Task<bool> IsContactHasRoleOnAccountAsync(int contactId, int? accountId, string? accountNumber);
 
     Task UpdateRoleCollaboratorInformationAsync(int accountId, int contactId, bool isCustomerRelation, int actionLevel);
 

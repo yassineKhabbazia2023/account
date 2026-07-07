@@ -4,8 +4,6 @@
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
-using Microsoft.IdentityModel.Tokens;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
@@ -69,6 +67,7 @@ public class RolesController : ControllerBase
     /// <summary>
     /// Vérifier si un contact a un rôle sur l’account/les accounts auxquels l’utilisateur connecté a accès.
     /// </summary>
+    /// <param name="currentUserId">Identifiant de l'utilisateur courant.</param>
     /// <param name="contactId">Identifiant de l'utilisateur.</param>
     /// <param name="accountId">Identifiant de l'entitié morale.</param>
     /// <param name="email">L'email de l'utilisateur.</param>
@@ -77,18 +76,8 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult> CheckRoleExists(int? contactId, int? accountId, string? email)
+    public async Task<ActionResult> CheckRoleExists([FromHeader(Name = "CurrentUser")] int currentUserId, int? contactId, int? accountId, string? email)
     {
-        if (!Request.Headers.TryGetValue("CurrentUser", out StringValues contactIdValue))
-        {
-            throw new BadRequestException(Errors.CurrentUserWasNotFoundInHeadersCode, Errors.CurrentUserWasNotFoundInHeadersMessage);
-        }
-
-        if (!int.TryParse(contactIdValue, out int currentUserId))
-        {
-            throw new BadRequestException(Errors.InvalidCurrentUserFormatCode, Errors.InvalidCurrentUserFormatMessage);
-        }
-
         if (!contactId.HasValue && string.IsNullOrWhiteSpace(email))
         {
             throw new BadRequestException(Errors.ContactIdAndEmailNullCode, Errors.ContactIdAndEmailNullMessage);
@@ -117,7 +106,7 @@ public class RolesController : ControllerBase
             throw new BadRequestException(Errors.BadRequestAccountIdAndAccountNumberNullCode, Errors.BadRequestAccountIdAndAccountNumberNullMessage);
         }
 
-        var contactHasRoleOnAccount = await _rolesService.IsContactHasRoleOnAccount(contactId, accountId, accountNumber);
+        var contactHasRoleOnAccount = await _rolesService.IsContactHasRoleOnAccountAsync(contactId, accountId, accountNumber);
 
         return Ok(contactHasRoleOnAccount);
     }
@@ -247,5 +236,20 @@ public class RolesController : ControllerBase
     {
         var result = await _rolesService.CheckLastCollaboratorAsync(contactId, accountIds);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Mettre à jour la date de dernière activité d'un collaborateur sur un compte.
+    /// </summary>
+    /// <param name="currentUserId">Identifiant du contact à l'origine de l'action.</param>
+    /// <param name="contactType">Type de contact.</param>
+    /// <param name="accountId">Identifiant de l'entitié morale.</param>
+    /// <returns>http 200.</returns>
+    [HttpPatch("last-activity-date")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult> UpdateLastActivityDateAsync([FromHeader(Name = "CurrentUser")] int currentUserId, [FromHeader(Name = "ContactType")] string contactType, [FromQuery][Required] int accountId)
+    {
+        await _rolesService.UpdateLastActivityDateAsync(currentUserId, contactType, accountId);
+        return Ok();
     }
 }

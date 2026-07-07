@@ -42,7 +42,7 @@ public class OfferEligibilityService : IOfferEligibilityService
             throw new BadRequestException(Errors.NotPermittedActionCode, Errors.NotPermittedActionMessage);
         }
 
-        if (!await _roleRepository.IsContactHasRoleOnAccount(currentUserId, accountId, null))
+        if (!await _roleRepository.IsContactHasRoleOnAccountAsync(currentUserId, accountId, null))
         {
             throw new ForbiddenException(Errors.NotFoundRoleCode, string.Format(Errors.NotFoundRoleMessage, currentUserId, accountId));
         }

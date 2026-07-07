@@ -28,7 +28,9 @@ public interface IRolesService
 
     Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email);
 
-    Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber);
+    Task<bool> IsContactHasRoleOnAccountAsync(int contactId, int? accountId, string? accountNumber);
 
     Task<UpdateRoleCustomerRelationResponse> BulkUpdateRoleCustomerRelationAsync(int currentUserId, string contactType, UpdateRoleCustomerRelationRequest request);
+
+    Task UpdateLastActivityDateAsync(int contactId, string contactType, int accountId);
 }

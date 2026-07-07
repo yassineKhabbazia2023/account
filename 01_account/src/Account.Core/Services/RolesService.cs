@@ -338,9 +338,9 @@ public class RolesService : IRolesService
         return await _rolesRepository.CheckRoleExistsAsync(currentUserId, contactId, accountId, email, includeProspects);
     }
 
-    public async Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber)
+    public async Task<bool> IsContactHasRoleOnAccountAsync(int contactId, int? accountId, string? accountNumber)
     {
-        return await _rolesRepository.IsContactHasRoleOnAccount(contactId, accountId, accountNumber);
+        return await _rolesRepository.IsContactHasRoleOnAccountAsync(contactId, accountId, accountNumber);
     }
 
     private async Task PublishRoleCreatedEvent(CreateRoleRequest role, bool includeProspects = false)
@@ -377,5 +377,10 @@ public class RolesService : IRolesService
         await _historyEventPublisher.PublishHistoryCreatedEventAsync(currentUserId, contactId, accountId, actionCode);
 
         _logger.LogInformation("RoleService: End send history created event. CurrentUserId: {currentUserId} AccountId : {accountId} - ContactId : {contactId}", currentUserId, accountId, contactId);
+    }
+
+    public async Task UpdateLastActivityDateAsync(int contactId, string contactType, int accountId)
+    {
+        await _rolesRepository.UpdateLastActivityDateAsync(accountId, contactId, contactType, DateTime.UtcNow);
     }
 }

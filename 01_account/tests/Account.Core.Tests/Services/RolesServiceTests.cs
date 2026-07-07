@@ -958,14 +958,14 @@ public class RolesServiceTests
     public async Task IsContactHasRoleInAccount_ReturnsTrueAsync()
     {
         // Arrange
-        _roleRepository.Setup(repository => repository.IsContactHasRoleOnAccount(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(true);
+        _roleRepository.Setup(repository => repository.IsContactHasRoleOnAccountAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(true);
         var rolesService = new RolesService(_roleRepository.Object, null!, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
 
         // Act
-        var contactHasRoleOnAccount = await rolesService.IsContactHasRoleOnAccount(1, 1, "accountNumber");
+        var contactHasRoleOnAccount = await rolesService.IsContactHasRoleOnAccountAsync(1, 1, "accountNumber");
 
         // Assert
-        _roleRepository.Verify(x => x.IsContactHasRoleOnAccount(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()));
+        _roleRepository.Verify(x => x.IsContactHasRoleOnAccountAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>()));
         Assert.True(contactHasRoleOnAccount);
     }
 
@@ -1434,5 +1434,19 @@ public class RolesServiceTests
         // Assert
         result.IsLastCollaboratorOnAny.Should().BeFalse();
         result.AccountIdsWhereLastCollaborator.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task UpdateLastActivityDateAsync_Nominal()
+    {
+        _roleRepository.Setup(x => x.UpdateLastActivityDateAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>()))
+            .Returns(Task.CompletedTask)
+            .Verifiable();
+
+        var roleService = new RolesService(_roleRepository.Object, _contactRepository.Object, _rolePublisher!.Object, _historyPublisher!.Object, _roleLabelService.Object, _logger!.Object, _featureFlagService.Object);
+
+        await roleService.UpdateLastActivityDateAsync(1, "Collaborator", 1);
+
+        _roleRepository.Verify(x => x.UpdateLastActivityDateAsync(1, 1, "Collaborator", It.IsAny<DateTime>()), Times.Once);
     }
 }

@@ -562,4 +562,125 @@ public class VentyaRepositoryTests
 
         Assert.Null(result);
     }
+
+    [Fact]
+    public async Task GetVentyaAccessContactEmailAsync_WhenExactlyOneFlaggedContact_ReturnsEmail()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new AccountContext(options);
+        var account = _fixture.Build<AccountEntity>()
+            .With(a => a.AccountNumber, "ACC128")
+            .Without(a => a.RoleLabelEntity)
+            .Without(a => a.Delegation)
+            .With(a => a.RoleEntity, new List<RoleEntity>())
+            .Create();
+
+        account.RoleEntity = new List<RoleEntity>
+        {
+            new RoleEntity { AccountId = account.AccountId, ContactId = 10, ContactFlagPortailFactures = true }
+        };
+
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 10)
+            .With(c => c.Email, "contact@test.fr")
+            .With(c => c.IsActive, true)
+            .Create();
+
+        context.AccountEntity.Add(account);
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new VentyaRepository(context);
+
+        var result = await repository.GetVentyaAccessContactEmailAsync(account.AccountId);
+
+        Assert.Equal("contact@test.fr", result);
+    }
+
+    [Fact]
+    public async Task GetVentyaAccessContactEmailAsync_WhenMultipleFlaggedContacts_ReturnsNull()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new AccountContext(options);
+        var account = _fixture.Build<AccountEntity>()
+            .With(a => a.AccountNumber, "ACC129")
+            .Without(a => a.RoleLabelEntity)
+            .Without(a => a.Delegation)
+            .With(a => a.RoleEntity, new List<RoleEntity>())
+            .Create();
+
+        account.RoleEntity = new List<RoleEntity>
+        {
+            new RoleEntity { AccountId = account.AccountId, ContactId = 20, ContactFlagPortailFactures = true },
+            new RoleEntity { AccountId = account.AccountId, ContactId = 21, ContactFlagPortailFactures = true }
+        };
+
+        var contactA = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 20)
+            .With(c => c.Email, "contactA@test.fr")
+            .With(c => c.IsActive, true)
+            .Create();
+
+        var contactB = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 21)
+            .With(c => c.Email, "contactB@test.fr")
+            .With(c => c.IsActive, true)
+            .Create();
+
+        context.AccountEntity.Add(account);
+        context.ContactEntity.AddRange(contactA, contactB);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new VentyaRepository(context);
+
+        var result = await repository.GetVentyaAccessContactEmailAsync(account.AccountId);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetVentyaAccessContactEmailAsync_WhenNoFlaggedContact_ReturnsNull()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new AccountContext(options);
+        var account = _fixture.Build<AccountEntity>()
+            .With(a => a.AccountNumber, "ACC130")
+            .Without(a => a.RoleLabelEntity)
+            .Without(a => a.Delegation)
+            .With(a => a.RoleEntity, new List<RoleEntity>())
+            .Create();
+
+        account.RoleEntity = new List<RoleEntity>
+        {
+            new RoleEntity { AccountId = account.AccountId, ContactId = 30, ContactFlagPortailFactures = false }
+        };
+
+        var contact = _fixture.Build<ContactEntity>()
+            .With(c => c.ContactId, 30)
+            .With(c => c.Email, "contact@test.fr")
+            .With(c => c.IsActive, true)
+            .Create();
+
+        context.AccountEntity.Add(account);
+        context.ContactEntity.Add(contact);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var repository = new VentyaRepository(context);
+
+        var result = await repository.GetVentyaAccessContactEmailAsync(account.AccountId);
+
+        Assert.Null(result);
+    }
 }

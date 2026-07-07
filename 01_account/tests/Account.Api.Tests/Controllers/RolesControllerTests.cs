@@ -281,47 +281,12 @@ public class RolesControllerTests
             .Returns(Task.FromResult(true));
         var roleController = new RolesController(roleService.Object);
 
-        var httpContextMock = new Mock<HttpContext>();
-        var requestMock = new Mock<HttpRequest>();
-
-        var headers = new HeaderDictionary { { "CurrentUser", new StringValues("123") } };
-        requestMock.Setup(r => r.Headers).Returns(headers);
-
-        httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
-        roleController.ControllerContext = new ControllerContext
-        {
-            HttpContext = httpContextMock.Object
-        };
-
         // Act
-        var contactHasRoleOnAccount = await roleController.CheckRoleExists(1, 1, "test@test.fr");
+        var contactHasRoleOnAccount = await roleController.CheckRoleExists(123, 1, 1, "test@test.fr");
 
         // Assert
         roleService.Verify(x => x.CheckRoleExistsAsync(123, 1, 1, "test@test.fr"), Times.Once);
         Assert.Equal(true, (contactHasRoleOnAccount as OkObjectResult)?.Value);
-    }
-
-    [Theory]
-    [MemberData(nameof(HeaderParams))]
-    public async Task CheckRoleExists_WithInvalidCurrentUser_Should_ThrowBadRequestException(HeaderDictionary header, string code, string message)
-    {
-        var roleController = new RolesController(null!);
-
-        var httpContextMock = new Mock<HttpContext>();
-        var requestMock = new Mock<HttpRequest>();
-
-        requestMock.Setup(r => r.Headers).Returns(header);
-
-        httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
-        roleController.ControllerContext = new ControllerContext
-        {
-            HttpContext = httpContextMock.Object
-        };
-
-        var result = await Assert.ThrowsAsync<BadRequestException>(async () => await roleController.CheckRoleExists(1, 1, "test@test.fr"));
-
-        Assert.Equal(code, result.Code);
-        Assert.Equal(message, result.Message);
     }
 
     public static IEnumerable<object[]> HeaderParams()
@@ -346,19 +311,7 @@ public class RolesControllerTests
     {
         var roleController = new RolesController(null!);
 
-        var httpContextMock = new Mock<HttpContext>();
-        var requestMock = new Mock<HttpRequest>();
-
-        var header = new HeaderDictionary { { "CurrentUser", new StringValues("123") } };
-        requestMock.Setup(r => r.Headers).Returns(header);
-
-        httpContextMock.Setup(ctx => ctx.Request).Returns(requestMock.Object);
-        roleController.ControllerContext = new ControllerContext
-        {
-            HttpContext = httpContextMock.Object
-        };
-
-        var result = await Assert.ThrowsAsync<BadRequestException>(async () => await roleController.CheckRoleExists(null!, 1, string.Empty));
+        var result = await Assert.ThrowsAsync<BadRequestException>(async () => await roleController.CheckRoleExists(123, null!, 1, string.Empty));
 
         Assert.Equal("ACC031", result.Code);
         Assert.Equal("Veuillez fournir au moins le ContactId ou l'email.", result.Message);
@@ -369,7 +322,7 @@ public class RolesControllerTests
     {
         // Arrange
         var roleService = new Mock<IRolesService>();
-        roleService.Setup(service => service.IsContactHasRoleOnAccount(It.IsAny<int>(), It.IsAny<int>(), null))
+        roleService.Setup(service => service.IsContactHasRoleOnAccountAsync(It.IsAny<int>(), It.IsAny<int>(), null))
             .Returns(Task.FromResult(true));
         var roleController = new RolesController(roleService.Object);
 
@@ -377,7 +330,7 @@ public class RolesControllerTests
         var contactHasRoleOnAccount = await roleController.IsContactHasRoleOnAccount(1, 1, null);
 
         // Assert
-        roleService.Verify(x => x.IsContactHasRoleOnAccount(1, 1, null), Times.Once);
+        roleService.Verify(x => x.IsContactHasRoleOnAccountAsync(1, 1, null), Times.Once);
         Assert.Equal(true, (contactHasRoleOnAccount as OkObjectResult)?.Value);
     }
 
@@ -386,7 +339,7 @@ public class RolesControllerTests
     {
         // Arrange
         var roleService = new Mock<IRolesService>();
-        roleService.Setup(service => service.IsContactHasRoleOnAccount(It.IsAny<int>(), null, null))
+        roleService.Setup(service => service.IsContactHasRoleOnAccountAsync(It.IsAny<int>(), null, null))
             .Returns(Task.FromResult(true));
         var roleController = new RolesController(roleService.Object);
 
@@ -447,5 +400,25 @@ public class RolesControllerTests
         okResult!.StatusCode.Should().Be(200);
         okResult.Value.Should().BeSameAs(expected);
         rolesService.Verify(s => s.CheckLastCollaboratorAsync(contactId, accountIds), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateLastActivityDateAsync_Should_ReturnOkResult()
+    {
+        // Arrange
+        var contactId = 25;
+        var contactType = "Collaborator";
+        var accountId = 1;
+        var rolesService = new Mock<IRolesService>(MockBehavior.Strict);
+        rolesService.Setup(s => s.UpdateLastActivityDateAsync(contactId, contactType, accountId)).Returns(Task.CompletedTask);
+        var rolesController = new RolesController(rolesService.Object);
+
+        // Act
+        var actionResult = await rolesController.UpdateLastActivityDateAsync(contactId, contactType, accountId);
+        var okResult = actionResult as StatusCodeResult;
+
+        // Assert
+        okResult!.StatusCode.Should().Be(200);
+        rolesService.Verify(s => s.UpdateLastActivityDateAsync(contactId, contactType, accountId), Times.Once);
     }
 }

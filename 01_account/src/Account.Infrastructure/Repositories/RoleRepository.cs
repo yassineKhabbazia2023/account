@@ -69,7 +69,7 @@ public class RoleRepository(AccountContext accountContext) : IRoleRepository
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
-            if (!_accountContext.AccountEntity.Any(x => x.AccountId == accountId))
+            if (!_accountContext.AccountEntity.AsNoTracking().Any(x => x.AccountId == accountId))
             {
                 throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
             }
@@ -320,7 +320,7 @@ public class RoleRepository(AccountContext accountContext) : IRoleRepository
         });
     }
 
-    public async Task<bool> IsContactHasRoleOnAccount(int contactId, int? accountId, string? accountNumber)
+    public async Task<bool> IsContactHasRoleOnAccountAsync(int contactId, int? accountId, string? accountNumber)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -342,11 +342,6 @@ public class RoleRepository(AccountContext accountContext) : IRoleRepository
             return await _accountContext.ActiveAccounts
                 .AnyAsync(a => a.AccountId == accountId && a.AccountType == GlobalConstants.ProspectAccountType);
         });
-    }
-
-    private async Task<bool> HasRoleLabel(int contactId, int accountId)
-    {
-        return await _accountContext.RoleLabelEntity.AnyAsync(rl => rl.ContactId == contactId && rl.AccountId == accountId);
     }
 
     public async Task UpdateLastActivityDateAsync(int accountId, int contactId, string contactType, DateTime lastActivityDate)

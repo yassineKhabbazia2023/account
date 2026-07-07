@@ -50,7 +50,7 @@ public static class MapAccountDatabaseToAccountModel
         return source?.Select(a => a.MapToAccount(contactId)!) ?? [];
     }
 
-    public static AccountModel? MapToAccount(this AccountEntity source, int? contactId)
+    public static AccountModel? MapToAccount(this AccountEntity? source, int? contactId)
     {
         if (source == null)
         {

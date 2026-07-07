@@ -89,7 +89,7 @@ public class OfferEligibilityServiceTests
             LastName = "Test",
         };
         _contactRepositoryMock.Setup(c => c.GetContactByIdAsync(contact.ContactId)).ReturnsAsync(contact);
-        _roleRepositoryMock.Setup(x => x.IsContactHasRoleOnAccount(contact.ContactId, accountId, null)).ReturnsAsync(false);
+        _roleRepositoryMock.Setup(x => x.IsContactHasRoleOnAccountAsync(contact.ContactId, accountId, null)).ReturnsAsync(false);
 
         // Act
         Func<Task> act = async () => await _service.UpdateOfferEligibilityAsync(contact.ContactId, accountId);
@@ -117,7 +117,7 @@ public class OfferEligibilityServiceTests
             .Setup(c => c.GetContactByIdAsync(contact.ContactId))
             .ReturnsAsync(contact);
 
-        _roleRepositoryMock.Setup(x => x.IsContactHasRoleOnAccount(contact.ContactId, accountId, null)).ReturnsAsync(true);
+        _roleRepositoryMock.Setup(x => x.IsContactHasRoleOnAccountAsync(contact.ContactId, accountId, null)).ReturnsAsync(true);
 
         _offerEligibilityRepositoryMock
             .Setup(r => r.IsOfferEligibilityActiveAsync(accountId))
@@ -159,7 +159,7 @@ public class OfferEligibilityServiceTests
             .Setup(c => c.GetContactByIdAsync(contact.ContactId))
             .ReturnsAsync(contact);
 
-        _roleRepositoryMock.Setup(x => x.IsContactHasRoleOnAccount(contact.ContactId, accountId, null)).ReturnsAsync(true);
+        _roleRepositoryMock.Setup(x => x.IsContactHasRoleOnAccountAsync(contact.ContactId, accountId, null)).ReturnsAsync(true);
 
         _offerEligibilityRepositoryMock
             .Setup(r => r.IsOfferEligibilityActiveAsync(accountId))

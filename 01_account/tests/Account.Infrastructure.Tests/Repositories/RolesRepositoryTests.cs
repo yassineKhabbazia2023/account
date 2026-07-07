@@ -1369,7 +1369,7 @@ public class RolesRepositoryTests
         var rolesRepository = new RoleRepository(context);
 
         // Act: Call the CheckRoleExistsAsync method with the defined inputs
-        var contactHasRoleOnAccount = await rolesRepository.IsContactHasRoleOnAccount(contactEntity.ContactId, 1, accountEntity.AccountNumber);
+        var contactHasRoleOnAccount = await rolesRepository.IsContactHasRoleOnAccountAsync(contactEntity.ContactId, 1, accountEntity.AccountNumber);
 
         // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
         Assert.True(contactHasRoleOnAccount);
@@ -1401,7 +1401,7 @@ public class RolesRepositoryTests
         var rolesRepository = new RoleRepository(context);
 
         // Act: Call the CheckRoleExistsAsync method with the defined inputs
-        var contactHasRoleOnAccount = await rolesRepository.IsContactHasRoleOnAccount(contactEntity.ContactId, null, "wrongAccountNumber");
+        var contactHasRoleOnAccount = await rolesRepository.IsContactHasRoleOnAccountAsync(contactEntity.ContactId, null, "wrongAccountNumber");
 
         // Assert: Verify if the contact passed as a parameter has a role on the account of the primary contact
         Assert.False(contactHasRoleOnAccount);
@@ -1646,7 +1646,7 @@ public class RolesRepositoryTests
 
         var repository = new RoleRepository(context);
 
-        var result = await repository.IsContactHasRoleOnAccount(contact.ContactId, null, prospectAccount.AccountNumber);
+        var result = await repository.IsContactHasRoleOnAccountAsync(contact.ContactId, null, prospectAccount.AccountNumber);
 
         Assert.True(result);
     }
@@ -1683,7 +1683,7 @@ public class RolesRepositoryTests
 
         var repository = new RoleRepository(context);
 
-        var result = await repository.IsContactHasRoleOnAccount(contact.ContactId, prospectAccount.AccountId, null);
+        var result = await repository.IsContactHasRoleOnAccountAsync(contact.ContactId, prospectAccount.AccountId, null);
 
         Assert.True(result);
     }

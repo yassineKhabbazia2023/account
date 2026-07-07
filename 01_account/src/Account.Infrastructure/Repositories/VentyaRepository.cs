@@ -9,7 +9,6 @@ using Polly.Retry;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
-using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Context;
 
 namespace Pulse.Account.Infrastructure.Repositories;
