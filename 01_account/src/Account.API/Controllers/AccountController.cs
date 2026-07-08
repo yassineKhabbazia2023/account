@@ -46,7 +46,7 @@ public class AccountController(IAccountService accountService) : ControllerBase
             AccountId = createdAccount.AccountId
         };
 
-        return CreatedAtAction(nameof(GetAccountsAsync), new { accountId = createdAccount.AccountId }, response);
+        return Created(string.Empty, response);
     }
 
     /// <summary>

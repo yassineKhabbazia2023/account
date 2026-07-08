@@ -150,7 +150,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         var result = await controller.CreateAccountAsync(currentUserId, request);
 
         // Assert
-        var createdResult = result.Result as CreatedAtActionResult;
+        var createdResult = result.Result as CreatedResult;
         Assert.NotNull(createdResult);
         Assert.Equal(201, createdResult!.StatusCode);
         var response = createdResult.Value.As<CreateAccountResponse>();
