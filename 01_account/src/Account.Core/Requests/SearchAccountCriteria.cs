@@ -21,6 +21,10 @@ namespace Pulse.Account.Core.Requests
 
         public List<string>? MissionType { get; set; }
 
+        public DateTime? LastActivityDateFrom { get; set; }
+
+        public DateTime? LastActivityDateTo { get; set; }
+
         public Sorting? Sorting { get; set; }
 
     }

@@ -73,13 +73,31 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
 
     public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination)
     {
-        // Construire la requête de base, en AsNoTracking, avec un premier filtre sur ContactId
-        var baseQuery = from a in _accountContext.AccountEntity.AsNoTracking()
-                        join r in _accountContext.RoleEntity on a.AccountId equals r.AccountId
-                        where r.ContactId == criteria.ContactId &&
-                        (criteria.IsFavoriteFilter != true || r.IsFavorite == true) &&
-                        (criteria.IsCustomerRelationFilter != true || r.IsCustomerRelation == true)
-                        select a;
+        var pairs = _accountContext.AccountEntity.AsNoTracking()
+            .Join(_accountContext.RoleEntity, a => a.AccountId, r => r.AccountId, (a, r) => new { Account = a, Role = r })
+            .Where(x => x.Role.ContactId == criteria.ContactId);
+
+        if (criteria.IsFavoriteFilter == true)
+        {
+            pairs = pairs.Where(x => x.Role.IsFavorite == true);
+        }
+
+        if (criteria.IsCustomerRelationFilter == true)
+        {
+            pairs = pairs.Where(x => x.Role.IsCustomerRelation == true);
+        }
+
+        if (criteria.LastActivityDateFrom != null)
+        {
+            pairs = pairs.Where(x => x.Role.LastActivityDate >= criteria.LastActivityDateFrom);
+        }
+
+        if (criteria.LastActivityDateTo != null)
+        {
+            pairs = pairs.Where(x => x.Role.LastActivityDate <= criteria.LastActivityDateTo);
+        }
+
+        var baseQuery = pairs.Select(x => x.Account);
 
         // Appliquer les filtres
         baseQuery = baseQuery

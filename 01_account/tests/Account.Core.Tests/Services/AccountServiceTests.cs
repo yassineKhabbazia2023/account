@@ -199,6 +199,75 @@ namespace Pulse.Account.Core.Tests.Services
             Assert.Equal(new[] { missionType }, capturedCriteria!.MissionType);
         }
 
+        [Fact]
+        public async Task GetAccountsAsync_WhenLastActivityDateFromIsAfterDateTo_ShouldThrowBadRequestException()
+        {
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);
+            var criteria = new SearchAccountCriteria
+            {
+                ContactId = 123,
+                LastActivityDateFrom = new DateTime(2026, 7, 6, 0, 0, 0, DateTimeKind.Utc),
+                LastActivityDateTo = new DateTime(2026, 7, 5, 0, 0, 0, DateTimeKind.Utc)
+            };
+
+            var action = async () => await accountService.GetAccountsAsync(criteria, new Pagination());
+
+            var exception = await Assert.ThrowsAsync<BadRequestException>(action);
+            Assert.Equal(Errors.BadRequestLastActivityRangeCode, exception.Code);
+            _accountRepository.Verify(
+                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task GetAccountsAsync_WhenLastActivityRangeIsValid_ShouldForwardItToRepository()
+        {
+            SearchAccountCriteria? capturedCriteria = null;
+            _accountRepository.Setup(repository =>
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
+                .Callback<SearchAccountCriteria, Pagination>((criteria, pagination) => capturedCriteria = criteria)
+                .ReturnsAsync(_fixture.Create<Paging<AccountModel>>());
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);
+            var from = new DateTime(2026, 6, 6, 0, 0, 0, DateTimeKind.Utc);
+            var to = new DateTime(2026, 7, 6, 0, 0, 0, DateTimeKind.Utc);
+            var inputCriteria = new SearchAccountCriteria
+            {
+                ContactId = 123,
+                LastActivityDateFrom = from,
+                LastActivityDateTo = to
+            };
+
+            await accountService.GetAccountsAsync(inputCriteria, new Pagination());
+
+            Assert.NotNull(capturedCriteria);
+            Assert.Equal(from, capturedCriteria!.LastActivityDateFrom);
+            Assert.Equal(to, capturedCriteria.LastActivityDateTo);
+        }
+
+        [Fact]
+        public async Task GetAccountsAsync_WhenLastActivityBoundsAreEqual_ShouldCallRepository()
+        {
+            _accountRepository.Setup(repository =>
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
+                .ReturnsAsync(_fixture.Create<Paging<AccountModel>>());
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);
+            var bound = new DateTime(2026, 7, 6, 0, 0, 0, DateTimeKind.Utc);
+            var inputCriteria = new SearchAccountCriteria
+            {
+                ContactId = 123,
+                LastActivityDateFrom = bound,
+                LastActivityDateTo = bound
+            };
+
+            await accountService.GetAccountsAsync(inputCriteria, new Pagination());
+
+            _accountRepository.Verify(
+                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()),
+                Times.Once);
+        }
+
         #endregion GetAccountsAsync coverage additions
 
         [Fact]

@@ -3989,4 +3989,186 @@ public class AccountRepositoryTests
     }
 
     #endregion LABEL sorting coverage
+
+    #region LastActivityDate filter
+
+    private static readonly DateTime ActivityReference = new(2026, 7, 6, 12, 0, 0, DateTimeKind.Utc);
+
+    private static ContactEntity CreateActivityContact(string email, int contactId)
+    {
+        return new ContactEntity
+        {
+            ContactId = contactId,
+            Type = "1",
+            FirstName = "first",
+            LastName = "last",
+            Email = email,
+            CreationDate = DateTime.Now,
+            PersonaName = "persona",
+            IsActive = true,
+        };
+    }
+
+    private static AccountEntity CreateAccountWithActivity(ContactEntity contact, string legalName, DateTime? lastActivityDate, bool isFavorite = false)
+    {
+        var account = new AccountEntity
+        {
+            AccountNumber = legalName,
+            LegalName = legalName,
+            CreatedBy = "me",
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString(),
+            RoleEntity = new List<RoleEntity>
+            {
+                new()
+                {
+                    Contact = contact,
+                    LastActivityDate = lastActivityDate,
+                    IsFavorite = isFavorite,
+                }
+            },
+        };
+
+        account.DeploymentEntity = new DeploymentEntity { Account = account, Status = 1 };
+        return account;
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenLastActivityDateFromIsSet_ShouldReturnOnlyAccountsUsedSinceAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        context.AccountEntity.AddRange(
+            CreateAccountWithActivity(contact, "recent", ActivityReference.AddDays(-5)),
+            CreateAccountWithActivity(contact, "boundary", ActivityReference.AddDays(-30)),
+            CreateAccountWithActivity(contact, "old", ActivityReference.AddDays(-40)),
+            CreateAccountWithActivity(contact, "never", null));
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+            LastActivityDateFrom = ActivityReference.AddDays(-30),
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Select(account => account.LegalName).Should().BeEquivalentTo("recent", "boundary");
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenNoLastActivityRange_ShouldReturnAllAccountsAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        context.AccountEntity.AddRange(
+            CreateAccountWithActivity(contact, "recent", ActivityReference.AddDays(-5)),
+            CreateAccountWithActivity(contact, "old", ActivityReference.AddDays(-40)),
+            CreateAccountWithActivity(contact, "never", null));
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Should().HaveCount(3);
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenLastActivityDateToIsSet_ShouldExcludeAccountsUsedAfterAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        context.AccountEntity.AddRange(
+            CreateAccountWithActivity(contact, "recent", ActivityReference.AddDays(-5)),
+            CreateAccountWithActivity(contact, "mid", ActivityReference.AddDays(-20)),
+            CreateAccountWithActivity(contact, "old", ActivityReference.AddDays(-40)));
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+            LastActivityDateFrom = ActivityReference.AddDays(-30),
+            LastActivityDateTo = ActivityReference.AddDays(-10),
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Select(account => account.LegalName).Should().BeEquivalentTo("mid");
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenLastActivityDateEqualsUpperBound_ShouldIncludeAccountAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        context.AccountEntity.AddRange(
+            CreateAccountWithActivity(contact, "on upper bound", ActivityReference.AddDays(-10)),
+            CreateAccountWithActivity(contact, "after upper bound", ActivityReference.AddDays(-5)));
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+            LastActivityDateTo = ActivityReference.AddDays(-10),
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Select(account => account.LegalName).Should().BeEquivalentTo("on upper bound");
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenOtherContactHasRecentActivity_ShouldNotMatchCurrentContactFilterAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var currentContact = CreateActivityContact("current@test.fr", 501);
+        var otherContact = CreateActivityContact("other@test.fr", 502);
+        var account = CreateAccountWithActivity(currentContact, "shared", null);
+        account.RoleEntity.Add(new RoleEntity
+        {
+            Contact = otherContact,
+            LastActivityDate = ActivityReference.AddDays(-1),
+        });
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = currentContact.ContactId,
+            LastActivityDateFrom = ActivityReference.AddDays(-30),
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenLastActivityRangeAndFavoriteFilter_ShouldApplyBothAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        context.AccountEntity.AddRange(
+            CreateAccountWithActivity(contact, "favorite recent", ActivityReference.AddDays(-5), isFavorite: true),
+            CreateAccountWithActivity(contact, "favorite old", ActivityReference.AddDays(-40), isFavorite: true),
+            CreateAccountWithActivity(contact, "not favorite recent", ActivityReference.AddDays(-5)));
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+            IsFavoriteFilter = true,
+            LastActivityDateFrom = ActivityReference.AddDays(-30),
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Select(account => account.LegalName).Should().BeEquivalentTo("favorite recent");
+    }
+
+    #endregion LastActivityDate filter
 }

@@ -166,4 +166,10 @@ public static class Errors
 
     public static readonly string CannotDeleteRoleWithExclusiveLabelCode = "ACC053";
     public static readonly string CannotDeleteRoleWithExclusiveLabelMessage = "Impossible de retirer le collaborateur : le contact possède un libellé AM ou CLP sur ce compte.";
+
+    public static readonly string BadRequestLastActivityRangeCode = "ACC055";
+    public static readonly string BadRequestLastActivityRangeMessage = "La plage de dates de dernière utilisation est invalide : la date de début doit être antérieure ou égale à la date de fin.";
+
+    public static readonly string BadRequestLastActivityUtcCode = "ACC056";
+    public static readonly string BadRequestLastActivityUtcMessage = "Les dates de dernière utilisation doivent être des instants UTC (format ISO 8601 avec suffixe Z).";
 }
