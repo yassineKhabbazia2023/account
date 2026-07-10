@@ -3,7 +3,7 @@
 // </copyright>
 
 using Pulse.Account.Core.Enum;
-using Pulse.Account.Infrastructure.Entities;
+using Pulse.Account.Infrastructure.Utils;
 
 namespace Pulse.Account.Infrastructure.Extensions;
 
@@ -14,7 +14,42 @@ namespace Pulse.Account.Infrastructure.Extensions;
 /// </summary>
 public static class AccountQueryFilterExtensions
 {
-    public static IQueryable<AccountEntity> ApplySearch(this IQueryable<AccountEntity> query, string? search)
+    public static IQueryable<AccountRolePair> ApplyFavorite(this IQueryable<AccountRolePair> query, bool? isFavoriteFilter)
+    {
+        if (isFavoriteFilter != true)
+        {
+            return query;
+        }
+
+        return query.Where(x => x.Role.IsFavorite == true);
+    }
+
+    public static IQueryable<AccountRolePair> ApplyCustomerRelation(this IQueryable<AccountRolePair> query, bool? isCustomerRelationFilter)
+    {
+        if (isCustomerRelationFilter != true)
+        {
+            return query;
+        }
+
+        return query.Where(x => x.Role.IsCustomerRelation == true);
+    }
+
+    public static IQueryable<AccountRolePair> ApplyLastActivityRange(this IQueryable<AccountRolePair> query, DateTime? from, DateTime? to)
+    {
+        if (from != null)
+        {
+            query = query.Where(x => x.Role.LastActivityDate >= from);
+        }
+
+        if (to != null)
+        {
+            query = query.Where(x => x.Role.LastActivityDate <= to);
+        }
+
+        return query;
+    }
+
+    public static IQueryable<AccountRolePair> ApplySearch(this IQueryable<AccountRolePair> query, string? search)
     {
         if (string.IsNullOrWhiteSpace(search))
         {
@@ -24,26 +59,26 @@ public static class AccountQueryFilterExtensions
         var term = search.Trim();
 
         // Filtrer par LegalName, AccountNumber, ou par un rôle signataire dont le Contact correspond à la recherche
-        return query.Where(a =>
-            a.LegalName.Contains(term) ||
-            a.AccountNumber.Contains(term) ||
-            a.RoleEntity.Any(r =>
+        return query.Where(x =>
+            x.Account.LegalName.Contains(term) ||
+            x.Account.AccountNumber.Contains(term) ||
+            x.Account.RoleEntity.Any(r =>
                 r.IsSignatory == true &&
                 ((r.Contact.FirstName + " " + r.Contact.LastName).Contains(term)
                     || r.Contact.Email.Contains(term))));
     }
 
-    public static IQueryable<AccountEntity> ApplyDeploymentStatus(this IQueryable<AccountEntity> query, ICollection<int>? deploymentStatuses)
+    public static IQueryable<AccountRolePair> ApplyDeploymentStatus(this IQueryable<AccountRolePair> query, ICollection<int>? deploymentStatuses)
     {
         if (deploymentStatuses == null || deploymentStatuses.Count == 0)
         {
             return query;
         }
 
-        return query.Where(a => deploymentStatuses.Contains(a.DeploymentEntity.Status));
+        return query.Where(x => deploymentStatuses.Contains(x.Account.DeploymentEntity.Status));
     }
 
-    public static IQueryable<AccountEntity> ApplyMissionType(this IQueryable<AccountEntity> query, ICollection<string>? missionTypes)
+    public static IQueryable<AccountRolePair> ApplyMissionType(this IQueryable<AccountRolePair> query, ICollection<string>? missionTypes)
     {
         if (missionTypes == null || missionTypes.Count == 0)
         {
@@ -54,8 +89,8 @@ public static class AccountQueryFilterExtensions
         var includeNone = missionTypes.Contains(MissionType.None.ToString());
         var concreteTypes = missionTypes.Where(m => m != MissionType.None.ToString()).ToList();
 
-        return query.Where(a =>
-            concreteTypes.Contains(a.MissionType) ||
-            (includeNone && string.IsNullOrEmpty(a.MissionType)));
+        return query.Where(x =>
+            concreteTypes.Contains(x.Account.MissionType) ||
+            (includeNone && string.IsNullOrEmpty(x.Account.MissionType)));
     }
 }

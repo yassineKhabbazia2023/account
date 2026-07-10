@@ -20,6 +20,7 @@ using Pulse.Account.Infrastructure.Context;
 using Pulse.Account.Infrastructure.Entities;
 using Pulse.Account.Infrastructure.Extensions;
 using Pulse.Account.Infrastructure.Mappers;
+using Pulse.Account.Infrastructure.Utils;
 using Pulse.ExceptionMiddleware.Exceptions;
 using AccountModel = Pulse.Account.Core.Models.Account;
 
@@ -32,6 +33,18 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
         RoleLabelCodes.AccountManager,
         RoleLabelCodes.CustomerLeadPartner
     ];
+
+    private static readonly Expression<Func<AccountRolePair, string?>> SignatoryNameKey =
+        x => x.Account.RoleEntity
+            .Where(r => r.IsSignatory == true)
+            .Select(r => r.Contact.FirstName + r.Contact.LastName)
+            .FirstOrDefault();
+
+    private static readonly Expression<Func<AccountRolePair, string?>> SignatoryEmailKey =
+        x => x.Account.RoleEntity
+            .Where(r => r.IsSignatory == true)
+            .Select(r => r.Contact.Email)
+            .FirstOrDefault();
 
     private readonly AccountContext _accountContext = accountContext;
     private static readonly AsyncRetryPolicy _retryPolicy = Policy
@@ -73,34 +86,12 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
 
     public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination)
     {
-        var pairs = _accountContext.AccountEntity.AsNoTracking()
-            .Join(_accountContext.RoleEntity, a => a.AccountId, r => r.AccountId, (a, r) => new { Account = a, Role = r })
-            .Where(x => x.Role.ContactId == criteria.ContactId);
-
-        if (criteria.IsFavoriteFilter == true)
-        {
-            pairs = pairs.Where(x => x.Role.IsFavorite == true);
-        }
-
-        if (criteria.IsCustomerRelationFilter == true)
-        {
-            pairs = pairs.Where(x => x.Role.IsCustomerRelation == true);
-        }
-
-        if (criteria.LastActivityDateFrom != null)
-        {
-            pairs = pairs.Where(x => x.Role.LastActivityDate >= criteria.LastActivityDateFrom);
-        }
-
-        if (criteria.LastActivityDateTo != null)
-        {
-            pairs = pairs.Where(x => x.Role.LastActivityDate <= criteria.LastActivityDateTo);
-        }
-
-        var baseQuery = pairs.Select(x => x.Account);
-
-        // Appliquer les filtres
-        baseQuery = baseQuery
+        var baseQuery = _accountContext.AccountEntity.AsNoTracking()
+            .Join(_accountContext.RoleEntity, a => a.AccountId, r => r.AccountId, (a, r) => new AccountRolePair { Account = a, Role = r })
+            .Where(x => x.Role.ContactId == criteria.ContactId)
+            .ApplyFavorite(criteria.IsFavoriteFilter)
+            .ApplyCustomerRelation(criteria.IsCustomerRelationFilter)
+            .ApplyLastActivityRange(criteria.LastActivityDateFrom, criteria.LastActivityDateTo)
             .ApplySearch(criteria.Search)
             .ApplyDeploymentStatus(criteria.DeploymentStatus)
             .ApplyMissionType(criteria.MissionType);
@@ -109,23 +100,26 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
         var totalItems = await baseQuery.CountAsync();
         var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
-        var query = GetAccountEntitiesSorted(baseQuery, criteria.Sorting, criteria.ContactId);
-
-        // Appliquer le Skip et le Take avant les Includes
-        query = query
+        var pageAccountIds = await GetAccountRolePairsSorted(baseQuery, criteria.Sorting)
             .Skip((pagination.PageNumber - 1) * pagination.PageSize)
-            .Take(pagination.PageSize);
+            .Take(pagination.PageSize)
+            .Select(x => x.Account.AccountId)
+            .ToListAsync();
 
-        query = query
+        var entities = await _accountContext.AccountEntity.AsNoTracking()
+            .Where(a => pageAccountIds.Contains(a.AccountId))
             .Include(a => a.RoleEntity)
                 .ThenInclude(r => r.Contact)
             .Include(a => a.AddressEntity)
-            .Include(a => a.DeploymentEntity);
+            .Include(a => a.DeploymentEntity)
+            .ToListAsync();
 
-        var entities = await query.ToListAsync();
+        var orderedEntities = pageAccountIds
+            .Select(accountId => entities.First(e => e.AccountId == accountId))
+            .ToList();
 
         return MapAccountDatabaseToAccountModel.MapToPaginAccounts(
-        entities,
+        orderedEntities,
         criteria.ContactId,
         pagination.PageNumber,
         totalItems,
@@ -133,99 +127,64 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
     );
     }
 
-    private static IQueryable<AccountEntity> GetAccountEntitiesSorted(IQueryable<AccountEntity> query, Sorting? sorting, int? contactId = null)
+    private static IQueryable<AccountRolePair> GetAccountRolePairsSorted(IQueryable<AccountRolePair> query, Sorting? sorting)
+    {
+        var sorted = sorting == null || string.IsNullOrEmpty(sorting.Field)
+            ? query
+                .OrderByDescending(x => x.Role.IsFavorite == true)
+                .ThenByDescending(x => x.Role.LastActivityDate)
+                .ThenBy(x => x.Account.LegalName)
+            : sorting.Field switch
+            {
+                SortingConstants.COMPANYNAME => query.OrderByDirection(x => x.Account.LegalName, sorting.Descending),
+                SortingConstants.CUSTOMERCODE => query.OrderByDirection(x => x.Account.AccountNumber, sorting.Descending),
+                SortingConstants.LEADER => query.OrderByDirection(SignatoryNameKey, sorting.Descending),
+                SortingConstants.EMAIL => query.OrderByDirection(SignatoryEmailKey, sorting.Descending),
+                SortingConstants.CITY => query.OrderByDirection(x => x.Account.AddressEntity.Select(a => a.City).FirstOrDefault(), sorting.Descending),
+                SortingConstants.STATUS => query.OrderByDirection(x => x.Account.DeploymentEntity.Status, sorting.Descending),
+                SortingConstants.LASTACTIVITYDATE => query
+                    .OrderByDirection(x => x.Role.LastActivityDate, sorting.Descending)
+                    .ThenBy(x => x.Account.LegalName),
+                _ => throw new BadRequestException(
+                    Errors.BadRequestContactsAccountCode,
+                    string.Format(Errors.BadRequestContactsAccountMessage, sorting.Field)),
+            };
+
+        return sorted.ThenBy(x => x.Account.AccountId);
+    }
+
+    private static IQueryable<AccountEntity> GetAccountEntitiesSorted(IQueryable<AccountEntity> query, Sorting? sorting)
     {
         if (sorting == null || string.IsNullOrEmpty(sorting.Field))
         {
-            if (contactId != null)
-            {
-                return query.OrderByDescending(x => x.RoleEntity
-                        .Where(r => r.ContactId == contactId)
-                        .Select(r => r.LastActivityDate)
-                        .FirstOrDefault())
-                    .ThenBy(x => x.LegalName);
-            }
-            else
-            {
-                return query.OrderBy(x => x.LegalName);
-            }
+            return query.OrderBy(x => x.LegalName);
         }
 
-        switch (sorting.Field)
+        return sorting.Field switch
         {
-            case SortingConstants.COMPANYNAME:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.LegalName)
-                    : query.OrderBy(x => x.LegalName);
-                break;
-
-            case SortingConstants.CUSTOMERCODE:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.AccountNumber)
-                    : query.OrderBy(x => x.AccountNumber);
-                break;
-
-            case SortingConstants.LEADER:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.RoleEntity
-                        .Where(r => r.IsSignatory == true)
-                        .Select(r => r.Contact.FirstName + r.Contact.LastName)
-                        .FirstOrDefault())
-                    : query.OrderBy(x => x.RoleEntity
-                        .Where(r => r.IsSignatory == true)
-                        .Select(r => r.Contact.FirstName + r.Contact.LastName)
-                        .FirstOrDefault());
-                break;
-
-            case SortingConstants.EMAIL:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.RoleEntity
-                        .Where(r => r.IsSignatory == true)
-                        .Select(r => r.Contact.Email)
-                        .FirstOrDefault())
-                    : query.OrderBy(x => x.RoleEntity
-                        .Where(r => r.IsSignatory == true)
-                        .Select(r => r.Contact.Email)
-                        .FirstOrDefault());
-                break;
-
-            case SortingConstants.CITY:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.AddressEntity
-                        .Select(a => a.City)
-                        .FirstOrDefault())
-                    : query.OrderBy(x => x.AddressEntity
-                        .Select(a => a.City)
-                        .FirstOrDefault());
-                break;
-
-            case SortingConstants.STATUS:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.DeploymentEntity.Status)
-                    : query.OrderBy(x => x.DeploymentEntity.Status);
-                break;
-
-            case SortingConstants.LASTACTIVITYDATE:
-                query = sorting.Descending
-                    ? query.OrderByDescending(x => x.RoleEntity
-                            .Where(r => contactId == null || r.ContactId == contactId)
-                            .Select(r => r.LastActivityDate)
-                            .FirstOrDefault())
-                        .ThenBy(x => x.LegalName)
-                    : query.OrderBy(x => x.RoleEntity
-                            .Where(r => contactId == null || r.ContactId == contactId)
-                            .Select(r => r.LastActivityDate)
-                            .FirstOrDefault())
-                        .ThenBy(x => x.LegalName);
-                break;
-
-            default:
-                throw new BadRequestException(
-                    Errors.BadRequestContactsAccountCode,
-                    string.Format(Errors.BadRequestContactsAccountMessage, sorting.Field));
-        }
-
-        return query;
+            SortingConstants.COMPANYNAME => query.OrderByDirection(x => x.LegalName, sorting.Descending),
+            SortingConstants.CUSTOMERCODE => query.OrderByDirection(x => x.AccountNumber, sorting.Descending),
+            SortingConstants.LEADER => query.OrderByDirection(
+                x => x.RoleEntity
+                    .Where(r => r.IsSignatory == true)
+                    .Select(r => r.Contact.FirstName + r.Contact.LastName)
+                    .FirstOrDefault(),
+                sorting.Descending),
+            SortingConstants.EMAIL => query.OrderByDirection(
+                x => x.RoleEntity
+                    .Where(r => r.IsSignatory == true)
+                    .Select(r => r.Contact.Email)
+                    .FirstOrDefault(),
+                sorting.Descending),
+            SortingConstants.CITY => query.OrderByDirection(x => x.AddressEntity.Select(a => a.City).FirstOrDefault(), sorting.Descending),
+            SortingConstants.STATUS => query.OrderByDirection(x => x.DeploymentEntity.Status, sorting.Descending),
+            SortingConstants.LASTACTIVITYDATE => query
+                .OrderByDirection(x => x.RoleEntity.Select(r => r.LastActivityDate).FirstOrDefault(), sorting.Descending)
+                .ThenBy(x => x.LegalName),
+            _ => throw new BadRequestException(
+                Errors.BadRequestContactsAccountCode,
+                string.Format(Errors.BadRequestContactsAccountMessage, sorting.Field)),
+        };
     }
 
     public async Task<Paging<AccountModel>> GetAllAccountsAsync(string? accountNumber, Pagination pagination, SearchAccountCriteria criteria)

@@ -32,6 +32,12 @@ CREATE NONCLUSTERED INDEX [IX_Role_LastActivityDate]
     ON [account].[Role]([LastActivityDate] ASC);
 
 GO
+CREATE NONCLUSTERED INDEX [IX_Role_Signatory_AccountId]
+    ON [account].[Role]([AccountId] ASC)
+    INCLUDE ([ContactId])
+    WHERE [IsSignatory] = 1;
+
+GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'L''identifiant technique de l''entité',
     @level0type = N'SCHEMA',

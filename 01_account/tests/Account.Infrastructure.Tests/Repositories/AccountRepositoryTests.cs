@@ -1671,11 +1671,18 @@ public class AccountRepositoryTests
     [Theory]
     [InlineData(SortingConstants.COMPANYNAME, false, "legalName1")]
     [InlineData(SortingConstants.COMPANYNAME, true, "legalName2")]
+    [InlineData(SortingConstants.CUSTOMERCODE, false, "legalName1")]
     [InlineData(SortingConstants.CUSTOMERCODE, true, "legalName2")]
+    [InlineData(SortingConstants.LEADER, false, "legalName1")]
+    [InlineData(SortingConstants.LEADER, true, "legalName2")]
+    [InlineData(SortingConstants.EMAIL, false, "legalName1")]
+    [InlineData(SortingConstants.EMAIL, true, "legalName2")]
     [InlineData(SortingConstants.CITY, true, "legalName2")]
     [InlineData(SortingConstants.CITY, false, "legalName1")]
     [InlineData(SortingConstants.STATUS, true, "legalName1")]
     [InlineData(SortingConstants.STATUS, false, "legalName1")]
+    [InlineData(SortingConstants.LASTACTIVITYDATE, false, "legalName2")]
+    [InlineData(SortingConstants.LASTACTIVITYDATE, true, "legalName1")]
     public async Task GetAllAccountsAsync_WithAccountNumber_ShouldSortResults(string field, bool isDescending, string accountLegalnameExpected)
     {
         using (var context = new AccountContext(_dbContextOptions))
@@ -1687,6 +1694,7 @@ public class AccountRepositoryTests
                 .With(c => c.ContactId, 1)
                 .With(c => c.FirstName, "fname1")
                 .With(c => c.Email, "email1")
+                .With(c => c.IsActive, true)
                 .Without(c => c.RoleEntity)
                 .Without(c => c.DelegationEntityDelegatee)
                 .Without(c => c.DelegationEntityDelegator)
@@ -1697,6 +1705,7 @@ public class AccountRepositoryTests
                 .With(c => c.ContactId, 22)
                 .With(c => c.FirstName, "fname2")
                 .With(c => c.Email, "email2")
+                .With(c => c.IsActive, true)
                 .Without(c => c.RoleEntity)
                 .Without(c => c.DelegationEntityDelegatee)
                 .Without(c => c.DelegationEntityDelegator)
@@ -1707,6 +1716,7 @@ public class AccountRepositoryTests
                 .With(r => r.IsSignatory, true)
                 .With(r => r.AccountId, 1)
                 .With(r => r.ContactId, 1)
+                .With(r => r.LastActivityDate, (DateTime?)new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc))
                 .Without(r => r.Account)
                 .Without(r => r.Contact)
                 .Create();
@@ -1725,6 +1735,7 @@ public class AccountRepositoryTests
                 .With(r => r.IsSignatory, true)
                 .With(r => r.AccountId, 2)
                 .With(r => r.ContactId, 22)
+                .With(r => r.LastActivityDate, (DateTime?)new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc))
                 .Without(r => r.Account)
                 .Without(r => r.Contact)
                 .Create();
@@ -1792,6 +1803,33 @@ public class AccountRepositoryTests
 
             // Assert
             Assert.Equal(accountLegalnameExpected, result.Items.First().LegalName);
+        }
+    }
+
+    [Fact]
+    public async Task GetAllAccountsAsync_WhenSortingFieldIsUnknown_ShouldThrowBadRequestException()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            // Arrange
+            context.Database.EnsureDeleted();
+            context.Database.EnsureCreated();
+            var accountRepository = new AccountRepository(context);
+            var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+            var searchAccountCriteria = new SearchAccountCriteria
+            {
+                Sorting = new Sorting
+                {
+                    Descending = false,
+                    Field = "unknownField"
+                }
+            };
+
+            // Act
+            Task Accounts() => accountRepository.GetAllAccountsAsync(null, pagination, searchAccountCriteria);
+
+            // Assert
+            await Assert.ThrowsAsync<BadRequestException>(Accounts);
         }
     }
 
@@ -4171,4 +4209,163 @@ public class AccountRepositoryTests
     }
 
     #endregion LastActivityDate filter
+
+    #region Default sort favorites first
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenNoSorting_ShouldReturnFavoritesFirstThenStandardOrderAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        context.AccountEntity.AddRange(
+            CreateAccountWithActivity(contact, "reg recent", ActivityReference.AddDays(-2)),
+            CreateAccountWithActivity(contact, "fav old", ActivityReference.AddDays(-40), isFavorite: true),
+            CreateAccountWithActivity(contact, "reg none", null),
+            CreateAccountWithActivity(contact, "fav recent", ActivityReference.AddDays(-1), isFavorite: true),
+            CreateAccountWithActivity(contact, "reg old", ActivityReference.AddDays(-50)));
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Select(account => account.LegalName)
+            .Should().Equal("fav recent", "fav old", "reg recent", "reg old", "reg none");
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenSortingByCompanyName_ShouldNotPutFavoritesFirstAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        context.AccountEntity.AddRange(
+            CreateAccountWithActivity(contact, "zzz favorite", ActivityReference.AddDays(-1), isFavorite: true),
+            CreateAccountWithActivity(contact, "aaa regular", ActivityReference.AddDays(-40)));
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+            Sorting = new Sorting { Field = SortingConstants.COMPANYNAME, Descending = false },
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Select(account => account.LegalName)
+            .Should().Equal("aaa regular", "zzz favorite");
+    }
+
+    #endregion Default sort favorites first
+
+    #region Search signatory scope
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenSignatoryMatchesOnForeignAccount_ShouldNotLeakOutsidePortfolioAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var currentContact = CreateActivityContact("me@test.fr", 501);
+        var signatory = CreateActivityContact("bob.signataire@test.fr", 502);
+        signatory.FirstName = "bob";
+        signatory.LastName = "signataire";
+        var otherOwner = CreateActivityContact("other@test.fr", 503);
+
+        var mine = CreateAccountWithActivity(currentContact, "mine", null);
+        mine.RoleEntity.Add(new RoleEntity { Contact = signatory, IsSignatory = true });
+        var foreign = CreateAccountWithActivity(otherOwner, "foreign", null);
+        foreign.RoleEntity.Add(new RoleEntity { Contact = signatory, IsSignatory = true });
+
+        context.AccountEntity.AddRange(mine, foreign);
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = currentContact.ContactId,
+            Search = "bob",
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Select(account => account.LegalName).Should().BeEquivalentTo("mine");
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenAccountMatchesNameAndSignatory_ShouldReturnItOnceAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var currentContact = CreateActivityContact("me@test.fr", 501);
+        var signatory = CreateActivityContact("bob.signataire@test.fr", 502);
+        signatory.FirstName = "bob";
+        signatory.LastName = "signataire";
+
+        var account = CreateAccountWithActivity(currentContact, "bob and co", null);
+        account.RoleEntity.Add(new RoleEntity { Contact = signatory, IsSignatory = true });
+
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = currentContact.ContactId,
+            Search = "bob",
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Should().ContainSingle(a => a.LegalName == "bob and co");
+        result.TotalItems.Should().Be(1);
+    }
+
+    #endregion Search signatory scope
+
+    #region Deterministic paging order
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenSortKeysTie_ShouldOrderByAccountIdAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        var second = CreateAccountWithActivity(contact, "twin", null);
+        second.AccountId = 902;
+        var first = CreateAccountWithActivity(contact, "twin", null);
+        first.AccountId = 901;
+        context.AccountEntity.AddRange(second, first);
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Select(account => account.AccountId).Should().Equal(901, 902);
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenSortingByStatusWithTies_ShouldOrderByAccountIdAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        var second = CreateAccountWithActivity(contact, "beta", null);
+        second.AccountId = 902;
+        var first = CreateAccountWithActivity(contact, "alpha", null);
+        first.AccountId = 901;
+        context.AccountEntity.AddRange(second, first);
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+            Sorting = new Sorting { Field = SortingConstants.STATUS, Descending = false },
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Select(account => account.AccountId).Should().Equal(901, 902);
+    }
+
+    #endregion Deterministic paging order
 }
