@@ -1071,6 +1071,7 @@ public class DelegationRepositoryTests
                 CreatedBy = "moi",
                 DeploymentEntity = deployment1,
                 IsActive = true,
+                AccountType = AccountType.CLIENT.ToString(),
             };
             var account2 = new AccountEntity
             {
@@ -1079,7 +1080,8 @@ public class DelegationRepositoryTests
                 LegalName = "illegal",
                 CreatedBy = "moi",
                 DeploymentEntity = deployment2,
-                IsActive = true
+                IsActive = true,
+                AccountType = AccountType.CLIENT.ToString()
             };
             context.AccountEntity.AddRange(new List<AccountEntity> { account1, account2 });
 
@@ -1114,6 +1116,75 @@ public class DelegationRepositoryTests
             result.Should().Contain(2);
             result.First().Should().Be(roles.First().AccountId);
             result.ElementAt(1).Should().Be(roles.ElementAt(1).AccountId);
+        }
+    }
+
+    /// <summary>
+    /// Ensures full delegation expands only client accounts from the delegator portfolio.
+    /// </summary>
+    [Fact]
+    public async Task GetAccountIdsForFullDelegationAsync_WithProspectRole_ShouldReturnOnlyClientAccountIds()
+    {
+        using (var context = new AccountContext(_dbContextOptions))
+        {
+            var contact = new ContactEntity
+            {
+                ContactId = 1,
+                Email = "jp@kpmg.fr",
+                FirstName = "Jean",
+                LastName = "Pierre",
+                PersonaName = "Collaborator",
+                Type = "collaborator",
+                Status = "Declared",
+                IsActive = true,
+            };
+            context.ContactEntity.Add(contact);
+
+            var clientAccount = new AccountEntity
+            {
+                AccountId = 1,
+                AccountNumber = "1",
+                LegalName = "client legal",
+                CreatedBy = "moi",
+                IsActive = true,
+                AccountType = AccountType.CLIENT.ToString()
+            };
+            var prospectAccount = new AccountEntity
+            {
+                AccountId = 2,
+                AccountNumber = "2",
+                LegalName = "prospect legal",
+                CreatedBy = "moi",
+                IsActive = true,
+                AccountType = AccountType.PROSPECT.ToString()
+            };
+            context.AccountEntity.AddRange(clientAccount, prospectAccount);
+
+            var roles = new List<RoleEntity>
+            {
+                new()
+                {
+                    AccountId = clientAccount.AccountId,
+                    ContactId = contact.ContactId
+                },
+                new()
+                {
+                    AccountId = prospectAccount.AccountId,
+                    ContactId = contact.ContactId
+                }
+            };
+
+            context.RoleEntity.AddRange(roles);
+            await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
+
+            var repository = new DelegationRepository(context);
+
+            var result = await repository.GetAccountIdsForFullDelegationAsync(contact.ContactId);
+
+            result.Should().ContainSingle();
+            result.Should().Contain(clientAccount.AccountId);
+            result.Should().NotContain(prospectAccount.AccountId);
         }
     }
 

@@ -3,6 +3,8 @@
 // </copyright>
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Infrastructure.Context;
@@ -16,10 +18,12 @@ namespace Pulse.Account.Infrastructure.Repositories;
 public class RoleEventRepository : IRoleEventRepository
 {
     private readonly AccountContext _accountContext;
+    private readonly ILogger<RoleEventRepository> _logger;
 
-    public RoleEventRepository(AccountContext accountContext)
+    public RoleEventRepository(AccountContext accountContext, ILogger<RoleEventRepository>? logger = null)
     {
         _accountContext = accountContext;
+        _logger = logger ?? NullLogger<RoleEventRepository>.Instance;
         _accountContext.HandleEFCoreFailure();
     }
 
@@ -55,6 +59,22 @@ public class RoleEventRepository : IRoleEventRepository
     private async Task<IEnumerable<CreateRoleRequest>> GetAutomaticDelegations(int delegatorId, int accountId)
     {
         var rolesToCreate = new List<CreateRoleRequest>();
+        var clientAccountType = AccountType.CLIENT.ToString();
+
+        var account = await _accountContext.AccountEntity
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.AccountId == accountId);
+
+        if (account is null)
+        {
+            _logger.LogWarning("Automatic delegation skipped because account {AccountId} was not found.", accountId);
+            return rolesToCreate;
+        }
+
+        if (!string.Equals(account.AccountType, clientAccountType, StringComparison.OrdinalIgnoreCase))
+        {
+            return rolesToCreate;
+        }
 
         var delegations = await _accountContext.DelegationEntity
                                         .AsNoTracking()
@@ -63,12 +83,9 @@ public class RoleEventRepository : IRoleEventRepository
                                         .ThenInclude(delegatee => delegatee.RoleEntity)
                                         .Where(d => d.DelegatorId == delegatorId
                                             && !d.Status.Equals(DelegationStatus.Disabled.ToString())
-                                            && d.IsAutomaticDelegation)
+                                            && d.IsAutomaticDelegation
+                                            && d.Account.Any(a => a.AccountType != null && a.AccountType.ToLower() == clientAccountType.ToLower()))
                                         .ToListAsync();
-
-        var account = await _accountContext.AccountEntity
-            .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.AccountId == accountId);
 
         delegations.ForEach(d =>
         {

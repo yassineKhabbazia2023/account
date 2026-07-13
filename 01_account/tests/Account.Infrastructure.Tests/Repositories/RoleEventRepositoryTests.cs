@@ -172,7 +172,8 @@ public class RoleEventRepositoryTests
             StartDate = DateTime.UtcNow,
             IsFullDelegation = true,
             IsAutomaticDelegation = true,
-            Status = DelegationStatus.Enabled.ToString()
+            Status = DelegationStatus.Enabled.ToString(),
+            Account = new List<AccountEntity> { account }
         };
         context.DelegationEntity.Add(delegation);
         await context.SaveChangesAsync();
@@ -193,6 +194,171 @@ public class RoleEventRepositoryTests
         Assert.True(data.IsDelegation);
     }
 
+    /// <summary>
+    /// Ensures automatic delegations do not create delegated roles on prospect accounts.
+    /// </summary>
+    [Fact]
+    public async Task CreateRoleForAutomaticDelegations_WhenAccountIsProspect_ShouldNotCreateRole()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                    .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                    .Options;
+
+        using var context = new AccountContext(options);
+        var repository = new RoleEventRepository(context);
+
+        var account = new AccountEntity
+        {
+            AccountId = 1,
+            AccountGlobalUniqueId = default,
+            AccountNumber = "1234",
+            LegalName = "legal",
+            CreatedBy = "pas oim",
+            IsActive = true,
+            AccountType = AccountType.PROSPECT.ToString()
+        };
+        context.AccountEntity.Add(account);
+
+        var delegator = new ContactEntity
+        {
+            ContactId = 1,
+            ContactGlobalUniqueId = default,
+            FirstName = "jean",
+            LastName = "pierre",
+            Email = "jp@kpmg.fr",
+            PersonaName = "collaborator",
+            Type = "collaborator",
+            IsActive = true
+        };
+        var delegatee = new ContactEntity
+        {
+            ContactId = 2,
+            ContactGlobalUniqueId = default,
+            FirstName = "pierre",
+            LastName = "jean",
+            Email = "pj@kpmg.fr",
+            PersonaName = "client",
+            Type = "customer",
+            IsActive = true
+        };
+        context.ContactEntity.AddRange(new List<ContactEntity> { delegator, delegatee });
+
+        var role = new RoleEntity
+        {
+            Contact = delegator,
+            Account = account,
+            IsSignatory = true,
+            IsFavorite = true,
+            IsDelegation = false
+        };
+        context.RoleEntity.Add(role);
+
+        var delegation = new DelegationEntity
+        {
+            Delegator = delegator,
+            Delegatee = delegatee,
+            StartDate = DateTime.UtcNow,
+            IsFullDelegation = true,
+            IsAutomaticDelegation = true,
+            Status = DelegationStatus.Enabled.ToString()
+        };
+        context.DelegationEntity.Add(delegation);
+        await context.SaveChangesAsync();
+
+        var result = await repository.CreateRoleForAutomaticDelegationsAsync(delegator.ContactId, account.AccountId);
+
+        Assert.Empty(result);
+        Assert.False(await context.RoleEntity.AnyAsync(r => r.ContactId == delegatee.ContactId && r.AccountId == account.AccountId));
+    }
+
+    /// <summary>
+    /// Ensures automatic delegations linked only to prospect accounts do not propagate to client accounts.
+    /// </summary>
+    [Fact]
+    public async Task CreateRoleForAutomaticDelegations_WhenDelegationSourceIsOnlyProspect_ShouldNotCreateRole()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+                    .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                    .Options;
+
+        using var context = new AccountContext(options);
+        var repository = new RoleEventRepository(context);
+
+        var clientAccount = new AccountEntity
+        {
+            AccountId = 1,
+            AccountGlobalUniqueId = default,
+            AccountNumber = "CLIENT-1234",
+            LegalName = "client legal",
+            CreatedBy = "pas oim",
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
+        };
+        var prospectAccount = new AccountEntity
+        {
+            AccountId = 2,
+            AccountGlobalUniqueId = default,
+            AccountNumber = "PROSPECT-1234",
+            LegalName = "prospect legal",
+            CreatedBy = "pas oim",
+            IsActive = true,
+            AccountType = AccountType.PROSPECT.ToString()
+        };
+        context.AccountEntity.AddRange(clientAccount, prospectAccount);
+
+        var delegator = new ContactEntity
+        {
+            ContactId = 1,
+            ContactGlobalUniqueId = default,
+            FirstName = "jean",
+            LastName = "pierre",
+            Email = "jp@kpmg.fr",
+            PersonaName = "collaborator",
+            Type = "collaborator",
+            IsActive = true
+        };
+        var delegatee = new ContactEntity
+        {
+            ContactId = 2,
+            ContactGlobalUniqueId = default,
+            FirstName = "pierre",
+            LastName = "jean",
+            Email = "pj@kpmg.fr",
+            PersonaName = "client",
+            Type = "customer",
+            IsActive = true
+        };
+        context.ContactEntity.AddRange(new List<ContactEntity> { delegator, delegatee });
+
+        var role = new RoleEntity
+        {
+            Contact = delegator,
+            Account = clientAccount,
+            IsSignatory = true,
+            IsFavorite = true,
+            IsDelegation = false
+        };
+        context.RoleEntity.Add(role);
+
+        var delegation = new DelegationEntity
+        {
+            Delegator = delegator,
+            Delegatee = delegatee,
+            StartDate = DateTime.UtcNow,
+            IsFullDelegation = true,
+            IsAutomaticDelegation = true,
+            Status = DelegationStatus.Enabled.ToString(),
+            Account = new List<AccountEntity> { prospectAccount }
+        };
+        context.DelegationEntity.Add(delegation);
+        await context.SaveChangesAsync();
+
+        var result = await repository.CreateRoleForAutomaticDelegationsAsync(delegator.ContactId, clientAccount.AccountId);
+
+        Assert.Empty(result);
+        Assert.False(await context.RoleEntity.AnyAsync(r => r.ContactId == delegatee.ContactId && r.AccountId == clientAccount.AccountId));
+    }
+
     [Fact]
     public async Task CreateRoleForAutomaticDelegations_ShouldNotCreateRole()
     {
@@ -210,7 +376,8 @@ public class RoleEventRepositoryTests
             AccountNumber = "1234",
             LegalName = "legal",
             CreatedBy = "oim",
-            IsActive = true
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString()
         };
         context.AccountEntity.Add(account);
 
@@ -261,7 +428,8 @@ public class RoleEventRepositoryTests
             StartDate = DateTime.UtcNow,
             IsFullDelegation = true,
             IsAutomaticDelegation = true,
-            Status = DelegationStatus.Enabled.ToString()
+            Status = DelegationStatus.Enabled.ToString(),
+            Account = new List<AccountEntity> { account }
         };
         context.DelegationEntity.Add(delegation);
         await context.SaveChangesAsync();

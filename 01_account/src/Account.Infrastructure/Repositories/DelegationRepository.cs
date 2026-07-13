@@ -210,6 +210,7 @@ public class DelegationRepository : IDelegationRepository
     public async Task<IEnumerable<int>> GetAccountIdsForFullDelegationAsync(int delegatorId)
     {
         var accountIds = Enumerable.Empty<int>();
+        var clientAccountType = AccountType.CLIENT.ToString();
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
@@ -219,6 +220,7 @@ public class DelegationRepository : IDelegationRepository
                             .Where(r => r.Contact.IsActive)
                             .Include(r => r.Account)
                             .ThenInclude(a => a.DeploymentEntity)
+                            .Where(r => r.Account.AccountType != null && r.Account.AccountType.ToLower() == clientAccountType.ToLower())
                             .AsNoTracking()
                             .Select(a => a.AccountId)
                             .ToListAsync();
