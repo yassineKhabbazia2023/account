@@ -9,12 +9,13 @@
 	[MobilePhone]           VARCHAR(255)        NULL,
 	[Type]                  VARCHAR(20)         NOT NULL, 
 	[Status]                VARCHAR(20)         NULL, 
-	[PersonaName]           VARCHAR(50)         NOT NULL, 
-	[Office]				VARCHAR(250)		NULL,
+	[PersonaName]           VARCHAR(50)         NOT NULL,
 	[CreationDate]          DATETIME2           NOT NULL DEFAULT GETDATE(),
     [LastUpdateDate]        DATETIME2           NULL, 
-    [IsActive] BIT NOT NULL DEFAULT (1)
-    CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC)
+    [IsActive]              BIT                 NOT NULL DEFAULT (1),
+    [OfficeId]              INT                 NULL,
+    CONSTRAINT [C_Contact_PK] PRIMARY KEY CLUSTERED ([ContactId] ASC),
+    CONSTRAINT [C_Contact_OfficeId_FK] FOREIGN KEY ([OfficeId]) REFERENCES [account].[Office] ([OfficeId])
 )
 
 GO
@@ -118,13 +119,13 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level2name = N'PersonaName'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'Le site du contact',
+    @value = N'L''identifiant du bureau',
     @level0type = N'SCHEMA',
     @level0name = N'actor',
     @level1type = N'TABLE',
     @level1name = N'Contact',
     @level2type = N'COLUMN',
-    @level2name = N'Office'
+    @level2name = N'OfficeId'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'La date de création du contact',
