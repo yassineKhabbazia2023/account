@@ -12,7 +12,7 @@ namespace Pulse.Account.Core.Interfaces
     {
         Task<AccountDetail> CreateAccountAsync(string currentUser, CreateAccountRequest request);
 
-        Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination);
+        Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination, DefaultSortOptions? defaultSort = null);
 
         Task<Paging<Models.Account>> GetAllAccountsAsync(string? accountNumber, Pagination pagination, SearchAccountCriteria criteria);
 

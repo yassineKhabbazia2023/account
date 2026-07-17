@@ -50,7 +50,7 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);
@@ -78,7 +78,7 @@ namespace Pulse.Account.Core.Tests.Services
         {
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);
@@ -107,8 +107,8 @@ namespace Pulse.Account.Core.Tests.Services
             Pagination? capturedPagination = null;
 
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
-                .Callback<SearchAccountCriteria, Pagination>((criteria, pagination) =>
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()))
+                .Callback<SearchAccountCriteria, Pagination, DefaultSortOptions>((criteria, pagination, defaultSort) =>
                 {
                     capturedCriteria = criteria;
                     capturedPagination = pagination;
@@ -146,7 +146,7 @@ namespace Pulse.Account.Core.Tests.Services
             var exception = await Assert.ThrowsAsync<BadRequestException>(action);
             Assert.Equal(Errors.BadRequestDeploymentStatusCode, exception.Code);
             _accountRepository.Verify(
-                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()),
+                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()),
                 Times.Never);
         }
 
@@ -168,7 +168,7 @@ namespace Pulse.Account.Core.Tests.Services
             var exception = await Assert.ThrowsAsync<BadRequestException>(action);
             Assert.Equal(Errors.BadRequestMissionTypeCode, exception.Code);
             _accountRepository.Verify(
-                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()),
+                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()),
                 Times.Never);
         }
 
@@ -182,8 +182,8 @@ namespace Pulse.Account.Core.Tests.Services
         {
             SearchAccountCriteria? capturedCriteria = null;
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
-                .Callback<SearchAccountCriteria, Pagination>((criteria, pagination) => capturedCriteria = criteria)
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()))
+                .Callback<SearchAccountCriteria, Pagination, DefaultSortOptions>((criteria, pagination, defaultSort) => capturedCriteria = criteria)
                 .ReturnsAsync(_fixture.Create<Paging<AccountModel>>());
 
             var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);
@@ -215,7 +215,7 @@ namespace Pulse.Account.Core.Tests.Services
             var exception = await Assert.ThrowsAsync<BadRequestException>(action);
             Assert.Equal(Errors.BadRequestLastActivityRangeCode, exception.Code);
             _accountRepository.Verify(
-                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()),
+                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()),
                 Times.Never);
         }
 
@@ -224,8 +224,8 @@ namespace Pulse.Account.Core.Tests.Services
         {
             SearchAccountCriteria? capturedCriteria = null;
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
-                .Callback<SearchAccountCriteria, Pagination>((criteria, pagination) => capturedCriteria = criteria)
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()))
+                .Callback<SearchAccountCriteria, Pagination, DefaultSortOptions>((criteria, pagination, defaultSort) => capturedCriteria = criteria)
                 .ReturnsAsync(_fixture.Create<Paging<AccountModel>>());
 
             var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);
@@ -249,7 +249,7 @@ namespace Pulse.Account.Core.Tests.Services
         public async Task GetAccountsAsync_WhenLastActivityBoundsAreEqual_ShouldCallRepository()
         {
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()))
                 .ReturnsAsync(_fixture.Create<Paging<AccountModel>>());
 
             var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);
@@ -264,7 +264,32 @@ namespace Pulse.Account.Core.Tests.Services
             await accountService.GetAccountsAsync(inputCriteria, new Pagination());
 
             _accountRepository.Verify(
-                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()),
+                repository => repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()),
+                Times.Once);
+        }
+
+        [Theory]
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        public async Task GetAccountsAsync_ShouldForwardSortFeatureFlagsToRepository(bool favoriteSort, bool lastActivitySort)
+        {
+            _featureFlagService.Setup(f => f.IsEnabledAsync(FeatureFlagKeys.FavoriteSort, It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(favoriteSort);
+            _featureFlagService.Setup(f => f.IsEnabledAsync(FeatureFlagKeys.LastActivityFeature, It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(lastActivitySort);
+            var accountMocked = _fixture.Create<Paging<AccountModel>>();
+            _accountRepository.Setup(repository =>
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()))
+                .ReturnsAsync(accountMocked);
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);
+
+            await accountService.GetAccountsAsync(new SearchAccountCriteria { ContactId = 123 }, new Pagination());
+
+            _accountRepository.Verify(
+                repository => repository.GetAccountsAsync(
+                    It.IsAny<SearchAccountCriteria>(),
+                    It.IsAny<Pagination>(),
+                    It.Is<DefaultSortOptions>(options => options.FavoriteFirst == favoriteSort && options.LastActivityFirst == lastActivitySort)),
                 Times.Once);
         }
 
@@ -742,7 +767,7 @@ namespace Pulse.Account.Core.Tests.Services
             // Arrange
             var accountMocked = _fixture.Create<Paging<AccountModel>>();
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);
@@ -784,7 +809,7 @@ namespace Pulse.Account.Core.Tests.Services
             accountMocked.Items = expectedAccount;
 
             _accountRepository.Setup(repository =>
-                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>()))
+                    repository.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<DefaultSortOptions>()))
                 .ReturnsAsync(accountMocked);
 
             var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);

@@ -70,7 +70,11 @@ public class AccountService(
         criteria.MissionType = MissionTypeValidation.GetValidMissionTypes(criteria.MissionType);
         LastActivityRangeValidation.Validate(criteria.LastActivityDateFrom, criteria.LastActivityDateTo);
 
-        return await _accountRepository.GetAccountsAsync(criteria, pagination);
+        var defaultSort = new DefaultSortOptions(
+            FavoriteFirst: await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.FavoriteSort),
+            LastActivityFirst: await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.LastActivityFeature));
+
+        return await _accountRepository.GetAccountsAsync(criteria, pagination, defaultSort);
     }
 
     public async Task<Paging<Models.Account>> GetAllAccountsAsync(string? accountNumber, Pagination? pagination, SearchAccountCriteria? criteria)

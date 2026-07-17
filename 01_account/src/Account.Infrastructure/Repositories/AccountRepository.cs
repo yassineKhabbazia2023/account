@@ -84,7 +84,7 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
         });
     }
 
-    public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination)
+    public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination, DefaultSortOptions? defaultSort = null)
     {
         var baseQuery = _accountContext.AccountEntity.AsNoTracking()
             .Join(_accountContext.RoleEntity, a => a.AccountId, r => r.AccountId, (a, r) => new AccountRolePair { Account = a, Role = r })
@@ -100,7 +100,7 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
         var totalItems = await baseQuery.CountAsync();
         var totalPages = Paginator.GetTotalPages(totalItems, pagination.PageSize);
 
-        var pageAccountIds = await GetAccountRolePairsSorted(baseQuery, criteria.Sorting)
+        var pageAccountIds = await GetAccountRolePairsSorted(baseQuery, criteria.Sorting, defaultSort ?? new DefaultSortOptions(FavoriteFirst: true, LastActivityFirst: true))
             .Skip((pagination.PageNumber - 1) * pagination.PageSize)
             .Take(pagination.PageSize)
             .Select(x => x.Account.AccountId)
@@ -127,13 +127,10 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
     );
     }
 
-    private static IQueryable<AccountRolePair> GetAccountRolePairsSorted(IQueryable<AccountRolePair> query, Sorting? sorting)
+    private static IQueryable<AccountRolePair> GetAccountRolePairsSorted(IQueryable<AccountRolePair> query, Sorting? sorting, DefaultSortOptions defaultSort)
     {
         var sorted = sorting == null || string.IsNullOrEmpty(sorting.Field)
-            ? query
-                .OrderByDescending(x => x.Role.IsFavorite == true)
-                .ThenByDescending(x => x.Role.LastActivityDate)
-                .ThenBy(x => x.Account.LegalName)
+            ? SortByDefault(query, defaultSort)
             : sorting.Field switch
             {
                 SortingConstants.COMPANYNAME => query.OrderByDirection(x => x.Account.LegalName, sorting.Descending),
@@ -152,6 +149,22 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
 
         return sorted.ThenBy(x => x.Account.AccountId);
     }
+
+    private static IOrderedQueryable<AccountRolePair> SortByDefault(IQueryable<AccountRolePair> query, DefaultSortOptions options) =>
+        options switch
+        {
+            { FavoriteFirst: true, LastActivityFirst: true } => query
+                .OrderByDescending(x => x.Role.IsFavorite == true)
+                .ThenByDescending(x => x.Role.LastActivityDate)
+                .ThenBy(x => x.Account.LegalName),
+            { FavoriteFirst: true, LastActivityFirst: false } => query
+                .OrderByDescending(x => x.Role.IsFavorite == true)
+                .ThenBy(x => x.Account.LegalName),
+            { FavoriteFirst: false, LastActivityFirst: true } => query
+                .OrderByDescending(x => x.Role.LastActivityDate)
+                .ThenBy(x => x.Account.LegalName),
+            { FavoriteFirst: false, LastActivityFirst: false } => query.OrderBy(x => x.Account.LegalName),
+        };
 
     private static IQueryable<AccountEntity> GetAccountEntitiesSorted(IQueryable<AccountEntity> query, Sorting? sorting)
     {
