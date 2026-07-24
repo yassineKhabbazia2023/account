@@ -9,6 +9,10 @@ resources:
     name: 'Pulse.Operations.Pipelines'
     type: git
     ref: 'refs/heads/Release/v5.0'
+  - repository: PulseReview   # alias impose (reference par le template Build-Back)
+    name: 'Pulse.Operations.Review'
+    type: git
+    ref: 'refs/heads/main'
 
 extends:
   template: pipelines/pull-request/back.yaml@Pulse

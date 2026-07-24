@@ -1,0 +1,261 @@
+# Fragment d'architecture — genere par scripts/archgraph/generator.py
+# `managed_by_script` : NE PAS EDITER (regenere a chaque PR).
+# `managed_by_ai` : maintenu par l'agent IA (roles, appels autorises, notes).
+schema: pulse-archgraph/v1
+service: account
+repo: Pulse.Back.Account
+generated_at: '2026-07-20T10:06:00+00:00'
+managed_by_script:
+  projects:
+  - name: Account.API
+    path: 01_account/src/Account.API/Account.API.csproj
+    references:
+    - Account.Core
+    - Account.Infrastructure
+  - name: Account.Core
+    path: 01_account/src/Account.Core/Account.Core.csproj
+    references: []
+  - name: Account.Infrastructure
+    path: 01_account/src/Account.Infrastructure/Account.Infrastructure.csproj
+    references:
+    - Account.Core
+  internal_packages:
+  - name: Pulse.Back.Events
+    version: 2.74.179
+  - name: Pulse.ExceptionMiddleware
+    version: 2.73.53
+  infra:
+  - service-bus
+  - sql-server
+  endpoints:
+  - method: GET
+    route: /api/accounts
+    controller: AccountController
+  - method: POST
+    route: /api/accounts
+    controller: AccountController
+  - method: GET
+    route: /api/accounts/all
+    controller: AccountController
+  - method: GET
+    route: /api/accounts/contacts
+    controller: AccountController
+  - method: GET
+    route: /api/accounts/contacts/{contactId}/is-prospect-only
+    controller: AccountController
+  - method: GET
+    route: /api/accounts/search
+    controller: AccountController
+  - method: GET
+    route: /api/accounts/{accountId}
+    controller: AccountController
+  - method: PATCH
+    route: /api/accounts/{accountId}
+    controller: AccountController
+  - method: GET
+    route: /api/accounts/{accountId}/contacts
+    controller: AccountController
+  - method: GET
+    route: /api/accounts/{accountId}/contacts/widget
+    controller: AccountController
+  - method: GET
+    route: /api/accounts/{accountId}/summary
+    controller: AccountController
+  - method: DELETE
+    route: /api/delegations
+    controller: DelegationController
+  - method: GET
+    route: /api/delegations
+    controller: DelegationController
+  - method: POST
+    route: /api/delegations
+    controller: DelegationController
+  - method: GET
+    route: /api/delegations/delegator
+    controller: DelegationController
+  - method: POST
+    route: /api/delegations/requests
+    controller: DelegationController
+  - method: POST
+    route: /api/delegations/requests/accept
+    controller: DelegationController
+  - method: GET
+    route: /api/delegations/requests/eligibility
+    controller: DelegationController
+  - method: GET
+    route: /api/delegations/requests/received
+    controller: DelegationController
+  - method: POST
+    route: /api/delegations/requests/refuse
+    controller: DelegationController
+  - method: GET
+    route: /api/delegations/requests/sent
+    controller: DelegationController
+  - method: GET
+    route: /api/delegations/{delegateeId}
+    controller: DelegationController
+  - method: GET
+    route: /api/favorites
+    controller: FavoriteController
+  - method: PATCH
+    route: /api/favorites
+    controller: FavoriteController
+  - method: GET
+    route: /api/labels
+    controller: LabelController
+  - method: PATCH
+    route: /api/activate-offer/{accountId}
+    controller: OfferEligibilityController
+  - method: GET
+    route: /api/referentials/AccountReferentialInformation
+    controller: ReferentialController
+  - method: GET
+    route: /api/referentials/hubs
+    controller: ReferentialController
+  - method: GET
+    route: /api/referentials/nafs
+    controller: ReferentialController
+  - method: GET
+    route: /api/referentials/offices
+    controller: ReferentialController
+  - method: DELETE
+    route: /api/role-labels
+    controller: RoleLabelController
+  - method: POST
+    route: /api/role-labels
+    controller: RoleLabelController
+  - method: DELETE
+    route: /api/roles
+    controller: RolesController
+  - method: GET
+    route: /api/roles
+    controller: RolesController
+  - method: PATCH
+    route: /api/roles
+    controller: RolesController
+  - method: POST
+    route: /api/roles
+    controller: RolesController
+  - method: POST
+    route: /api/roles/bulk
+    controller: RolesController
+  - method: POST
+    route: /api/roles/bulk-delete
+    controller: RolesController
+  - method: GET
+    route: /api/roles/check
+    controller: RolesController
+  - method: GET
+    route: /api/roles/check-contact-role-on-account
+    controller: RolesController
+  - method: PATCH
+    route: /api/roles/customer-relation
+    controller: RolesController
+  - method: PATCH
+    route: /api/roles/last-activity-date
+    controller: RolesController
+  - method: GET
+    route: /api/roles/last-collaborator
+    controller: RolesController
+  - method: GET
+    route: /api/roles/signatory/{accountId}
+    controller: RolesController
+  - method: GET
+    route: /api/account-client-indicators
+    controller: StatisticsController
+  - method: GET
+    route: /api/account-customer-relation
+    controller: StatisticsController
+  - method: GET
+    route: /api/entity-count-by-type
+    controller: StatisticsController
+  - method: GET
+    route: /api/statistics
+    controller: StatisticsController
+  - method: GET
+    route: /api/ventya/accounts/{accountId:int:min(1)}
+    controller: VentyaController
+  - method: GET
+    route: /api/ventya/accounts/{accountId:int:min(1)}/demat-ready
+    controller: VentyaController
+  events:
+    publishes:
+    - event: AccountCreatedEvent
+      topics:
+      - account
+    - event: AccountRemovedEvent
+      topics:
+      - account
+    - event: AccountUpdatedEvent
+      topics:
+      - account
+    - event: HistoryCreatedEvent
+      topics:
+      - account
+    - event: OfferActivatedEvent
+      topics:
+      - account
+    - event: ReportCreatedEvent
+      topics:
+      - account
+    - event: RoleCreatedEvent
+      topics:
+      - account
+    - event: RoleDeletedEvent
+      topics:
+      - account
+    - event: RoleUpdatedEvent
+      topics:
+      - account
+    consumes:
+    - event: ContactCreatedEvent
+      handler: ContactCreatedEventHandler
+    - event: ContactRemovedEvent
+      handler: ContactRemovedEventHandler
+    - event: ContactUpdatedEvent
+      handler: ContactUpdatedEventHandler
+    - event: RegistryAccountCreatedEvent
+      handler: RegistryAccountCreatedEventHandler
+    - event: RegistryAccountRemovedEvent
+      handler: RegistryAccountRemovedEventHandler
+    - event: RegistryAccountUpdatedEvent
+      handler: RegistryAccountUpdatedEventHandler
+    - event: RegistryRoleCreatedEvent
+      handler: RegistryRoleCreatedEventHandler
+    - event: RegistryRoleRemovedEvent
+      handler: RegistryRoleRemovedEventHandler
+    - event: ReportCreatedEvent
+      handler: ReportCreatedEventHandler
+    - event: RoleCreatedEvent
+      handler: RoleCreatedEventHandler
+    - event: SubscriptionValidatedEvent
+      handler: SubscriptionValidatedEventHandler
+    push_topics:
+    - account
+    pull_topics:
+    - topic: contact
+      subscriptions:
+      - contact-created-account
+      - contact-updated-account
+      - contact-removed-account
+    - topic: registry
+      subscriptions:
+      - registry-accountCreated-account
+      - registry-accountUpdated-account
+      - registry-accountRemoved-account
+    - topic: account
+      subscriptions:
+      - role-created-account
+    - topic: offer
+      subscriptions:
+      - offer-validated-account
+  http_clients: []
+  feature_flags:
+  - isProspectExperienceEnabled
+  - isProspectToClientConversionEnabled
+  gateway_routes: []
+managed_by_ai:
+  role: 'Gestion des comptes clients, roles et delegations : referentiels, favoris, labels, indicateurs client,
+    activation d''offre. Source des events Account*/Role* propages au reste de la plateforme.'
+  allowed_http_calls: []
+  notes: []
