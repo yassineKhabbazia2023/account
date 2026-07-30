@@ -4210,10 +4210,10 @@ public class AccountRepositoryTests
 
     #endregion LastActivityDate filter
 
-    #region Default sort favorites first
+    #region Default portfolio sort
 
     [Fact]
-    public async Task GetAccountsAsync_WhenNoSorting_ShouldReturnFavoritesFirstThenStandardOrderAsync()
+    public async Task GetAccountsAsync_WhenNoSorting_ShouldReturnStandardPortfolioOrderAsync()
     {
         using var context = new TestAccountContext(_dbContextOptions);
         var contact = CreateActivityContact("current@test.fr", 500);
@@ -4233,7 +4233,32 @@ public class AccountRepositoryTests
         var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
 
         result.Items.Select(account => account.LegalName)
-            .Should().Equal("fav recent", "fav old", "reg recent", "reg old", "reg none");
+            .Should().Equal("fav recent", "reg recent", "fav old", "reg old", "reg none");
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenNoSortingAndLastActivityDisabled_ShouldSortAlphabeticallyAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        context.AccountEntity.AddRange(
+            CreateAccountWithActivity(contact, "zzz fav recent", ActivityReference.AddDays(-1), isFavorite: true),
+            CreateAccountWithActivity(contact, "mmm reg", ActivityReference.AddDays(-5)),
+            CreateAccountWithActivity(contact, "aaa reg none", null));
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+        };
+
+        var result = await repository.GetAccountsAsync(
+            criteria,
+            new Pagination { PageNumber = 1, PageSize = 10 },
+            sortByLastActivity: false);
+
+        result.Items.Select(account => account.LegalName)
+            .Should().Equal("aaa reg none", "mmm reg", "zzz fav recent");
     }
 
     [Fact]
@@ -4259,82 +4284,7 @@ public class AccountRepositoryTests
     }
 
     [Fact]
-    public async Task GetAccountsAsync_WhenLastActivitySortDisabled_ShouldSortFavoritesThenAlphabeticalAsync()
-    {
-        using var context = new TestAccountContext(_dbContextOptions);
-        var contact = CreateActivityContact("current@test.fr", 500);
-        context.AccountEntity.AddRange(
-            CreateAccountWithActivity(contact, "bbb fav old", ActivityReference.AddDays(-40), isFavorite: true),
-            CreateAccountWithActivity(contact, "zzz fav recent", ActivityReference.AddDays(-1), isFavorite: true),
-            CreateAccountWithActivity(contact, "aaa reg recent", ActivityReference.AddDays(-2)));
-        await context.SaveChangesAsync();
-        var repository = new AccountRepository(context);
-        var criteria = new SearchAccountCriteria
-        {
-            ContactId = contact.ContactId,
-        };
-
-        var result = await repository.GetAccountsAsync(
-            criteria,
-            new Pagination { PageNumber = 1, PageSize = 10 },
-            new DefaultSortOptions(FavoriteFirst: true, LastActivityFirst: false));
-
-        result.Items.Select(account => account.LegalName)
-            .Should().Equal("bbb fav old", "zzz fav recent", "aaa reg recent");
-    }
-
-    [Fact]
-    public async Task GetAccountsAsync_WhenFavoriteSortDisabled_ShouldSortByActivityWithoutFavoritesFirstAsync()
-    {
-        using var context = new TestAccountContext(_dbContextOptions);
-        var contact = CreateActivityContact("current@test.fr", 500);
-        context.AccountEntity.AddRange(
-            CreateAccountWithActivity(contact, "fav old", ActivityReference.AddDays(-40), isFavorite: true),
-            CreateAccountWithActivity(contact, "reg recent", ActivityReference.AddDays(-1)),
-            CreateAccountWithActivity(contact, "reg none", null));
-        await context.SaveChangesAsync();
-        var repository = new AccountRepository(context);
-        var criteria = new SearchAccountCriteria
-        {
-            ContactId = contact.ContactId,
-        };
-
-        var result = await repository.GetAccountsAsync(
-            criteria,
-            new Pagination { PageNumber = 1, PageSize = 10 },
-            new DefaultSortOptions(FavoriteFirst: false, LastActivityFirst: true));
-
-        result.Items.Select(account => account.LegalName)
-            .Should().Equal("reg recent", "fav old", "reg none");
-    }
-
-    [Fact]
-    public async Task GetAccountsAsync_WhenBothDefaultSortsDisabled_ShouldSortAlphabeticallyAsync()
-    {
-        using var context = new TestAccountContext(_dbContextOptions);
-        var contact = CreateActivityContact("current@test.fr", 500);
-        context.AccountEntity.AddRange(
-            CreateAccountWithActivity(contact, "zzz fav recent", ActivityReference.AddDays(-1), isFavorite: true),
-            CreateAccountWithActivity(contact, "mmm reg", ActivityReference.AddDays(-5)),
-            CreateAccountWithActivity(contact, "aaa reg none", null));
-        await context.SaveChangesAsync();
-        var repository = new AccountRepository(context);
-        var criteria = new SearchAccountCriteria
-        {
-            ContactId = contact.ContactId,
-        };
-
-        var result = await repository.GetAccountsAsync(
-            criteria,
-            new Pagination { PageNumber = 1, PageSize = 10 },
-            new DefaultSortOptions(FavoriteFirst: false, LastActivityFirst: false));
-
-        result.Items.Select(account => account.LegalName)
-            .Should().Equal("aaa reg none", "mmm reg", "zzz fav recent");
-    }
-
-    [Fact]
-    public async Task GetAccountsAsync_WhenExplicitLastActivitySortAndFlagsDisabled_ShouldStillSortByActivityAsync()
+    public async Task GetAccountsAsync_WhenExplicitLastActivitySort_ShouldSortByActivityAsync()
     {
         using var context = new TestAccountContext(_dbContextOptions);
         var contact = CreateActivityContact("current@test.fr", 500);
@@ -4349,16 +4299,86 @@ public class AccountRepositoryTests
             Sorting = new Sorting { Field = SortingConstants.LASTACTIVITYDATE, Descending = true },
         };
 
-        var result = await repository.GetAccountsAsync(
-            criteria,
-            new Pagination { PageNumber = 1, PageSize = 10 },
-            new DefaultSortOptions(FavoriteFirst: false, LastActivityFirst: false));
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
 
         result.Items.Select(account => account.LegalName)
             .Should().Equal("zzz recent", "aaa old");
     }
 
-    #endregion Default sort favorites first
+    [Fact]
+    public async Task GetAccountsAsync_WhenSortingByIsFavoriteDescending_ShouldReturnFavoritesFirstThenLastActivityAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        context.AccountEntity.AddRange(
+            CreateAccountWithActivity(contact, "aaa reg recent", ActivityReference.AddDays(-1)),
+            CreateAccountWithActivity(contact, "zzz reg old", ActivityReference.AddDays(-60)),
+            CreateAccountWithActivity(contact, "zzz fav recent", ActivityReference.AddDays(-40), isFavorite: true),
+            CreateAccountWithActivity(contact, "bbb fav old", ActivityReference.AddDays(-50), isFavorite: true));
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+            Sorting = new Sorting { Field = SortingConstants.ISFAVORITE, Descending = true },
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Select(account => account.LegalName)
+            .Should().Equal("zzz fav recent", "bbb fav old", "aaa reg recent", "zzz reg old");
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenSortingByIsFavoriteAscending_ShouldReturnFavoritesLastAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        context.AccountEntity.AddRange(
+            CreateAccountWithActivity(contact, "zzz fav", ActivityReference.AddDays(-1), isFavorite: true),
+            CreateAccountWithActivity(contact, "aaa reg old", ActivityReference.AddDays(-40)),
+            CreateAccountWithActivity(contact, "bbb reg recent", ActivityReference.AddDays(-2)));
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+            Sorting = new Sorting { Field = SortingConstants.ISFAVORITE, Descending = false },
+        };
+
+        var result = await repository.GetAccountsAsync(criteria, new Pagination { PageNumber = 1, PageSize = 10 });
+
+        result.Items.Select(account => account.LegalName)
+            .Should().Equal("bbb reg recent", "aaa reg old", "zzz fav");
+    }
+
+    [Fact]
+    public async Task GetAccountsAsync_WhenSortingByIsFavoriteAndLastActivityDisabled_ShouldFallBackOnLegalNameAsync()
+    {
+        using var context = new TestAccountContext(_dbContextOptions);
+        var contact = CreateActivityContact("current@test.fr", 500);
+        context.AccountEntity.AddRange(
+            CreateAccountWithActivity(contact, "aaa reg recent", ActivityReference.AddDays(-1)),
+            CreateAccountWithActivity(contact, "zzz fav recent", ActivityReference.AddDays(-2), isFavorite: true),
+            CreateAccountWithActivity(contact, "bbb fav old", ActivityReference.AddDays(-50), isFavorite: true));
+        await context.SaveChangesAsync();
+        var repository = new AccountRepository(context);
+        var criteria = new SearchAccountCriteria
+        {
+            ContactId = contact.ContactId,
+            Sorting = new Sorting { Field = SortingConstants.ISFAVORITE, Descending = true },
+        };
+
+        var result = await repository.GetAccountsAsync(
+            criteria,
+            new Pagination { PageNumber = 1, PageSize = 10 },
+            sortByLastActivity: false);
+
+        result.Items.Select(account => account.LegalName)
+            .Should().Equal("bbb fav old", "zzz fav recent", "aaa reg recent");
+    }
+
+    #endregion Default portfolio sort
 
     #region Search signatory scope
 

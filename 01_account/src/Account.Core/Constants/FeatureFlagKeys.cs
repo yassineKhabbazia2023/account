@@ -11,6 +11,4 @@ public static class FeatureFlagKeys
     public const string ProspectToClientConversion = "isProspectToClientConversionEnabled";
 
     public const string LastActivityFeature = "isLastActivityFeatureEnabled";
-
-    public const string FavoriteSort = "isFavoriteSortEnabled";
 }

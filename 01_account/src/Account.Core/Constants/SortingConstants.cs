@@ -29,5 +29,7 @@ namespace Pulse.Account.Core.Constants
         public const string LABEL = "label";
 
         public const string LASTACTIVITYDATE = "lastActivityDate";
+
+        public const string ISFAVORITE = "isFavorite";
     }
 }
