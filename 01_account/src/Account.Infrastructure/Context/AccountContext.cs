@@ -42,6 +42,8 @@ public partial class AccountContext : DbContext
 
     public virtual DbSet<RoleLabelEntity> RoleLabelEntity { get; set; }
 
+    public virtual DbSet<InvoiceEntity> InvoiceEntity { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AccountEntity>(entity =>
@@ -621,12 +623,42 @@ public partial class AccountContext : DbContext
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-            entity.HasOne(d => d.Label).WithMany(p => p.RoleLabelEntity)
-                .HasForeignKey(d => d.LabelId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-        });
+             entity.HasOne(d => d.Label).WithMany(p => p.RoleLabelEntity)
+                 .HasForeignKey(d => d.LabelId)
+                 .OnDelete(DeleteBehavior.ClientSetNull);
+         });
 
-        OnModelCreatingPartial(modelBuilder);
+         modelBuilder.Entity<InvoiceEntity>(entity =>
+         {
+             entity.HasKey(e => e.InvoiceId).HasName("C_Invoice_PK");
+
+             entity.ToTable("Invoice", "account");
+
+             entity.HasIndex(e => e.InvoiceNumber, "UQ_Invoice_InvoiceNumber").IsUnique();
+
+             entity.HasIndex(e => e.AccountId, "IX_Invoice_AccountId");
+
+             entity.Property(e => e.InvoiceId).HasComment("L'identifiant technique");
+             entity.Property(e => e.InvoiceNumber)
+                 .IsRequired()
+                 .HasMaxLength(255)
+                 .IsUnicode(false)
+                 .HasComment("Le numéro de facture (identifiant externe unique)");
+             entity.Property(e => e.Name)
+                 .IsRequired()
+                 .HasMaxLength(255)
+                 .HasComment("Le nom de la facture");
+             entity.Property(e => e.InvoiceDate).HasComment("La date de facturation");
+             entity.Property(e => e.DepositDate).HasComment("La date de dépôt");
+             entity.Property(e => e.AccountId).HasComment("L'identifiant technique de l'entité");
+
+             entity.HasOne(d => d.Account).WithMany(p => p.InvoiceEntity)
+                 .HasForeignKey(d => d.AccountId)
+                 .OnDelete(DeleteBehavior.ClientSetNull)
+                 .HasConstraintName("C_Account_Invoice_AccountId_FK");
+         });
+
+         OnModelCreatingPartial(modelBuilder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

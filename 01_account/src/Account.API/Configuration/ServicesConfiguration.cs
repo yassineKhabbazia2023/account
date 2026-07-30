@@ -50,6 +50,7 @@ public static class ServicesConfiguration
         services.AddScoped<IOfferEligibilityService, OfferEligibilityService>();
         services.AddScoped<IVentyaRepository, VentyaRepository>();
         services.AddScoped<IVentyaService, VentyaService>();
+        services.AddScoped<Pulse.Account.Core.Interfaces.IInvoiceRepository, InvoiceRepository>();
     }
 
     public static void RegisterBrokerServices(this IServiceCollection services, IConfiguration configuration)
@@ -104,6 +105,8 @@ public static class ServicesConfiguration
         services.AddKeyedScoped<IEventHandler, RoleCreatedEventHandler>(nameof(RoleCreatedEvent));
         services.AddKeyedScoped<IEventHandler, SubscriptionValidatedEventHandler>(nameof(SubscriptionValidatedEvent));
         services.AddKeyedScoped<IEventHandler, ReportCreatedEventHandler>(nameof(ReportCreatedEvent));
+        services.AddKeyedScoped<IEventHandler, RegistryInvoiceCreatedEventHandler>(nameof(RegistryInvoiceCreatedEvent));
+        services.AddKeyedScoped<IEventHandler, RegistryInvoiceRemovedEventHandler>(nameof(RegistryInvoiceRemovedEvent));
 
         services.AddScoped<IProspectConversionService, ProspectConversionService>();
 

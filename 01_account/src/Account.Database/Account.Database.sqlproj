@@ -82,6 +82,7 @@
     <Build Include="account\Tables\Office.sql" />
     <Build Include="account\Tables\Label.sql" />
     <Build Include="account\Tables\RoleLabel.sql" />
+    <Build Include="account\Tables\Invoice.sql" />
     <None Include="Log\Script.Contact.sql" />
     <None Include="Log\Script.Account.sql" />
     <None Include="Log\Script.Address.sql" />

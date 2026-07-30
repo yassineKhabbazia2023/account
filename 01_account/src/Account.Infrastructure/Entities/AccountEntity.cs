@@ -203,7 +203,9 @@ public partial class AccountEntity
 
     public virtual ICollection<RoleEntity> RoleEntity { get; set; } = new List<RoleEntity>();
 
-    public virtual ICollection<RoleLabelEntity> RoleLabelEntity { get; set; } = new List<RoleLabelEntity>();
+     public virtual ICollection<RoleLabelEntity> RoleLabelEntity { get; set; } = new List<RoleLabelEntity>();
 
-    public virtual ICollection<DelegationEntity> Delegation { get; set; } = new List<DelegationEntity>();
+     public virtual ICollection<DelegationEntity> Delegation { get; set; } = new List<DelegationEntity>();
+
+     public virtual ICollection<InvoiceEntity> InvoiceEntity { get; set; } = new List<InvoiceEntity>();
 }
