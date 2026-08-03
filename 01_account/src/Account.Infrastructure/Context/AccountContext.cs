@@ -628,35 +628,47 @@ public partial class AccountContext : DbContext
                  .OnDelete(DeleteBehavior.ClientSetNull);
          });
 
-         modelBuilder.Entity<InvoiceEntity>(entity =>
-         {
-             entity.HasKey(e => e.InvoiceId).HasName("C_Invoice_PK");
+          modelBuilder.Entity<InvoiceEntity>(entity =>
+          {
+              entity.HasKey(e => e.InvoiceId).HasName("C_Invoice_PK");
 
-             entity.ToTable("Invoice", "account");
+              entity.ToTable("Invoice", "account");
 
-             entity.HasIndex(e => e.InvoiceNumber, "UQ_Invoice_InvoiceNumber").IsUnique();
+              entity.HasIndex(e => e.InvoiceNumber, "UQ_Invoice_InvoiceNumber").IsUnique();
 
-             entity.HasIndex(e => e.AccountId, "IX_Invoice_AccountId");
+              entity.HasIndex(e => e.AccountId, "IX_Invoice_AccountId");
 
-             entity.Property(e => e.InvoiceId).HasComment("L'identifiant technique");
-             entity.Property(e => e.InvoiceNumber)
-                 .IsRequired()
-                 .HasMaxLength(255)
-                 .IsUnicode(false)
-                 .HasComment("Le numéro de facture (identifiant externe unique)");
-             entity.Property(e => e.Name)
-                 .IsRequired()
-                 .HasMaxLength(255)
-                 .HasComment("Le nom de la facture");
-             entity.Property(e => e.InvoiceDate).HasComment("La date de facturation");
-             entity.Property(e => e.DepositDate).HasComment("La date de dépôt");
-             entity.Property(e => e.AccountId).HasComment("L'identifiant technique de l'entité");
+              entity.Property(e => e.InvoiceId).HasComment("L'identifiant technique");
+              entity.Property(e => e.InvoiceNumber)
+                  .IsRequired()
+                  .HasMaxLength(255)
+                  .IsUnicode(false)
+                  .HasComment("Le numéro de facture (identifiant externe unique)");
+              entity.Property(e => e.DocumentPath)
+                  .IsRequired()
+                  .HasComment("Le chemin du document (nom affiché = dernier segment)");
+              entity.Property(e => e.Type)
+                  .IsRequired()
+                  .HasMaxLength(255)
+                  .IsUnicode(false)
+                  .HasComment("Le type de facture");
+              entity.Property(e => e.Category)
+                  .IsRequired()
+                  .HasMaxLength(255)
+                  .IsUnicode(false)
+                  .HasComment("La catégorie de facture");
+               entity.Property(e => e.InvoiceDate).HasComment("La date de facturation");
+                entity.Property(e => e.DepositDate)
+                    .ValueGeneratedOnAdd()
+                    .HasDefaultValueSql("GETDATE()")
+                    .HasComment("La date de dépôt");
+                entity.Property(e => e.AccountId).HasComment("L'identifiant technique de l'entité");
 
-             entity.HasOne(d => d.Account).WithMany(p => p.InvoiceEntity)
-                 .HasForeignKey(d => d.AccountId)
-                 .OnDelete(DeleteBehavior.ClientSetNull)
-                 .HasConstraintName("C_Account_Invoice_AccountId_FK");
-         });
+               entity.HasOne(d => d.Account).WithMany(p => p.InvoiceEntity)
+                   .HasForeignKey(d => d.AccountId)
+                   .OnDelete(DeleteBehavior.ClientSetNull)
+                   .HasConstraintName("C_Account_Invoice_AccountId_FK");
+          });
 
          OnModelCreatingPartial(modelBuilder);
     }

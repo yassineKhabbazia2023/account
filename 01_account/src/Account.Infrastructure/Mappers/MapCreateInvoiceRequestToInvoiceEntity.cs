@@ -13,13 +13,17 @@ public static class MapCreateInvoiceRequestToInvoiceEntity
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        return new InvoiceEntity
+        var entity = new InvoiceEntity
         {
             InvoiceNumber = request.InvoiceNumber,
-            Name = request.Name,
+            DocumentPath = request.DocumentPath,
+            Type = request.Type,
+            Category = request.Category,
             InvoiceDate = request.InvoiceDate,
-            DepositDate = request.DepositDate,
-            AccountId = request.AccountId
+            AccountId = request.AccountId,
+            DepositDate = request.DepositDate
         };
+
+        return entity;
     }
 }

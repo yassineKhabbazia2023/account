@@ -15,19 +15,30 @@ public class CreateInvoiceRequest
     public required string InvoiceNumber { get; set; }
 
     /// <summary>
-    /// Gets or sets the invoice name.
+    /// Gets or sets the document path.
     /// </summary>
-    public required string Name { get; set; }
+    public required string DocumentPath { get; set; }
+
+    /// <summary>
+    /// Gets or sets the invoice type.
+    /// </summary>
+    public required string Type { get; set; }
+
+    /// <summary>
+    /// Gets or sets the invoice category.
+    /// </summary>
+    public required string Category { get; set; }
 
     /// <summary>
     /// Gets or sets the invoice date.
     /// </summary>
-    public DateTime? InvoiceDate { get; set; }
+    public required DateTime InvoiceDate { get; set; }
 
     /// <summary>
-    /// Gets or sets the invoice deposit date.
+    /// Gets or sets the invoice deposit date (optional - defaults to GETDATE() in database).
     /// </summary>
-    public DateTime? DepositDate { get; set; }
+    public required DateTime DepositDate { get; set; }
+
 
     /// <summary>
     /// Gets or sets the related account identifier.

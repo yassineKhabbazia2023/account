@@ -29,7 +29,11 @@ public class InvoiceRepositoryTests
         var invoice = new InvoiceEntity
         {
             InvoiceNumber = "INV-001",
-            Name = "Invoice 1",
+            DocumentPath = "/path/to/document.pdf",
+            Type = "Facture RYDGE",
+            Category = "ADMINISTRATIF",
+            InvoiceDate = DateTime.UtcNow,
+            DepositDate = DateTime.UtcNow,
             AccountId = 1
         };
 
@@ -69,7 +73,9 @@ public class InvoiceRepositoryTests
         var request = new CreateInvoiceRequest
         {
             InvoiceNumber = "INV-001",
-            Name = "Test Invoice",
+            DocumentPath = "/path/to/test-invoice.pdf",
+            Type = "Facture RYDGE",
+            Category = "ADMINISTRATIF",
             InvoiceDate = new DateTime(2024, 01, 15),
             DepositDate = new DateTime(2024, 01, 16),
             AccountId = 5
@@ -83,8 +89,10 @@ public class InvoiceRepositoryTests
             .FirstOrDefaultAsync(i => i.InvoiceNumber == "INV-001");
 
         Assert.NotNull(savedInvoice);
-        Assert.Equal("Test Invoice", savedInvoice.Name);
+        Assert.Equal("/path/to/test-invoice.pdf", savedInvoice.DocumentPath);
         Assert.Equal(5, savedInvoice.AccountId);
+        Assert.Equal(new DateTime(2024, 01, 15), savedInvoice.InvoiceDate);
+        Assert.Equal(new DateTime(2024, 01, 16), savedInvoice.DepositDate);
     }
 
     [Fact]
@@ -106,7 +114,11 @@ public class InvoiceRepositoryTests
         var invoice = new InvoiceEntity
         {
             InvoiceNumber = "INV-001",
-            Name = "Test",
+            DocumentPath = "/path/to/test.pdf",
+            Type = "Facture RYDGE",
+            Category = "ADMINISTRATIF",
+            InvoiceDate = DateTime.UtcNow,
+            DepositDate = DateTime.UtcNow,
             AccountId = 1
         };
 
@@ -148,7 +160,11 @@ public class InvoiceRepositoryTests
         var invoice = new InvoiceEntity
         {
             InvoiceNumber = "INV-001",
-            Name = "Test",
+            DocumentPath = "/path/to/test.pdf",
+            Type = "Facture RYDGE",
+            Category = "ADMINISTRATIF",
+            InvoiceDate = DateTime.UtcNow,
+            DepositDate = DateTime.UtcNow,
             AccountId = 1
         };
 

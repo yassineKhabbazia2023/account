@@ -8,6 +8,7 @@ using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Requests;
 using Pulse.Back.Events.Abstractions;
 using Pulse.Back.Events.IntegrationEvents;
+using Pulse.Back.Events.IntegrationEvents.EventsData;
 
 namespace Pulse.Account.Infrastructure.Providers;
 
@@ -47,7 +48,6 @@ public class RegistryInvoiceCreatedEventHandler : IEventHandler
                 throw new JsonException("Erreur lors de la désérialisation du message RegistryInvoiceCreatedEvent", ex);
             }
 
-            // Validation détaillée avec logs
             if (@event?.Data == null)
             {
                 this._logger.LogError("Event data is null - cannot process message");
@@ -77,7 +77,15 @@ public class RegistryInvoiceCreatedEventHandler : IEventHandler
                 return;
             }
 
-            // Résoudre AccountNumber en AccountId
+            // Valider les données avant création
+            var validationErrors = this.ValidateInvoiceEventData(@event.Data);
+            if (validationErrors != null)
+            {
+                this._logger.LogError(validationErrors);
+                return;
+            }
+
+            // Résoudre AccountNumber en ID du compte
             var accountId = await this._invoiceRepository.GetAccountIdByAccountNumberAsync(@event.Data.AccountNumber);
 
             if (accountId == null)
@@ -89,15 +97,17 @@ public class RegistryInvoiceCreatedEventHandler : IEventHandler
                 return;
             }
 
-            // Insérer la facture
-            var request = new CreateInvoiceRequest
-            {
-                InvoiceNumber = @event.Data.InvoiceNumber,
-                Name = @event.Data.Name ?? string.Empty,
-                InvoiceDate = @event.Data.InvoiceDate,
-                DepositDate = @event.Data.DepositDate,
-                AccountId = accountId.Value
-            };
+             // Insérer la facture
+             var request = new CreateInvoiceRequest
+             {
+                 InvoiceNumber = @event.Data.InvoiceNumber,
+                 DocumentPath = @event.Data.DocumentPath,
+                 Type = @event.Data.Type,
+                 Category = @event.Data.Category,
+                 InvoiceDate = @event.Data.InvoiceDate,
+                 DepositDate = @event.Data.DepositDate,
+                 AccountId = accountId.Value
+             };
 
             await this._invoiceRepository.AddAsync(request);
 
@@ -110,5 +120,30 @@ public class RegistryInvoiceCreatedEventHandler : IEventHandler
             this._logger.LogError(ex, "Erreur inattendue dans RegistryInvoiceCreatedEventHandler.HandleAsync");
             throw;
         }
+    }
+
+    private string? ValidateInvoiceEventData(RegistryInvoiceCreatedEventData data)
+    {
+        if (data.InvoiceDate == default)
+        {
+            return $"InvoiceDate is not set, InvoiceNumber: {data.InvoiceNumber}";
+        }
+
+        if (string.IsNullOrWhiteSpace(data.DocumentPath))
+        {
+            return $"DocumentPath is null or empty, InvoiceNumber: {data.InvoiceNumber}";
+        }
+
+        if (string.IsNullOrWhiteSpace(data.Type))
+        {
+            return $"Type is null or empty, InvoiceNumber: {data.InvoiceNumber}";
+        }
+
+        if (string.IsNullOrWhiteSpace(data.Category))
+        {
+            return $"Category is null or empty, InvoiceNumber: {data.InvoiceNumber}";
+        }
+
+        return null;
     }
 }

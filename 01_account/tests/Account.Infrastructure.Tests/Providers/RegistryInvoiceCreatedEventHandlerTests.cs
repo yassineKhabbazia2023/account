@@ -31,7 +31,7 @@ public class RegistryInvoiceCreatedEventHandlerTests
             .Returns(Task.CompletedTask);
 
         var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
-        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"AccountNumber\":\"ACC123\",\"Name\":\"Invoice 001\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\",\"DepositDate\":\"2024-01-16T00:00:00Z\"}}";
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"ACC123\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\",\"DepositDate\":\"2024-01-16T00:00:00Z\"}}";
 
         // Act
         await handler.HandleAsync(message);
@@ -40,10 +40,44 @@ public class RegistryInvoiceCreatedEventHandlerTests
         repositoryMock.Verify(r => r.ExistsByInvoiceNumberAsync("INV-001"), Times.Once);
         repositoryMock.Verify(r => r.GetAccountIdByAccountNumberAsync("ACC123"), Times.Once);
         repositoryMock.Verify(
-            r => r.AddAsync(It.Is<CreateInvoiceRequest>(req =>
-                req.InvoiceNumber == "INV-001" &&
-                req.Name == "Invoice 001" &&
-                req.AccountId == 5)),
+            r => r.AddAsync(
+                It.Is<CreateInvoiceRequest>(req => req.InvoiceNumber == "INV-001" &&
+                    req.DocumentPath == "/path/to/invoice.pdf" &&
+                    req.Type == "Facture RYDGE" &&
+                    req.Category == "ADMINISTRATIF" &&
+                    req.AccountId == 5)),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithoutDepositDate_AllowsDbToGenerateAsync()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryInvoiceCreatedEventHandler>>();
+        var repositoryMock = new Mock<IInvoiceRepository>();
+
+        repositoryMock
+            .Setup(r => r.ExistsByInvoiceNumberAsync("INV-002"))
+            .ReturnsAsync(false);
+        repositoryMock
+            .Setup(r => r.GetAccountIdByAccountNumberAsync("ACC123"))
+            .ReturnsAsync(5);
+        repositoryMock
+            .Setup(r => r.AddAsync(It.IsAny<CreateInvoiceRequest>()))
+            .Returns(Task.CompletedTask);
+
+        var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-002\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"ACC123\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(
+            r => r.AddAsync(
+                It.Is<CreateInvoiceRequest>(req =>
+                    req.InvoiceNumber == "INV-002" &&
+                    req.AccountId == 5)),
             Times.Once);
     }
 
@@ -92,7 +126,7 @@ public class RegistryInvoiceCreatedEventHandlerTests
             (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
 
         var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
-        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"AccountNumber\":\"UNKNOWN\",\"Name\":\"Invoice 001\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\"}}";
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"UNKNOWN\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\"}}";
 
         // Act
         await handler.HandleAsync(message);
@@ -152,7 +186,7 @@ public class RegistryInvoiceCreatedEventHandlerTests
         var repositoryMock = new Mock<IInvoiceRepository>(MockBehavior.Strict);
 
         var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
-        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"AccountNumber\":\"ACC123\",\"Name\":\"Invoice 001\"}}";
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"AccountNumber\":\"ACC123\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\"}}";
 
         // Act
         await handler.HandleAsync(message);
@@ -190,7 +224,7 @@ public class RegistryInvoiceCreatedEventHandlerTests
         var loggerMock = new Mock<ILogger<RegistryInvoiceCreatedEventHandler>>();
         var repositoryMock = new Mock<IInvoiceRepository>(MockBehavior.Strict);
         var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
-        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"AccountNumber\":\"  \",\"Name\":\"Invoice 001\"}}";
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"  \"}}";
 
         // Act
         await handler.HandleAsync(message);
@@ -218,7 +252,7 @@ public class RegistryInvoiceCreatedEventHandlerTests
             .ThrowsAsync(new InvalidOperationException("boom"));
 
         var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
-        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"AccountNumber\":\"ACC123\",\"Name\":\"Invoice 001\"}}";
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"ACC123\"}}";
 
         // Act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => handler.HandleAsync(message));
@@ -231,6 +265,134 @@ public class RegistryInvoiceCreatedEventHandlerTests
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((state, _) => (state.ToString() ?? string.Empty).Contains("Erreur inattendue dans RegistryInvoiceCreatedEventHandler.HandleAsync")),
                 It.IsAny<InvalidOperationException>(),
+                (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithMissingInvoiceDate_LogsErrorAndReturnsAsync()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryInvoiceCreatedEventHandler>>();
+        var repositoryMock = new Mock<IInvoiceRepository>(MockBehavior.Strict);
+
+        repositoryMock
+            .Setup(r => r.ExistsByInvoiceNumberAsync("INV-001"))
+            .ReturnsAsync(false);
+        repositoryMock
+            .Setup(r => r.GetAccountIdByAccountNumberAsync("ACC123"))
+            .ReturnsAsync(5);
+
+        var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"ACC123\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(r => r.AddAsync(It.IsAny<CreateInvoiceRequest>()), Times.Never);
+        loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) => (state.ToString() ?? string.Empty).Contains("InvoiceDate is not set")),
+                It.IsAny<Exception>(),
+                (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithMissingDocumentPath_LogsErrorAndReturnsAsync()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryInvoiceCreatedEventHandler>>();
+        var repositoryMock = new Mock<IInvoiceRepository>(MockBehavior.Strict);
+
+        repositoryMock
+            .Setup(r => r.ExistsByInvoiceNumberAsync("INV-001"))
+            .ReturnsAsync(false);
+        repositoryMock
+            .Setup(r => r.GetAccountIdByAccountNumberAsync("ACC123"))
+            .ReturnsAsync(5);
+
+        var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"ACC123\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(r => r.AddAsync(It.IsAny<CreateInvoiceRequest>()), Times.Never);
+        loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) => (state.ToString() ?? string.Empty).Contains("DocumentPath is null or empty")),
+                It.IsAny<Exception>(),
+                (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithMissingType_LogsErrorAndReturnsAsync()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryInvoiceCreatedEventHandler>>();
+        var repositoryMock = new Mock<IInvoiceRepository>(MockBehavior.Strict);
+
+        repositoryMock
+            .Setup(r => r.ExistsByInvoiceNumberAsync("INV-001"))
+            .ReturnsAsync(false);
+        repositoryMock
+            .Setup(r => r.GetAccountIdByAccountNumberAsync("ACC123"))
+            .ReturnsAsync(5);
+
+        var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"ACC123\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(r => r.AddAsync(It.IsAny<CreateInvoiceRequest>()), Times.Never);
+        loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) => (state.ToString() ?? string.Empty).Contains("Type is null or empty")),
+                It.IsAny<Exception>(),
+                (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithMissingCategory_LogsErrorAndReturnsAsync()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<RegistryInvoiceCreatedEventHandler>>();
+        var repositoryMock = new Mock<IInvoiceRepository>(MockBehavior.Strict);
+
+        repositoryMock
+            .Setup(r => r.ExistsByInvoiceNumberAsync("INV-001"))
+            .ReturnsAsync(false);
+        repositoryMock
+            .Setup(r => r.GetAccountIdByAccountNumberAsync("ACC123"))
+            .ReturnsAsync(5);
+
+        var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"AccountNumber\":\"ACC123\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\"}}";
+
+        // Act
+        await handler.HandleAsync(message);
+
+        // Assert
+        repositoryMock.Verify(r => r.AddAsync(It.IsAny<CreateInvoiceRequest>()), Times.Never);
+        loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) => (state.ToString() ?? string.Empty).Contains("Category is null or empty")),
+                It.IsAny<Exception>(),
                 (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()),
             Times.Once);
     }

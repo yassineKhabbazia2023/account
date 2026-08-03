@@ -39,13 +39,13 @@ public class RegistryAccountUpdatedEventHandler : IEventHandler
             @event?.EventType,
             @event?.Data?.AccountGlobalUniqueIdentifier);
 
-        if (@event?.Data == null || @event?.Data.AccountGlobalUniqueIdentifier == default(Guid))
+        if (@event?.Data == null || @event.Data.AccountGlobalUniqueIdentifier == Guid.Empty)
         {
             return;
         }
 
         // Protéger les champs obligatoires avant la mise à jour
-        await ProtectRequiredFieldsAsync(@event.Data);
+        await this.ProtectRequiredFieldsAsync(@event.Data);
 
         var updatedAccount = await _accountEventRepository.UpdateAccountAsync(@event!.Data);
         _logger.LogInformation("L'entité avec l'identifiant suivant: {AccountId} vient d'être mise à jour.", updatedAccount.AccountId);

@@ -27,18 +27,18 @@ namespace Pulse.Account.Infrastructure.Providers
                 return;
             }
 
-            var eventData = new AccountStateEventData
-            {
-                AccountGlobalUniqueId = account.AccountGlobalUniqueId,
-                AccountId = account.AccountId,
-                AccountNumber = account.AccountNumber ?? string.Empty,
-                LegalName = account.Legal?.LegalName ?? string.Empty,
-                SiretNumber = account?.Legal?.Siret ?? string.Empty,
-                Status = DeploymentStatus.ToDeploy.ToString(),
-                CreatedBy = account.CreatedBy,
-                ModifiedBy = account.ModifiedBy,
-                AccountType = account.AccountType,
-            };
+             var eventData = new AccountStateEventData
+             {
+                 AccountGlobalUniqueId = account.AccountGlobalUniqueId,
+                 AccountId = account.AccountId,
+                 AccountNumber = account.AccountNumber ?? string.Empty,
+                 LegalName = account.Legal?.LegalName ?? string.Empty,
+                 SiretNumber = account?.Legal?.Siret ?? string.Empty,
+                 Status = DeploymentStatus.ToDeploy.ToString(),
+                 CreatedBy = account.CreatedBy,
+                 ModifiedBy = account.ModifiedBy,
+                 AccountType = account.AccountType,
+             };
 
             var @event = new AccountCreatedEvent(eventData);
             await _eventPublisher.PublishAsync(@event);
