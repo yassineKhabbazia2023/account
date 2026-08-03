@@ -31,7 +31,7 @@ public class RegistryInvoiceCreatedEventHandlerTests
             .Returns(Task.CompletedTask);
 
         var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
-        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"ACC123\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\",\"DepositDate\":\"2024-01-16T00:00:00Z\"}}";
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"AccountNumber\":\"ACC123\",\"DocumentPath\":\"path/to/invoice.pdf\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\",\"DepositDate\":\"2024-01-16T00:00:00Z\",\"Type\":\"Facture\",\"Category\":\"Energie\"}}";
 
         // Act
         await handler.HandleAsync(message);
@@ -42,9 +42,9 @@ public class RegistryInvoiceCreatedEventHandlerTests
         repositoryMock.Verify(
             r => r.AddAsync(
                 It.Is<CreateInvoiceRequest>(req => req.InvoiceNumber == "INV-001" &&
-                    req.DocumentPath == "/path/to/invoice.pdf" &&
-                    req.Type == "Facture RYDGE" &&
-                    req.Category == "ADMINISTRATIF" &&
+                    req.DocumentPath == "path/to/invoice.pdf" &&
+                    req.Type == "Facture" &&
+                    req.Category == "Energie" &&
                     req.AccountId == 5)),
             Times.Once);
     }
@@ -93,7 +93,7 @@ public class RegistryInvoiceCreatedEventHandlerTests
             .ReturnsAsync(true);
 
         var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
-        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"AccountNumber\":\"ACC123\",\"Name\":\"Invoice 001\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\"}}";
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"AccountNumber\":\"ACC123\",\"DocumentPath\":\"path/to/invoice.pdf\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\",\"Type\":\"Facture\",\"Category\":\"Energie\"}}";
 
         // Act
         await handler.HandleAsync(message);
@@ -126,7 +126,7 @@ public class RegistryInvoiceCreatedEventHandlerTests
             (Func<It.IsAnyType, Exception?, string>)It.IsAny<object>()));
 
         var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
-        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"UNKNOWN\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\"}}";
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"AccountNumber\":\"UNKNOWN\",\"DocumentPath\":\"path/to/invoice.pdf\",\"InvoiceDate\":\"2024-01-15T00:00:00Z\",\"Type\":\"Facture\",\"Category\":\"Energie\"}}";
 
         // Act
         await handler.HandleAsync(message);
@@ -186,7 +186,7 @@ public class RegistryInvoiceCreatedEventHandlerTests
         var repositoryMock = new Mock<IInvoiceRepository>(MockBehavior.Strict);
 
         var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
-        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"AccountNumber\":\"ACC123\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\"}}";
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"AccountNumber\":\"ACC123\",\"DocumentPath\":\"path/to/invoice.pdf\",\"Type\":\"Facture\",\"Category\":\"Energie\"}}";
 
         // Act
         await handler.HandleAsync(message);
@@ -224,7 +224,7 @@ public class RegistryInvoiceCreatedEventHandlerTests
         var loggerMock = new Mock<ILogger<RegistryInvoiceCreatedEventHandler>>();
         var repositoryMock = new Mock<IInvoiceRepository>(MockBehavior.Strict);
         var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
-        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"  \"}}";
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"AccountNumber\":\"  \",\"DocumentPath\":\"path/to/invoice.pdf\",\"Type\":\"Facture\",\"Category\":\"Energie\"}}";
 
         // Act
         await handler.HandleAsync(message);
@@ -252,7 +252,7 @@ public class RegistryInvoiceCreatedEventHandlerTests
             .ThrowsAsync(new InvalidOperationException("boom"));
 
         var handler = new RegistryInvoiceCreatedEventHandler(loggerMock.Object, repositoryMock.Object);
-        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"DocumentPath\":\"/path/to/invoice.pdf\",\"Type\":\"Facture RYDGE\",\"Category\":\"ADMINISTRATIF\",\"AccountNumber\":\"ACC123\"}}";
+        var message = "{\"EventType\":\"RegistryInvoiceCreatedEvent\",\"Data\":{\"InvoiceNumber\":\"INV-001\",\"AccountNumber\":\"ACC123\",\"DocumentPath\":\"path/to/invoice.pdf\",\"Type\":\"Facture\",\"Category\":\"Energie\"}}";
 
         // Act
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => handler.HandleAsync(message));

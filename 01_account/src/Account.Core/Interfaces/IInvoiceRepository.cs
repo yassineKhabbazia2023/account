@@ -2,6 +2,8 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 
 namespace Pulse.Account.Core.Interfaces;
@@ -15,4 +17,6 @@ public interface IInvoiceRepository
     Task RemoveByInvoiceNumberAsync(string invoiceNumber);
 
     Task<int?> GetAccountIdByAccountNumberAsync(string accountNumber);
+
+    Task<Paging<Invoice>> GetInvoicesAsync(int accountId, SearchInvoicesCriteria criteria, Pagination pagination);
 }

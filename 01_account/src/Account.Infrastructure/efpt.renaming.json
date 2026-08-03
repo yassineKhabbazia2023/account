@@ -39,6 +39,11 @@
          },
          {
             "Columns": [ ],
+            "Name": "Invoice",
+            "NewName": "InvoiceEntity"
+         },
+         {
+            "Columns": [ ],
             "Name": "Label",
             "NewName": "LabelEntity"
          },

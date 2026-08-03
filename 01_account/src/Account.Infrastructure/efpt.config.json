@@ -42,18 +42,18 @@
          "Name": "[account].[Deployment]",
          "ObjectType": 0
       },
-       {
-          "Name": "[account].[Hub]",
-          "ObjectType": 0
-       },
-       {
-          "Name": "[account].[Invoice]",
-          "ObjectType": 0
-       },
-       {
-          "Name": "[account].[Label]",
-          "ObjectType": 0
-       },
+      {
+         "Name": "[account].[Hub]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[account].[Invoice]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[account].[Label]",
+         "ObjectType": 0
+      },
       {
          "Name": "[account].[Naf]",
          "ObjectType": 0

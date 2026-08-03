@@ -28,6 +28,8 @@ public partial class AccountContext : DbContext
 
     public virtual DbSet<HubEntity> HubEntity { get; set; }
 
+    public virtual DbSet<InvoiceEntity> InvoiceEntity { get; set; }
+
     public virtual DbSet<LabelEntity> LabelEntity { get; set; }
 
     public virtual DbSet<NafEntity> NafEntity { get; set; }
@@ -41,8 +43,6 @@ public partial class AccountContext : DbContext
     public virtual DbSet<RoleEntity> RoleEntity { get; set; }
 
     public virtual DbSet<RoleLabelEntity> RoleLabelEntity { get; set; }
-
-    public virtual DbSet<InvoiceEntity> InvoiceEntity { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -449,6 +449,48 @@ public partial class AccountContext : DbContext
                 .HasComment("Le nom du Hub");
         });
 
+        modelBuilder.Entity<InvoiceEntity>(entity =>
+        {
+            entity.HasKey(e => e.InvoiceId).HasName("C_Invoice_PK");
+
+            entity.ToTable("Invoice", "account");
+
+            entity.HasIndex(e => e.AccountId, "IX_Invoice_AccountId");
+
+            entity.HasIndex(e => e.InvoiceNumber, "UQ_Invoice_InvoiceNumber").IsUnique();
+
+            entity.Property(e => e.InvoiceId).HasComment("L'identifiant technique");
+            entity.Property(e => e.AccountId).HasComment("L'identifiant technique de l'entité");
+            entity.Property(e => e.Category)
+                .IsRequired()
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasComment("La catégorie de facture");
+            entity.Property(e => e.DepositDate)
+                .HasDefaultValueSql("GETDATE()")
+                .HasComment("La date de dépôt");
+            entity.Property(e => e.DocumentPath)
+                .IsRequired()
+                .HasMaxLength(4000)
+                .HasComment("Le chemin du document (nom affiché = dernier segment)");
+            entity.Property(e => e.InvoiceDate).HasComment("La date de facturation");
+            entity.Property(e => e.InvoiceNumber)
+                .IsRequired()
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasComment("Le numéro de facture (identifiant externe unique)");
+            entity.Property(e => e.Type)
+                .IsRequired()
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasComment("Le type de facture (ex: Facture RYDGE)");
+
+            entity.HasOne(d => d.Account).WithMany(p => p.InvoiceEntity)
+                .HasForeignKey(d => d.AccountId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_Account_Invoice_AccountId_FK");
+        });
+
         modelBuilder.Entity<LabelEntity>(entity =>
         {
             entity.HasKey(e => e.LabelId);
@@ -583,6 +625,8 @@ public partial class AccountContext : DbContext
 
             entity.HasIndex(e => e.LastActivityDate, "IX_Role_LastActivityDate");
 
+            entity.HasIndex(e => e.AccountId, "IX_Role_Signatory_AccountId").HasFilter("[IsSignatory] = 1");
+
             entity.Property(e => e.ContactId).HasComment("L'identifiant technique du contact");
             entity.Property(e => e.AccountId).HasComment("L'identifiant technique de l'entité");
             entity.Property(e => e.ContactFlagPortailFactures).HasComment("Indique si le contact est flaggé pour le portail factures");
@@ -623,54 +667,12 @@ public partial class AccountContext : DbContext
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-             entity.HasOne(d => d.Label).WithMany(p => p.RoleLabelEntity)
-                 .HasForeignKey(d => d.LabelId)
-                 .OnDelete(DeleteBehavior.ClientSetNull);
-         });
+            entity.HasOne(d => d.Label).WithMany(p => p.RoleLabelEntity)
+                .HasForeignKey(d => d.LabelId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
 
-          modelBuilder.Entity<InvoiceEntity>(entity =>
-          {
-              entity.HasKey(e => e.InvoiceId).HasName("C_Invoice_PK");
-
-              entity.ToTable("Invoice", "account");
-
-              entity.HasIndex(e => e.InvoiceNumber, "UQ_Invoice_InvoiceNumber").IsUnique();
-
-              entity.HasIndex(e => e.AccountId, "IX_Invoice_AccountId");
-
-              entity.Property(e => e.InvoiceId).HasComment("L'identifiant technique");
-              entity.Property(e => e.InvoiceNumber)
-                  .IsRequired()
-                  .HasMaxLength(255)
-                  .IsUnicode(false)
-                  .HasComment("Le numéro de facture (identifiant externe unique)");
-              entity.Property(e => e.DocumentPath)
-                  .IsRequired()
-                  .HasComment("Le chemin du document (nom affiché = dernier segment)");
-              entity.Property(e => e.Type)
-                  .IsRequired()
-                  .HasMaxLength(255)
-                  .IsUnicode(false)
-                  .HasComment("Le type de facture");
-              entity.Property(e => e.Category)
-                  .IsRequired()
-                  .HasMaxLength(255)
-                  .IsUnicode(false)
-                  .HasComment("La catégorie de facture");
-               entity.Property(e => e.InvoiceDate).HasComment("La date de facturation");
-                entity.Property(e => e.DepositDate)
-                    .ValueGeneratedOnAdd()
-                    .HasDefaultValueSql("GETDATE()")
-                    .HasComment("La date de dépôt");
-                entity.Property(e => e.AccountId).HasComment("L'identifiant technique de l'entité");
-
-               entity.HasOne(d => d.Account).WithMany(p => p.InvoiceEntity)
-                   .HasForeignKey(d => d.AccountId)
-                   .OnDelete(DeleteBehavior.ClientSetNull)
-                   .HasConstraintName("C_Account_Invoice_AccountId_FK");
-          });
-
-         OnModelCreatingPartial(modelBuilder);
+        OnModelCreatingPartial(modelBuilder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

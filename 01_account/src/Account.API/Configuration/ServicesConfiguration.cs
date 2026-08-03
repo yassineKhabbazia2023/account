@@ -50,7 +50,8 @@ public static class ServicesConfiguration
         services.AddScoped<IOfferEligibilityService, OfferEligibilityService>();
         services.AddScoped<IVentyaRepository, VentyaRepository>();
         services.AddScoped<IVentyaService, VentyaService>();
-        services.AddScoped<Pulse.Account.Core.Interfaces.IInvoiceRepository, InvoiceRepository>();
+        services.AddScoped<IInvoiceService, InvoiceService>();
+        services.AddScoped<IInvoiceRepository, InvoiceRepository>();
     }
 
     public static void RegisterBrokerServices(this IServiceCollection services, IConfiguration configuration)

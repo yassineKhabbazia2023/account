@@ -15,7 +15,7 @@ public class CreateInvoiceRequest
     public required string InvoiceNumber { get; set; }
 
     /// <summary>
-    /// Gets or sets the document path.
+    /// Gets or sets the document path, in order to download the invoice.
     /// </summary>
     public required string DocumentPath { get; set; }
 
@@ -38,7 +38,6 @@ public class CreateInvoiceRequest
     /// Gets or sets the invoice deposit date (optional - defaults to GETDATE() in database).
     /// </summary>
     public required DateTime DepositDate { get; set; }
-
 
     /// <summary>
     /// Gets or sets the related account identifier.
