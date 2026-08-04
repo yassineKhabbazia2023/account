@@ -2,7 +2,7 @@
 CREATE TABLE [account].[Invoice]
 (
 	[InvoiceId]		    INT		NOT NULL IDENTITY(1,1),
-	[InvoiceNumber]		VARCHAR(10)	NOT NULL,
+	[InvoiceNumber]		VARCHAR(50)	NOT NULL,
 	[DocumentPath]		NVARCHAR(4000)	NOT NULL,
 	[Type]				VARCHAR(50)	NOT NULL,
 	[Category]			VARCHAR(50)	NOT NULL,

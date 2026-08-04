@@ -476,7 +476,7 @@ public partial class AccountContext : DbContext
             entity.Property(e => e.InvoiceDate).HasComment("La date de facturation");
             entity.Property(e => e.InvoiceNumber)
                 .IsRequired()
-                .HasMaxLength(10)
+                .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasComment("Le numéro de facture (identifiant externe unique)");
             entity.Property(e => e.Type)
