@@ -9,4 +9,8 @@ public static class InvoiceConstants
     public static readonly string DefaultSorting = "DepositDate";
 
     public static readonly string DefaultSortingOrder = "desc";
+
+    public static readonly string[] ValidSortByValues = ["name", "depositDate", "invoiceYear"];
+
+    public static readonly string[] ValidSortOrderValues = ["asc", "desc"];
 }

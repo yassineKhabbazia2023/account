@@ -120,7 +120,7 @@ public class InvoiceControllerTests
         var criteria = new SearchInvoicesCriteria
         {
             Search = "test-search",
-            SortBy = "InvoiceDate",
+            SortBy = "depositDate",
             SortOrder = "desc"
         };
         var pagination = new Pagination { PageNumber = 2, PageSize = 20 };
@@ -142,8 +142,113 @@ public class InvoiceControllerTests
         _mockInvoiceService.Verify(
             s => s.GetInvoicesAsync(
                 It.Is<int>(id => id == 42),
-                It.Is<SearchInvoicesCriteria>(c => c.Search == "test-search" && c.SortBy == "InvoiceDate" && c.SortOrder == "desc"),
+                It.Is<SearchInvoicesCriteria>(c => c.Search == "test-search" && c.SortBy == "depositDate" && c.SortOrder == "desc"),
                 It.Is<Pagination?>(p => p != null && p.PageNumber == 2 && p.PageSize == 20)),
             Times.Once);
+    }
+
+    [Theory]
+    [InlineData("invalid")]
+    [InlineData("date")]
+    [InlineData("")]
+    [InlineData("Name1")]
+    public async Task GetInvoicesAsync_ShouldReturnBadRequest_WhenSortByIsInvalid(string invalidSortBy)
+    {
+        // Arrange
+        var accountId = 1;
+        var criteria = new SearchInvoicesCriteria { SortBy = invalidSortBy };
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        // Act
+        var result = await _controller.GetInvoicesAsync(accountId, criteria, pagination);
+
+        // Assert
+        var badRequestResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        badRequestResult.Value.Should().NotBeNull();
+        badRequestResult.Value!.ToString().Should().Contain("sortBy");
+        _mockInvoiceService.Verify(s => s.GetInvoicesAsync(It.IsAny<int>(), It.IsAny<SearchInvoicesCriteria>(), It.IsAny<Pagination?>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("name")]
+    [InlineData("depositDate")]
+    [InlineData("invoiceYear")]
+    [InlineData("NAME")]
+    [InlineData("DepositDate")]
+    public async Task GetInvoicesAsync_ShouldNotReturnBadRequest_WhenSortByIsValid(string validSortBy)
+    {
+        // Arrange
+        var accountId = 1;
+        var criteria = new SearchInvoicesCriteria { SortBy = validSortBy, SortOrder = "asc" };
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+        var paging = new Paging<Invoice>
+        {
+            CurrentPage = 1,
+            Items = [],
+            TotalItems = 0,
+            TotalPage = 0
+        };
+        _mockInvoiceService
+            .Setup(s => s.GetInvoicesAsync(accountId, It.IsAny<SearchInvoicesCriteria>(), It.IsAny<Pagination?>()))
+            .ReturnsAsync(paging);
+
+        // Act
+        var result = await _controller.GetInvoicesAsync(accountId, criteria, pagination);
+
+        // Assert
+        result.Result.Should().NotBeOfType<BadRequestObjectResult>();
+        _mockInvoiceService.Verify(s => s.GetInvoicesAsync(accountId, criteria, pagination), Times.Once);
+    }
+
+    [Theory]
+    [InlineData("invalid")]
+    [InlineData("ascending")]
+    [InlineData("")]
+    [InlineData("ASC1")]
+    public async Task GetInvoicesAsync_ShouldReturnBadRequest_WhenSortOrderIsInvalid(string invalidSortOrder)
+    {
+        // Arrange
+        var accountId = 1;
+        var criteria = new SearchInvoicesCriteria { SortBy = "name", SortOrder = invalidSortOrder };
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+
+        // Act
+        var result = await _controller.GetInvoicesAsync(accountId, criteria, pagination);
+
+        // Assert
+        var badRequestResult = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        badRequestResult.Value.Should().NotBeNull();
+        badRequestResult.Value!.ToString().Should().Contain("sortOrder");
+        _mockInvoiceService.Verify(s => s.GetInvoicesAsync(It.IsAny<int>(), It.IsAny<SearchInvoicesCriteria>(), It.IsAny<Pagination?>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("asc")]
+    [InlineData("desc")]
+    [InlineData("ASC")]
+    [InlineData("DESC")]
+    public async Task GetInvoicesAsync_ShouldNotReturnBadRequest_WhenSortOrderIsValid(string validSortOrder)
+    {
+        // Arrange
+        var accountId = 1;
+        var criteria = new SearchInvoicesCriteria { SortBy = "name", SortOrder = validSortOrder };
+        var pagination = new Pagination { PageNumber = 1, PageSize = 10 };
+        var paging = new Paging<Invoice>
+        {
+            CurrentPage = 1,
+            Items = [],
+            TotalItems = 0,
+            TotalPage = 0
+        };
+        _mockInvoiceService
+            .Setup(s => s.GetInvoicesAsync(accountId, It.IsAny<SearchInvoicesCriteria>(), It.IsAny<Pagination?>()))
+            .ReturnsAsync(paging);
+
+        // Act
+        var result = await _controller.GetInvoicesAsync(accountId, criteria, pagination);
+
+        // Assert
+        result.Result.Should().NotBeOfType<BadRequestObjectResult>();
+        _mockInvoiceService.Verify(s => s.GetInvoicesAsync(accountId, criteria, pagination), Times.Once);
     }
 }

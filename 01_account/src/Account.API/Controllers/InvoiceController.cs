@@ -3,6 +3,7 @@
 // </copyright>
 
 using Microsoft.AspNetCore.Mvc;
+using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
@@ -26,8 +27,20 @@ public class InvoiceController(IInvoiceService invoiceService) : ControllerBase
     [HttpGet("{accountId}")]
     [ProducesResponseType(typeof(Paging<Invoice>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Paging<Invoice>>> GetInvoicesAsync([FromRoute] int accountId, [FromQuery] SearchInvoicesCriteria criteria, [FromQuery] Pagination? pagination)
     {
+        if (!InvoiceConstants.ValidSortByValues.Contains(criteria.SortBy, StringComparer.OrdinalIgnoreCase))
+        {
+            return BadRequest($"Invalid sortBy value. Allowed values are: {string.Join(", ", InvoiceConstants.ValidSortByValues)}");
+        }
+
+        if (!InvoiceConstants.ValidSortOrderValues.Contains(criteria.SortOrder, StringComparer.OrdinalIgnoreCase))
+        {
+            return BadRequest($"Invalid sortOrder value. Allowed values are: {string.Join(", ", InvoiceConstants.ValidSortOrderValues)}");
+        }
+
         var result = await _invoiceService.GetInvoicesAsync(accountId, criteria, pagination);
 
         if (result.TotalItems == 0)

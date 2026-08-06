@@ -4,25 +4,33 @@
 
 using AutoFixture;
 using Moq;
+using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.Account.Core.Services;
+using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Core.Tests.Services;
 
 public class InvoiceServiceTests
 {
     private readonly Mock<IInvoiceRepository> _mockInvoiceRepository;
+    private readonly Mock<IDelegationRequestRepository> _mockDelegationRequestRepository;
     private readonly InvoiceService _invoiceService;
     private readonly Fixture _fixture;
 
     public InvoiceServiceTests()
     {
         _mockInvoiceRepository = new Mock<IInvoiceRepository>();
-        _invoiceService = new InvoiceService(_mockInvoiceRepository.Object);
+        _mockDelegationRequestRepository = new Mock<IDelegationRequestRepository>();
+        _invoiceService = new InvoiceService(_mockInvoiceRepository.Object, _mockDelegationRequestRepository.Object);
         _fixture = new Fixture();
+
+        _mockDelegationRequestRepository
+            .Setup(repo => repo.DoesAccountExistAsync(It.IsAny<int>()))
+            .ReturnsAsync(true);
     }
 
     [Fact]
@@ -226,6 +234,70 @@ public class InvoiceServiceTests
                 accountId,
                 It.Is<SearchInvoicesCriteria>(c => c.SortOrder == sortOrder),
                 It.IsAny<Pagination>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetInvoicesAsync_WhenAccountDoesNotExist_ShouldThrowNotFoundException()
+    {
+        // Arrange
+        var accountId = _fixture.Create<int>();
+        var criteria = _fixture.Build<SearchInvoicesCriteria>()
+            .With(c => c.SortBy, "Name")
+            .With(c => c.SortOrder, "asc")
+            .Create();
+        var pagination = _fixture.Create<Pagination>();
+
+        _mockDelegationRequestRepository
+            .Setup(repo => repo.DoesAccountExistAsync(accountId))
+            .ReturnsAsync(false);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<NotFoundException>(
+            () => _invoiceService.GetInvoicesAsync(accountId, criteria, pagination));
+
+        Assert.Equal(Errors.NotFoundAccountCode, exception.Code);
+        Assert.Equal(string.Format(Errors.NotFoundAccountMessage, accountId), exception.Message);
+
+        _mockInvoiceRepository.Verify(
+            repo => repo.GetInvoicesAsync(It.IsAny<int>(), It.IsAny<SearchInvoicesCriteria>(), It.IsAny<Pagination>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task GetInvoicesAsync_WhenAccountExists_ShouldNotThrowNotFoundException()
+    {
+        // Arrange
+        var accountId = _fixture.Create<int>();
+        var criteria = _fixture.Build<SearchInvoicesCriteria>()
+            .With(c => c.SortBy, "Name")
+            .With(c => c.SortOrder, "asc")
+            .Create();
+        var pagination = _fixture.Create<Pagination>();
+
+        var expectedResult = _fixture.Build<Paging<Invoice>>()
+            .With(p => p.Items, Enumerable.Empty<Invoice>())
+            .With(p => p.TotalItems, 0)
+            .Create();
+
+        _mockDelegationRequestRepository
+            .Setup(repo => repo.DoesAccountExistAsync(accountId))
+            .ReturnsAsync(true);
+
+        _mockInvoiceRepository
+            .Setup(repo => repo.GetInvoicesAsync(accountId, It.IsAny<SearchInvoicesCriteria>(), It.IsAny<Pagination>()))
+            .ReturnsAsync(expectedResult);
+
+        // Act
+        var result = await _invoiceService.GetInvoicesAsync(accountId, criteria, pagination);
+
+        // Assert
+        Assert.NotNull(result);
+        _mockDelegationRequestRepository.Verify(
+            repo => repo.DoesAccountExistAsync(accountId),
+            Times.Once);
+        _mockInvoiceRepository.Verify(
+            repo => repo.GetInvoicesAsync(accountId, It.IsAny<SearchInvoicesCriteria>(), It.IsAny<Pagination>()),
             Times.Once);
     }
 }
