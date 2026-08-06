@@ -3219,6 +3219,206 @@ public class AccountRepositoryTests
 
     #endregion CreateAccountAsync coverage additions
 
+    #region CreateAccountAsync Address/LegalForm/NafCode coverage
+
+    /// <summary>
+    /// Ensures LegalForm, Address and a matching NafCode are persisted on the created account.
+    /// </summary>
+    [Fact]
+    public async Task CreateAccountAsync_WithLegalFormAddressAndValidNafCode_ShouldPersistAllFields()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+
+        var naf = new NafEntity { NafCode = "62.01z", NafLabel = "programmation informatique" };
+        context.NafEntity.Add(naf);
+        await context.SaveChangesAsync();
+
+        var repository = new AccountRepository(context);
+
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = "NAFOK001",
+            LegalName = "Naf Account",
+            Siret = "12345678901234",
+            AccountType = AccountType.CLIENT,
+            LegalForm = "sas",
+            NafCode = "62.01z",
+            Address = new AddressRequest
+            {
+                Street = "12 rue de la paix",
+                City = "paris",
+                Department = "paris",
+                ZipCode = "75002",
+                Region = "ile-de-france",
+                Country = "france"
+            }
+        };
+
+        var result = await repository.CreateAccountAsync("creator@pulse.fr", request);
+
+        var entity = await context.AccountEntity
+            .IgnoreQueryFilters()
+            .Include(a => a.AddressEntity)
+            .FirstAsync(a => a.AccountGlobalUniqueId == result.AccountGlobalUniqueId);
+
+        Assert.Equal(request.LegalForm, entity.LegalForm);
+        Assert.Equal(naf.NafId, entity.NafId);
+
+        var address = Assert.Single(entity.AddressEntity);
+        Assert.Equal(AddressType.Delivery.ToString(), address.AddressType);
+        Assert.Equal(request.Address.Street, address.AddressLine1);
+        Assert.Equal(request.Address.City, address.City);
+        Assert.Equal(request.Address.Department, address.State);
+        Assert.Equal(request.Address.ZipCode, address.ZipCode);
+        Assert.Equal(request.Address.Country, address.Country);
+    }
+
+    /// <summary>
+    /// Ensures the address Street is optional and does not prevent the address from being persisted.
+    /// </summary>
+    [Fact]
+    public async Task CreateAccountAsync_WithAddressWithoutStreet_ShouldPersistAddressWithNullAddressLine1()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+        var repository = new AccountRepository(context);
+
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = "NOSTREET001",
+            LegalName = "No Street Account",
+            Siret = "12345678901234",
+            AccountType = AccountType.CLIENT,
+            Address = new AddressRequest
+            {
+                City = "paris",
+                Department = "paris",
+                Region = "ile-de-france",
+                Country = "france"
+            }
+        };
+
+        var result = await repository.CreateAccountAsync("creator@pulse.fr", request);
+
+        var entity = await context.AccountEntity
+            .IgnoreQueryFilters()
+            .Include(a => a.AddressEntity)
+            .FirstAsync(a => a.AccountGlobalUniqueId == result.AccountGlobalUniqueId);
+
+        var address = Assert.Single(entity.AddressEntity);
+        Assert.Null(address.AddressLine1);
+        Assert.Null(address.ZipCode);
+        Assert.Equal(request.Address.Department, address.State);
+    }
+
+    /// <summary>
+    /// Ensures an unknown NafCode does not silently create the account without a NAF link.
+    /// </summary>
+    [Fact]
+    public async Task CreateAccountAsync_WithUnknownNafCode_ShouldThrowNotFoundException()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+        var repository = new AccountRepository(context);
+
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = "NAFKO001",
+            LegalName = "Unknown Naf Account",
+            Siret = "12345678901234",
+            AccountType = AccountType.CLIENT,
+            NafCode = "0000z"
+        };
+
+        var exception = await Assert.ThrowsAsync<NotFoundException>(() => repository.CreateAccountAsync("creator@pulse.fr", request));
+
+        Assert.Equal(Errors.NotFoundNafCode, exception.Code);
+        Assert.DoesNotContain(await context.AccountEntity.IgnoreQueryFilters().ToListAsync(), a => a.AccountNumber == request.AccountNumber.ToLower());
+    }
+
+    /// <summary>
+    /// Ensures NAF code with dot remains unchanged and still finds the correct record.
+    /// </summary>
+    [Fact]
+    public async Task CreateAccountAsync_WithNafCodeWithDot_ShouldFindCorrectNafWithoutModification()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+
+        var naf = new NafEntity { NafCode = "52.10z", NafLabel = "Warehousing" };
+        context.NafEntity.Add(naf);
+        await context.SaveChangesAsync();
+
+        var repository = new AccountRepository(context);
+
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = "NAFDOT001",
+            LegalName = "Dot Naf Account",
+            Siret = "12345678901234",
+            AccountType = AccountType.CLIENT,
+            NafCode = "52.10z" // With dot - should remain unchanged
+        };
+
+        var result = await repository.CreateAccountAsync("creator@pulse.fr", request);
+
+        var entity = await context.AccountEntity
+            .IgnoreQueryFilters()
+            .FirstAsync(a => a.AccountGlobalUniqueId == result.AccountGlobalUniqueId);
+
+        Assert.NotNull(entity);
+        Assert.Equal(naf.NafId, entity.NafId);
+        Assert.Equal(request.AccountNumber, entity.AccountNumber);
+    }
+
+    /// <summary>
+    /// Ensures LegalForm, Address and NafCode remain optional and do not affect account creation when omitted.
+    /// </summary>
+    [Fact]
+    public async Task CreateAccountAsync_WithoutLegalFormAddressOrNafCode_ShouldLeaveThemEmpty()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+        var repository = new AccountRepository(context);
+
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = "NOOPT001",
+            LegalName = "No Optional Fields Account",
+            Siret = "12345678901234",
+            AccountType = AccountType.CLIENT
+        };
+
+        var result = await repository.CreateAccountAsync("creator@pulse.fr", request);
+
+        var entity = await context.AccountEntity
+            .IgnoreQueryFilters()
+            .Include(a => a.AddressEntity)
+            .FirstAsync(a => a.AccountGlobalUniqueId == result.AccountGlobalUniqueId);
+
+        Assert.Null(entity.LegalForm);
+        Assert.Null(entity.NafId);
+        Assert.Empty(entity.AddressEntity);
+    }
+
+    #endregion CreateAccountAsync Address/LegalForm/NafCode coverage
+
     [Fact]
     public async Task CreateAccountAsync_ShouldGenerateNewGuid()
     {

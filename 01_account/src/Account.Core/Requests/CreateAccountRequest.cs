@@ -20,5 +20,20 @@ namespace Pulse.Account.Core.Requests
 
         [Required]
         public required AccountType AccountType { get; set; }
+
+        /// <summary>
+        /// Adresse de l'entreprise.
+        /// </summary>
+        public AddressRequest? Address { get; set; }
+
+        /// <summary>
+        /// Forme juridique de l'entreprise.
+        /// </summary>
+        public string? LegalForm { get; set; }
+
+        /// <summary>
+        /// Code NAF de l'entreprise.
+        /// </summary>
+        public string? NafCode { get; set; }
     }
 }

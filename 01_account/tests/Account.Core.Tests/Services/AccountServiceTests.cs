@@ -537,6 +537,40 @@ namespace Pulse.Account.Core.Tests.Services
         }
 
         /// <summary>
+        /// Ensures the NAF code is normalized to the INSEE format (XX.XXZ) before reaching the repository.
+        /// </summary>
+        [Theory]
+        [InlineData("6234Z", "62.34Z")]
+        [InlineData("62.34Z", "62.34Z")]
+        public async Task CreateAccountAsync_WithNafCode_ShouldFormatNafCodeBeforeCallingRepository(string inputNafCode, string expectedNafCode)
+        {
+            var currentUserId = 11;
+            var request = new CreateAccountRequest
+            {
+                AccountNumber = "NAF12345",
+                LegalName = "Naf Format Test",
+                Siret = "12345678900000",
+                AccountType = AccountType.CLIENT,
+                NafCode = inputNafCode
+            };
+            var currentContact = _fixture.Build<Contact>().With(c => c.Email, "naf.creator@pulse.fr").Create();
+            var created = _fixture.Create<AccountDetail>();
+
+            _contactRepository.Setup(contactRepository => contactRepository.GetContactByIdAsync(currentUserId))
+                .ReturnsAsync(currentContact);
+            _accountRepository.Setup(repository => repository.CreateAccountAsync(currentContact.Email, It.IsAny<CreateAccountRequest>()))
+                .ReturnsAsync(created);
+
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object);
+
+            await accountService.CreateAccountAsync(currentUserId, request);
+
+            _accountRepository.Verify(
+                repository => repository.CreateAccountAsync(currentContact.Email, It.Is<CreateAccountRequest>(r => r.NafCode == expectedNafCode)),
+                Times.Once);
+        }
+
+        /// <summary>
         /// Ensures create-account failures are logged with structured prospect-creation context and do not publish events.
         /// </summary>
         [Fact]

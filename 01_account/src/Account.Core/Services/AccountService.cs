@@ -37,6 +37,8 @@ public class AccountService(
             throw new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, currentUserId));
         }
 
+        request.NafCode = NafCodeFormatter.Format(request.NafCode);
+
         try
         {
             var createdAccount = await _accountRepository.CreateAccountAsync(currentUser.Email, request);

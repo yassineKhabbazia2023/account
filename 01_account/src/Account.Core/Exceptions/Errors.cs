@@ -172,4 +172,7 @@ public static class Errors
 
     public static readonly string BadRequestLastActivityUtcCode = "ACC056";
     public static readonly string BadRequestLastActivityUtcMessage = "Les dates de dernière utilisation doivent être des instants UTC (format ISO 8601 avec suffixe Z).";
+
+    public static readonly string NotFoundNafCode = "ACC057";
+    public static readonly string NotFoundNafMessage = "Le code NAF {0} est introuvable";
 }

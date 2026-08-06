@@ -59,6 +59,20 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
         {
             var accountGlobalUniqueId = Guid.NewGuid();
 
+            int? nafId = null;
+            if (!string.IsNullOrWhiteSpace(request.NafCode))
+            {
+                var naf = await _accountContext.NafEntity.AsNoTracking()
+                    .FirstOrDefaultAsync(n => n.NafCode == request.NafCode);
+
+                if (naf == null)
+                {
+                    throw new NotFoundException(Errors.NotFoundNafCode, string.Format(Errors.NotFoundNafMessage, request.NafCode));
+                }
+
+                nafId = naf.NafId;
+            }
+
             var accountEntity = new AccountEntity
             {
                 AccountGlobalUniqueId = accountGlobalUniqueId,
@@ -66,6 +80,8 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
                 LegalName = request.LegalName,
                 Siret = request.Siret,
                 AccountType = request.AccountType.ToString(),
+                LegalForm = request.LegalForm,
+                NafId = nafId,
                 CreatedBy = currentUser,
                 CreationDate = DateTime.UtcNow,
                 IsActive = true,
@@ -75,6 +91,19 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
                     DeploymentDate = DateTime.UtcNow,
                 }
             };
+
+            if (request.Address != null)
+            {
+                accountEntity.AddressEntity.Add(new AddressEntity
+                {
+                    AddressLine1 = request.Address.Street,
+                    City = request.Address.City,
+                    Country = request.Address.Country,
+                    State = request.Address.Department,
+                    ZipCode = request.Address.ZipCode,
+                    AddressType = AddressType.Delivery.ToString(),
+                });
+            }
 
             _accountContext.AccountEntity.Add(accountEntity);
 
