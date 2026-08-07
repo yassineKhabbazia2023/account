@@ -73,6 +73,8 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
                 nafId = naf.NafId;
             }
 
+            var (legalFormCode, legalFormLabel) = LegalFormResolver.Resolve(request.LegalForm);
+
             var accountEntity = new AccountEntity
             {
                 AccountGlobalUniqueId = accountGlobalUniqueId,
@@ -80,7 +82,8 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
                 LegalName = request.LegalName,
                 Siret = request.Siret,
                 AccountType = request.AccountType.ToString(),
-                LegalForm = request.LegalForm,
+                LegalForm = legalFormLabel,
+                LegalFormCode = legalFormCode,
                 NafId = nafId,
                 CreatedBy = currentUser,
                 CreationDate = DateTime.UtcNow,

@@ -3265,7 +3265,8 @@ public class AccountRepositoryTests
             .Include(a => a.AddressEntity)
             .FirstAsync(a => a.AccountGlobalUniqueId == result.AccountGlobalUniqueId);
 
-        Assert.Equal(request.LegalForm, entity.LegalForm);
+        Assert.Equal("SAS - SOCIÉTÉ PAR ACTIONS SIMPLIFIÉE", entity.LegalForm);
+        Assert.Equal("SAS", entity.LegalFormCode);
         Assert.Equal(naf.NafId, entity.NafId);
 
         var address = Assert.Single(entity.AddressEntity);
@@ -3275,6 +3276,71 @@ public class AccountRepositoryTests
         Assert.Equal(request.Address.Department, address.State);
         Assert.Equal(request.Address.ZipCode, address.ZipCode);
         Assert.Equal(request.Address.Country, address.Country);
+    }
+
+    /// <summary>
+    /// Ensures a legal form received as a referential code (ex: "ENT IND" from the prospect flow)
+    /// is persisted with the referential label in LegalForm and the code in LegalFormCode.
+    /// </summary>
+    [Fact]
+    public async Task CreateAccountAsync_WithLegalFormReferentialCode_ShouldPersistLabelAndCode()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+        var repository = new AccountRepository(context);
+
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = "LEGALFORM001",
+            LegalName = "Legal Form Code Account",
+            Siret = "12345678901234",
+            AccountType = AccountType.PROSPECT,
+            LegalForm = "ENT IND"
+        };
+
+        var result = await repository.CreateAccountAsync("creator@pulse.fr", request);
+
+        var entity = await context.AccountEntity
+            .IgnoreQueryFilters()
+            .FirstAsync(a => a.AccountGlobalUniqueId == result.AccountGlobalUniqueId);
+
+        Assert.Equal("ENTREPRISE INDIVIDUELLE", entity.LegalForm);
+        Assert.Equal("ENT IND", entity.LegalFormCode);
+    }
+
+    /// <summary>
+    /// Ensures a legal form unknown from the referential is persisted as-is without code.
+    /// </summary>
+    [Fact]
+    public async Task CreateAccountAsync_WithUnknownLegalForm_ShouldPersistValueAsIsWithoutCode()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new TestAccountContext(options);
+        var repository = new AccountRepository(context);
+
+        var request = new CreateAccountRequest
+        {
+            AccountNumber = "LEGALFORM002",
+            LegalName = "Unknown Legal Form Account",
+            Siret = "12345678901234",
+            AccountType = AccountType.PROSPECT,
+            LegalForm = "ENTREPRISE INDIVIDUELLE"
+        };
+
+        var result = await repository.CreateAccountAsync("creator@pulse.fr", request);
+
+        var entity = await context.AccountEntity
+            .IgnoreQueryFilters()
+            .FirstAsync(a => a.AccountGlobalUniqueId == result.AccountGlobalUniqueId);
+
+        Assert.Equal("ENTREPRISE INDIVIDUELLE", entity.LegalForm);
+        Assert.Null(entity.LegalFormCode);
     }
 
     /// <summary>
