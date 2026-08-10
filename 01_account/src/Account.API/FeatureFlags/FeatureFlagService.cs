@@ -24,7 +24,7 @@ public class FeatureFlagService(IFeatureClient featureClient) : IFeatureFlagServ
             return null;
 
         return EvaluationContext.Builder()
-            .SetTargetingKey(userEmail.ToLowerInvariant())
+            .Set("Identifier", userEmail.ToLowerInvariant())
             .Build();
     }
 }

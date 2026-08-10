@@ -12,7 +12,7 @@ namespace Pulse.Account.Core.Interfaces
     {
         Task<AccountDetail> CreateAccountAsync(int currentUserId, CreateAccountRequest request);
 
-        public Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination? pagination);
+        public Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination? pagination, string? currentUserEmail = null);
 
         public Task<Paging<Models.Account>> GetAllAccountsAsync(string? accountNumber, Pagination? pagination, SearchAccountCriteria? criteria);
 
@@ -24,9 +24,9 @@ namespace Pulse.Account.Core.Interfaces
 
         public Task<AccountDetail?> GetAccountDetailAsync(int accountId);
 
-        public Task UpdateAccountAsync(int accountId, AccountDetail accountDetail);
+        public Task UpdateAccountAsync(int accountId, AccountDetail accountDetail, string? currentUserEmail = null);
 
-        public Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination? pagination);
+        public Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination? pagination, string? currentUserEmail = null);
 
         /// <summary>
         /// Gets account collaborators with contact widget role labels.

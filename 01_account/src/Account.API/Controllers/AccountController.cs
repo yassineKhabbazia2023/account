@@ -54,15 +54,17 @@ public class AccountController(IAccountService accountService) : ControllerBase
     /// </summary>
     /// <param name="criteria">Critère de recherche.</param>
     /// <param name="pagination">Paramètres de pagination.</param>
+    /// <param name="currentUserEmail">Email de l'utilisateur connecté (header ContactEmail).</param>
     /// <returns>Liste d'entités morales.</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Paging<AccountModel>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Paging<AccountModel>>> GetAccountsAsync([FromQuery] SearchAccountCriteria criteria,
-        [FromQuery] Pagination? pagination)
+        [FromQuery] Pagination? pagination,
+        [FromHeader(Name = "ContactEmail")] string? currentUserEmail = null)
     {
-        var result = await accountService.GetAccountsAsync(criteria, pagination);
+        var result = await accountService.GetAccountsAsync(criteria, pagination, currentUserEmail);
 
         return Ok(result);
     }
@@ -125,12 +127,13 @@ public class AccountController(IAccountService accountService) : ControllerBase
     /// </summary>
     /// <param name="accountId">ID de l'entité morale.</param>
     /// <param name="accountPatch">Informations à mettre à jour.</param>
+    /// <param name="currentUserEmail">Email de l'utilisateur connecté (header ContactEmail).</param>
     /// <returns>Les informations détaillées de l'entité morale mises à jour.</returns>
     [HttpPatch("{accountId}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
-    public async Task<IActionResult> UpdateAccountAsync(int accountId, [FromBody] JsonPatchDocument<AccountDetail> accountPatch)
+    public async Task<IActionResult> UpdateAccountAsync(int accountId, [FromBody] JsonPatchDocument<AccountDetail> accountPatch, [FromHeader(Name = "ContactEmail")] string? currentUserEmail = null)
     {
         if (accountPatch == null)
         {
@@ -166,7 +169,7 @@ public class AccountController(IAccountService accountService) : ControllerBase
             return BadRequest(ModelState);
         }
 
-        await accountService.UpdateAccountAsync(accountId, accountToUpdate!);
+        await accountService.UpdateAccountAsync(accountId, accountToUpdate!, currentUserEmail);
 
         return Ok();
     }
@@ -208,14 +211,15 @@ public class AccountController(IAccountService accountService) : ControllerBase
     /// <param name="accountId">ID de l'entité morale.</param>
     /// <param name="criteria">Critère de recherche.</param>
     /// <param name="pagination">Paramètre de pagination.</param>
+    /// <param name="currentUserEmail">Email de l'utilisateur connecté (header ContactEmail).</param>
     /// <returns>La liste des contacts.</returns>
     [HttpGet("{accountId}/contacts")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<Contact>))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult<Paging<Contact>>> GetContactsAccountAsync(int accountId, [FromQuery] SearchContactsAccountCriteria criteria, [FromQuery] Pagination? pagination)
+    public async Task<ActionResult<Paging<Contact>>> GetContactsAccountAsync(int accountId, [FromQuery] SearchContactsAccountCriteria criteria, [FromQuery] Pagination? pagination, [FromHeader(Name = "ContactEmail")] string? currentUserEmail = null)
     {
-        var result = await accountService.GetContactsAccountAsync(accountId, criteria, pagination);
+        var result = await accountService.GetContactsAccountAsync(accountId, criteria, pagination, currentUserEmail);
         return Ok(result);
     }
 

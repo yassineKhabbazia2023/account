@@ -61,7 +61,7 @@ public class AccountService(
         }
     }
 
-    public async Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination? pagination)
+    public async Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination? pagination, string? currentUserEmail = null)
     {
         pagination = pagination ?? new Pagination();
         pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
@@ -72,7 +72,7 @@ public class AccountService(
         criteria.MissionType = MissionTypeValidation.GetValidMissionTypes(criteria.MissionType);
         LastActivityRangeValidation.Validate(criteria.LastActivityDateFrom, criteria.LastActivityDateTo);
 
-        var sortByLastActivity = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.LastActivityFeature);
+        var sortByLastActivity = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.LastActivityFeature, currentUserEmail);
 
         return await _accountRepository.GetAccountsAsync(criteria, pagination, sortByLastActivity);
     }
@@ -113,9 +113,9 @@ public class AccountService(
         return await _accountRepository.GetAccountDetailAsync(accountId);
     }
 
-    public async Task UpdateAccountAsync(int accountId, AccountDetail accountDetail)
+    public async Task UpdateAccountAsync(int accountId, AccountDetail accountDetail, string? currentUserEmail = null)
     {
-        var includeProspects = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.IncludeProspectsInContactsSearch);
+        var includeProspects = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.IncludeProspectsInContactsSearch, currentUserEmail);
 
         // Récupérer l'état actuel pour vérifier les champs protégés
         var currentAccount = await _accountRepository.GetAccountAsync(accountId);
@@ -161,14 +161,14 @@ public class AccountService(
         }
     }
 
-    public async Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination? pagination)
+    public async Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination? pagination, string? currentUserEmail = null)
     {
         pagination = pagination ?? new Pagination();
         pagination.PageNumber = Paginator.GetValidPageNumber(pagination.PageNumber);
         pagination.PageSize = Paginator.GetValidPageSize(pagination.PageSize);
 
         criteria = criteria ?? new SearchContactsAccountCriteria();
-        var includeProspects = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.IncludeProspectsInContactsSearch);
+        var includeProspects = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.IncludeProspectsInContactsSearch, currentUserEmail);
         return await _accountRepository.GetContactsAccountAsync(accountId, criteria, pagination, includeProspects);
     }
 

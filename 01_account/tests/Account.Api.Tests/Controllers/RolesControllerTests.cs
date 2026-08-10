@@ -277,7 +277,7 @@ public class RolesControllerTests
     {
         // Arrange
         var roleService = new Mock<IRolesService>();
-        roleService.Setup(service => service.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), "test@test.fr"))
+        roleService.Setup(service => service.CheckRoleExistsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), "test@test.fr", It.IsAny<string>()))
             .Returns(Task.FromResult(true));
         var roleController = new RolesController(roleService.Object);
 
@@ -285,7 +285,7 @@ public class RolesControllerTests
         var contactHasRoleOnAccount = await roleController.CheckRoleExists(123, 1, 1, "test@test.fr");
 
         // Assert
-        roleService.Verify(x => x.CheckRoleExistsAsync(123, 1, 1, "test@test.fr"), Times.Once);
+        roleService.Verify(x => x.CheckRoleExistsAsync(123, 1, 1, "test@test.fr", null), Times.Once);
         Assert.Equal(true, (contactHasRoleOnAccount as OkObjectResult)?.Value);
     }
 

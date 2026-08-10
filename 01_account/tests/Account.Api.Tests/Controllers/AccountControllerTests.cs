@@ -109,7 +109,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         };
 
         var service = new Mock<IAccountService>();
-        service.Setup(x => x.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>())).ReturnsAsync(expected);
+        service.Setup(x => x.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<string>())).ReturnsAsync(expected);
         var controller = new AccountController(service.Object);
 
         // Act
@@ -324,7 +324,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         var expected = _fixture.Create<Paging<Contact>>();
 
         var accountService = new Mock<IAccountService>(MockBehavior.Strict);
-        accountService.Setup(service => service.GetContactsAccountAsync(It.IsAny<int>(), It.IsAny<SearchContactsAccountCriteria>(), It.IsAny<Pagination>()))
+        accountService.Setup(service => service.GetContactsAccountAsync(It.IsAny<int>(), It.IsAny<SearchContactsAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<string>()))
             .ReturnsAsync(expected);
         var accountController = new AccountController(accountService.Object);
         var criteria = new SearchContactsAccountCriteria();
@@ -430,7 +430,8 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
             service => service.GetContactsAccountAsync(
                 It.IsAny<int>(),
                 It.IsAny<SearchContactsAccountCriteria>(),
-                It.IsAny<Pagination>()),
+                It.IsAny<Pagination>(),
+                It.IsAny<string>()),
             Times.Never);
     }
 
@@ -541,7 +542,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         };
 
         var service = new Mock<IAccountService>();
-        service.Setup(x => x.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>())).ReturnsAsync(expected);
+        service.Setup(x => x.GetAccountsAsync(It.IsAny<SearchAccountCriteria>(), It.IsAny<Pagination>(), It.IsAny<string>())).ReturnsAsync(expected);
         var controller = new AccountController(service.Object);
 
         // Act

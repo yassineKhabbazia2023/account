@@ -332,9 +332,9 @@ public class RolesService : IRolesService
         return result;
     }
 
-    public async Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email)
+    public async Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email, string? currentUserEmail = null)
     {
-        var includeProspects = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.IncludeProspectsInContactsSearch);
+        var includeProspects = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.IncludeProspectsInContactsSearch, currentUserEmail);
         return await _rolesRepository.CheckRoleExistsAsync(currentUserId, contactId, accountId, email, includeProspects);
     }
 

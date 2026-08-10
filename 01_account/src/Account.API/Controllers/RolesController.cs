@@ -71,19 +71,20 @@ public class RolesController : ControllerBase
     /// <param name="contactId">Identifiant de l'utilisateur.</param>
     /// <param name="accountId">Identifiant de l'entitié morale.</param>
     /// <param name="email">L'email de l'utilisateur.</param>
+    /// <param name="currentUserEmail">L'email de l'utilisateur connecté (header ContactEmail).</param>
     /// <returns>http 200.</returns>
     [HttpGet("check")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult> CheckRoleExists([FromHeader(Name = "CurrentUser")] int currentUserId, int? contactId, int? accountId, string? email)
+    public async Task<ActionResult> CheckRoleExists([FromHeader(Name = "CurrentUser")] int currentUserId, int? contactId, int? accountId, string? email, [FromHeader(Name = "ContactEmail")] string? currentUserEmail = null)
     {
         if (!contactId.HasValue && string.IsNullOrWhiteSpace(email))
         {
             throw new BadRequestException(Errors.ContactIdAndEmailNullCode, Errors.ContactIdAndEmailNullMessage);
         }
 
-        var contactHasRoleOnAccount = await _rolesService.CheckRoleExistsAsync(currentUserId, contactId, accountId, email);
+        var contactHasRoleOnAccount = await _rolesService.CheckRoleExistsAsync(currentUserId, contactId, accountId, email, currentUserEmail);
 
         return Ok(contactHasRoleOnAccount);
     }

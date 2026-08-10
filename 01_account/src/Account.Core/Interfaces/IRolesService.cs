@@ -26,7 +26,7 @@ public interface IRolesService
 
     Task<LastCollaboratorCheckResult> CheckLastCollaboratorAsync(int contactId, IReadOnlyCollection<int> accountIds);
 
-    Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email);
+    Task<bool> CheckRoleExistsAsync(int currentUserId, int? contactId, int? accountId, string? email, string? currentUserEmail = null);
 
     Task<bool> IsContactHasRoleOnAccountAsync(int contactId, int? accountId, string? accountNumber);
 
