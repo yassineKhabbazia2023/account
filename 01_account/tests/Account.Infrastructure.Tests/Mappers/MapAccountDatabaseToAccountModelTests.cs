@@ -728,7 +728,11 @@ public class MapAccountDatabaseToAccountModelTests
             PhoneEntity = new List<PhoneEntity>(),
             Hub = new HubEntity { HubId = 1, HubName = "Test Hub" },
             DeploymentEntity = new DeploymentEntity { Status = 1 },
-            Turnover = 1000000.50m
+            Turnover = 1000000.50m,
+            AccountRoutingCode = "0-B2G",
+            AccountRoutingLabel = "B2G",
+            AccountLegalFormLabel = "Entrepreneur individuel",
+            AccountElectronicAddressId = "factures@example.com"
         };
 
         // Act
@@ -753,6 +757,10 @@ public class MapAccountDatabaseToAccountModelTests
         result.Hub.Should().NotBeNull();
         result.Deployment.Should().NotBeNull();
         result.Turnover.Should().Be(1000000.50m);
+        result.AccountRoutingCode.Should().Be(source.AccountRoutingCode);
+        result.AccountRoutingLabel.Should().Be(source.AccountRoutingLabel);
+        result.AccountLegalFormLabel.Should().Be(source.AccountLegalFormLabel);
+        result.AccountElectronicAddressId.Should().Be(source.AccountElectronicAddressId);
     }
 
     [Fact]

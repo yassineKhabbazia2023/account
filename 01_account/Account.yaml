@@ -595,6 +595,26 @@ components:
             description: Nombre d'employés de l'entité morale.
             type: integer
             example: 10
+          accountRoutingCode:
+            description: Code de routage Akuiteo. Le type string et la longueur maximale de 255 sont provisoires dans l'attente du contrat Akuiteo définitif.
+            type: string
+            maxLength: 255
+            nullable: true
+          accountRoutingLabel:
+            description: Libellé de routage Akuiteo. Le type string et la longueur maximale de 255 sont provisoires dans l'attente du contrat Akuiteo définitif.
+            type: string
+            maxLength: 255
+            nullable: true
+          accountLegalFormLabel:
+            description: Libellé de forme juridique Akuiteo. Le type string et la longueur maximale de 255 sont provisoires dans l'attente du contrat Akuiteo définitif.
+            type: string
+            maxLength: 255
+            nullable: true
+          accountElectronicAddressId:
+            description: Identifiant d'adresse électronique Akuiteo. Le type string et la longueur maximale de 255 sont provisoires dans l'attente du contrat Akuiteo définitif.
+            type: string
+            maxLength: 255
+            nullable: true
       AccountFavorite:
         type: 'object'
         description: Informations sur une entité morale permettant de remplir la barre de favoris d'une entité physique.

@@ -190,7 +190,11 @@ public static class MapAccountDatabaseToAccountModel
             MissionType = source.MissionType,
             OfficeId = source.OfficeId,
             Office = source.Office?.MapToOffice(),
-            Turnover = source.Turnover
+            Turnover = source.Turnover,
+            AccountRoutingCode = source.AccountRoutingCode,
+            AccountRoutingLabel = source.AccountRoutingLabel,
+            AccountLegalFormLabel = source.AccountLegalFormLabel,
+            AccountElectronicAddressId = source.AccountElectronicAddressId
         };
     }
 

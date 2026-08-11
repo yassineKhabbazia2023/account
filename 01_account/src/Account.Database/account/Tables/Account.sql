@@ -40,6 +40,11 @@
     [IconName]                VARCHAR (50)     NULL,
     [MissionType]             VARCHAR (150)    NULL,
     [OfficeId]                INT              NULL,
+    -- Provisional NVARCHAR(255) until Akuiteo confirms the definitive field types and lengths.
+    [AccountRoutingCode]          NVARCHAR (255) NULL,
+    [AccountRoutingLabel]         NVARCHAR (255) NULL,
+    [AccountLegalFormLabel]       NVARCHAR (255) NULL,
+    [AccountElectronicAddressId]  NVARCHAR (255) NULL,
     CONSTRAINT [C_Account_PK] PRIMARY KEY CLUSTERED ([AccountId] ASC),
     CONSTRAINT [C_Account_Hub_HubId_FK] FOREIGN KEY ([HubId]) REFERENCES [account].[Hub] ([HubId]),
     CONSTRAINT [C_Account_NafId_FK] FOREIGN KEY ([NafId]) REFERENCES [account].[Naf] ([NafId]),
@@ -343,6 +348,42 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level1name = N'Account',
     @level2type = N'COLUMN',
     @level2name = N'FiscalSystem'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Code de routage Akuiteo. Type et longueur NVARCHAR(255) provisoires en attente du contrat définitif.',
+    @level0type = N'SCHEMA',
+    @level0name = N'account',
+    @level1type = N'TABLE',
+    @level1name = N'Account',
+    @level2type = N'COLUMN',
+    @level2name = N'AccountRoutingCode'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Libellé de routage Akuiteo. Type et longueur NVARCHAR(255) provisoires en attente du contrat définitif.',
+    @level0type = N'SCHEMA',
+    @level0name = N'account',
+    @level1type = N'TABLE',
+    @level1name = N'Account',
+    @level2type = N'COLUMN',
+    @level2name = N'AccountRoutingLabel'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Libellé de forme juridique Akuiteo. Type et longueur NVARCHAR(255) provisoires en attente du contrat définitif.',
+    @level0type = N'SCHEMA',
+    @level0name = N'account',
+    @level1type = N'TABLE',
+    @level1name = N'Account',
+    @level2type = N'COLUMN',
+    @level2name = N'AccountLegalFormLabel'
+GO
+EXEC sp_addextendedproperty @name = N'MS_Description',
+    @value = N'Identifiant d’adresse électronique Akuiteo. Type et longueur NVARCHAR(255) provisoires en attente du contrat définitif.',
+    @level0type = N'SCHEMA',
+    @level0name = N'account',
+    @level1type = N'TABLE',
+    @level1name = N'Account',
+    @level2type = N'COLUMN',
+    @level2name = N'AccountElectronicAddressId'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
     @value = N'La date de création',

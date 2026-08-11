@@ -27,12 +27,21 @@ public class AccountEventPublisherTests
         var publisherMock = new Mock<IEventPublisher>();
         var accountEventPublisher = new AccountEventPublisher(publisherMock.Object);
         var detail = _fixture.Create<AccountDetail>();
+        AccountStateEventData? publishedData = null;
+        publisherMock
+            .Setup(p => p.PublishAsync(It.IsAny<BaseEvent<AccountStateEventData>>(), null!, null))
+            .Callback<BaseEvent<AccountStateEventData>, string, string>((accountEvent, _, _) => publishedData = accountEvent.Data);
 
         // Act
         await accountEventPublisher.PublishAccountCreatedEventAsync(detail);
 
         // Assert
         publisherMock.Verify(p => p.PublishAsync(It.IsAny<BaseEvent<AccountStateEventData>>(), null!, null), Times.Once);
+        Assert.NotNull(publishedData);
+        Assert.Equal(detail.AccountRoutingCode, publishedData.AccountRoutingCode);
+        Assert.Equal(detail.AccountRoutingLabel, publishedData.AccountRoutingLabel);
+        Assert.Equal(detail.AccountLegalFormLabel, publishedData.AccountLegalFormLabel);
+        Assert.Equal(detail.AccountElectronicAddressId, publishedData.AccountElectronicAddressId);
     }
 
     [Fact]
@@ -42,12 +51,21 @@ public class AccountEventPublisherTests
         var publisherMock = new Mock<IEventPublisher>();
         var accountEventPublisher = new AccountEventPublisher(publisherMock.Object);
         var detail = _fixture.Create<AccountDetail>();
+        AccountStateEventData? publishedData = null;
+        publisherMock
+            .Setup(p => p.PublishAsync(It.IsAny<BaseEvent<AccountStateEventData>>(), null!, null))
+            .Callback<BaseEvent<AccountStateEventData>, string, string>((accountEvent, _, _) => publishedData = accountEvent.Data);
 
         // Act
         await accountEventPublisher.PublishAccountUpdatedEventAsync(detail);
 
         // Assert
         publisherMock.Verify(p => p.PublishAsync(It.IsAny<BaseEvent<AccountStateEventData>>(), null!, null), Times.Once);
+        Assert.NotNull(publishedData);
+        Assert.Equal(detail.AccountRoutingCode, publishedData.AccountRoutingCode);
+        Assert.Equal(detail.AccountRoutingLabel, publishedData.AccountRoutingLabel);
+        Assert.Equal(detail.AccountLegalFormLabel, publishedData.AccountLegalFormLabel);
+        Assert.Equal(detail.AccountElectronicAddressId, publishedData.AccountElectronicAddressId);
     }
 
     [Fact]

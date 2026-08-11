@@ -55,5 +55,29 @@ namespace Pulse.Account.Core.Models
         public int? OfficeId { get; set; }
 
         public Office? Office { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Akuiteo routing code. The current maximum length of 255 is provisional pending the
+        /// definitive Akuiteo contract.
+        /// </summary>
+        public string? AccountRoutingCode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Akuiteo routing label. The current maximum length of 255 is provisional pending the
+        /// definitive Akuiteo contract.
+        /// </summary>
+        public string? AccountRoutingLabel { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Akuiteo legal-form label. The current maximum length of 255 is provisional pending the
+        /// definitive Akuiteo contract.
+        /// </summary>
+        public string? AccountLegalFormLabel { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Akuiteo electronic address identifier. The current maximum length of 255 is provisional
+        /// pending the definitive Akuiteo contract.
+        /// </summary>
+        public string? AccountElectronicAddressId { get; set; }
     }
 }

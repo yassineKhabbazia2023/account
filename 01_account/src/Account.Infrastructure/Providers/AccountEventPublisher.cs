@@ -38,6 +38,10 @@ namespace Pulse.Account.Infrastructure.Providers
                  CreatedBy = account.CreatedBy,
                  ModifiedBy = account.ModifiedBy,
                  AccountType = account.AccountType,
+                 AccountRoutingCode = account.AccountRoutingCode,
+                 AccountRoutingLabel = account.AccountRoutingLabel,
+                 AccountLegalFormLabel = account.AccountLegalFormLabel,
+                 AccountElectronicAddressId = account.AccountElectronicAddressId,
              };
 
             var @event = new AccountCreatedEvent(eventData);
@@ -62,6 +66,10 @@ namespace Pulse.Account.Infrastructure.Providers
                 CreatedBy = account.CreatedBy,
                 ModifiedBy = account.ModifiedBy,
                 AccountType = account.AccountType,
+                AccountRoutingCode = account.AccountRoutingCode,
+                AccountRoutingLabel = account.AccountRoutingLabel,
+                AccountLegalFormLabel = account.AccountLegalFormLabel,
+                AccountElectronicAddressId = account.AccountElectronicAddressId,
             };
 
             var @event = new AccountUpdatedEvent(eventData);

@@ -34,6 +34,10 @@ public static class MapToAccountEntity
         destination.AccountingMethod = source.AccountingMethod;
         destination.LegalForm = source.LegalForm;
         destination.LegalFormCode = source.LegalFormCode;
+        destination.AccountRoutingCode = source.AccountRoutingCode;
+        destination.AccountRoutingLabel = source.AccountRoutingLabel;
+        destination.AccountLegalFormLabel = source.AccountLegalFormLabel;
+        destination.AccountElectronicAddressId = source.AccountElectronicAddressId;
         destination.Siret = source.Siret;
         destination.NafId = source.NafId;
         destination.IsActive = source.IsActive;
@@ -173,6 +177,10 @@ public static class MapToAccountEntity
             AccountingMethod = eventData.AccountTypeTenueComptable,
             LegalForm = eventData.AccountFormeJuridique,
             LegalFormCode = eventData.AccountCodeFormeJuridique,
+            AccountRoutingCode = eventData.AccountRoutingCode,
+            AccountRoutingLabel = eventData.AccountRoutingLabel,
+            AccountLegalFormLabel = eventData.AccountLegalFormLabel,
+            AccountElectronicAddressId = eventData.AccountElectronicAddressId,
             Siret = eventData.AccountRegisterIdentification1,
             NafId = int.TryParse(eventData.AccountNafIdentifier, out int nafId) ? nafId : null,
             IsActive = true,

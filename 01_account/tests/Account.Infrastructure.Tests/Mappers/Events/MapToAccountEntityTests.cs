@@ -64,6 +64,10 @@ public class MapToAccountEntityTests
         Assert.Equal(source.StaffSizeRange, destination.StaffSizeRange);
         Assert.Equal(source.ActivityType, destination.ActivityType);
         Assert.Equal(source.LegalFormCode, destination.LegalFormCode);
+        Assert.Equal(source.AccountRoutingCode, destination.AccountRoutingCode);
+        Assert.Equal(source.AccountRoutingLabel, destination.AccountRoutingLabel);
+        Assert.Equal(source.AccountLegalFormLabel, destination.AccountLegalFormLabel);
+        Assert.Equal(source.AccountElectronicAddressId, destination.AccountElectronicAddressId);
         Assert.Equal(source.CreationDate, destination.CreationDate);
         Assert.Equal(source.UpdatedDate, destination.UpdatedDate);
         Assert.Equal(source.CreatedBy, destination.CreatedBy);
@@ -130,6 +134,10 @@ public class MapToAccountEntityTests
         Assert.Equal(data.AccountTypeTenueComptable, result.AccountingMethod);
         Assert.Equal(data.AccountFormeJuridique, result.LegalForm);
         Assert.Equal(data.AccountCodeFormeJuridique, result.LegalFormCode);
+        Assert.Equal(data.AccountRoutingCode, result.AccountRoutingCode);
+        Assert.Equal(data.AccountRoutingLabel, result.AccountRoutingLabel);
+        Assert.Equal(data.AccountLegalFormLabel, result.AccountLegalFormLabel);
+        Assert.Equal(data.AccountElectronicAddressId, result.AccountElectronicAddressId);
         Assert.Equal(data.AccountRegisterIdentification1, result.Siret);
         Assert.Equal(data.AccountNafIdentifier, result.NafId.ToString());
         Assert.True(result.IsActive);
