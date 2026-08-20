@@ -732,7 +732,7 @@ public class MapAccountDatabaseToAccountModelTests
             AccountRoutingCode = "0-B2G",
             AccountRoutingLabel = "B2G",
             AccountLegalFormLabel = "Entrepreneur individuel",
-            AccountElectronicAddressId = "factures@example.com"
+            AccountElectronicAddressId = "SiteParis-COD01-12345678900010-ADR001/SiteLyon-COD02-98765432100010-ADR002"
         };
 
         // Act
@@ -761,6 +761,15 @@ public class MapAccountDatabaseToAccountModelTests
         result.AccountRoutingLabel.Should().Be(source.AccountRoutingLabel);
         result.AccountLegalFormLabel.Should().Be(source.AccountLegalFormLabel);
         result.AccountElectronicAddressId.Should().Be(source.AccountElectronicAddressId);
+        result.AccountElectronicAddresses.Should().HaveCount(2);
+        result.AccountElectronicAddresses.ElementAt(0).SiteName.Should().Be("SiteParis");
+        result.AccountElectronicAddresses.ElementAt(0).SiteCode.Should().Be("COD01");
+        result.AccountElectronicAddresses.ElementAt(0).Siret.Should().Be("12345678900010");
+        result.AccountElectronicAddresses.ElementAt(0).AddressingId.Should().Be("ADR001");
+        result.AccountElectronicAddresses.ElementAt(1).SiteName.Should().Be("SiteLyon");
+        result.AccountElectronicAddresses.ElementAt(1).SiteCode.Should().Be("COD02");
+        result.AccountElectronicAddresses.ElementAt(1).Siret.Should().Be("98765432100010");
+        result.AccountElectronicAddresses.ElementAt(1).AddressingId.Should().Be("ADR002");
     }
 
     [Fact]

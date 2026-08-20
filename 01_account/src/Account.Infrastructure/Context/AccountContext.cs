@@ -81,8 +81,7 @@ public partial class AccountContext : DbContext
                 .IsUnicode(false)
                 .HasComment("Le type de comptabilité");
             entity.Property(e => e.AccountElectronicAddressId)
-                .HasMaxLength(255)
-                .HasComment("Longueur NVARCHAR(255) provisoire en attente du contrat Akuiteo définitif");
+                .HasComment("Liste des sites écrasée dans une seule chaîne : une ligne par site (nom d'appel, code, SIRET, identifiant d'adressage séparés par \"-\"), lignes séparées par \"/\"");
             entity.Property(e => e.AccountLegalFormLabel)
                 .HasMaxLength(255)
                 .HasComment("Longueur NVARCHAR(255) provisoire en attente du contrat Akuiteo définitif");

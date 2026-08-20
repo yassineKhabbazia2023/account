@@ -115,8 +115,10 @@ public partial class AccountEntity
     public string? AccountLegalFormLabel { get; set; }
 
     /// <summary>
-    /// Gets or sets the Akuiteo electronic address identifier. NVARCHAR(255) is provisional pending the definitive
-    /// Akuiteo contract.
+    /// Gets or sets the Akuiteo electronic address identifier. Raw flattened list of sites, one "-"-separated
+    /// line (site name, site code, SIRET, addressing id) per site, lines separated by "/", stored as
+    /// NVARCHAR(MAX) so the list length is unconstrained. See
+    /// <see cref="Pulse.Account.Core.Extensions.ElectronicAddressParser"/> for the Front-End-facing parsed form.
     /// </summary>
     public string? AccountElectronicAddressId { get; set; }
 

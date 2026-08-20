@@ -611,10 +611,31 @@ components:
             maxLength: 255
             nullable: true
           accountElectronicAddressId:
-            description: Identifiant d'adresse électronique Akuiteo. Le type string et la longueur maximale de 255 sont provisoires dans l'attente du contrat Akuiteo définitif.
+            description: Identifiant d'adresse électronique Akuiteo brut, tel que stocké en base. Liste des sites écrasée dans une seule chaîne, une ligne par site (nom d'appel, code, SIRET, identifiant d'adressage séparés par "-"), lignes séparées par "/".
             type: string
-            maxLength: 255
             nullable: true
+          accountElectronicAddresses:
+            description: Adresses électroniques Akuiteo par site, transcodées à partir de accountElectronicAddressId en un tableau exploitable par le Front-End.
+            type: array
+            items:
+              type: object
+              properties:
+                siteName:
+                  description: Nom d'appel du site.
+                  type: string
+                  nullable: true
+                siteCode:
+                  description: Code du site.
+                  type: string
+                  nullable: true
+                siret:
+                  description: SIRET du site.
+                  type: string
+                  nullable: true
+                addressingId:
+                  description: Identifiant d'adressage du site.
+                  type: string
+                  nullable: true
       AccountFavorite:
         type: 'object'
         description: Informations sur une entité morale permettant de remplir la barre de favoris d'une entité physique.

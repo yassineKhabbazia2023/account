@@ -75,9 +75,16 @@ namespace Pulse.Account.Core.Models
         public string? AccountLegalFormLabel { get; set; }
 
         /// <summary>
-        /// Gets or sets the Akuiteo electronic address identifier. The current maximum length of 255 is provisional
-        /// pending the definitive Akuiteo contract.
+        /// Gets or sets the raw Akuiteo electronic address identifier, as stored in database: a list of sites
+        /// flattened into a single string, one "-"-separated line (site name, site code, SIRET, addressing id)
+        /// per site, lines separated by "/".
         /// </summary>
         public string? AccountElectronicAddressId { get; set; }
+
+        /// <summary>
+        /// Gets the electronic addresses per site, transcoded from <see cref="AccountElectronicAddressId"/> into a
+        /// JSON array exploitable by the Front-End.
+        /// </summary>
+        public IReadOnlyList<ElectronicAddress> AccountElectronicAddresses => AccountElectronicAddressId.ToElectronicAddresses();
     }
 }

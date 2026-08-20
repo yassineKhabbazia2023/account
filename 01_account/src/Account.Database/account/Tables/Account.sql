@@ -44,7 +44,7 @@
     [AccountRoutingCode]          NVARCHAR (255) NULL,
     [AccountRoutingLabel]         NVARCHAR (255) NULL,
     [AccountLegalFormLabel]       NVARCHAR (255) NULL,
-    [AccountElectronicAddressId]  NVARCHAR (255) NULL,
+    [AccountElectronicAddressId]  NVARCHAR (MAX) NULL,
     CONSTRAINT [C_Account_PK] PRIMARY KEY CLUSTERED ([AccountId] ASC),
     CONSTRAINT [C_Account_Hub_HubId_FK] FOREIGN KEY ([HubId]) REFERENCES [account].[Hub] ([HubId]),
     CONSTRAINT [C_Account_NafId_FK] FOREIGN KEY ([NafId]) REFERENCES [account].[Naf] ([NafId]),
@@ -377,7 +377,7 @@ EXEC sp_addextendedproperty @name = N'MS_Description',
     @level2name = N'AccountLegalFormLabel'
 GO
 EXEC sp_addextendedproperty @name = N'MS_Description',
-    @value = N'Identifiant d’adresse électronique Akuiteo. Type et longueur NVARCHAR(255) provisoires en attente du contrat définitif.',
+    @value = N'Identifiant d’adresse électronique Akuiteo. Liste des sites écrasée dans une seule chaîne : une ligne par site (nom d’appel, code, SIRET, identifiant d’adressage séparés par "-"), lignes séparées par "/". Type NVARCHAR(MAX) pour ne pas contraindre la taille de cette liste.',
     @level0type = N'SCHEMA',
     @level0name = N'account',
     @level1type = N'TABLE',
