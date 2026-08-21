@@ -82,9 +82,17 @@ namespace Pulse.Account.Core.Models
         public string? AccountElectronicAddressId { get; set; }
 
         /// <summary>
-        /// Gets the electronic addresses per site, transcoded from <see cref="AccountElectronicAddressId"/> into a
-        /// JSON array exploitable by the Front-End.
+        /// Gets the addressing identifications per site, transcoded from <see cref="AccountElectronicAddressId"/>
+        /// into the JSON array expected by the Front-End: only the call name and the addressing identifier are
+        /// exposed, the site code and the SIRET are parsed but not returned.
         /// </summary>
-        public IReadOnlyList<ElectronicAddress> AccountElectronicAddresses => AccountElectronicAddressId.ToElectronicAddresses();
+        public IReadOnlyList<AddressingIdentification> AddressingIdentifications =>
+            AccountElectronicAddressId.ToElectronicAddresses()
+                .Select(address => new AddressingIdentification
+                {
+                    CallName = address.SiteName,
+                    AddressingIdentifier = address.AddressingId,
+                })
+                .ToList();
     }
 }

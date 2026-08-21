@@ -761,15 +761,11 @@ public class MapAccountDatabaseToAccountModelTests
         result.AccountRoutingLabel.Should().Be(source.AccountRoutingLabel);
         result.AccountLegalFormLabel.Should().Be(source.AccountLegalFormLabel);
         result.AccountElectronicAddressId.Should().Be(source.AccountElectronicAddressId);
-        result.AccountElectronicAddresses.Should().HaveCount(2);
-        result.AccountElectronicAddresses.ElementAt(0).SiteName.Should().Be("SiteParis");
-        result.AccountElectronicAddresses.ElementAt(0).SiteCode.Should().Be("COD01");
-        result.AccountElectronicAddresses.ElementAt(0).Siret.Should().Be("12345678900010");
-        result.AccountElectronicAddresses.ElementAt(0).AddressingId.Should().Be("ADR001");
-        result.AccountElectronicAddresses.ElementAt(1).SiteName.Should().Be("SiteLyon");
-        result.AccountElectronicAddresses.ElementAt(1).SiteCode.Should().Be("COD02");
-        result.AccountElectronicAddresses.ElementAt(1).Siret.Should().Be("98765432100010");
-        result.AccountElectronicAddresses.ElementAt(1).AddressingId.Should().Be("ADR002");
+        result.AddressingIdentifications.Should().HaveCount(2);
+        result.AddressingIdentifications.ElementAt(0).CallName.Should().Be("SiteParis");
+        result.AddressingIdentifications.ElementAt(0).AddressingIdentifier.Should().Be("ADR001");
+        result.AddressingIdentifications.ElementAt(1).CallName.Should().Be("SiteLyon");
+        result.AddressingIdentifications.ElementAt(1).AddressingIdentifier.Should().Be("ADR002");
     }
 
     [Fact]
