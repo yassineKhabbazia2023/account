@@ -10,6 +10,7 @@ using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Infrastructure.Context;
+using Pulse.Account.Infrastructure.Entities;
 
 namespace Pulse.Account.Infrastructure.Repositories;
 

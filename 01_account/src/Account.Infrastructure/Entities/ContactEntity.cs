@@ -82,6 +82,8 @@ public partial class ContactEntity
 
     public virtual ICollection<DelegationRequestEntity> DelegationRequestEntityRequester { get; set; } = new List<DelegationRequestEntity>();
 
+    public virtual ICollection<DematModalClosureEntity> DematModalClosureEntity { get; set; } = new List<DematModalClosureEntity>();
+
     public virtual ICollection<RoleEntity> RoleEntity { get; set; } = new List<RoleEntity>();
 
     public virtual ICollection<RoleLabelEntity> RoleLabelEntityContact { get; set; } = new List<RoleLabelEntity>();

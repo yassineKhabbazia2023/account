@@ -20,13 +20,17 @@ public class AccountService(
     IAccountEventPublisher accountEventPublisher,
     ILogger<AccountService> logger,
     IFeatureFlagService featureFlagService,
-    IRoleRepository roleRepository) : IAccountService
+    IRoleRepository roleRepository,
+    IVentyaRepository ventyaRepository,
+    IDematRepository dematRepository) : IAccountService
 {
     private readonly IAccountRepository _accountRepository = accountRepository;
     private readonly IAccountEventPublisher _accountEventPublisher = accountEventPublisher;
     private readonly ILogger<AccountService> _logger = logger;
     private readonly IFeatureFlagService _featureFlagService = featureFlagService;
     private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IVentyaRepository _ventyaRepository = ventyaRepository;
+    private readonly IDematRepository _dematRepository = dematRepository;
 
     public async Task<AccountDetail> CreateAccountAsync(int currentUserId, CreateAccountRequest request)
     {
@@ -108,9 +112,36 @@ public class AccountService(
         return await _accountRepository.GetAccountAsync(accountId);
     }
 
-    public async Task<AccountDetail?> GetAccountDetailAsync(int accountId)
+    public async Task<AccountDetail?> GetAccountDetailAsync(int accountId, int? contactId)
     {
-        return await _accountRepository.GetAccountDetailAsync(accountId);
+        var result = await _accountRepository.GetAccountDetailAsync(accountId);
+
+        if (result != null && contactId.HasValue)
+        {
+            result.ModalClosedAt = await _dematRepository.GetDematModalClosedDateAsync(accountId, contactId.Value);
+        }
+
+        return result;
+    }
+
+    public async Task<Result> CloseDematModalAsync(int accountId, int contactId)
+    {
+        if (accountId <= 0)
+        {
+            _logger.LogWarning("Invalid accountId '{AccountId}' provided", accountId);
+            return Result.NotFound();
+        }
+
+        var accountEmailResult = await _ventyaRepository.GetAccountEmailAsync(accountId);
+        if (!accountEmailResult.AccountExists)
+        {
+            _logger.LogWarning("Account with id '{AccountId}' not found", accountId);
+            return Result.NotFound();
+        }
+
+        await _dematRepository.CloseDematModalAsync(accountId, contactId);
+
+        return Result.Success();
     }
 
     public async Task UpdateAccountAsync(int accountId, AccountDetail accountDetail, string? currentUserEmail = null)

@@ -216,6 +216,8 @@ public partial class AccountEntity
 
     public virtual ICollection<DelegationRequestEntity> DelegationRequestEntity { get; set; } = new List<DelegationRequestEntity>();
 
+    public virtual ICollection<DematModalClosureEntity> DematModalClosureEntity { get; set; } = new List<DematModalClosureEntity>();
+
     public virtual DeploymentEntity DeploymentEntity { get; set; }
 
     public virtual HubEntity Hub { get; set; }

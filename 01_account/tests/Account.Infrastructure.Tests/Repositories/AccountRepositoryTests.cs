@@ -151,6 +151,7 @@ public class AccountRepositoryTests
                                                 .Without(a => a.Delegation)
                                                 .Without(a => a.RoleEntity)
                                                 .Without(a => a.OfferEligibilityEntity)
+                                                .Without(a => a.DematModalClosureEntity)
                                                 .With(a => a.DeploymentEntity, deploimentEntityMock)
                                                 .Create();
 
@@ -226,6 +227,7 @@ public class AccountRepositoryTests
                                                 .Without(a => a.RoleEntity)
                                                 .Without(a => a.RoleLabelEntity)
                                                 .Without(a => a.OfferEligibilityEntity)
+                                                .Without(a => a.DematModalClosureEntity)
                                                 .With(a => a.IsActive, true)
                                                 .With(a => a.DeploymentEntity, deploimentEntityMock)
                                                 .Create();
@@ -253,6 +255,7 @@ public class AccountRepositoryTests
                                                 .Without(a => a.RoleEntity)
                                                 .Without(a => a.RoleLabelEntity)
                                                 .Without(a => a.OfferEligibilityEntity)
+                                                .Without(a => a.DematModalClosureEntity)
                                                 .With(a => a.IsActive, true)
                                                 .With(a => a.DeploymentEntity, deploimentEntityMock)
                                                 .Create();
@@ -556,6 +559,7 @@ public class AccountRepositoryTests
                                             .Without(a => a.Delegation)
                                             .Without(a => a.RoleEntity)
                                             .Without(a => a.OfferEligibilityEntity)
+                                            .Without(a => a.DematModalClosureEntity)
                                             .With(a => a.DeploymentEntity, deploymentMockActive)
                                             .With(a => a.IsActive, true)
                                             .Create();
@@ -581,6 +585,7 @@ public class AccountRepositoryTests
                                                 .Without(a => a.Delegation)
                                                 .Without(a => a.RoleEntity)
                                                 .Without(a => a.OfferEligibilityEntity)
+                                                .Without(a => a.DematModalClosureEntity)
                                                 .With(a => a.DeploymentEntity, deploymentMock)
                                                 .Create();
             context.AccountEntity.Add(accountMockInactive);
@@ -828,7 +833,7 @@ public class AccountRepositoryTests
         using (var context = new AccountContext(_dbContextOptions))
         {
             // Arrange
-            var accountsModel = _fixture.Build<AccountEntity>().Without(a => a.OfferEligibilityEntity).With(a => a.IsActive, true).Create();
+            var accountsModel = _fixture.Build<AccountEntity>().Without(a => a.OfferEligibilityEntity).Without(a => a.DematModalClosureEntity).With(a => a.IsActive, true).Create();
             accountsModel.OfficeId = accountsModel.Office!.OfficeId;
             accountsModel.Office = null;
             var accountDetail = accountsModel?.MapToAccountDetail();
@@ -1033,6 +1038,7 @@ public class AccountRepositoryTests
                                         .Without(a => a.Delegation)
                                         .Without(a => a.RoleEntity)
                                         .Without(a => a.OfferEligibilityEntity)
+                                        .Without(a => a.DematModalClosureEntity)
                                         .Create();
 
         var accountRepository = new AccountRepository(context);
@@ -1136,6 +1142,7 @@ public class AccountRepositoryTests
                                         .Without(a => a.RoleEntity)
                                         .Without(a => a.Delegation)
                                         .Without(a => a.OfferEligibilityEntity)
+                                        .Without(a => a.DematModalClosureEntity)
                                         .With(a => a.DeploymentEntity, deploymentMock)
                                         .CreateMany(1)
                                         .ToList();
@@ -1210,6 +1217,7 @@ public class AccountRepositoryTests
             .Without(x => x.PhoneEntity)
             .Without(x => x.Delegation)
             .Without(a => a.OfferEligibilityEntity)
+            .Without(a => a.DematModalClosureEntity)
             .Create();
         List<ContactEntity> contacts = _fixture.Build<ContactEntity>()
             .Without(x => x.RoleEntity)
@@ -1761,6 +1769,7 @@ public class AccountRepositoryTests
                 .Without(a => a.RoleLabelEntity)
                 .Without(a => a.Delegation)
                 .Without(a => a.OfferEligibilityEntity)
+                .Without(a => a.DematModalClosureEntity)
                 .With(x => x.IsActive, true)
                 .Create();
             var account2 = _fixture.Build<AccountEntity>()
@@ -1774,6 +1783,7 @@ public class AccountRepositoryTests
                 .Without(a => a.RoleLabelEntity)
                 .Without(a => a.Delegation)
                 .Without(a => a.OfferEligibilityEntity)
+                .Without(a => a.DematModalClosureEntity)
                 .With(x => x.IsActive, true)
                 .Create();
 
@@ -1846,6 +1856,7 @@ public class AccountRepositoryTests
                 .Without(x => x.AddressEntity)
                 .Without(x => x.DeploymentEntity)
                 .Without(a => a.OfferEligibilityEntity)
+                .Without(a => a.DematModalClosureEntity)
                 .Create();
 
         var contact = _fixture.Build<ContactEntity>()
@@ -1903,6 +1914,7 @@ public class AccountRepositoryTests
                 .Without(x => x.RoleLabelEntity)
                 .Without(x => x.OfferEligibilityEntity)
                 .Without(a => a.OfferEligibilityEntity)
+                .Without(a => a.DematModalClosureEntity)
                 .With(x => x.IsActive, true)
                 .Create();
 
@@ -1939,6 +1951,7 @@ public class AccountRepositoryTests
             .Without(x => x.DelegationEntityDelegator)
             .Without(x => x.RoleLabelEntityContact)
             .Without(x => x.RoleLabelEntityCreatedByNavigation)
+            .With(x => x.IsActive, true)
             .Create();
 
         var role1 = _fixture.Build<RoleEntity>()
@@ -2040,6 +2053,7 @@ public class AccountRepositoryTests
                     .Without(x => x.Delegation)
                     .Without(x => x.RoleLabelEntity)
                     .Without(x => x.OfferEligibilityEntity)
+                    .Without(x => x.DematModalClosureEntity)
                     .Without(a => a.OfferEligibilityEntity)
                     .With(x => x.IsActive, true)
                     .Create();
@@ -2158,6 +2172,7 @@ public class AccountRepositoryTests
                     .Without(x => x.Delegation)
                     .Without(x => x.RoleLabelEntity)
                     .Without(x => x.OfferEligibilityEntity)
+                    .Without(x => x.DematModalClosureEntity)
                     .Without(a => a.OfferEligibilityEntity)
                     .With(x => x.IsActive, true)
                     .Create();
@@ -2279,6 +2294,7 @@ public class AccountRepositoryTests
                     .Without(x => x.Delegation)
                     .Without(x => x.RoleLabelEntity)
                     .Without(x => x.OfferEligibilityEntity)
+                    .Without(x => x.DematModalClosureEntity)
                     .With(x => x.IsActive, true)
                     .Create();
 

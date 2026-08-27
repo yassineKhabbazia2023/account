@@ -51,7 +51,10 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         featureFlagService.Setup(f => f.IsEnabledAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(false);
         var roleRepository = new Mock<IRoleRepository>();
         roleRepository.Setup(r => r.UpdateLastActivityDateAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
-        var accountService = new AccountService(accountRepository, contactRepository.Object, accountEventPublisher.Object, NullLogger<AccountService>.Instance, featureFlagService.Object, roleRepository.Object);
+        var ventyaRepository = new Mock<IVentyaRepository>();
+        var dematRepository = new Mock<IDematRepository>();
+        dematRepository.Setup(d => d.GetDematModalClosedDateAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync((DateTime?)null);
+        var accountService = new AccountService(accountRepository, contactRepository.Object, accountEventPublisher.Object, NullLogger<AccountService>.Instance, featureFlagService.Object, roleRepository.Object, ventyaRepository.Object, dematRepository.Object);
         _accountController = new AccountController(accountService);
     }
 
@@ -266,7 +269,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         var expected = accountMocked.MapToAccountDetail();
 
         // Act
-        var account = await _accountController.GetAccountDetailAsync(accountMocked.AccountId);
+        var account = await _accountController.GetAccountDetailAsync(accountMocked.AccountId, currentUser: 1);
         var resultAccounts = account?.Result as OkObjectResult;
         var accountDetailResult = resultAccounts!.Value.As<AccountDetail>();
 
@@ -291,7 +294,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
 
         // Act
         var result = await _accountController.UpdateAccountAsync(accountId, jsonPatch) as OkResult;
-        var accountDetail = await _accountController.GetAccountDetailAsync(accountId);
+        var accountDetail = await _accountController.GetAccountDetailAsync(accountId, currentUser: 1);
         var accountDetailResult = accountDetail.Result as OkObjectResult;
 
         // Assert
@@ -817,5 +820,85 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         mockService.Verify(s => s.SearchAccountsAsync(
             It.IsAny<string>(),
             It.IsAny<Pagination>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAccountDetailAsync_WhenAccountNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        var accountId = 123;
+        var currentUser = 456;
+        var mockService = new Mock<IAccountService>();
+        mockService.Setup(s => s.GetAccountDetailAsync(accountId, currentUser))
+            .ReturnsAsync((AccountDetail?)null);
+        var controller = new AccountController(mockService.Object);
+
+        // Act
+        var result = await controller.GetAccountDetailAsync(accountId, currentUser);
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result.Result);
+        mockService.Verify(s => s.GetAccountDetailAsync(accountId, currentUser), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAccountDetailAsync_WhenAccountFound_ReturnsOkWithModalClosedAt()
+    {
+        // Arrange
+        var accountId = 123;
+        var currentUser = 456;
+        var closedDate = new DateTime(2026, 8, 20, 10, 0, 0, DateTimeKind.Utc);
+        var response = new AccountDetail { AccountNumber = "ACC123", Legal = new Legal { LegalName = "Test" }, Phone = new List<Phone>(), ModalClosedAt = closedDate };
+        var mockService = new Mock<IAccountService>();
+        mockService.Setup(s => s.GetAccountDetailAsync(accountId, currentUser))
+            .ReturnsAsync(response);
+        var controller = new AccountController(mockService.Object);
+
+        // Act
+        var result = await controller.GetAccountDetailAsync(accountId, currentUser);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var payload = Assert.IsType<AccountDetail>(okResult.Value);
+        Assert.Equal(closedDate, payload.ModalClosedAt);
+        mockService.Verify(s => s.GetAccountDetailAsync(accountId, currentUser), Times.Once);
+    }
+
+    [Fact]
+    public async Task CloseDematModalAsync_WhenAccountFound_ReturnsNoContent()
+    {
+        // Arrange
+        var accountId = 123;
+        var currentUser = 456;
+        var mockService = new Mock<IAccountService>();
+        mockService.Setup(s => s.CloseDematModalAsync(accountId, currentUser))
+            .ReturnsAsync(Result.Success());
+        var controller = new AccountController(mockService.Object);
+
+        // Act
+        var result = await controller.CloseDematModalAsync(accountId, currentUser);
+
+        // Assert
+        Assert.IsType<NoContentResult>(result);
+        mockService.Verify(s => s.CloseDematModalAsync(accountId, currentUser), Times.Once);
+    }
+
+    [Fact]
+    public async Task CloseDematModalAsync_WhenAccountNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        var accountId = 123;
+        var currentUser = 456;
+        var mockService = new Mock<IAccountService>();
+        mockService.Setup(s => s.CloseDematModalAsync(accountId, currentUser))
+            .ReturnsAsync(Result.NotFound());
+        var controller = new AccountController(mockService.Object);
+
+        // Act
+        var result = await controller.CloseDematModalAsync(accountId, currentUser);
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result);
+        mockService.Verify(s => s.CloseDematModalAsync(accountId, currentUser), Times.Once);
     }
 }

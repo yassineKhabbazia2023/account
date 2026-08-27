@@ -1765,9 +1765,11 @@ public class DelegationRepositoryTests
             // Create two accounts
             var tAccount1 = _fixture.Build<AccountEntity>()
                 .Without(x => x.Delegation)
+                .Without(x => x.DematModalClosureEntity)
                 .Create();
             var tAccount2 = _fixture.Build<AccountEntity>()
                 .Without(x => x.Delegation)
+                .Without(x => x.DematModalClosureEntity)
                 .Create();
 
             // Create delegator and delegatee (ContactId is ValueGeneratedNever)

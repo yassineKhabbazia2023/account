@@ -34,3 +34,25 @@ public sealed class Result<T>
         return new Result<T>(ResultStatus.NotFound, default);
     }
 }
+
+public sealed class Result
+{
+    private Result(ResultStatus status)
+    {
+        Status = status;
+    }
+
+    public ResultStatus Status { get; }
+
+    public bool IsSuccess => Status == ResultStatus.Success;
+
+    public static Result Success()
+    {
+        return new Result(ResultStatus.Success);
+    }
+
+    public static Result NotFound()
+    {
+        return new Result(ResultStatus.NotFound);
+    }
+}

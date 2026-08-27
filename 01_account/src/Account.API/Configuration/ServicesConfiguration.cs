@@ -50,6 +50,7 @@ public static class ServicesConfiguration
         services.AddScoped<IOfferEligibilityService, OfferEligibilityService>();
         services.AddScoped<IVentyaRepository, VentyaRepository>();
         services.AddScoped<IVentyaService, VentyaService>();
+        services.AddScoped<IDematRepository, DematRepository>();
         services.AddScoped<IInvoiceService, InvoiceService>();
         services.AddScoped<IInvoiceRepository, InvoiceRepository>();
     }

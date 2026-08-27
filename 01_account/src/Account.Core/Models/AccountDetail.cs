@@ -82,6 +82,12 @@ namespace Pulse.Account.Core.Models
         public string? AccountElectronicAddressId { get; set; }
 
         /// <summary>
+        /// Gets or sets the date the demat mail collect modal was closed by the requesting contact.
+        /// Null while that contact has not closed it yet.
+        /// </summary>
+        public DateTime? ModalClosedAt { get; set; }
+
+        /// <summary>
         /// Gets the addressing identifications per site, transcoded from <see cref="AccountElectronicAddressId"/>
         /// into the JSON array expected by the Front-End: only the call name and the addressing identifier are
         /// exposed, the site code and the SIRET are parsed but not returned.

@@ -93,6 +93,7 @@
     <None Include="Scripts\006_Create_DelegationRequest_Table.sql" />
     <Build Include="ext\Vues\vw_SignatoryPerAccount.sql" />
     <Build Include="account\Tables\OfferEligibility.sql" />
+    <Build Include="account\Tables\DematModalClosure.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Account.Database.refactorlog" />

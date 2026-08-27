@@ -61,6 +61,9 @@ managed_by_script:
   - method: GET
     route: /api/accounts/{accountId}/summary
     controller: AccountController
+  - method: POST
+    route: /api/accounts/{accountId:int:min(1)}/demat-ready/closure
+    controller: AccountController
   - method: DELETE
     route: /api/delegations
     controller: DelegationController

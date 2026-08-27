@@ -22,7 +22,21 @@ namespace Pulse.Account.Core.Interfaces
 
         public Task<AccountDetail?> GetAccountAsync(int accountId);
 
-        public Task<AccountDetail?> GetAccountDetailAsync(int accountId);
+        /// <summary>
+        /// Gets the account detail enriched with the demat mail collect modal closure state for the requesting contact.
+        /// </summary>
+        /// <param name="accountId">Account identifier.</param>
+        /// <param name="contactId">The requesting contact identifier (CurrentUser header), when known. When null (e.g. non-gateway callers), <see cref="AccountDetail.ModalClosedAt"/> is left unset.</param>
+        /// <returns>Account detail with <see cref="AccountDetail.ModalClosedAt"/> set, or null if the account does not exist.</returns>
+        public Task<AccountDetail?> GetAccountDetailAsync(int accountId, int? contactId);
+
+        /// <summary>
+        /// Closes the demat mail collect modal for the requesting contact on the given account.
+        /// </summary>
+        /// <param name="accountId">Account identifier.</param>
+        /// <param name="contactId">The contact closing the modal (CurrentUser header).</param>
+        /// <returns>A <see cref="Result"/> indicating success, or <see cref="ResultStatus.NotFound"/> when the account does not exist.</returns>
+        public Task<Result> CloseDematModalAsync(int accountId, int contactId);
 
         public Task UpdateAccountAsync(int accountId, AccountDetail accountDetail, string? currentUserEmail = null);
 

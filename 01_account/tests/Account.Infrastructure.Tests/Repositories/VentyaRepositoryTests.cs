@@ -435,6 +435,7 @@ public class VentyaRepositoryTests
             .With(a => a.Email, "account@test.fr")
             .Without(a => a.RoleLabelEntity)
             .Without(a => a.Delegation)
+            .Without(a => a.DematModalClosureEntity)
             .With(a => a.RoleEntity, new List<RoleEntity>())
             .Create();
 
@@ -460,6 +461,7 @@ public class VentyaRepositoryTests
             .Without(a => a.Email)
             .Without(a => a.RoleLabelEntity)
             .Without(a => a.Delegation)
+            .Without(a => a.DematModalClosureEntity)
             .With(a => a.RoleEntity, new List<RoleEntity>())
             .Create();
         account.Email = null;
@@ -486,6 +488,7 @@ public class VentyaRepositoryTests
             .With(a => a.Email, "account@test.fr")
             .Without(a => a.RoleLabelEntity)
             .Without(a => a.Delegation)
+            .Without(a => a.DematModalClosureEntity)
             .With(a => a.RoleEntity, new List<RoleEntity>())
             .Create();
 
@@ -515,6 +518,7 @@ public class VentyaRepositoryTests
             .With(a => a.Email, "account@test.fr")
             .Without(a => a.RoleLabelEntity)
             .Without(a => a.Delegation)
+            .Without(a => a.DematModalClosureEntity)
             .With(a => a.RoleEntity, new List<RoleEntity>())
             .Create();
 
@@ -544,6 +548,7 @@ public class VentyaRepositoryTests
             .With(a => a.Email, "account@test.fr")
             .Without(a => a.RoleLabelEntity)
             .Without(a => a.Delegation)
+            .Without(a => a.DematModalClosureEntity)
             .With(a => a.RoleEntity, new List<RoleEntity>())
             .Create();
 
@@ -575,6 +580,7 @@ public class VentyaRepositoryTests
             .With(a => a.AccountNumber, "ACC128")
             .Without(a => a.RoleLabelEntity)
             .Without(a => a.Delegation)
+            .Without(a => a.DematModalClosureEntity)
             .With(a => a.RoleEntity, new List<RoleEntity>())
             .Create();
 
@@ -613,6 +619,7 @@ public class VentyaRepositoryTests
             .With(a => a.AccountNumber, "ACC129")
             .Without(a => a.RoleLabelEntity)
             .Without(a => a.Delegation)
+            .Without(a => a.DematModalClosureEntity)
             .With(a => a.RoleEntity, new List<RoleEntity>())
             .Create();
 
@@ -658,6 +665,7 @@ public class VentyaRepositoryTests
             .With(a => a.AccountNumber, "ACC130")
             .Without(a => a.RoleLabelEntity)
             .Without(a => a.Delegation)
+            .Without(a => a.DematModalClosureEntity)
             .With(a => a.RoleEntity, new List<RoleEntity>())
             .Create();
 

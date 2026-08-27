@@ -24,6 +24,8 @@ public partial class AccountContext : DbContext
 
     public virtual DbSet<DelegationRequestEntity> DelegationRequestEntity { get; set; }
 
+    public virtual DbSet<DematModalClosureEntity> DematModalClosureEntity { get; set; }
+
     public virtual DbSet<DeploymentEntity> DeploymentEntity { get; set; }
 
     public virtual DbSet<HubEntity> HubEntity { get; set; }
@@ -417,6 +419,29 @@ public partial class AccountContext : DbContext
                 .HasForeignKey(d => d.RequesterId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("C_DelegationRequest_Requester_FK");
+        });
+
+        modelBuilder.Entity<DematModalClosureEntity>(entity =>
+        {
+            entity.HasKey(e => new { e.AccountId, e.ContactId }).HasName("C_DematModalClosure_PK");
+
+            entity.ToTable("DematModalClosure", "account");
+
+            entity.Property(e => e.AccountId)
+                .HasComment("L'identifiant technique du compte, clé primaire composite avec ContactId (une fermeture par contact et par compte)");
+            entity.Property(e => e.ContactId)
+                .HasComment("L'identifiant du contact ayant fermé le modal, clé primaire composite avec AccountId (chaque contact ferme son propre modal, indépendamment des autres contacts du compte)");
+            entity.Property(e => e.ClosedDate).HasComment("La date de fermeture du modal");
+
+            entity.HasOne(d => d.Account).WithMany(p => p.DematModalClosureEntity)
+                .HasForeignKey(d => d.AccountId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_DematModalClosure_Account_FK");
+
+            entity.HasOne(d => d.Contact).WithMany(p => p.DematModalClosureEntity)
+                .HasForeignKey(d => d.ContactId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("C_DematModalClosure_Contact_FK");
         });
 
         modelBuilder.Entity<DeploymentEntity>(entity =>

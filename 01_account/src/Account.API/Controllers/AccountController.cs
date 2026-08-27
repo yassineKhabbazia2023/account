@@ -108,18 +108,51 @@ public class AccountController(IAccountService accountService) : ControllerBase
     }
 
     /// <summary>
-    /// Récupérer les informations détaillées d'une entité morale.
+    /// Récupérer les informations détaillées d'une entité morale, enrichies de la date de fermeture du modal
+    /// de collecte du mail demat par le contact courant.
     /// </summary>
     /// <param name="accountId">ID de l'entité morale.</param>
-    /// <returns>Informations détaillées de l'entité morale.</returns>
+    /// <param name="currentUser">L'identifiant du contact courant (depuis le header), si disponible. Absent pour un appel sans contexte utilisateur (job, datafactory...) : <see cref="AccountDetail.ModalClosedAt"/> reste alors non renseigné.</param>
+    /// <returns>Informations détaillées de l'entité morale, avec <see cref="AccountDetail.ModalClosedAt"/>.</returns>
     [HttpGet("{accountId}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AccountDetail))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorResponse))]
-    public async Task<ActionResult<AccountDetail>> GetAccountDetailAsync(int accountId)
+    public async Task<ActionResult<AccountDetail>> GetAccountDetailAsync(
+        int accountId,
+        [FromHeader(Name = "CurrentUser")] int? currentUser)
     {
-        var result = await accountService.GetAccountDetailAsync(accountId);
+        var result = await accountService.GetAccountDetailAsync(accountId, currentUser);
+
+        if (result == null)
+        {
+            return NotFound();
+        }
+
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Ferme le modal de collecte du mail demat pour le contact courant.
+    /// </summary>
+    /// <param name="accountId">L'id de compte.</param>
+    /// <param name="currentUser">L'identifiant du contact à l'origine de la fermeture (depuis le header).</param>
+    /// <returns>204 si la fermeture est enregistrée, 404 si le compte n'existe pas.</returns>
+    [HttpPost("{accountId:int:min(1)}/demat-ready/closure")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CloseDematModalAsync(
+        [FromRoute] int accountId,
+        [FromHeader(Name = "CurrentUser")][Required] int currentUser)
+    {
+        var result = await accountService.CloseDematModalAsync(accountId, currentUser);
+
+        if (result.Status == ResultStatus.NotFound)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
     }
 
     /// <summary>
