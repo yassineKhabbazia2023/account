@@ -73,6 +73,15 @@ CREATE NONCLUSTERED INDEX [IX_Office_OfficeId]
     ON  [account].[Account]([OfficeId] ASC)
 
 GO
+-- Sert la requete d'eligibilite Serenite (portefeuille d'un contact filtre sur le code de routage).
+-- Index filtre : AccountRoutingCode est NULL sur la grande majorite des lignes, la colonne n'etant
+-- alimentee que par le flux Akuiteo/Registry. L'INCLUDE rend la requete couvrante.
+CREATE NONCLUSTERED INDEX [IX_Account_AccountRoutingCode]
+    ON  [account].[Account]([AccountRoutingCode] ASC)
+    INCLUDE ([AccountElectronicAddressId])
+    WHERE [AccountRoutingCode] IS NOT NULL
+
+GO
 CREATE NONCLUSTERED INDEX [IX_Account_MissionType]
     ON  [account].[Account]([MissionType] ASC)
 

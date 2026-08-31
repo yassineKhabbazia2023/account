@@ -175,4 +175,7 @@ public static class Errors
 
     public static readonly string NotFoundNafCode = "ACC057";
     public static readonly string NotFoundNafMessage = "Le code NAF {0} est introuvable";
+
+    public static readonly string SerenityChoiceAlreadyExistsCode = "ACC058";
+    public static readonly string SerenityChoiceAlreadyExistsMessage = "Un choix Sérénité a déjà été enregistré pour le contact {0}.";
 }

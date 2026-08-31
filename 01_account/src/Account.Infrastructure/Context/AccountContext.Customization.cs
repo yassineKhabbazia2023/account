@@ -1,4 +1,4 @@
-// <copyright file="AccountContext.Customization.cs" company="Pulse">
+﻿// <copyright file="AccountContext.Customization.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -22,6 +22,13 @@ namespace Pulse.Account.Infrastructure.Context
         internal IQueryable<AccountEntity> ActiveAccounts =>
             AccountEntity.IgnoreQueryFilters().Where(a => a.IsActive);
 
+        /// <summary>
+        /// Gets the Serenity modal choices, one row per contact. Declared here rather than in the generated
+        /// context so that a regeneration run against a database that predates the table cannot silently drop it.
+        /// Move it to the generated file at the next official EF Core Power Tools regeneration.
+        /// </summary>
+        public virtual DbSet<SerenityChoiceEntity> SerenityChoiceEntity { get; set; }
+
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
         {
             // accepted status are Invited Connected Remove Declared
@@ -29,7 +36,22 @@ namespace Pulse.Account.Infrastructure.Context
             modelBuilder.Entity<AccountEntity>(builder => builder.HasQueryFilter(account =>
                 account.IsActive
                 && account.AccountType != null
-                && account.AccountType.ToLower() != GlobalConstants.ProspectAccountType.ToLower()));                
+                && account.AccountType.ToLower() != GlobalConstants.ProspectAccountType.ToLower()));
+
+            // No navigation to ContactEntity on purpose: the table is only ever read by its primary key,
+            // and a required navigation towards a query-filtered principal would be flagged by EF Core.
+            modelBuilder.Entity<SerenityChoiceEntity>(builder =>
+            {
+                builder.HasKey(choice => choice.ContactId).HasName("C_SerenityChoice_PK");
+                builder.ToTable("SerenityChoice", "account");
+                builder.Property(choice => choice.ContactId)
+                    .ValueGeneratedNever()
+                    .HasComment("Identifiant technique du contact ayant fait le choix (clé primaire et étrangère vers actor.Contact)");
+                builder.Property(choice => choice.IsAccepted)
+                    .HasComment("Choix exprimé par le contact sur la modal Sérénité (1 = accepté, 0 = refusé)");
+                builder.Property(choice => choice.ChoiceDate)
+                    .HasComment("Date UTC à laquelle le choix a été enregistré");
+            });
         }
     }
 }

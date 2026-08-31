@@ -91,8 +91,10 @@
     <None Include="Scripts\004_Recuperation_Libelle_Role_Pennylane.sql" />
     <None Include="Scripts\005_Nettoyage_DataTest_Table_REC.sql" />
     <None Include="Scripts\006_Create_DelegationRequest_Table.sql" />
+    <None Include="Scripts\008_Create_SerenityChoice_Table.sql" />
     <Build Include="ext\Vues\vw_SignatoryPerAccount.sql" />
     <Build Include="account\Tables\OfferEligibility.sql" />
+    <Build Include="account\Tables\SerenityChoice.sql" />
     <Build Include="account\Tables\DematModalClosure.sql" />
   </ItemGroup>
   <ItemGroup>

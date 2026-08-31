@@ -53,6 +53,8 @@ public static class ServicesConfiguration
         services.AddScoped<IRoleLabelService, RoleLabelService>();
         services.AddScoped<IOfferEligibilityRepository, OfferEligibilityRepository>();
         services.AddScoped<IOfferEligibilityService, OfferEligibilityService>();
+        services.AddScoped<ISerenityRepository, SerenityRepository>();
+        services.AddScoped<ISerenityService, SerenityService>();
         services.AddScoped<IVentyaRepository, VentyaRepository>();
         services.AddScoped<IVentyaService, VentyaService>();
         services.AddScoped<IDematRepository, DematRepository>();

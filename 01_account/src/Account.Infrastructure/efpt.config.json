@@ -79,6 +79,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[account].[SerenityChoice]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[actor].[Contact]",
          "ObjectType": 0
       }
