@@ -21,8 +21,9 @@
 	  <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="9.0.2" />
 	  <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.2" />
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	  <PackageReference Include="Pulse.Back.Events" Version="2.74.202" />
 	  <PackageReference Include="Pulse.ExceptionMiddleware" Version="2.73.53" />
-	  <PackageReference Include="System.Text.Json" Version="9.0.2" />
+	  <PackageReference Include="System.Text.Json" Version="9.0.8" />
 	</ItemGroup>
 
 </Project>

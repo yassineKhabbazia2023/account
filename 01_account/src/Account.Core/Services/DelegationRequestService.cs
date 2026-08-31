@@ -8,24 +8,22 @@ using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
+using Pulse.Account.Core.Models.Email;
 using Pulse.Account.Core.Models.Utils;
 using Pulse.Account.Core.Requests;
 using Pulse.ExceptionMiddleware.Exceptions;
 
 namespace Pulse.Account.Core.Services;
 
-public class DelegationRequestService : IDelegationRequestService
+public class DelegationRequestService(IDelegationRequestRepository delegationRequestRepository, IDelegationService delegationService, IEmailService emailService, IContactRepository contactRepository, IAccountRepository accountRepository) : IDelegationRequestService
 {
     private static readonly string[] DefaultStatuses = { DelegationStatusValues.Pending };
 
-    private readonly IDelegationRequestRepository _delegationRequestRepository;
-    private readonly IDelegationService _delegationService;
-
-    public DelegationRequestService(IDelegationRequestRepository delegationRequestRepository, IDelegationService delegationService)
-    {
-        _delegationRequestRepository = delegationRequestRepository;
-        _delegationService = delegationService;
-    }
+    private readonly IDelegationRequestRepository _delegationRequestRepository = delegationRequestRepository;
+    private readonly IDelegationService _delegationService = delegationService;
+    private readonly IEmailService _emailService = emailService;
+    private readonly IContactRepository _contactRepository = contactRepository;
+    private readonly IAccountRepository _accountRepository = accountRepository;
 
     public async Task<CreateDelegationRequestsResponse> CreateDelegationRequestsAsync(int contactId, CreateDelegationRequestsRequest request)
     {
@@ -100,6 +98,8 @@ public class DelegationRequestService : IDelegationRequestService
 
         // Create delegation requests with pending status for valid recipients
         await _delegationRequestRepository.CreateDelegationRequestsAsync(contactId, request.AccountId, validRecipientIds.ToArray(), DelegationStatusValues.Pending);
+
+        await SendRequestEmailAsync(validRecipientIds, contactId, request.AccountId);
 
         return new CreateDelegationRequestsResponse
         {
@@ -293,5 +293,35 @@ public class DelegationRequestService : IDelegationRequestService
             .Where(id => !validIds.Contains(id))
             .Select(id => new DelegationRequestError { DelegationRequestId = id, Reason = "InvalidRequest" })
             .ToList();
+    }
+
+    private async Task SendRequestEmailAsync(IEnumerable<int> recipientIds, int requestorId, int accountId)
+    {
+        if (!recipientIds.Any())
+        {
+            return;
+        }
+
+        var requestor = await _contactRepository.GetContactByIdAsync(requestorId);
+        var account = await _accountRepository.GetAccountAsync(accountId);
+
+        foreach (var recipientId in recipientIds)
+        {
+            var contact = await _contactRepository.GetContactByIdAsync(recipientId);
+            var context = new RequestEmailContext
+            {
+                RecipientEmail = contact.Email,
+                UserFirstName = contact.FirstName,
+                UserLastName = contact.LastName,
+                RequestorFirstName = requestor.FirstName,
+                RequestorLastName = requestor.LastName,
+                RequestorEmail = requestor.Email,
+                AccountNumber = account.AccountNumber,
+                LegalName = account.Legal.LegalName,
+                Date = DateTime.UtcNow,
+            };
+
+            await _emailService.SendRequestEmailAsync(context);
+        }
     }
 }

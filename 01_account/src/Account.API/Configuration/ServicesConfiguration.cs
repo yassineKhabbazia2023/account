@@ -9,8 +9,10 @@ using Pulse.Account.API.Configuration.Model;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Exceptions;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Options;
 using Pulse.Account.Core.Services;
 using Pulse.Account.Infrastructure.Context;
+using Pulse.Account.Infrastructure.Managers;
 using Pulse.Account.Infrastructure.Providers;
 using Pulse.Account.Infrastructure.Providers.Interfaces;
 using Pulse.Account.Infrastructure.Repositories;
@@ -27,6 +29,8 @@ public static class ServicesConfiguration
 {
     public static void RegisterServices(this IServiceCollection services, IConfiguration configuration)
     {
+        AddSetupSettingOptions(services, configuration);
+
         services.AddScoped<IFavoriteService, FavoriteService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IAccountRepository, AccountRepository>();
@@ -36,6 +40,7 @@ public static class ServicesConfiguration
         services.AddScoped<IDelegationRequestService, DelegationRequestService>();
         services.AddScoped<IDelegationRequestRepository, DelegationRequestRepository>();
         services.AddScoped<IRolesService, RolesService>();
+        services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IReferentialService, ReferentialService>();
         services.AddScoped<IReferentialRepository, ReferentialRepository>();
@@ -53,6 +58,7 @@ public static class ServicesConfiguration
         services.AddScoped<IDematRepository, DematRepository>();
         services.AddScoped<IInvoiceService, InvoiceService>();
         services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+        services.AddScoped<INotificationManager, NotificationManager>();
     }
 
     public static void RegisterBrokerServices(this IServiceCollection services, IConfiguration configuration)
@@ -182,5 +188,13 @@ public static class ServicesConfiguration
                                 .WithExposedHeaders("content-range", "content-type", "accept-ranges", "link");
                     });
             });
+    }
+
+    private static void AddSetupSettingOptions(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<EmailOptions>()
+                .Bind(configuration.GetSection(EmailOptions.Section))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
     }
 }
