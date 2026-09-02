@@ -1,12 +1,12 @@
-﻿// <copyright file="IEmailService.cs" company="Pulse">
+// <copyright file="IEmailService.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using Pulse.Account.Core.Models.Email;
+using System.Collections.Generic;
 
 namespace Pulse.Account.Core.Interfaces;
 
 public interface IEmailService
 {
-    Task SendRequestEmailAsync(RequestEmailContext context);
+    Task SendDelegationRequestEmailsAsync(IEnumerable<int> recipientIds, int requestorId, int accountId);
 }

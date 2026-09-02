@@ -19,6 +19,8 @@ namespace Pulse.Account.Infrastructure.Tests.Repositories;
 
 public class DelegationRequestRepositoryTests
 {
+    private static readonly int[] ExpectedRecipientIds = { 2, 3, 4 };
+
     private readonly Fixture _fixture;
     private readonly DbContextOptions<AccountContext> _dbContextOptions;
 
@@ -700,6 +702,78 @@ public class DelegationRequestRepositoryTests
 
         allAccepted.Should().HaveCount(4);
         allAccepted.Should().AllSatisfy(r => r.RespondedAt.Should().BeCloseTo(respondedAt, TimeSpan.FromSeconds(1)));
+    }
+
+    [Fact]
+    public async Task GetAcceptedSiblingRequestsAsync_ShouldReturnOnlyRequestsAcceptedAtGivenDate()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var requester = CreateContactEntity(1);
+        var account = CreateAccountEntity(100);
+        var otherAccount = CreateAccountEntity(200);
+        var respondedAt = DateTime.UtcNow;
+
+        var accepted1 = CreateDelegationRequestEntity(1, requester.ContactId, 2, account.AccountId, "accepted");
+        accepted1.RespondedAt = respondedAt;
+        var accepted2 = CreateDelegationRequestEntity(2, requester.ContactId, 3, account.AccountId, "accepted");
+        accepted2.RespondedAt = respondedAt;
+        var accepted3 = CreateDelegationRequestEntity(3, requester.ContactId, 4, account.AccountId, "accepted");
+        accepted3.RespondedAt = respondedAt;
+        var previousRoundAccepted = CreateDelegationRequestEntity(4, requester.ContactId, 5, account.AccountId, "accepted");
+        previousRoundAccepted.RespondedAt = respondedAt.AddDays(-30);
+        var refused = CreateDelegationRequestEntity(5, requester.ContactId, 6, account.AccountId, "refused");
+        refused.RespondedAt = respondedAt;
+        var otherAccountAccepted = CreateDelegationRequestEntity(6, requester.ContactId, 7, otherAccount.AccountId, "accepted");
+        otherAccountAccepted.RespondedAt = respondedAt;
+
+        context.ContactEntity.Add(requester);
+        context.AccountEntity.AddRange(account, otherAccount);
+        context.DelegationRequestEntity.AddRange(accepted1, accepted2, accepted3, previousRoundAccepted, refused, otherAccountAccepted);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+
+        var result = await repository.GetAcceptedSiblingRequestsAsync(requester.ContactId, account.AccountId, respondedAt);
+
+        result.Should().HaveCount(3);
+        result.Select(r => r.RecipientId).Should().BeEquivalentTo(ExpectedRecipientIds);
+    }
+
+    [Fact]
+    public async Task GetAcceptedSiblingRequestsAsync_ShouldTolerateSmallPrecisionShift()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var requester = CreateContactEntity(1);
+        var account = CreateAccountEntity(100);
+        var respondedAt = DateTime.UtcNow;
+
+        var acceptedWithinTolerance = CreateDelegationRequestEntity(1, requester.ContactId, 2, account.AccountId, "accepted");
+        acceptedWithinTolerance.RespondedAt = respondedAt.AddMilliseconds(-50);
+        var acceptedOutsideTolerance = CreateDelegationRequestEntity(2, requester.ContactId, 3, account.AccountId, "accepted");
+        acceptedOutsideTolerance.RespondedAt = respondedAt.AddMilliseconds(200);
+
+        context.ContactEntity.Add(requester);
+        context.AccountEntity.Add(account);
+        context.DelegationRequestEntity.AddRange(acceptedWithinTolerance, acceptedOutsideTolerance);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+
+        var result = await repository.GetAcceptedSiblingRequestsAsync(requester.ContactId, account.AccountId, respondedAt);
+
+        result.Should().ContainSingle();
+        result.First().RecipientId.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task GetAcceptedSiblingRequestsAsync_WhenNoMatchingRequests_ShouldReturnEmptyList()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new DelegationRequestRepository(context);
+
+        var result = await repository.GetAcceptedSiblingRequestsAsync(1, 100, DateTime.UtcNow);
+
+        result.Should().BeEmpty();
     }
 
     private static ContactEntity CreateContactEntity(int contactId)

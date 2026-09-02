@@ -15,6 +15,9 @@ namespace Pulse.Account.Infrastructure.Repositories;
 
 public class DelegationRequestRepository : IDelegationRequestRepository
 {
+    // Tolérance sur la comparaison de RespondedAt pour absorber les écarts de précision/troncature du stockage SQL
+    private const int RespondedAtToleranceMilliseconds = 100;
+
     private readonly AccountContext _context;
 
     public DelegationRequestRepository(AccountContext context)
@@ -129,6 +132,24 @@ public class DelegationRequestRepository : IDelegationRequestRepository
                          && dr.RecipientId == recipientId
                          && dr.Status == DelegationStatusValues.Pending)
             .Include(dr => dr.Requester)
+            .Include(dr => dr.Account)
+            .ToListAsync();
+
+        return entities.Select(dr => dr.ToDelegationRequest()).ToList();
+    }
+
+    public async Task<List<DelegationRequest>> GetAcceptedSiblingRequestsAsync(int requesterId, int accountId, DateTime respondedAt)
+    {
+        var respondedAtFrom = respondedAt.AddMilliseconds(-RespondedAtToleranceMilliseconds);
+        var respondedAtTo = respondedAt.AddMilliseconds(RespondedAtToleranceMilliseconds);
+
+        var entities = await _context.DelegationRequestEntity
+            .AsNoTracking()
+            .Where(dr => dr.RequesterId == requesterId
+                         && dr.AccountId == accountId
+                         && dr.Status == DelegationStatusValues.Accepted
+                         && dr.RespondedAt >= respondedAtFrom
+                         && dr.RespondedAt <= respondedAtTo)
             .Include(dr => dr.Account)
             .ToListAsync();
 

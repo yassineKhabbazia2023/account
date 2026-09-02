@@ -1,4 +1,4 @@
-﻿// <copyright file="ServicesConfiguration.cs" company="Pulse">
+// <copyright file="ServicesConfiguration.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -125,6 +125,7 @@ public static class ServicesConfiguration
         services.AddScoped<IHistoryEventPublisher, HistoryEventPublisher>();
         services.AddScoped<IReportEventPublisher, ReportEventPublisher>();
         services.AddScoped<IOfferActivatedEventPublisher, OfferActivatedEventPublisher>();
+        services.AddScoped<IDelegationRequestEventPublisher, DelegationRequestEventPublisher>();
 
         services.AddEventPushServices(options);
         services.AddEventPullServices(options);

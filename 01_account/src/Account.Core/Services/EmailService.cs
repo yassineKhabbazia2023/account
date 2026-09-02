@@ -1,4 +1,4 @@
-﻿// <copyright file="EmailService.cs" company="Pulse">
+// <copyright file="EmailService.cs" company="Pulse">
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
@@ -12,17 +12,44 @@ using Pulse.Back.Events.IntegrationEvents;
 
 namespace Pulse.Account.Core.Services;
 
-public class EmailService(INotificationManager notificationManager, IOptions<EmailOptions> options) : IEmailService
+public class EmailService(INotificationManager notificationManager, IOptions<EmailOptions> options, IContactRepository contactRepository, IAccountRepository accountRepository) : IEmailService
 {
     private readonly INotificationManager _notificationManager = notificationManager;
     private readonly EmailOptions _options = options.Value;
+    private readonly IContactRepository _contactRepository = contactRepository;
+    private readonly IAccountRepository _accountRepository = accountRepository;
 
-    public async Task SendRequestEmailAsync(RequestEmailContext context)
+    public async Task SendDelegationRequestEmailsAsync(IEnumerable<int> recipientIds, int requestorId, int accountId)
     {
-        var variables = BuildRequestVariables(context);
-        var request = BuildEmailRequest(context.RecipientEmail, _options.DelegationRequestEmailTemplate, variables);
+        if (!recipientIds.Any())
+        {
+            return;
+        }
 
-        await PublishEmailAsync(request);
+        var requestor = await _contactRepository.GetContactByIdAsync(requestorId);
+        var account = await _accountRepository.GetAccountAsync(accountId);
+
+        foreach (var recipientId in recipientIds)
+        {
+            var contact = await _contactRepository.GetContactByIdAsync(recipientId);
+            var context = new RequestEmailContext
+            {
+                RecipientEmail = contact.Email,
+                UserFirstName = contact.FirstName,
+                UserLastName = contact.LastName,
+                RequestorFirstName = requestor.FirstName,
+                RequestorLastName = requestor.LastName,
+                RequestorEmail = requestor.Email,
+                AccountNumber = account.AccountNumber,
+                LegalName = account.Legal.LegalName,
+                Date = DateTime.UtcNow,
+            };
+
+            var variables = BuildRequestVariables(context);
+            var request = BuildEmailRequest(context.RecipientEmail, _options.DelegationRequestEmailTemplate, variables);
+
+            await PublishEmailAsync(request);
+        }
     }
 
     private Dictionary<string, object> BuildRequestVariables(RequestEmailContext context)

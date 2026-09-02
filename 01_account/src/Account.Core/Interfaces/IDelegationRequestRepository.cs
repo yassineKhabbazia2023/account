@@ -28,6 +28,8 @@ public interface IDelegationRequestRepository
 
     Task<List<DelegationRequest>> GetPendingRequestsByIdsAndRecipientAsync(int[] delegationRequestIds, int recipientId);
 
+    Task<List<DelegationRequest>> GetAcceptedSiblingRequestsAsync(int requesterId, int accountId, DateTime respondedAt);
+
     Task AcceptRequestsAsync(int[] delegationRequestIds, DateTime respondedAt);
 
     Task RefuseRequestsAsync(int[] delegationRequestIds, DateTime respondedAt);

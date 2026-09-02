@@ -38,7 +38,8 @@ namespace Pulse.Account.Infrastructure.Mappers
                 {
                     AccountId = entity.Account.AccountId,
                     AccountNumber = entity.Account.AccountNumber,
-                    LegalName = entity.Account.LegalName
+                    LegalName = entity.Account.LegalName,
+                    AccountType = entity.Account.AccountType
                 } : null
             };
         }
