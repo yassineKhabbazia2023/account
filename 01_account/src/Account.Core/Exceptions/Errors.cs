@@ -181,4 +181,7 @@ public static class Errors
 
     public static readonly string DelegationAlreadyExistsCode = "ACC059";
     public static readonly string DelegationAlreadyExistsMessage = "Une délégation automatique active existe déjà pour ce délégataire.";
+
+    public static readonly string BadRequestClientCannotRequestDelegationCode = "ACC060";
+    public static readonly string BadRequestClientCannotRequestDelegationMessage = "Un client ne peut pas faire de demande de délégation";
 }

@@ -61,6 +61,7 @@ public static class ServicesConfiguration
         services.AddScoped<IInvoiceService, InvoiceService>();
         services.AddScoped<IInvoiceRepository, InvoiceRepository>();
         services.AddScoped<INotificationManager, NotificationManager>();
+        services.AddScoped<IDelegationRequestEventPublisher, DelegationRequestEventPublisher>();
     }
 
     public static void RegisterBrokerServices(this IServiceCollection services, IConfiguration configuration)

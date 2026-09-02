@@ -3,6 +3,7 @@
 // </copyright>
 
 using Moq;
+using Pulse.Account.Core.Interfaces;
 using Pulse.Account.Core.Models;
 using Pulse.Account.Infrastructure.Providers;
 using Pulse.Back.Events.Abstractions;
@@ -58,5 +59,44 @@ public class DelegationRequestEventPublisherTests
 
         // Assert
         publisherMock.Verify(p => p.PublishAsync(It.IsAny<BaseEvent<DelegationRequestValidatedEventData>>(), null!, null), Times.Never);
+    }
+
+    [Fact]
+    public async Task PublishDelegationRequestCreatedEventAsync_Should_PublishEventWithAccountData()
+    {
+        // Arrange
+        var publisherMock = new Mock<IEventPublisher>();
+
+        var accountId = 1;
+        var recipientIds = new[] { 2, 3 };
+        var accountType = "CLIENT";
+
+        var account = new AccountDetail
+        {
+            AccountId = accountId,
+            AccountNumber = "123",
+            AccountType = accountType,
+            Legal = new Legal { LegalName = "Test" },
+            Phone = new List<Phone>(),
+        };
+
+        publisherMock
+            .Setup(p => p.PublishAsync(It.IsAny<BaseEvent<DelegationRequestCreatedEventData>>(), null!, null))
+            .Callback<BaseEvent<DelegationRequestCreatedEventData>, string, string>((@event, _, _) =>
+            {
+                Assert.Equal(accountId, @event.Data.AccountId);
+                Assert.Equal(recipientIds, @event.Data.RecipientIds);
+                Assert.Equal(accountType, @event.AccountType);
+            })
+            .Returns(Task.CompletedTask)
+            .Verifiable();
+
+        var eventPublisher = new DelegationRequestEventPublisher(publisherMock.Object);
+
+        // Act
+        await eventPublisher.PublishDelegationRequestCreatedEventAsync(account, recipientIds);
+
+        // Assert
+        publisherMock.Verify(p => p.PublishAsync(It.IsAny<BaseEvent<DelegationRequestCreatedEventData>>(), null!, null), Times.Once);
     }
 }

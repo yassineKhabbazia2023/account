@@ -338,7 +338,7 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
             throw new NotFoundException(Errors.NotFoundAccountCode, string.Format(Errors.NotFoundAccountMessage, accountId));
         }
 
-        return account.MapToAccountDetail();
+        return account.MapToAccountDetail()!;
     }
 
     public async Task<AccountDetail?> GetAccountDetailAsync(int accountId)

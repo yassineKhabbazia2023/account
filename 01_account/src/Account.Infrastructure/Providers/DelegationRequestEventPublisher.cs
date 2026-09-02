@@ -10,13 +10,19 @@ using Pulse.Back.Events.IntegrationEvents.EventsData;
 
 namespace Pulse.Account.Infrastructure.Providers;
 
-public class DelegationRequestEventPublisher : IDelegationRequestEventPublisher
+public class DelegationRequestEventPublisher(IEventPublisher eventPublisher) : IDelegationRequestEventPublisher
 {
-    private readonly IEventPublisher _eventPublisher;
+    private readonly IEventPublisher _eventPublisher = eventPublisher;
 
-    public DelegationRequestEventPublisher(IEventPublisher eventPublisher)
+    public async Task PublishDelegationRequestCreatedEventAsync(AccountDetail account, IEnumerable<int> recipientIds)
     {
-        _eventPublisher = eventPublisher;
+        var data = new DelegationRequestCreatedEventData
+        {
+            AccountId = account.AccountId,
+            RecipientIds = recipientIds,
+        };
+
+        await _eventPublisher.PublishAsync(new DelegationRequestCreatedEvent(data) { AccountType = account.AccountType });
     }
 
     public async Task PublishDelegationRequestValidatedEventAsync(int validatorContactId, List<DelegationRequest> delegationRequests)

@@ -17,7 +17,6 @@ public class EmailServiceTests
 {
     private readonly Mock<INotificationManager> _mockNotificationManager;
     private readonly Mock<IContactRepository> _mockContactRepository;
-    private readonly Mock<IAccountRepository> _mockAccountRepository;
     private readonly EmailOptions _options;
     private readonly EmailService _service;
 
@@ -25,7 +24,6 @@ public class EmailServiceTests
     {
         _mockNotificationManager = new Mock<INotificationManager>();
         _mockContactRepository = new Mock<IContactRepository>();
-        _mockAccountRepository = new Mock<IAccountRepository>();
         _options = new EmailOptions
         {
             DelegationRequestEmailTemplate = "delegation-request-template",
@@ -44,27 +42,19 @@ public class EmailServiceTests
                 Email = $"contact{id}@pulse.test"
             });
 
-        _mockAccountRepository
-            .Setup(r => r.GetAccountAsync(It.IsAny<int>()))
-            .ReturnsAsync((int id) => new AccountDetail
-            {
-                AccountId = id,
-                AccountNumber = $"ACC{id}",
-                Legal = new Legal { LegalName = $"Legal{id}" },
-                Phone = new List<Phone>()
-            });
-
         _service = new EmailService(
             _mockNotificationManager.Object,
             Microsoft.Extensions.Options.Options.Create(_options),
-            _mockContactRepository.Object,
-            _mockAccountRepository.Object);
+            _mockContactRepository.Object);
     }
 
     [Fact]
     public async Task SendDelegationRequestEmailsAsync_ShouldPublishEmailEventPerRecipientOnConfiguredTopic()
     {
-        await _service.SendDelegationRequestEmailsAsync(new[] { 2, 3 }, 1, 100);
+        var requestor = new Contact { ContactId = 1, FirstName = "first1", LastName = "last1", Email = "contact1@pulse.test" };
+        var account = new AccountDetail { AccountId = 100, AccountNumber = "ACC100", Legal = new Legal { LegalName = "Legal100" }, Phone = new List<Phone>() };
+
+        await _service.SendDelegationRequestEmailsAsync(new[] { 2, 3 }, requestor, account);
 
         _mockNotificationManager.Verify(
             n => n.PublishAsync(It.IsAny<BaseEvent<EmailRequest>>(), _options.ServiceBusTopic),
@@ -80,7 +70,10 @@ public class EmailServiceTests
             .Callback<BaseEvent<EmailRequest>, string>((emailEvent, _) => publishedRequests.Add(emailEvent.Data))
             .Returns(Task.CompletedTask);
 
-        await _service.SendDelegationRequestEmailsAsync(new[] { 2 }, 1, 100);
+        var requestor = new Contact { ContactId = 1, FirstName = "first1", LastName = "last1", Email = "contact1@pulse.test" };
+        var account = new AccountDetail { AccountId = 100, AccountNumber = "ACC100", Legal = new Legal { LegalName = "Legal100" }, Phone = new List<Phone>() };
+
+        await _service.SendDelegationRequestEmailsAsync(new[] { 2 }, requestor, account);
 
         publishedRequests.Should().ContainSingle();
         var publishedRequest = publishedRequests[0];
@@ -100,7 +93,10 @@ public class EmailServiceTests
     [Fact]
     public async Task SendDelegationRequestEmailsAsync_WhenNoRecipient_ShouldNotPublish()
     {
-        await _service.SendDelegationRequestEmailsAsync(new List<int>(), 1, 100);
+        var requestor = new Contact { ContactId = 1, FirstName = "first1", LastName = "last1", Email = "contact1@pulse.test" };
+        var account = new AccountDetail { AccountId = 100, AccountNumber = "ACC100", Legal = new Legal { LegalName = "Legal100" }, Phone = new List<Phone>() };
+
+        await _service.SendDelegationRequestEmailsAsync(new List<int>(), requestor, account);
 
         _mockNotificationManager.Verify(
             n => n.PublishAsync(It.IsAny<BaseEvent<EmailRequest>>(), It.IsAny<string>()),

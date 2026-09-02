@@ -54,7 +54,7 @@ public class AccountRepositoryOptionsTests
 
     public static TheoryData<string> ConnectionString => new()
     {
-        null!,
+        (string)null!,
         string.Empty,
         "                  "
     };

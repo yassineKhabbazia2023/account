@@ -6,28 +6,25 @@ using Microsoft.Extensions.Options;
 using Notifications.Commons.WebApi.QueryParams;
 using Pulse.Account.Core.Extensions;
 using Pulse.Account.Core.Interfaces;
+using Pulse.Account.Core.Models;
 using Pulse.Account.Core.Models.Email;
 using Pulse.Account.Core.Options;
 using Pulse.Back.Events.IntegrationEvents;
 
 namespace Pulse.Account.Core.Services;
 
-public class EmailService(INotificationManager notificationManager, IOptions<EmailOptions> options, IContactRepository contactRepository, IAccountRepository accountRepository) : IEmailService
+public class EmailService(INotificationManager notificationManager, IOptions<EmailOptions> options, IContactRepository contactRepository) : IEmailService
 {
     private readonly INotificationManager _notificationManager = notificationManager;
     private readonly EmailOptions _options = options.Value;
     private readonly IContactRepository _contactRepository = contactRepository;
-    private readonly IAccountRepository _accountRepository = accountRepository;
 
-    public async Task SendDelegationRequestEmailsAsync(IEnumerable<int> recipientIds, int requestorId, int accountId)
+    public async Task SendDelegationRequestEmailsAsync(IEnumerable<int> recipientIds, Contact requestor, AccountDetail account)
     {
         if (!recipientIds.Any())
         {
             return;
         }
-
-        var requestor = await _contactRepository.GetContactByIdAsync(requestorId);
-        var account = await _accountRepository.GetAccountAsync(accountId);
 
         foreach (var recipientId in recipientIds)
         {

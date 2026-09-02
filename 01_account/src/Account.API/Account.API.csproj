@@ -31,7 +31,7 @@
 		<PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
 		<PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0" />
 		<PackageReference Include="Serilog.Enrichers.Span" Version="3.1.0" />
-		<PackageReference Include="OpenFeature" Version="2.3.0" />
+		<PackageReference Include="OpenFeature" Version="2.14.1" />
 		<PackageReference Include="OpenFeature.Contrib.Providers.ConfigCat" Version="0.1.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 		<PackageReference Include="System.Formats.Asn1" Version="9.0.2" />

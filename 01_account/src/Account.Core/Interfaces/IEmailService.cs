@@ -2,11 +2,11 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
-using System.Collections.Generic;
+using Pulse.Account.Core.Models;
 
 namespace Pulse.Account.Core.Interfaces;
 
 public interface IEmailService
 {
-    Task SendDelegationRequestEmailsAsync(IEnumerable<int> recipientIds, int requestorId, int accountId);
+    Task SendDelegationRequestEmailsAsync(IEnumerable<int> recipientIds, Contact requestor, AccountDetail account);
 }

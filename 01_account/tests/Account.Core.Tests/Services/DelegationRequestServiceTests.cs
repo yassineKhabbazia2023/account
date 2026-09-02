@@ -20,7 +20,9 @@ public class DelegationRequestServiceTests
     private readonly Mock<IDelegationRequestRepository> _mockRepository;
     private readonly Mock<IDelegationService> _mockDelegationService;
     private readonly Mock<IEmailService> _mockEmailService;
-    private readonly Mock<IDelegationRequestEventPublisher> _mockEventPublisher;
+    private readonly Mock<IContactRepository> _mockContactRepository;
+    private readonly Mock<IAccountRepository> _mockAccountRepository;
+    private readonly Mock<IDelegationRequestEventPublisher> _mockDelegationRequestEventPublisher;
     private readonly DelegationRequestService _service;
 
     public DelegationRequestServiceTests()
@@ -28,13 +30,38 @@ public class DelegationRequestServiceTests
         _mockRepository = new Mock<IDelegationRequestRepository>();
         _mockDelegationService = new Mock<IDelegationService>();
         _mockEmailService = new Mock<IEmailService>();
-        _mockEventPublisher = new Mock<IDelegationRequestEventPublisher>();
+        _mockContactRepository = new Mock<IContactRepository>();
+        _mockAccountRepository = new Mock<IAccountRepository>();
+        _mockDelegationRequestEventPublisher = new Mock<IDelegationRequestEventPublisher>();
+
+        _mockContactRepository
+            .Setup(r => r.GetContactByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync((int id) => new Contact
+            {
+                ContactId = id,
+                FirstName = $"First{id}",
+                LastName = $"Last{id}",
+                Email = $"contact{id}@pulse.test",
+                Type = ContactType.Collaborator.ToString()
+            });
+
+        _mockAccountRepository
+            .Setup(r => r.GetAccountAsync(It.IsAny<int>()))
+            .ReturnsAsync((int id) => new AccountDetail
+            {
+                AccountId = id,
+                AccountNumber = $"ACC{id}",
+                Legal = new Legal { LegalName = $"Legal{id}" },
+                Phone = new List<Phone>()
+            });
 
         _service = new DelegationRequestService(
             _mockRepository.Object,
             _mockDelegationService.Object,
             _mockEmailService.Object,
-            _mockEventPublisher.Object);
+            _mockContactRepository.Object,
+            _mockAccountRepository.Object,
+            _mockDelegationRequestEventPublisher.Object);
     }
 
     [Fact]
@@ -63,6 +90,131 @@ public class DelegationRequestServiceTests
         result.CreatedRecipientIds.Should().BeEquivalentTo(new[] { 2, 3 });
         result.Errors.Should().BeEmpty();
         _mockRepository.Verify(r => r.CreateDelegationRequestsAsync(contactId, request.AccountId, It.IsAny<int[]>(), It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateDelegationRequestsAsync_WhenRequestorIsNotCollaborator_ShouldThrowUnauthorizedException()
+    {
+        var contactId = 1;
+        var request = new CreateDelegationRequestsRequest
+        {
+            AccountId = 100,
+            RecipientIds = new[] { 2, 3 }
+        };
+
+        _mockContactRepository
+            .Setup(r => r.GetContactByIdAsync(contactId))
+            .ReturnsAsync(new Contact
+            {
+                ContactId = contactId,
+                FirstName = "First1",
+                LastName = "Last1",
+                Email = "contact1@pulse.test",
+                Type = ContactType.Customer.ToString()
+            });
+
+        Func<Task> act = async () => await _service.CreateDelegationRequestsAsync(contactId, request);
+
+        await act.Should().ThrowAsync<UnauthorizedException>()
+            .Where(ex => ex.Code == Errors.BadRequestClientCannotRequestDelegationCode);
+    }
+
+    [Fact]
+    public async Task CreateDelegationRequestsAsync_WhenRecipientNotFound_ShouldAddRecipientNotFoundErrorAndCreateOthers()
+    {
+        var contactId = 1;
+        var request = new CreateDelegationRequestsRequest
+        {
+            AccountId = 100,
+            RecipientIds = new[] { 2, 3 }
+        };
+
+        _mockRepository.Setup(r => r.DoesAccountExistAsync(request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.DoesContactExistAsync(contactId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasActiveDelegationOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasPendingRequestAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(3, request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.CreateDelegationRequestsAsync(contactId, request.AccountId, It.IsAny<int[]>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+
+        _mockContactRepository
+            .Setup(r => r.GetContactByIdAsync(2))
+            .ThrowsAsync(new NotFoundException(Errors.NotFoundContactCode, string.Format(Errors.NotFoundContactMessage, 2)));
+
+        var result = await _service.CreateDelegationRequestsAsync(contactId, request);
+
+        result.CreatedRecipientIds.Should().BeEquivalentTo(new[] { 3 });
+        result.Errors.Should().ContainSingle(e => e.RecipientId == 2 && e.Reason == "RecipientNotFound");
+        _mockRepository.Verify(r => r.CreateDelegationRequestsAsync(contactId, request.AccountId, It.Is<int[]>(ids => ids.SequenceEqual(new[] { 3 })), It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateDelegationRequestsAsync_WhenRecipientNotCollaborator_ShouldAddRecipientNotCollaboratorErrorAndCreateOthers()
+    {
+        var contactId = 1;
+        var request = new CreateDelegationRequestsRequest
+        {
+            AccountId = 100,
+            RecipientIds = new[] { 2, 3 }
+        };
+
+        _mockRepository.Setup(r => r.DoesAccountExistAsync(request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.DoesContactExistAsync(contactId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasActiveDelegationOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasPendingRequestAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(3, request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.CreateDelegationRequestsAsync(contactId, request.AccountId, It.IsAny<int[]>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+
+        _mockContactRepository
+            .Setup(r => r.GetContactByIdAsync(2))
+            .ReturnsAsync(new Contact
+            {
+                ContactId = 2,
+                FirstName = "First2",
+                LastName = "Last2",
+                Email = "contact2@pulse.test",
+                Type = ContactType.Customer.ToString()
+            });
+
+        var result = await _service.CreateDelegationRequestsAsync(contactId, request);
+
+        result.CreatedRecipientIds.Should().BeEquivalentTo(new[] { 3 });
+        result.Errors.Should().ContainSingle(e => e.RecipientId == 2 && e.Reason == "RecipientNotCollaborator");
+        _mockRepository.Verify(r => r.CreateDelegationRequestsAsync(contactId, request.AccountId, It.Is<int[]>(ids => ids.SequenceEqual(new[] { 3 })), It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateDelegationRequestsAsync_WhenAllRecipientsNotCollaborator_ShouldThrowBadRequestException()
+    {
+        var contactId = 1;
+        var request = new CreateDelegationRequestsRequest
+        {
+            AccountId = 100,
+            RecipientIds = new[] { 2, 3 }
+        };
+
+        _mockRepository.Setup(r => r.DoesAccountExistAsync(request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.DoesContactExistAsync(contactId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasActiveDelegationOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasPendingRequestAsync(contactId, request.AccountId)).ReturnsAsync(false);
+
+        _mockContactRepository
+            .Setup(r => r.GetContactByIdAsync(It.Is<int>(id => id == 2 || id == 3)))
+            .ReturnsAsync((int id) => new Contact
+            {
+                ContactId = id,
+                FirstName = $"First{id}",
+                LastName = $"Last{id}",
+                Email = $"contact{id}@pulse.test",
+                Type = ContactType.Customer.ToString()
+            });
+
+        Func<Task> act = async () => await _service.CreateDelegationRequestsAsync(contactId, request);
+
+        await act.Should().ThrowAsync<BadRequestException>()
+            .Where(ex => ex.Code == Errors.RecipientDoesNotHaveAccessCode);
     }
 
     [Fact]
@@ -129,25 +281,6 @@ public class DelegationRequestServiceTests
 
         await act.Should().ThrowAsync<NotFoundException>()
             .Where(ex => ex.Code == Errors.NotFoundAccountCode);
-    }
-
-    [Fact]
-    public async Task CreateDelegationRequestsAsync_WhenRequesterDoesNotExist_ShouldThrowNotFoundException()
-    {
-        var contactId = 1;
-        var request = new CreateDelegationRequestsRequest
-        {
-            AccountId = 100,
-            RecipientIds = new[] { 2 }
-        };
-
-        _mockRepository.Setup(r => r.DoesAccountExistAsync(request.AccountId)).ReturnsAsync(true);
-        _mockRepository.Setup(r => r.DoesContactExistAsync(contactId)).ReturnsAsync(false);
-
-        Func<Task> act = async () => await _service.CreateDelegationRequestsAsync(contactId, request);
-
-        await act.Should().ThrowAsync<NotFoundException>()
-            .Where(ex => ex.Code == Errors.NotFoundContactCode);
     }
 
     [Fact]
@@ -669,7 +802,7 @@ public class DelegationRequestServiceTests
 
         await _service.AcceptRequestsAsync(currentUserId, request);
 
-        _mockEventPublisher.Verify(
+        _mockDelegationRequestEventPublisher.Verify(
             p => p.PublishDelegationRequestValidatedEventAsync(currentUserId, It.Is<List<DelegationRequest>>(requests => requests.SequenceEqual(acceptedSiblingRequests))),
             Times.Once);
     }
@@ -697,7 +830,7 @@ public class DelegationRequestServiceTests
 
         await _service.AcceptRequestsAsync(currentUserId, request);
 
-        _mockEventPublisher.Verify(p => p.PublishDelegationRequestValidatedEventAsync(currentUserId, It.IsAny<List<DelegationRequest>>()), Times.Exactly(2));
+        _mockDelegationRequestEventPublisher.Verify(p => p.PublishDelegationRequestValidatedEventAsync(currentUserId, It.IsAny<List<DelegationRequest>>()), Times.Exactly(2));
     }
 
     // ========== AcceptSiblingRequestsAsync coverage ==========
@@ -939,8 +1072,8 @@ public class DelegationRequestServiceTests
         _mockEmailService.Verify(
             e => e.SendDelegationRequestEmailsAsync(
                 It.Is<IEnumerable<int>>(ids => ids.SequenceEqual(new[] { 2, 3 })),
-                contactId,
-                request.AccountId),
+                It.Is<Contact>(c => c.ContactId == contactId),
+                It.Is<AccountDetail>(a => a.AccountId == request.AccountId)),
             Times.Once);
     }
 
@@ -968,7 +1101,92 @@ public class DelegationRequestServiceTests
 
         await act.Should().ThrowAsync<BadRequestException>()
             .Where(ex => ex.Code == Errors.RecipientDoesNotHaveAccessCode);
-        _mockEmailService.Verify(e => e.SendDelegationRequestEmailsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        _mockEmailService.Verify(e => e.SendDelegationRequestEmailsAsync(It.IsAny<IEnumerable<int>>(), It.IsAny<Contact>(), It.IsAny<AccountDetail>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateDelegationRequestsAsync_WhenValidRecipients_ShouldPublishDelegationRequestCreatedEvent()
+    {
+        var contactId = 1;
+        var request = new CreateDelegationRequestsRequest
+        {
+            AccountId = 100,
+            RecipientIds = new[] { 2, 3 }
+        };
+
+        SetupValidCreationScenario(contactId, request, validRecipientIds: new[] { 2, 3 });
+
+        await _service.CreateDelegationRequestsAsync(contactId, request);
+
+        _mockDelegationRequestEventPublisher.Verify(
+            p => p.PublishDelegationRequestCreatedEventAsync(
+                It.Is<AccountDetail>(a => a.AccountId == request.AccountId),
+                It.Is<IEnumerable<int>>(ids => ids.SequenceEqual(new[] { 2, 3 }))),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateDelegationRequestsAsync_WhenSomeRecipientsInvalid_ShouldPublishEventWithOnlyValidRecipients()
+    {
+        var contactId = 1;
+        var request = new CreateDelegationRequestsRequest
+        {
+            AccountId = 100,
+            RecipientIds = new[] { 2, 3 }
+        };
+
+        _mockRepository.Setup(r => r.DoesAccountExistAsync(request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.DoesContactExistAsync(contactId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasActiveDelegationOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasPendingRequestAsync(contactId, request.AccountId)).ReturnsAsync(false);
+
+        // Recipient 2 is valid
+        _mockRepository.Setup(r => r.DoesContactExistAsync(2)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(2, request.AccountId)).ReturnsAsync(true);
+
+        // Recipient 3 is invalid (no role on account)
+        _mockRepository.Setup(r => r.DoesContactExistAsync(3)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(3, request.AccountId)).ReturnsAsync(false);
+
+        _mockRepository
+            .Setup(r => r.CreateDelegationRequestsAsync(contactId, request.AccountId, It.IsAny<int[]>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        await _service.CreateDelegationRequestsAsync(contactId, request);
+
+        _mockDelegationRequestEventPublisher.Verify(
+            p => p.PublishDelegationRequestCreatedEventAsync(
+                It.Is<AccountDetail>(a => a.AccountId == request.AccountId),
+                It.Is<IEnumerable<int>>(ids => ids.SequenceEqual(new[] { 2 }))),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateDelegationRequestsAsync_WhenNoValidRecipient_ShouldNotPublishEvent()
+    {
+        var contactId = 1;
+        var request = new CreateDelegationRequestsRequest
+        {
+            AccountId = 100,
+            RecipientIds = new[] { 2 }
+        };
+
+        _mockRepository.Setup(r => r.DoesAccountExistAsync(request.AccountId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.DoesContactExistAsync(contactId)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.DoesContactExistAsync(2)).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasActiveDelegationOnAccountAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasPendingRequestAsync(contactId, request.AccountId)).ReturnsAsync(false);
+        _mockRepository.Setup(r => r.HasRoleOnAccountAsync(2, request.AccountId)).ReturnsAsync(false);
+
+        Func<Task> act = async () => await _service.CreateDelegationRequestsAsync(contactId, request);
+
+        await act.Should().ThrowAsync<BadRequestException>()
+            .Where(ex => ex.Code == Errors.RecipientDoesNotHaveAccessCode);
+        _mockDelegationRequestEventPublisher.Verify(
+            p => p.PublishDelegationRequestCreatedEventAsync(It.IsAny<AccountDetail>(), It.IsAny<IEnumerable<int>>()),
+            Times.Never);
     }
 
     private void SetupValidCreationScenario(int contactId, CreateDelegationRequestsRequest request, int[] validRecipientIds)

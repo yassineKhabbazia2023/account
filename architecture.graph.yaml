@@ -192,6 +192,9 @@ managed_by_script:
     - event: AccountUpdatedEvent
       topics:
       - account
+    - event: DelegationRequestCreatedEvent
+      topics:
+      - account
     - event: HistoryCreatedEvent
       topics:
       - account

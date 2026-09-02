@@ -101,7 +101,7 @@ public class RoleCreatedEventHandlerTests
 
     public static TheoryData<string> Messages => new()
     {
-        null!,
+        (string)null!,
         string.Empty,
         "{\"EventType\":\"RoleCreatedEvent\"}",
         "{\"EventType\":\"RoleCreatedEvent\",\"Data\":{\"ContactId\":0, \"AccountId\":456}}",
