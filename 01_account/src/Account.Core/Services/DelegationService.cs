@@ -49,6 +49,16 @@ public class DelegationService(
             throw new BadRequestException(Errors.DelegationEndDateInvalidCode, Errors.DelegationEndDateInvalidMessage);
         }
 
+        foreach (var detail in delegation.DelegationDetails)
+        {
+            var alreadyExists = await _delegationRepository.HasActiveDelegationAsync(contactId, detail.DelegateeId);
+
+            if (alreadyExists)
+            {
+                throw new BadRequestException(Errors.DelegationAlreadyExistsCode, Errors.DelegationAlreadyExistsMessage);
+            }
+        }
+
         if (delegation.IsFullDelegation)
         {
             delegation.AccountIds = await _delegationRepository.GetAccountIdsForFullDelegationAsync(contactId);

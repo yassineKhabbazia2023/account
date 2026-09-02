@@ -522,4 +522,105 @@ public class RoleEventRepositoryTests
 
         Assert.False(result);
     }
+
+    [Fact]
+    public async Task CreateRoleForAutomaticDelegations_WithDuplicateAutomaticDelegations_ShouldNotCreateRole()
+    {
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new AccountContext(options);
+        var repository = new RoleEventRepository(context);
+
+        var account = new AccountEntity
+        {
+            AccountId = 1,
+            AccountGlobalUniqueId = Guid.NewGuid(),
+            AccountNumber = "TEST-001",
+            LegalName = "Test account",
+            CreatedBy = "test",
+            IsActive = true,
+            AccountType = AccountType.CLIENT.ToString(),
+        };
+
+        var delegator = new ContactEntity
+        {
+            ContactId = 1,
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            FirstName = "Youness",
+            LastName = "Test",
+            Email = "youness@test.fr",
+            PersonaName = "collaborator",
+            Type = "collaborator",
+            IsActive = true,
+        };
+
+        var delegatee = new ContactEntity
+        {
+            ContactId = 2,
+            ContactGlobalUniqueId = Guid.NewGuid(),
+            FirstName = "Yassine",
+            LastName = "Test",
+            Email = "yassine@test.fr",
+            PersonaName = "collaborator",
+            Type = "collaborator",
+            IsActive = true,
+        };
+
+        context.AccountEntity.Add(account);
+        context.ContactEntity.AddRange(delegator, delegatee);
+
+        context.RoleEntity.Add(new RoleEntity
+        {
+            Contact = delegator,
+            Account = account,
+            IsSignatory = false,
+            IsFavorite = false,
+            IsDelegation = false,
+        });
+
+        var delegation1 = new DelegationEntity
+        {
+            Delegator = delegator,
+            Delegatee = delegatee,
+            StartDate = DateTime.UtcNow,
+            IsFullDelegation = true,
+            IsAutomaticDelegation = true,
+            Status = DelegationStatus.Enabled.ToString(),
+            Account = new List<AccountEntity> { account },
+        };
+
+        var delegation2 = new DelegationEntity
+        {
+            Delegator = delegator,
+            Delegatee = delegatee,
+            StartDate = DateTime.UtcNow,
+            IsFullDelegation = true,
+            IsAutomaticDelegation = true,
+            Status = DelegationStatus.Enabled.ToString(),
+            Account = new List<AccountEntity> { account },
+        };
+
+        context.DelegationEntity.AddRange(delegation1, delegation2);
+
+        await context.SaveChangesAsync();
+
+        // Act
+        var result =
+            await repository.CreateRoleForAutomaticDelegationsAsync(
+                delegator.ContactId,
+                account.AccountId);
+
+        // Assert
+        result.Should().BeEmpty();
+
+        var createdRoles = await context.RoleEntity
+            .Where(r =>
+                r.ContactId == delegatee.ContactId &&
+                r.AccountId == account.AccountId)
+            .ToListAsync();
+
+        createdRoles.Should().BeEmpty();
+    }
 }

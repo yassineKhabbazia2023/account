@@ -446,6 +446,191 @@ public class DelegationServiceTest
         result.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task CreateDelegationAsync_WhenActiveAutomaticDelegationAlreadyExists_ShouldThrowBadRequestException()
+    {
+        // Arrange
+        var contactId = 25;
+        var delegateeId = 42;
+        var accountId = 101;
+
+        var details = _fixture.Build<DelegationDetails>()
+            .With(x => x.DelegateeId, delegateeId)
+            .With(x => x.StartDate, DateTime.UtcNow)
+            .With(x => x.EndDate, DateTime.UtcNow.AddDays(1))
+            .With(x => x.IsAutomaticDelegation, true)
+            .CreateMany(1);
+
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
+            .With(x => x.DelegationDetails, details)
+            .With(x => x.AccountIds, new List<int> { accountId })
+            .With(x => x.IsFullDelegation, false)
+            .Create();
+
+        _repository
+            .Setup(x => x.IsClient(It.IsAny<IEnumerable<int>>()))
+            .ReturnsAsync(false);
+
+        _repository
+            .Setup(x => x.HasActiveDelegationAsync(
+                contactId,
+                delegateeId))
+            .ReturnsAsync(true);
+
+        var service = new DelegationService(
+            _repository.Object,
+            _publisher.Object,
+            _historyPublisher.Object,
+            _logger.Object,
+            _roleRepository.Object);
+
+        // Act
+        var act = async () =>
+            await service.CreateDelegationAsync(
+                contactId,
+                createDelegation);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<BadRequestException>(act);
+
+        Assert.Equal(Errors.DelegationAlreadyExistsCode, exception.Code);
+        Assert.Equal(Errors.DelegationAlreadyExistsMessage, exception.Message);
+
+        _repository.Verify(
+            x => x.HasActiveDelegationAsync(
+                contactId,
+                delegateeId),
+            Times.Once);
+
+        _repository.Verify(
+            x => x.CreateDelegationAsync(
+                It.IsAny<int>(),
+                It.IsAny<CreateDelegationRequest>(),
+                It.IsAny<IEnumerable<CreateRoleRequest>>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_WhenNoActiveAutomaticDelegationExists_ShouldCreateDelegation()
+    {
+        // Arrange
+        var contactId = 25;
+        var delegateeId = 42;
+        var accountId = 101;
+
+        var details = _fixture.Build<DelegationDetails>()
+            .With(x => x.DelegateeId, delegateeId)
+            .With(x => x.StartDate, DateTime.UtcNow)
+            .With(x => x.EndDate, DateTime.UtcNow.AddDays(1))
+            .With(x => x.IsAutomaticDelegation, true)
+            .CreateMany(1);
+
+        var createDelegation = _fixture.Build<CreateDelegationRequest>()
+            .With(x => x.DelegationDetails, details)
+            .With(x => x.AccountIds, new List<int> { accountId })
+            .With(x => x.IsFullDelegation, false)
+            .Create();
+
+        _repository
+            .Setup(x => x.IsClient(It.IsAny<IEnumerable<int>>()))
+            .ReturnsAsync(false);
+
+        _repository
+            .Setup(x => x.HasActiveDelegationAsync(
+                contactId,
+                delegateeId))
+            .ReturnsAsync(false);
+
+        _repository
+            .Setup(x => x.CreateDelegationAsync(
+                contactId,
+                createDelegation,
+                It.IsAny<IEnumerable<CreateRoleRequest>>()))
+            .ReturnsAsync(new List<CreateRoleRequest>());
+
+        var service = new DelegationService(
+            _repository.Object,
+            _publisher.Object,
+            _historyPublisher.Object,
+            _logger.Object,
+            _roleRepository.Object);
+
+        // Act
+        await service.CreateDelegationAsync(
+            contactId,
+            createDelegation);
+
+        // Assert
+        _repository.Verify(
+            x => x.HasActiveDelegationAsync(
+                contactId,
+                delegateeId),
+            Times.Once);
+
+        _repository.Verify(
+            x => x.CreateDelegationAsync(
+                contactId,
+                createDelegation,
+                It.IsAny<IEnumerable<CreateRoleRequest>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateDelegationAsync_ShouldCheckExistingActiveDelegation()
+    {
+        // Arrange
+        var contactId = 25;
+        var delegateeId = 42;
+        var accountId = 101;
+
+        var details = _fixture.Build<DelegationDetails>()
+            .With(x => x.DelegateeId, delegateeId)
+            .With(x => x.StartDate, DateTime.UtcNow)
+            .With(x => x.EndDate, DateTime.UtcNow.AddDays(1))
+            .With(x => x.IsAutomaticDelegation, false)
+            .CreateMany(1);
+
+        var request = _fixture.Build<CreateDelegationRequest>()
+            .With(x => x.DelegationDetails, details)
+            .With(x => x.AccountIds, new List<int> { accountId })
+            .With(x => x.IsFullDelegation, false)
+            .Create();
+
+        _repository
+            .Setup(x => x.IsClient(It.IsAny<IEnumerable<int>>()))
+            .ReturnsAsync(false);
+
+        _repository
+            .Setup(x => x.HasActiveDelegationAsync(
+                contactId,
+                delegateeId))
+            .ReturnsAsync(false);
+
+        _repository
+            .Setup(x => x.CreateDelegationAsync(
+                contactId,
+                request,
+                It.IsAny<IEnumerable<CreateRoleRequest>>()))
+            .ReturnsAsync([]);
+
+        var service = new DelegationService(
+            _repository.Object,
+            _publisher.Object,
+            _historyPublisher.Object,
+            _logger.Object,
+            _roleRepository.Object);
+
+        // Act
+        await service.CreateDelegationAsync(contactId, request);
+
+        // Assert
+        _repository.Verify(
+            x => x.HasActiveDelegationAsync(
+                contactId,
+                delegateeId),
+            Times.Once);
+    }
+
     public static IEnumerable<object[]> CreateDelegationData => new List<object[]>
         {
             new object[] { null! },

@@ -5,6 +5,7 @@
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Moq;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
@@ -922,21 +923,33 @@ public class DelegationRepositoryTests
         context.DelegationEntity.AddRange(
             new DelegationEntity
             {
-                DelegationId = 905001, DelegatorId = 900010, DelegateeId = 900020,
-                StartDate = DateTime.UtcNow, Status = DelegationStatus.Enabled.ToString(),
-                IsAutomaticDelegation = true, Account = new List<AccountEntity> { account },
+                DelegationId = 905001,
+                DelegatorId = 900010,
+                DelegateeId = 900020,
+                StartDate = DateTime.UtcNow,
+                Status = DelegationStatus.Enabled.ToString(),
+                IsAutomaticDelegation = true,
+                Account = new List<AccountEntity> { account },
             },
             new DelegationEntity
             {
-                DelegationId = 905002, DelegatorId = 900010, DelegateeId = 900020,
-                StartDate = DateTime.UtcNow, Status = DelegationStatus.Enabled.ToString(),
-                IsAutomaticDelegation = true, Account = new List<AccountEntity> { account },
+                DelegationId = 905002,
+                DelegatorId = 900010,
+                DelegateeId = 900020,
+                StartDate = DateTime.UtcNow,
+                Status = DelegationStatus.Enabled.ToString(),
+                IsAutomaticDelegation = true,
+                Account = new List<AccountEntity> { account },
             },
             new DelegationEntity
             {
-                DelegationId = 905003, DelegatorId = 900010, DelegateeId = 900020,
-                StartDate = DateTime.UtcNow, Status = DelegationStatus.Enabled.ToString(),
-                IsAutomaticDelegation = true, Account = new List<AccountEntity> { account },
+                DelegationId = 905003,
+                DelegatorId = 900010,
+                DelegateeId = 900020,
+                StartDate = DateTime.UtcNow,
+                Status = DelegationStatus.Enabled.ToString(),
+                IsAutomaticDelegation = true,
+                Account = new List<AccountEntity> { account },
             });
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
@@ -1908,5 +1921,115 @@ public class DelegationRepositoryTests
         var existingRole = await context.RoleEntity
             .FirstAsync(r => r.AccountId == tAccount.AccountId && r.ContactId == tDelegatee.ContactId);
         Assert.Equal(preExistingLastActivityDate, existingRole.LastActivityDate);
+    }
+
+    [Fact]
+    public async Task HasActiveDelegationAsync_WhenActiveAutomaticDelegationExists_ShouldReturnTrue()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new AccountContext(options);
+
+        var delegatorId = 1;
+        var delegateeId = 2;
+
+        context.DelegationEntity.Add(new DelegationEntity
+        {
+            DelegatorId = delegatorId,
+            DelegateeId = delegateeId,
+            StartDate = DateTime.UtcNow,
+            Status = DelegationStatus.Enabled.ToString(),
+            IsAutomaticDelegation = true,
+        });
+
+        await context.SaveChangesAsync();
+
+        var repository = new DelegationRepository(context);
+
+        // Act
+        var result = await repository.HasActiveDelegationAsync(
+            delegatorId,
+            delegateeId);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task HasActiveDelegationAsync_WhenActiveManualDelegationExists_ShouldReturnTrue()
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new AccountContext(options);
+
+        var delegatorId = 1;
+        var delegateeId = 2;
+
+        context.DelegationEntity.Add(new DelegationEntity
+        {
+            DelegatorId = delegatorId,
+            DelegateeId = delegateeId,
+            StartDate = DateTime.UtcNow,
+            Status = DelegationStatus.Enabled.ToString(),
+            IsAutomaticDelegation = false,
+        });
+
+        await context.SaveChangesAsync();
+
+        var repository = new DelegationRepository(context);
+
+        // Act
+        var result = await repository.HasActiveDelegationAsync(
+            delegatorId,
+            delegateeId);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("Disabled")]
+    [InlineData("disabled")]
+    [InlineData("DISABLED")]
+    [InlineData("DiSaBlEd")]
+    public async Task HasActiveDelegationAsync_WhenDelegationIsDisabled_ShouldReturnFalse(
+    string status)
+    {
+        // Arrange
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        using var context = new AccountContext(options);
+
+        var delegatorId = 1;
+        var delegateeId = 2;
+
+        context.DelegationEntity.Add(new DelegationEntity
+        {
+            DelegatorId = delegatorId,
+            DelegateeId = delegateeId,
+            StartDate = DateTime.UtcNow,
+            Status = status,
+            IsAutomaticDelegation = false,
+        });
+
+        await context.SaveChangesAsync();
+
+        var repository = new DelegationRepository(context);
+
+        // Act
+        var result = await repository.HasActiveDelegationAsync(
+            delegatorId,
+            delegateeId);
+
+        // Assert
+        result.Should().BeFalse();
     }
 }

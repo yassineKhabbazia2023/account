@@ -178,4 +178,7 @@ public static class Errors
 
     public static readonly string SerenityChoiceAlreadyExistsCode = "ACC058";
     public static readonly string SerenityChoiceAlreadyExistsMessage = "Un choix Sérénité a déjà été enregistré pour le contact {0}.";
+
+    public static readonly string DelegationAlreadyExistsCode = "ACC059";
+    public static readonly string DelegationAlreadyExistsMessage = "Une délégation automatique active existe déjà pour ce délégataire.";
 }

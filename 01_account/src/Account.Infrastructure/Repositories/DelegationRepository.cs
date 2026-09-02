@@ -229,6 +229,19 @@ public class DelegationRepository : IDelegationRepository
         return accountIds;
     }
 
+    public async Task<bool> HasActiveDelegationAsync(int delegatorId, int delegateeId)
+    {
+        var delegations = await _accountContext.DelegationEntity
+            .AsNoTracking()
+            .Where(d =>
+                d.DelegatorId == delegatorId
+                && d.DelegateeId == delegateeId)
+            .Select(d => d.Status)
+            .ToListAsync();
+
+        return delegations.Any(status => !string.Equals(status, DelegationStatus.Disabled.ToString(), StringComparison.OrdinalIgnoreCase));
+    }
+
     private async Task<IEnumerable<int>> CheckExistingContactsAsync(IEnumerable<int> contactIds)
     {
         var missingIds = new List<int>();

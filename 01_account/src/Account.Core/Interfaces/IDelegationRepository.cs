@@ -25,4 +25,6 @@ public interface IDelegationRepository
     Task<IEnumerable<int>> GetAccountIdsForFullDelegationAsync(int delegatorId);
 
     Task<bool> IsClient(IEnumerable<int> contactIds);
+
+    Task<bool> HasActiveDelegationAsync(int delegatorId, int delegateeId);
 }

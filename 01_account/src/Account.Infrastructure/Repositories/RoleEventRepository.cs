@@ -29,7 +29,33 @@ public class RoleEventRepository : IRoleEventRepository
 
     public async Task<IEnumerable<CreateRoleRequest>> CreateRoleForAutomaticDelegationsAsync(int delegatorId, int accountId)
     {
-        var rolesToCreate = await GetAutomaticDelegations(delegatorId, accountId);
+        var automaticDelegations = (await GetAutomaticDelegations(delegatorId, accountId)).ToList();
+
+        var rolesToCreate = new List<CreateRoleRequest>();
+
+        foreach (var group in automaticDelegations.GroupBy(role => new
+        {
+            role.ContactId,
+            role.AccountId,
+        }))
+        {
+            var groupedRoles = group.ToList();
+
+            if (groupedRoles.Count > 1)
+            {
+                _logger.LogWarning(
+                    "Duplicate automatic delegation roles detected. " +
+                    "DelegatorId: {DelegatorId}, ContactId: {ContactId}, AccountId: {AccountId}, Count: {Count}",
+                    delegatorId,
+                    group.Key.ContactId,
+                    group.Key.AccountId,
+                    groupedRoles.Count);
+
+                continue;
+            }
+
+            rolesToCreate.Add(groupedRoles[0]);
+        }
 
         var roleEntities = rolesToCreate.ToRoleEntities();
 
