@@ -54,6 +54,8 @@ public class EmailService(INotificationManager notificationManager, IOptions<Ema
         var userName = BuildUserName(context.UserFirstName, context.UserLastName);
         var requestorName = BuildUserName(context.RequestorFirstName, context.RequestorLastName);
 
+        var localDate = DateTimeHelper.ConvertToLocalizedTime(context.Date);
+
         return new Dictionary<string, object>
         {
             { "userName", userName },
@@ -61,8 +63,8 @@ public class EmailService(INotificationManager notificationManager, IOptions<Ema
             { "requestorEmail", context.RequestorEmail },
             { "legalName", context.LegalName },
             { "accountNumber", context.AccountNumber },
-            { "date", context.Date.ToString("dd/MM/yyyy") },
-            { "time", context.Date.ToString("HH:mm") },
+            { "date", localDate.ToString("dd/MM/yyyy") },
+            { "time", localDate.ToString("HH:mm") },
             { "delegationRequestUrl", $"{_options.WalletBaseUrl}/redirect?action=open-delegation-drawer" },
         };
     }
