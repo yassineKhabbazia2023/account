@@ -23,4 +23,11 @@ public interface ISerenityRepository
     /// <param name="isAccepted">Le choix exprimé.</param>
     /// <returns>Une tâche.</returns>
     Task CreateSerenityChoiceAsync(int contactId, bool isAccepted);
+
+    /// <summary>
+    /// Supprime le choix Sérénité du contact lorsqu'il existe.
+    /// </summary>
+    /// <param name="contactId">L'identifiant du contact.</param>
+    /// <returns>Une tâche.</returns>
+    Task ResetSerenityChoiceAsync(int contactId);
 }

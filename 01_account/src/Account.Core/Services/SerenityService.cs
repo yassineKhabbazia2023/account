@@ -25,4 +25,10 @@ public class SerenityService : ISerenityService
     {
         await _serenityRepository.CreateSerenityChoiceAsync(contactId, isAccepted);
     }
+
+    /// <inheritdoc />
+    public async Task ResetSerenityChoiceAsync(int contactId)
+    {
+        await _serenityRepository.ResetSerenityChoiceAsync(contactId);
+    }
 }

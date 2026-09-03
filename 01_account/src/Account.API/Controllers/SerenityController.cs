@@ -61,4 +61,20 @@ public class SerenityController : ControllerBase
 
         return NoContent();
     }
+
+    /// <summary>
+    /// Réinitialise le choix Sérénité du contact ciblé par les équipes QA.
+    /// </summary>
+    /// <param name="contactId">ID du contact dont le choix doit être réinitialisé.</param>
+    /// <returns>204 No Content, y compris lorsque le choix est déjà réinitialisé.</returns>
+    [HttpDelete("serenity-choice/{contactId:int}/reset")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorResponse))]
+    public async Task<IActionResult> ResetSerenityChoiceAsync(
+        [FromRoute][Range(1, int.MaxValue)] int contactId)
+    {
+        await _serenityService.ResetSerenityChoiceAsync(contactId);
+
+        return NoContent();
+    }
 }

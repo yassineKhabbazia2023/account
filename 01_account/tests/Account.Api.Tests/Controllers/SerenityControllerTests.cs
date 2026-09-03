@@ -2,6 +2,8 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Pulse.Account.API.Controllers;
@@ -16,6 +18,8 @@ public class SerenityControllerTests
     private const int CurrentUserId = 777;
 
     private readonly Mock<ISerenityService> _serenityServiceMock = new();
+
+    #region Eligibility
 
     [Fact]
     public async Task GetSerenityEligibilityAsync_Should_ReturnOkWithEligibility()
@@ -38,6 +42,10 @@ public class SerenityControllerTests
         _serenityServiceMock.Verify(s => s.GetSerenityEligibilityAsync(CurrentUserId), Times.Once);
     }
 
+    #endregion
+
+    #region Create choice
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -54,4 +62,74 @@ public class SerenityControllerTests
 
         _serenityServiceMock.Verify(s => s.CreateSerenityChoiceAsync(CurrentUserId, isAccepted), Times.Once);
     }
+
+    #endregion
+
+    #region Reset choice
+
+    /// <summary>
+    /// Verifies that reset forwards the URL contact identifier and returns no content.
+    /// </summary>
+    /// <returns>A task representing the asynchronous test.</returns>
+    [Fact]
+    public async Task ResetSerenityChoiceAsync_ShouldReturnNoContentAndForwardContactId()
+    {
+        // Arrange
+        var controller = new SerenityController(_serenityServiceMock.Object);
+
+        // Act
+        var result = await controller.ResetSerenityChoiceAsync(CurrentUserId);
+
+        // Assert
+        Assert.IsType<NoContentResult>(result);
+        _serenityServiceMock.Verify(service => service.ResetSerenityChoiceAsync(CurrentUserId), Times.Once);
+    }
+
+    /// <summary>
+    /// Verifies that contactId is mandatory, route-bound, and never supplied by a body payload.
+    /// </summary>
+    [Fact]
+    public void ResetSerenityChoiceAsync_ShouldBindValidatedContactIdFromRoute()
+    {
+        // Arrange
+        var method = typeof(SerenityController).GetMethod(nameof(SerenityController.ResetSerenityChoiceAsync));
+        Assert.NotNull(method);
+
+        // Act
+        var httpDelete = method.GetCustomAttribute<HttpDeleteAttribute>();
+        var parameter = Assert.Single(method.GetParameters());
+
+        // Assert
+        Assert.Equal("serenity-choice/{contactId:int}/reset", httpDelete!.Template);
+        Assert.NotNull(parameter.GetCustomAttribute<FromRouteAttribute>());
+        var range = parameter.GetCustomAttribute<RangeAttribute>();
+        Assert.NotNull(range);
+        Assert.Equal(1, range!.Minimum);
+        Assert.Equal(int.MaxValue, range.Maximum);
+        Assert.Null(parameter.GetCustomAttribute<FromBodyAttribute>());
+    }
+
+    /// <summary>
+    /// Verifies that service failures are left to the API exception pipeline.
+    /// </summary>
+    /// <returns>A task representing the asynchronous test.</returns>
+    [Fact]
+    public async Task ResetSerenityChoiceAsync_WhenServiceFails_ShouldPropagateFailure()
+    {
+        // Arrange
+        var expectedException = new InvalidOperationException("Service failure");
+        _serenityServiceMock
+            .Setup(service => service.ResetSerenityChoiceAsync(CurrentUserId))
+            .ThrowsAsync(expectedException);
+        var controller = new SerenityController(_serenityServiceMock.Object);
+
+        // Act
+        var action = () => controller.ResetSerenityChoiceAsync(CurrentUserId);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(action);
+        Assert.Same(expectedException, exception);
+    }
+
+    #endregion
 }

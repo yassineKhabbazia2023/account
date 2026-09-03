@@ -79,6 +79,7 @@ public class SerenityRepository : ISerenityRepository
     // l'appelant, un rejeu re-exécuterait AddAsync et EF Core lèverait « another instance with the
     // same key value is already being tracked » au lieu du 409. DelegationRequestRepository, la
     // slice la plus proche, ne retente pas non plus ses écritures.
+
     public async Task CreateSerenityChoiceAsync(int contactId, bool isAccepted)
     {
         var alreadyExists = await _accountContext.SerenityChoiceEntity
@@ -112,5 +113,20 @@ public class SerenityRepository : ISerenityRepository
                 Errors.SerenityChoiceAlreadyExistsCode,
                 string.Format(Errors.SerenityChoiceAlreadyExistsMessage, contactId));
         }
+    }
+
+    /// <inheritdoc />
+    public async Task ResetSerenityChoiceAsync(int contactId)
+    {
+        var choice = await _accountContext.SerenityChoiceEntity
+            .SingleOrDefaultAsync(existingChoice => existingChoice.ContactId == contactId);
+
+        if (choice is null)
+        {
+            return;
+        }
+
+        _accountContext.SerenityChoiceEntity.Remove(choice);
+        await _accountContext.SaveChangesAsync();
     }
 }

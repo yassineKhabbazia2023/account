@@ -29,6 +29,8 @@ public class SerenityRepositoryTests
             .Options;
     }
 
+    #region Eligibility
+
     [Theory]
     // Entite eligible : code de routage B2B et aucune adresse electronique.
     [InlineData(AccountRoutingCodes.B2B, null, true, true)]
@@ -135,6 +137,10 @@ public class SerenityRepositoryTests
         result.CandidateAccountIds.Should().BeEmpty();
     }
 
+    #endregion
+
+    #region Create choice
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -168,6 +174,76 @@ public class SerenityRepositoryTests
         var exception = await act.Should().ThrowAsync<ConflictException>();
         exception.And.Code.Should().Be(Errors.SerenityChoiceAlreadyExistsCode);
     }
+
+    #endregion
+
+    #region Reset choice
+
+    /// <summary>
+    /// Verifies that reset deletes exactly the persisted Serenity row for the target contact.
+    /// </summary>
+    /// <returns>A task representing the asynchronous test.</returns>
+    [Fact]
+    public async Task ResetSerenityChoiceAsync_WhenChoiceExists_ShouldDeleteOnlyTargetChoice()
+    {
+        // Arrange
+        const int otherContactId = 778;
+        using var context = new TestAccountContext(_dbContextOptions);
+        context.SerenityChoiceEntity.AddRange(
+            new SerenityChoiceEntity { ContactId = ContactId, IsAccepted = true, ChoiceDate = DateTime.UtcNow },
+            new SerenityChoiceEntity { ContactId = otherContactId, IsAccepted = false, ChoiceDate = DateTime.UtcNow });
+        await context.SaveChangesAsync();
+        var repository = new SerenityRepository(context);
+
+        // Act
+        await repository.ResetSerenityChoiceAsync(ContactId);
+
+        // Assert
+        context.SerenityChoiceEntity.Should().NotContain(choice => choice.ContactId == ContactId);
+        var otherChoice = await context.SerenityChoiceEntity.SingleAsync(choice => choice.ContactId == otherContactId);
+        otherChoice.IsAccepted.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Verifies that resetting an absent or already-reset choice succeeds without creating state.
+    /// </summary>
+    /// <returns>A task representing the asynchronous test.</returns>
+    [Fact]
+    public async Task ResetSerenityChoiceAsync_WhenChoiceDoesNotExist_ShouldBeIdempotent()
+    {
+        // Arrange
+        using var context = new TestAccountContext(_dbContextOptions);
+        var repository = new SerenityRepository(context);
+
+        // Act
+        await repository.ResetSerenityChoiceAsync(ContactId);
+        await repository.ResetSerenityChoiceAsync(ContactId);
+
+        // Assert
+        context.SerenityChoiceEntity.Should().BeEmpty();
+        context.ChangeTracker.HasChanges().Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Verifies that repository failures are not mistaken for a successful idempotent reset.
+    /// </summary>
+    /// <returns>A task representing the asynchronous test.</returns>
+    [Fact]
+    public async Task ResetSerenityChoiceAsync_WhenRepositoryContextFails_ShouldPropagateFailure()
+    {
+        // Arrange
+        var context = new TestAccountContext(_dbContextOptions);
+        var repository = new SerenityRepository(context);
+        await context.DisposeAsync();
+
+        // Act
+        var action = () => repository.ResetSerenityChoiceAsync(ContactId);
+
+        // Assert
+        await action.Should().ThrowAsync<ObjectDisposedException>();
+    }
+
+    #endregion
 
     private static AccountEntity BuildAccount(
         TestAccountContext context,
