@@ -37,4 +37,6 @@ public interface IDelegationRequestRepository
     Task AcceptSiblingRequestsAsync(int requesterId, int accountId, DateTime respondedAt);
 
     Task<bool> AreAllSiblingRequestsRefusedAsync(int requesterId, int accountId);
+
+    Task<List<DelegationRequest>> GetRefusedSiblingRequestsAsync(int requesterId, int accountId);
 }

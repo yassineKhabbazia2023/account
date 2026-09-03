@@ -180,6 +180,19 @@ public class DelegationRequestRepository : IDelegationRequestRepository
         return await siblingRequests.AnyAsync() && await siblingRequests.AllAsync(dr => dr.Status == DelegationStatusValues.Refused);
     }
 
+    public async Task<List<DelegationRequest>> GetRefusedSiblingRequestsAsync(int requesterId, int accountId)
+    {
+        var entities = await _context.DelegationRequestEntity
+            .AsNoTracking()
+            .Where(dr => dr.RequesterId == requesterId
+                         && dr.AccountId == accountId
+                         && dr.Status == DelegationStatusValues.Refused)
+            .Include(dr => dr.Account)
+            .ToListAsync();
+
+        return entities.Select(dr => dr.ToDelegationRequest()).ToList();
+    }
+
     private async Task UpdateRequestsAsync(int[] delegationRequestIds, string status, DateTime respondedAt)
     {
         await _context.DelegationRequestEntity

@@ -9,4 +9,6 @@ namespace Pulse.Account.Core.Interfaces;
 public interface IEmailService
 {
     Task SendDelegationRequestEmailsAsync(IEnumerable<int> recipientIds, Contact requestor, AccountDetail account);
+
+    Task SendDelegationRequestRefusedEmailAsync(Contact requester, AccountDetail account, IEnumerable<int> refuserIds);
 }

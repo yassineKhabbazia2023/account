@@ -49,6 +49,37 @@ public class EmailService(INotificationManager notificationManager, IOptions<Ema
         }
     }
 
+    public async Task SendDelegationRequestRefusedEmailAsync(Contact requester, AccountDetail account, IEnumerable<int> refuserIds)
+    {
+        if (!refuserIds.Any())
+        {
+            return;
+        }
+
+        var validators = new List<Dictionary<string, object>>();
+        foreach (var refuserId in refuserIds)
+        {
+            var refuser = await _contactRepository.GetContactByIdAsync(refuserId);
+            validators.Add(new Dictionary<string, object>
+            {
+                { "validatorName", BuildUserName(refuser.FirstName, refuser.LastName) },
+                { "validatorEmail", refuser.Email },
+            });
+        }
+
+        var variables = new Dictionary<string, object>
+        {
+            { "userName", BuildUserName(requester.FirstName, requester.LastName) },
+            { "validators", validators },
+            { "legalName", account.Legal.LegalName },
+            { "accountNumber", account.AccountNumber },
+        };
+
+        var request = BuildEmailRequest(requester.Email, _options.DelegationRequestRefusedEmailTemplate, variables);
+
+        await PublishEmailAsync(request);
+    }
+
     private Dictionary<string, object> BuildRequestVariables(RequestEmailContext context)
     {
         var userName = BuildUserName(context.UserFirstName, context.UserLastName);

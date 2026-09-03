@@ -61,6 +61,30 @@ public class DelegationRequestEventPublisherTests
         publisherMock.Verify(p => p.PublishAsync(It.IsAny<BaseEvent<DelegationRequestValidatedEventData>>(), null!, null), Times.Never);
     }
 
+
+    [Fact]
+    public async Task PublishDelegationRequestRefusedEventAsync_ShouldPublishEvent()
+    {
+        // Arrange
+        var publisherMock = new Mock<IEventPublisher>();
+        var delegationRequestEventPublisher = new DelegationRequestEventPublisher(publisherMock.Object);
+        BaseEvent<DelegationRequestRefusedEventData>? publishedEvent = null;
+        publisherMock
+            .Setup(p => p.PublishAsync(It.IsAny<BaseEvent<DelegationRequestRefusedEventData>>(), null!, null))
+            .Callback<BaseEvent<DelegationRequestRefusedEventData>, string, string>((@event, _, _) => publishedEvent = @event);
+
+        // Act
+        await delegationRequestEventPublisher.PublishDelegationRequestRefusedEventAsync(12, 5, 100, "REGULAR");
+
+        // Assert
+        publisherMock.Verify(p => p.PublishAsync(It.IsAny<BaseEvent<DelegationRequestRefusedEventData>>(), null!, null), Times.Once);
+        Assert.NotNull(publishedEvent);
+        Assert.Equal("REGULAR", publishedEvent.AccountType);
+        Assert.Equal(100, publishedEvent.Data.AccountId);
+        Assert.Equal(5, publishedEvent.Data.RequesterContactId);
+        Assert.Equal(12, publishedEvent.Data.RefuserContactId);
+    }
+
     [Fact]
     public async Task PublishDelegationRequestCreatedEventAsync_Should_PublishEventWithAccountData()
     {

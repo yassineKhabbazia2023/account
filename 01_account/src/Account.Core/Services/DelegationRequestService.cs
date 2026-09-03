@@ -2,6 +2,7 @@
 // Copyright (c) Pulse. All rights reserved.
 // </copyright>
 
+using Microsoft.Extensions.Logging;
 using Pulse.Account.Core.Constants;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
@@ -19,7 +20,8 @@ public class DelegationRequestService(IDelegationRequestRepository delegationReq
     IEmailService emailService,
     IContactRepository contactRepository,
     IAccountRepository accountRepository,
-    IDelegationRequestEventPublisher delegationRequestEventPublisher) : IDelegationRequestService
+    IDelegationRequestEventPublisher delegationRequestEventPublisher,
+    ILogger<DelegationRequestService> logger) : IDelegationRequestService
 {
     private static readonly string[] DefaultStatuses = { DelegationStatusValues.Pending };
 
@@ -29,6 +31,7 @@ public class DelegationRequestService(IDelegationRequestRepository delegationReq
     private readonly IContactRepository _contactRepository = contactRepository;
     private readonly IAccountRepository _accountRepository = accountRepository;
     private readonly IDelegationRequestEventPublisher _delegationRequestEventPublisher = delegationRequestEventPublisher;
+    private readonly ILogger<DelegationRequestService> _logger = logger;
 
     public async Task<CreateDelegationRequestsResponse> CreateDelegationRequestsAsync(int contactId, CreateDelegationRequestsRequest request)
     {
@@ -269,6 +272,7 @@ public class DelegationRequestService(IDelegationRequestRepository delegationReq
             if (await _delegationRequestRepository.AreAllSiblingRequestsRefusedAsync(requesterId, accountId))
             {
                 allRefusedRequesterIds.Add(requesterId);
+                await NotifyRequesterOfRefusalAsync(currentUserId, requesterId, accountId);
             }
         }
 
@@ -278,6 +282,29 @@ public class DelegationRequestService(IDelegationRequestRepository delegationReq
             Errors = errors,
             AllRefusedRequesterIds = allRefusedRequesterIds.Distinct().ToArray()
         };
+    }
+
+    private async Task NotifyRequesterOfRefusalAsync(int refuserContactId, int requesterId, int accountId)
+    {
+        try
+        {
+            var refusedRequests = await _delegationRequestRepository.GetRefusedSiblingRequestsAsync(requesterId, accountId);
+            if (refusedRequests.Count == 0)
+            {
+                return;
+            }
+
+            var refuserIds = refusedRequests.Select(dr => dr.RecipientId).Distinct().ToArray();
+            var requester = await _contactRepository.GetContactByIdAsync(requesterId);
+            var account = await _accountRepository.GetAccountAsync(accountId);
+
+            await _emailService.SendDelegationRequestRefusedEmailAsync(requester, account, refuserIds);
+            await _delegationRequestEventPublisher.PublishDelegationRequestRefusedEventAsync(refuserContactId, requesterId, accountId, account.AccountType);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to notify requester {RequesterId} of the refused delegation request on account {AccountId}", requesterId, accountId);
+        }
     }
 
     private async Task<bool> HasAccessToAccountAsync(int contactId, int accountId)

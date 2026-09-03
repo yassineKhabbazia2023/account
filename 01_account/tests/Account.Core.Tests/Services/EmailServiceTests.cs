@@ -27,6 +27,7 @@ public class EmailServiceTests
         _options = new EmailOptions
         {
             DelegationRequestEmailTemplate = "delegation-request-template",
+            DelegationRequestRefusedEmailTemplate = "delegation-request-refused-template",
             SenderEmail = "noreply@pulse.test",
             ServiceBusTopic = "email-topic",
             WalletBaseUrl = "https://wallet.pulse.test"
@@ -101,5 +102,64 @@ public class EmailServiceTests
         _mockNotificationManager.Verify(
             n => n.PublishAsync(It.IsAny<BaseEvent<EmailRequest>>(), It.IsAny<string>()),
             Times.Never);
+    }
+
+
+    [Fact]
+    public async Task SendDelegationRequestRefusedEmailAsync_ShouldBuildEmailRequestFromRequesterAccountAndRefusers()
+    {
+        var publishedRequests = new List<EmailRequest>();
+        _mockNotificationManager
+            .Setup(n => n.PublishAsync(It.IsAny<BaseEvent<EmailRequest>>(), It.IsAny<string>()))
+            .Callback<BaseEvent<EmailRequest>, string>((emailEvent, _) => publishedRequests.Add(emailEvent.Data))
+            .Returns(Task.CompletedTask);
+
+        await _service.SendDelegationRequestRefusedEmailAsync(CreateRequester(), CreateAccount(), new[] { 2, 3 });
+
+        publishedRequests.Should().ContainSingle();
+        var publishedRequest = publishedRequests[0];
+        publishedRequest.From.Should().Be(_options.SenderEmail);
+        publishedRequest.To.Should().ContainSingle().Which.Should().Be("contact1@pulse.test");
+        publishedRequest.TemplateName.Should().Be(_options.DelegationRequestRefusedEmailTemplate);
+
+        var variables = publishedRequest.Variables;
+        variables["userName"].Should().Be("First1 Last1");
+        variables["legalName"].Should().Be("Legal100");
+        variables["accountNumber"].Should().Be("ACC100");
+        variables["validators"].Should().BeEquivalentTo(new[]
+        {
+            new Dictionary<string, object> { { "validatorName", "First2 Last2" }, { "validatorEmail", "contact2@pulse.test" } },
+            new Dictionary<string, object> { { "validatorName", "First3 Last3" }, { "validatorEmail", "contact3@pulse.test" } }
+        });
+    }
+
+    [Fact]
+    public async Task SendDelegationRequestRefusedEmailAsync_ShouldPublishOnConfiguredTopic()
+    {
+        await _service.SendDelegationRequestRefusedEmailAsync(CreateRequester(), CreateAccount(), new[] { 2 });
+
+        _mockNotificationManager.Verify(
+            n => n.PublishAsync(It.IsAny<BaseEvent<EmailRequest>>(), _options.ServiceBusTopic),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SendDelegationRequestRefusedEmailAsync_WhenNoRefuser_ShouldNotPublish()
+    {
+        await _service.SendDelegationRequestRefusedEmailAsync(CreateRequester(), CreateAccount(), new List<int>());
+
+        _mockNotificationManager.Verify(
+            n => n.PublishAsync(It.IsAny<BaseEvent<EmailRequest>>(), It.IsAny<string>()),
+            Times.Never);
+    }
+
+    private static Contact CreateRequester()
+    {
+        return new Contact { ContactId = 1, FirstName = "first1", LastName = "last1", Email = "contact1@pulse.test" };
+    }
+
+    private static AccountDetail CreateAccount()
+    {
+        return new AccountDetail { AccountId = 100, AccountNumber = "ACC100", Legal = new Legal { LegalName = "Legal100" }, Phone = new List<Phone>() };
     }
 }

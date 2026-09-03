@@ -457,6 +457,45 @@ public class DelegationRequestRepositoryTests
     }
 
     [Fact]
+    public async Task GetRefusedSiblingRequestsAsync_ShouldReturnOnlyRefusedRequestsOfRequesterAndAccountWithAccount()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var requester = CreateContactEntity(1);
+        var account = CreateAccountEntity(100);
+        var otherAccount = CreateAccountEntity(200);
+
+        var refused1 = CreateDelegationRequestEntity(1, requester.ContactId, 2, account.AccountId, "refused");
+        var refused2 = CreateDelegationRequestEntity(2, requester.ContactId, 3, account.AccountId, "refused");
+        var pending = CreateDelegationRequestEntity(3, requester.ContactId, 4, account.AccountId, "pending");
+        var otherAccountRefused = CreateDelegationRequestEntity(4, requester.ContactId, 5, otherAccount.AccountId, "refused");
+        var otherRequesterRefused = CreateDelegationRequestEntity(5, 9, 6, account.AccountId, "refused");
+
+        context.ContactEntity.Add(requester);
+        context.AccountEntity.AddRange(account, otherAccount);
+        context.DelegationRequestEntity.AddRange(refused1, refused2, pending, otherAccountRefused, otherRequesterRefused);
+        context.SaveChanges();
+
+        var repository = new DelegationRequestRepository(context);
+
+        var result = await repository.GetRefusedSiblingRequestsAsync(requester.ContactId, account.AccountId);
+
+        result.Should().HaveCount(2);
+        result.Select(r => r.RecipientId).Should().BeEquivalentTo(new[] { 2, 3 });
+        result.Should().OnlyContain(r => r.Account != null && r.Account.AccountNumber == "ACC100");
+    }
+
+    [Fact]
+    public async Task GetRefusedSiblingRequestsAsync_WhenNoRefusedRequest_ShouldReturnEmptyList()
+    {
+        using var context = new AccountContext(_dbContextOptions);
+        var repository = new DelegationRequestRepository(context);
+
+        var result = await repository.GetRefusedSiblingRequestsAsync(999, 999);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task AcceptRequestsAsync_ShouldAcceptMultipleRequestsByIds()
     {
         using var context = CreateSqliteContext();

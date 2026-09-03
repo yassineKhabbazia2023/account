@@ -3,6 +3,7 @@
 // </copyright>
 
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Pulse.Account.Core.Enum;
 using Pulse.Account.Core.Exceptions;
@@ -23,6 +24,7 @@ public class DelegationRequestServiceTests
     private readonly Mock<IContactRepository> _mockContactRepository;
     private readonly Mock<IAccountRepository> _mockAccountRepository;
     private readonly Mock<IDelegationRequestEventPublisher> _mockDelegationRequestEventPublisher;
+    private readonly Mock<ILogger<DelegationRequestService>> _mockLogger;
     private readonly DelegationRequestService _service;
 
     public DelegationRequestServiceTests()
@@ -33,6 +35,7 @@ public class DelegationRequestServiceTests
         _mockContactRepository = new Mock<IContactRepository>();
         _mockAccountRepository = new Mock<IAccountRepository>();
         _mockDelegationRequestEventPublisher = new Mock<IDelegationRequestEventPublisher>();
+        _mockLogger = new Mock<ILogger<DelegationRequestService>>();
 
         _mockContactRepository
             .Setup(r => r.GetContactByIdAsync(It.IsAny<int>()))
@@ -61,7 +64,8 @@ public class DelegationRequestServiceTests
             _mockEmailService.Object,
             _mockContactRepository.Object,
             _mockAccountRepository.Object,
-            _mockDelegationRequestEventPublisher.Object);
+            _mockDelegationRequestEventPublisher.Object,
+            _mockLogger.Object);
     }
 
     [Fact]
@@ -1053,6 +1057,178 @@ public class DelegationRequestServiceTests
 
         await act.Should().ThrowAsync<BadRequestException>()
             .Where(ex => ex.Code == Errors.DelegationRequestIdsEmptyCode);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenAllSiblingsRefused_ShouldReturnRequesterInAllRefusedRequesterIds()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        SetupRefuseScenario(currentUserId, request, allSiblingsRefused: true);
+
+        var result = await _service.RefuseRequestsAsync(currentUserId, request);
+
+        result.AllRefusedRequesterIds.Should().ContainSingle().Which.Should().Be(5);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenAllSiblingsRefused_ShouldSendRefusedEmailToRequesterWithAllRefusers()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        SetupRefuseScenario(currentUserId, request, allSiblingsRefused: true);
+
+        await _service.RefuseRequestsAsync(currentUserId, request);
+
+        _mockEmailService.Verify(
+            e => e.SendDelegationRequestRefusedEmailAsync(It.Is<Contact>(c => c.ContactId == 5), It.Is<AccountDetail>(a => a.AccountId == 100), It.Is<IEnumerable<int>>(ids => ids.SequenceEqual(new[] { 10, 11 }))),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenAllSiblingsRefused_ShouldPublishRefusedEvent()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        SetupRefuseScenario(currentUserId, request, allSiblingsRefused: true);
+
+        await _service.RefuseRequestsAsync(currentUserId, request);
+
+        _mockDelegationRequestEventPublisher.Verify(
+            p => p.PublishDelegationRequestRefusedEventAsync(currentUserId, 5, 100, "REGULAR"),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenSiblingsStillPending_ShouldNotNotifyRequester()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        SetupRefuseScenario(currentUserId, request, allSiblingsRefused: false);
+
+        var result = await _service.RefuseRequestsAsync(currentUserId, request);
+
+        result.AllRefusedRequesterIds.Should().BeEmpty();
+        _mockEmailService.Verify(e => e.SendDelegationRequestRefusedEmailAsync(It.IsAny<Contact>(), It.IsAny<AccountDetail>(), It.IsAny<IEnumerable<int>>()), Times.Never);
+        _mockDelegationRequestEventPublisher.Verify(p => p.PublishDelegationRequestRefusedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenNotificationFails_ShouldStillReturnProcessedIdsAndLogError()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        SetupRefuseScenario(currentUserId, request, allSiblingsRefused: true);
+        _mockEmailService
+            .Setup(e => e.SendDelegationRequestRefusedEmailAsync(It.IsAny<Contact>(), It.IsAny<AccountDetail>(), It.IsAny<IEnumerable<int>>()))
+            .ThrowsAsync(new System.InvalidOperationException("bus down"));
+
+        var result = await _service.RefuseRequestsAsync(currentUserId, request);
+
+        result.ProcessedIds.Should().ContainSingle().Which.Should().Be(1);
+        result.AllRefusedRequesterIds.Should().ContainSingle().Which.Should().Be(5);
+        _mockLogger.Verify(
+            l => l.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<System.InvalidOperationException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenNoRefusedSiblingFound_ShouldNotNotifyRequester()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        SetupRefuseScenario(currentUserId, request, allSiblingsRefused: true);
+        _mockRepository.Setup(r => r.GetRefusedSiblingRequestsAsync(5, 100)).ReturnsAsync(new List<DelegationRequest>());
+
+        await _service.RefuseRequestsAsync(currentUserId, request);
+
+        _mockEmailService.Verify(e => e.SendDelegationRequestRefusedEmailAsync(It.IsAny<Contact>(), It.IsAny<AccountDetail>(), It.IsAny<IEnumerable<int>>()), Times.Never);
+        _mockDelegationRequestEventPublisher.Verify(p => p.PublishDelegationRequestRefusedEventAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenMultipleDistinctPairsAllRefused_ShouldNotifyEachRequester()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 1, 2 } };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" },
+                new DelegationRequest { DelegationRequestId = 2, RecipientId = 10, RequesterId = 7, AccountId = 200, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.RefuseRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AreAllSiblingRequestsRefusedAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(true);
+        _mockRepository.Setup(r => r.GetRefusedSiblingRequestsAsync(5, 100)).ReturnsAsync(new List<DelegationRequest>
+        {
+            new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "refused" }
+        });
+        _mockRepository.Setup(r => r.GetRefusedSiblingRequestsAsync(7, 200)).ReturnsAsync(new List<DelegationRequest>
+        {
+            new DelegationRequest { DelegationRequestId = 2, RecipientId = 10, RequesterId = 7, AccountId = 200, Status = "refused" }
+        });
+
+        var result = await _service.RefuseRequestsAsync(currentUserId, request);
+
+        result.AllRefusedRequesterIds.Should().BeEquivalentTo(new[] { 5, 7 });
+        _mockEmailService.Verify(e => e.SendDelegationRequestRefusedEmailAsync(It.Is<Contact>(c => c.ContactId == 5), It.Is<AccountDetail>(a => a.AccountId == 100), It.IsAny<IEnumerable<int>>()), Times.Once);
+        _mockEmailService.Verify(e => e.SendDelegationRequestRefusedEmailAsync(It.Is<Contact>(c => c.ContactId == 7), It.Is<AccountDetail>(a => a.AccountId == 200), It.IsAny<IEnumerable<int>>()), Times.Once);
+        _mockDelegationRequestEventPublisher.Verify(p => p.PublishDelegationRequestRefusedEventAsync(currentUserId, 5, 100, null), Times.Once);
+        _mockDelegationRequestEventPublisher.Verify(p => p.PublishDelegationRequestRefusedEventAsync(currentUserId, 7, 200, null), Times.Once);
+    }
+
+    [Fact]
+    public async Task RefuseRequestsAsync_WhenSameRecipientRefusedSeveralTimes_ShouldSendRefuserOnce()
+    {
+        var currentUserId = 10;
+        var request = new RefuseDelegationRequestsRequest { DelegationRequestIds = new[] { 1 } };
+
+        SetupRefuseScenario(currentUserId, request, allSiblingsRefused: true);
+        _mockRepository.Setup(r => r.GetRefusedSiblingRequestsAsync(5, 100)).ReturnsAsync(new List<DelegationRequest>
+        {
+            new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "refused" },
+            new DelegationRequest { DelegationRequestId = 9, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "refused" }
+        });
+
+        await _service.RefuseRequestsAsync(currentUserId, request);
+
+        _mockEmailService.Verify(
+            e => e.SendDelegationRequestRefusedEmailAsync(It.Is<Contact>(c => c.ContactId == 5), It.Is<AccountDetail>(a => a.AccountId == 100), It.Is<IEnumerable<int>>(ids => ids.SequenceEqual(new[] { 10 }))),
+            Times.Once);
+    }
+
+    private void SetupRefuseScenario(int currentUserId, RefuseDelegationRequestsRequest request, bool allSiblingsRefused)
+    {
+        var account = new Core.Models.Account { AccountId = 100, AccountNumber = "ACC100", AccountType = "REGULAR" };
+        var refusedSiblingRequests = new List<DelegationRequest>
+        {
+            new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "refused", Account = account },
+            new DelegationRequest { DelegationRequestId = 2, RecipientId = 11, RequesterId = 5, AccountId = 100, Status = "refused", Account = account }
+        };
+
+        _mockRepository.Setup(r => r.GetPendingRequestsByIdsAndRecipientAsync(request.DelegationRequestIds, currentUserId))
+            .ReturnsAsync(new List<DelegationRequest>
+            {
+                new DelegationRequest { DelegationRequestId = 1, RecipientId = 10, RequesterId = 5, AccountId = 100, Status = "pending" }
+            });
+        _mockRepository.Setup(r => r.RefuseRequestsAsync(It.IsAny<int[]>(), It.IsAny<DateTime>())).Returns(Task.CompletedTask);
+        _mockRepository.Setup(r => r.AreAllSiblingRequestsRefusedAsync(5, 100)).ReturnsAsync(allSiblingsRefused);
+        _mockRepository.Setup(r => r.GetRefusedSiblingRequestsAsync(5, 100)).ReturnsAsync(refusedSiblingRequests);
+        _mockAccountRepository
+            .Setup(r => r.GetAccountAsync(100))
+            .ReturnsAsync(new AccountDetail { AccountId = 100, AccountNumber = "ACC100", AccountType = "REGULAR", Legal = new Legal { LegalName = "Legal100" }, Phone = new List<Phone>() });
     }
 
     [Fact]

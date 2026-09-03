@@ -14,6 +14,9 @@ public class EmailOptions
     public required string DelegationRequestEmailTemplate { get; set; }
 
     [Required]
+    public required string DelegationRequestRefusedEmailTemplate { get; set; }
+
+    [Required]
     public required string SenderEmail { get; set; }
 
     [Required]

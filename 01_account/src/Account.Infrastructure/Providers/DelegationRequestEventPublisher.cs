@@ -45,4 +45,16 @@ public class DelegationRequestEventPublisher(IEventPublisher eventPublisher) : I
 
         await _eventPublisher.PublishAsync(new DelegationRequestValidatedEvent(eventData) { AccountType = firstRequest.Account?.AccountType });
     }
+
+    public async Task PublishDelegationRequestRefusedEventAsync(int refuserContactId, int requesterContactId, int accountId, string? accountType)
+    {
+        var eventData = new DelegationRequestRefusedEventData
+        {
+            AccountId = accountId,
+            RequesterContactId = requesterContactId,
+            RefuserContactId = refuserContactId,
+        };
+
+        await _eventPublisher.PublishAsync(new DelegationRequestRefusedEvent(eventData) { AccountType = accountType });
+    }
 }
