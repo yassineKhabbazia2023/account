@@ -156,6 +156,26 @@ public class AccountController(IAccountService accountService) : ControllerBase
     }
 
     /// <summary>
+    /// Resets the dematerialization email address of an account.
+    /// </summary>
+    /// <param name="accountId">The account identifier.</param>
+    /// <returns>204 when the email is reset or already empty; 404 when the account does not exist.</returns>
+    [HttpDelete("{accountId:int:min(1)}/demat-email")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ResetDematEmailAsync([FromRoute] int accountId)
+    {
+        var result = await accountService.ResetDematEmailAsync(accountId);
+
+        if (result.Status == ResultStatus.NotFound)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>
     /// Mettre à jour partiellement les informations d'une entité morale.
     /// </summary>
     /// <param name="accountId">ID de l'entité morale.</param>

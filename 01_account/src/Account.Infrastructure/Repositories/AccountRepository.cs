@@ -116,6 +116,16 @@ public class AccountRepository(AccountContext accountContext) : IAccountReposito
         });
     }
 
+    /// <inheritdoc/>
+    public async Task<bool> ResetDematEmailAsync(int accountId)
+    {
+        var affectedRows = await _accountContext.AccountEntity
+            .Where(account => account.AccountId == accountId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(account => account.Email, (string)null!));
+
+        return affectedRows > 0;
+    }
+
     public async Task<Paging<AccountModel>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination, bool sortByLastActivity = true)
     {
         var baseQuery = _accountContext.AccountEntity.AsNoTracking()

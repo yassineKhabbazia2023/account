@@ -446,7 +446,7 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
     {
         // Act
         var parameters = typeof(AccountController)
-            .GetMethod(nameof(AccountController.GetAccountContactWidgetContactsAsync)) !
+            .GetMethod(nameof(AccountController.GetAccountContactWidgetContactsAsync))!
             .GetParameters();
 
         // Assert
@@ -901,4 +901,74 @@ public class AccountControllerTests : IClassFixture<WebApplicationFactory<Startu
         Assert.IsType<NotFoundResult>(result);
         mockService.Verify(s => s.CloseDematModalAsync(accountId, currentUser), Times.Once);
     }
+
+    #region Reset demat email
+
+    /// <summary>
+    /// Verifies that the account identifier is the endpoint's only input and is bound from the URL.
+    /// </summary>
+    [Fact]
+    public void ResetDematEmailAsync_RouteBindsAccountIdFromUrlWithoutRequestBody()
+    {
+        var method = typeof(AccountController).GetMethod(nameof(AccountController.ResetDematEmailAsync));
+
+        method.Should().NotBeNull();
+        var route = method!.GetCustomAttributes(typeof(HttpDeleteAttribute), false)
+            .Cast<HttpDeleteAttribute>()
+            .Single();
+        route.Template.Should().Be("{accountId:int:min(1)}/demat-email");
+        method.GetParameters().Should().ContainSingle();
+        method.GetParameters()[0].Name.Should().Be("accountId");
+        method.GetParameters()[0].GetCustomAttributes(typeof(FromRouteAttribute), false).Should().ContainSingle();
+        method.GetParameters()[0].GetCustomAttributes(typeof(FromBodyAttribute), false).Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Verifies that a successful reset returns no content.
+    /// </summary>
+    [Fact]
+    public async Task ResetDematEmailAsync_WhenAccountExists_ReturnsNoContent()
+    {
+        var mockService = new Mock<IAccountService>();
+        mockService.Setup(s => s.ResetDematEmailAsync(123)).ReturnsAsync(Result.Success());
+        var controller = new AccountController(mockService.Object);
+
+        var result = await controller.ResetDematEmailAsync(123);
+
+        Assert.IsType<NoContentResult>(result);
+        mockService.Verify(s => s.ResetDematEmailAsync(123), Times.Once);
+    }
+
+    /// <summary>
+    /// Verifies that a missing account returns not found.
+    /// </summary>
+    [Fact]
+    public async Task ResetDematEmailAsync_WhenAccountDoesNotExist_ReturnsNotFound()
+    {
+        var mockService = new Mock<IAccountService>();
+        mockService.Setup(s => s.ResetDematEmailAsync(123)).ReturnsAsync(Result.NotFound());
+        var controller = new AccountController(mockService.Object);
+
+        var result = await controller.ResetDematEmailAsync(123);
+
+        Assert.IsType<NotFoundResult>(result);
+        mockService.Verify(s => s.ResetDematEmailAsync(123), Times.Once);
+    }
+
+    /// <summary>
+    /// Verifies that unexpected service failures are propagated to the API exception pipeline.
+    /// </summary>
+    [Fact]
+    public async Task ResetDematEmailAsync_WhenServiceFails_ShouldPropagateFailure()
+    {
+        var mockService = new Mock<IAccountService>();
+        mockService.Setup(s => s.ResetDematEmailAsync(123)).ThrowsAsync(new System.InvalidOperationException("Service failure"));
+        var controller = new AccountController(mockService.Object);
+
+        var action = () => controller.ResetDematEmailAsync(123);
+
+        await action.Should().ThrowAsync<System.InvalidOperationException>().WithMessage("Service failure");
+    }
+
+    #endregion Reset demat email
 }

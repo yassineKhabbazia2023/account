@@ -4,6 +4,7 @@
 
 using AutoFixture;
 using FluentAssertions;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Newtonsoft.Json;
@@ -2844,7 +2845,7 @@ public class AccountRepositoryTests
         Assert.Equal(account.LegalName, result.LegalName);
         Assert.Equal(result.AccountType, result.AccountType);
         Assert.True(result.IsSignatory);
-    }   
+    }
 
     [Fact]
     public async Task GetAccountSummaryAsync_WithInactiveProspectAccount_ShouldThrowNotFoundException()
@@ -4770,4 +4771,145 @@ public class AccountRepositoryTests
     }
 
     #endregion Deterministic paging order
+
+    #region Reset demat email
+
+    /// <summary>
+    /// Verifies that only the target account's dematerialization email is cleared.
+    /// </summary>
+    [Fact]
+    public async Task ResetDematEmailAsync_WhenAccountExists_ShouldClearOnlyTargetEmailAsync()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var context = CreateDematSqliteContext();
+        var target = CreateDematAccount(901, "target@test.fr", "delivery@test.fr", "billing@test.fr");
+        var other = CreateDematAccount(902, "other@test.fr", "other-delivery@test.fr", "other-billing@test.fr");
+        context.AccountEntity.AddRange(target, other);
+        await context.SaveChangesAsync(cancellationToken);
+        context.ChangeTracker.Clear();
+        var repository = new AccountRepository(context);
+
+        var result = await repository.ResetDematEmailAsync(target.AccountId);
+
+        var persistedTarget = await context.AccountEntity.SingleAsync(account => account.AccountId == target.AccountId, cancellationToken);
+        var persistedOther = await context.AccountEntity.SingleAsync(account => account.AccountId == other.AccountId, cancellationToken);
+        result.Should().BeTrue();
+        persistedTarget.Email.Should().BeNull();
+        persistedTarget.DeliveryEmail.Should().Be("delivery@test.fr");
+        persistedTarget.BillingEmail.Should().Be("billing@test.fr");
+        persistedOther.Email.Should().Be("other@test.fr");
+    }
+
+    /// <summary>
+    /// Verifies that resetting an already empty email is idempotent.
+    /// </summary>
+    [Fact]
+    public async Task ResetDematEmailAsync_WhenEmailIsAlreadyNull_ShouldRemainSuccessfulAsync()
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var context = CreateDematSqliteContext();
+        var account = CreateDematAccount(901, null!, "delivery@test.fr", "billing@test.fr");
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync(cancellationToken);
+        context.ChangeTracker.Clear();
+        var repository = new AccountRepository(context);
+
+        var firstResult = await repository.ResetDematEmailAsync(account.AccountId);
+        var secondResult = await repository.ResetDematEmailAsync(account.AccountId);
+
+        firstResult.Should().BeTrue();
+        secondResult.Should().BeTrue();
+        var persistedAccount = await context.AccountEntity.SingleAsync(entity => entity.AccountId == account.AccountId, cancellationToken);
+        persistedAccount.Email.Should().BeNull();
+        persistedAccount.DeliveryEmail.Should().Be("delivery@test.fr");
+        persistedAccount.BillingEmail.Should().Be("billing@test.fr");
+    }
+
+    /// <summary>
+    /// Verifies that resetting an unknown account reports that it was not found.
+    /// </summary>
+    [Fact]
+    public async Task ResetDematEmailAsync_WhenAccountDoesNotExist_ShouldReturnFalseAsync()
+    {
+        using var context = CreateDematSqliteContext();
+        var repository = new AccountRepository(context);
+
+        var result = await repository.ResetDematEmailAsync(901);
+
+        result.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Verifies that accounts excluded by the standard Account query filters are not reset.
+    /// </summary>
+    /// <param name="isActive">Whether the account is active.</param>
+    /// <param name="accountType">The account type.</param>
+    [Theory]
+    [InlineData(false, "CLIENT")]
+    [InlineData(true, "PROSPECT")]
+    public async Task ResetDematEmailAsync_WhenAccountIsIneligible_ShouldReturnFalseAsync(bool isActive, string accountType)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var context = CreateDematSqliteContext();
+        var account = CreateDematAccount(901, "target@test.fr", "delivery@test.fr", "billing@test.fr");
+        account.IsActive = isActive;
+        account.AccountType = accountType;
+        context.AccountEntity.Add(account);
+        await context.SaveChangesAsync(cancellationToken);
+        context.ChangeTracker.Clear();
+        var repository = new AccountRepository(context);
+
+        var result = await repository.ResetDematEmailAsync(account.AccountId);
+
+        var persistedAccount = await context.AccountEntity.IgnoreQueryFilters()
+            .SingleAsync(entity => entity.AccountId == account.AccountId, cancellationToken);
+        result.Should().BeFalse();
+        persistedAccount.Email.Should().Be("target@test.fr");
+    }
+
+    /// <summary>
+    /// Creates a relational in-memory Account context that supports set-based updates.
+    /// </summary>
+    /// <returns>The initialized Account context.</returns>
+    private static AccountContext CreateDematSqliteContext()
+    {
+        var connection = new SqliteConnection("DataSource=:memory:");
+        connection.Open();
+        connection.CreateFunction("newid", () => Guid.NewGuid().ToString());
+        var options = new DbContextOptionsBuilder<AccountContext>()
+            .UseSqlite(connection)
+            .Options;
+        var context = new AccountContext(options);
+        context.Database.EnsureCreated();
+        context.Database.ExecuteSqlRaw("PRAGMA foreign_keys = OFF;");
+        return context;
+    }
+
+    /// <summary>
+    /// Creates an active client account for dematerialization email reset tests.
+    /// </summary>
+    /// <param name="accountId">The account identifier.</param>
+    /// <param name="email">The dematerialization email.</param>
+    /// <param name="deliveryEmail">The delivery email.</param>
+    /// <param name="billingEmail">The billing email.</param>
+    /// <returns>The test account entity.</returns>
+    private static AccountEntity CreateDematAccount(int accountId, string? email, string deliveryEmail, string billingEmail)
+    {
+        return new AccountEntity
+        {
+            AccountId = accountId,
+            AccountGlobalUniqueId = Guid.NewGuid(),
+            AccountNumber = $"ACC{accountId}",
+            LegalName = $"Account {accountId}",
+            AccountType = AccountType.CLIENT.ToString(),
+            Email = email!,
+            DeliveryEmail = deliveryEmail,
+            BillingEmail = billingEmail,
+            IsActive = true,
+            CreatedBy = "demat-reset-tests",
+            CreationDate = DateTime.UtcNow,
+        };
+    }
+
+    #endregion Reset demat email
 }

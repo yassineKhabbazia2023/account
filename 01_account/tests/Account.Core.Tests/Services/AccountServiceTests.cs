@@ -1429,5 +1429,71 @@ namespace Pulse.Account.Core.Tests.Services
             _ventyaRepository.Verify(v => v.GetAccountEmailAsync(123), Times.Once);
             _dematRepository.Verify(d => d.CloseDematModalAsync(123, 456), Times.Once);
         }
+
+        #region Reset demat email
+
+        /// <summary>
+        /// Verifies that invalid account identifiers are rejected without repository access.
+        /// </summary>
+        /// <param name="invalidAccountId">The invalid account identifier.</param>
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public async Task ResetDematEmailAsync_WithInvalidAccountId_ShouldReturnNotFound(int invalidAccountId)
+        {
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object, _ventyaRepository.Object, _dematRepository.Object);
+
+            var result = await accountService.ResetDematEmailAsync(invalidAccountId);
+
+            result.Status.Should().Be(ResultStatus.NotFound);
+            _accountRepository.Verify(r => r.ResetDematEmailAsync(It.IsAny<int>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Verifies that a missing account produces a not-found result.
+        /// </summary>
+        [Fact]
+        public async Task ResetDematEmailAsync_WhenAccountDoesNotExist_ShouldReturnNotFound()
+        {
+            _accountRepository.Setup(r => r.ResetDematEmailAsync(123)).ReturnsAsync(false);
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object, _ventyaRepository.Object, _dematRepository.Object);
+
+            var result = await accountService.ResetDematEmailAsync(123);
+
+            result.Status.Should().Be(ResultStatus.NotFound);
+            _accountRepository.Verify(r => r.ResetDematEmailAsync(123), Times.Once);
+        }
+
+        /// <summary>
+        /// Verifies that a persisted reset produces a successful result.
+        /// </summary>
+        [Fact]
+        public async Task ResetDematEmailAsync_WhenAccountExists_ShouldReturnSuccess()
+        {
+            _accountRepository.Setup(r => r.ResetDematEmailAsync(123)).ReturnsAsync(true);
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object, _ventyaRepository.Object, _dematRepository.Object);
+
+            var result = await accountService.ResetDematEmailAsync(123);
+
+            result.IsSuccess.Should().BeTrue();
+            _accountRepository.Verify(r => r.ResetDematEmailAsync(123), Times.Once);
+        }
+
+        /// <summary>
+        /// Verifies that unexpected repository failures are propagated.
+        /// </summary>
+        [Fact]
+        public async Task ResetDematEmailAsync_WhenRepositoryFails_ShouldPropagateFailure()
+        {
+            var expectedException = new System.InvalidOperationException("Database failure");
+            _accountRepository.Setup(r => r.ResetDematEmailAsync(123)).ThrowsAsync(expectedException);
+            var accountService = new AccountService(_accountRepository.Object, _contactRepository.Object, _accountEventPublisher.Object, _logger, _featureFlagService.Object, _roleRepository.Object, _ventyaRepository.Object, _dematRepository.Object);
+
+            var action = () => accountService.ResetDematEmailAsync(123);
+
+            await action.Should().ThrowAsync<System.InvalidOperationException>().WithMessage(expectedException.Message);
+        }
+
+        #endregion Reset demat email
     }
 }

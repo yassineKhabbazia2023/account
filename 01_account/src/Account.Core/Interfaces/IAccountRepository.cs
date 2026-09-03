@@ -12,6 +12,13 @@ namespace Pulse.Account.Core.Interfaces
     {
         Task<AccountDetail> CreateAccountAsync(string currentUser, CreateAccountRequest request);
 
+        /// <summary>
+        /// Clears the dematerialization email address of an account.
+        /// </summary>
+        /// <param name="accountId">The account identifier.</param>
+        /// <returns><c>true</c> when the account exists; otherwise, <c>false</c>.</returns>
+        Task<bool> ResetDematEmailAsync(int accountId);
+
         Task<Paging<Models.Account>> GetAccountsAsync(SearchAccountCriteria criteria, Pagination pagination, bool sortByLastActivity = true);
 
         Task<Paging<Models.Account>> GetAllAccountsAsync(string? accountNumber, Pagination pagination, SearchAccountCriteria criteria);

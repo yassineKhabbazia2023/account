@@ -144,6 +144,24 @@ public class AccountService(
         return Result.Success();
     }
 
+    /// <inheritdoc/>
+    public async Task<Result> ResetDematEmailAsync(int accountId)
+    {
+        if (accountId <= 0)
+        {
+            _logger.LogWarning("Invalid accountId '{AccountId}' provided for demat email reset", accountId);
+            return Result.NotFound();
+        }
+
+        if (!await _accountRepository.ResetDematEmailAsync(accountId))
+        {
+            _logger.LogWarning("Account with id '{AccountId}' not found for demat email reset", accountId);
+            return Result.NotFound();
+        }
+
+        return Result.Success();
+    }
+
     public async Task UpdateAccountAsync(int accountId, AccountDetail accountDetail, string? currentUserEmail = null)
     {
         var includeProspects = await _featureFlagService.IsEnabledAsync(FeatureFlagKeys.IncludeProspectsInContactsSearch, currentUserEmail);

@@ -38,6 +38,13 @@ namespace Pulse.Account.Core.Interfaces
         /// <returns>A <see cref="Result"/> indicating success, or <see cref="ResultStatus.NotFound"/> when the account does not exist.</returns>
         public Task<Result> CloseDematModalAsync(int accountId, int contactId);
 
+        /// <summary>
+        /// Resets the dematerialization email address of an account.
+        /// </summary>
+        /// <param name="accountId">The account identifier.</param>
+        /// <returns>A successful result when the email is reset, or <see cref="ResultStatus.NotFound"/> when the account does not exist.</returns>
+        public Task<Result> ResetDematEmailAsync(int accountId);
+
         public Task UpdateAccountAsync(int accountId, AccountDetail accountDetail, string? currentUserEmail = null);
 
         public Task<Paging<Contact>> GetContactsAccountAsync(int accountId, SearchContactsAccountCriteria criteria, Pagination? pagination, string? currentUserEmail = null);
