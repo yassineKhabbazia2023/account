@@ -92,6 +92,7 @@ public class DelegationRequestEventPublisherTests
         var publisherMock = new Mock<IEventPublisher>();
 
         var accountId = 1;
+        var requesterId = 5;
         var recipientIds = new[] { 2, 3 };
         var accountType = "CLIENT";
 
@@ -109,6 +110,7 @@ public class DelegationRequestEventPublisherTests
             .Callback<BaseEvent<DelegationRequestCreatedEventData>, string, string>((@event, _, _) =>
             {
                 Assert.Equal(accountId, @event.Data.AccountId);
+                Assert.Equal(requesterId, @event.Data.RequesterId);
                 Assert.Equal(recipientIds, @event.Data.RecipientIds);
                 Assert.Equal(accountType, @event.AccountType);
             })
@@ -118,7 +120,7 @@ public class DelegationRequestEventPublisherTests
         var eventPublisher = new DelegationRequestEventPublisher(publisherMock.Object);
 
         // Act
-        await eventPublisher.PublishDelegationRequestCreatedEventAsync(account, recipientIds);
+        await eventPublisher.PublishDelegationRequestCreatedEventAsync(account, requesterId, recipientIds);
 
         // Assert
         publisherMock.Verify(p => p.PublishAsync(It.IsAny<BaseEvent<DelegationRequestCreatedEventData>>(), null!, null), Times.Once);

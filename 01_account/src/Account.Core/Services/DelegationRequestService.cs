@@ -351,6 +351,6 @@ public class DelegationRequestService(IDelegationRequestRepository delegationReq
         var account = await _accountRepository.GetAccountAsync(accountId);
 
         await _emailService.SendDelegationRequestEmailsAsync(recipientIds, requestor, account);
-        await _delegationRequestEventPublisher.PublishDelegationRequestCreatedEventAsync(account, recipientIds);
+        await _delegationRequestEventPublisher.PublishDelegationRequestCreatedEventAsync(account, requestor.ContactId, recipientIds);
     }
 }

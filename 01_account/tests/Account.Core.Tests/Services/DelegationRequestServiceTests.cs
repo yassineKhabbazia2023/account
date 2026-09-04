@@ -1297,6 +1297,7 @@ public class DelegationRequestServiceTests
         _mockDelegationRequestEventPublisher.Verify(
             p => p.PublishDelegationRequestCreatedEventAsync(
                 It.Is<AccountDetail>(a => a.AccountId == request.AccountId),
+                contactId,
                 It.Is<IEnumerable<int>>(ids => ids.SequenceEqual(new[] { 2, 3 }))),
             Times.Once);
     }
@@ -1334,6 +1335,7 @@ public class DelegationRequestServiceTests
         _mockDelegationRequestEventPublisher.Verify(
             p => p.PublishDelegationRequestCreatedEventAsync(
                 It.Is<AccountDetail>(a => a.AccountId == request.AccountId),
+                contactId,
                 It.Is<IEnumerable<int>>(ids => ids.SequenceEqual(new[] { 2 }))),
             Times.Once);
     }
@@ -1361,7 +1363,7 @@ public class DelegationRequestServiceTests
         await act.Should().ThrowAsync<BadRequestException>()
             .Where(ex => ex.Code == Errors.RecipientDoesNotHaveAccessCode);
         _mockDelegationRequestEventPublisher.Verify(
-            p => p.PublishDelegationRequestCreatedEventAsync(It.IsAny<AccountDetail>(), It.IsAny<IEnumerable<int>>()),
+            p => p.PublishDelegationRequestCreatedEventAsync(It.IsAny<AccountDetail>(), It.IsAny<int>(), It.IsAny<IEnumerable<int>>()),
             Times.Never);
     }
 

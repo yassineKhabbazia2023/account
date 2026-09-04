@@ -14,11 +14,12 @@ public class DelegationRequestEventPublisher(IEventPublisher eventPublisher) : I
 {
     private readonly IEventPublisher _eventPublisher = eventPublisher;
 
-    public async Task PublishDelegationRequestCreatedEventAsync(AccountDetail account, IEnumerable<int> recipientIds)
+    public async Task PublishDelegationRequestCreatedEventAsync(AccountDetail account, int requesterId, IEnumerable<int> recipientIds)
     {
         var data = new DelegationRequestCreatedEventData
         {
             AccountId = account.AccountId,
+            RequesterId = requesterId,
             RecipientIds = recipientIds,
         };
 
